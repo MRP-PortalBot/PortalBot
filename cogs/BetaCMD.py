@@ -1,0 +1,188 @@
+import discord
+import flask
+import keep_alive
+import logging
+from discord.ext import commands
+import json 
+import datetime
+from datetime import timedelta, datetime
+import sys
+
+def solve(s):
+  a = s.split(' ')
+  for i in range(len(a)):
+    a[i]= a[i].capitalize()
+  return ' '.join(a)
+
+class BetaCMD(commands.Cog):
+  def __init__(self,bot):
+    self.bot = bot
+
+
+
+  @commands.command()
+  @commands.has_role("Realm OP")
+  async def block(self, ctx, user: discord.User):
+    DMchannel = await ctx.author.create_dm()
+    channel = ctx.message.channel
+    achannel = ctx.message.channel
+    author = ctx.message.author
+    guild = ctx.message.guild
+    mentions = [role.mention for role in ctx.message.author.roles if role.mentionable]
+    channel2 = str(channel.name)
+    channel = channel2.split('-')
+    if len(channel2) == 2: # #real-emoji
+      realm, emoji = channel
+    else: # #realm-name-emoji  
+      realm, emoji = channel[0], channel[-1]
+      realmName = realm.replace("-" , " ")
+      realmName1 = realmName.lower()
+    rolelist = []
+    print(realmName1)
+    a = solve(realmName1)
+    print(a)
+    realmName2 = str(a) + " OP"
+    print(realmName2)
+    check_role = discord.utils.get(ctx.guild.roles, name= realmName2)
+    if check_role not in ctx.author.roles:
+      return await ctx.send('You do not own this channel')
+
+    else:
+      await ctx.send("You own this channel!")
+      def check(m):
+        return m.channel == DMchannel and m.author != self.bot.user
+        
+      await DMchannel.send("Please fill out the questions in order to block the user!")
+
+      await DMchannel.send("User's Gamertag: (If you don't know, try using the >search command to see if they have any previous records!) ")
+      blocka1 = await self.bot.wait_for('message', check=check)
+
+      await DMchannel.send("Reason for block:")
+      blocka2 = await self.bot.wait_for('message', check=check)
+
+
+      submit_wait = True
+      while submit_wait:
+        await DMchannel.send('End of questions, send "**submit**". If you want to cancel, send "**break**".  ')
+        msg = await self.bot.wait_for('message', check=check)
+        if "submit" in msg.content.lower():
+          submit_wait = False
+          embed = discord.Embed(title = "New Player Block", description = str(user.name) + " was removed by " + author.name, color = 0xb10d9f)   
+          embed.add_field(name = "**Channel: **" + str(achannel) , value = "**User Blocked: **" + str(user.name) + "\n**User ID:** " + str(user.id) + "\n**Gamertag Given: **" + str(blocka1.content) + "\n**Reason: **" + str(blocka2.content))
+          embed.add_field(name = "Developer Stuff", value = "**Channel Split:** " + str(channel) + "\n**String Split Stages:**" + "\nStage 1: " + realmName + "\nStage 2: " + a + "\nStage 3: " + realmName2)
+          timestamp = datetime.now()
+          embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
+          perms = achannel.overwrites_for(user)
+          perms.read_messages = False
+          perms.send_messages = False
+          await achannel.set_permissions(user, overwrite=perms, reason="Block was requested by " + author.name)
+
+          modlog = self.bot.get_channel(778453455848996876)
+          #Savage Test server: 778616690741084174
+          #My Test Server: 778453455848996876
+          #MRP: 587858951522091018
+          await modlog.send(embed = embed)
+          BlockA = open(realmName1 + "_blocks.txt", "a")
+          BlockA.write(str(user.id) + " - " + blocka2.content + "\n")
+          BlockA.close()
+        elif "break" in msg.content.lower():
+          submit_wait = False
+          await DMchannel.send("Canceled Operation on " + user.name)
+    
+  @commands.command()
+  @commands.has_role("Realm OP")
+  async def unblock(self, ctx, user: discord.User):
+    DMchannel = await ctx.author.create_dm()
+    channel = ctx.message.channel
+    achannel = ctx.message.channel
+    author = ctx.message.author
+    guild = ctx.message.guild
+    mentions = [role.mention for role in ctx.message.author.roles if role.mentionable]
+    channel2 = str(channel.name)
+    channel = channel2.split('-')
+    if len(channel2) == 2: # #real-emoji
+      realm, emoji = channel
+    else: # #realm-name-emoji  
+      realm, emoji = channel[0], channel[-1]
+      realmName = realm.replace("-" , " ")
+      realmName1 = realmName.lower()
+    rolelist = []
+    print(realmName1)
+    a = solve(realmName1)
+    print(a)
+    realmName2 = str(a) + " OP"
+    print(realmName2)
+    check_role = discord.utils.get(ctx.guild.roles, name= realmName2)
+    if check_role not in ctx.author.roles:
+      return await ctx.send('You do not own this channel')
+
+    else:
+      #await ctx.send("You own this channel!")
+      embed = discord.Embed(title = "New Player Unblock", description = str(user.name) + " was removed by " + author.name, color = 0xb10d9f)   
+      embed.add_field(name = "**Channel: **" + str(achannel) , value = "**User Unblocked: **" + str(user.name) + "\n**User ID:** " + str(user.id))
+      embed.add_field(name = "Developer Stuff", value = "**Channel Split:** " + str(channel) + "\n**String Split Stages:**" + "\nStage 1: " + realmName + "\nStage 2: " + a + "\nStage 3: " + realmName2)
+      timestamp = datetime.now()
+      embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
+      perms = achannel.overwrites_for(user)
+      perms.read_messages = True
+      perms.send_messages = True
+      await achannel.set_permissions(user, overwrite=perms, reason="Unblock was requested by " + author.name)
+      modlog = self.bot.get_channel(778453455848996876)
+      
+      with open(realmName1 + "_blocks.txt", "r") as f:
+        lines = f.readlines()
+      with open(realmName1 + "_blocks.txt", "w") as f: 
+        for line in lines:
+          ID, reason = line.split(" - ")
+          if ID == str(user.id):
+            f.write("\n")
+          else:
+            f.write(line)
+          #Savage Test server: 778616690741084174
+          #My Test Server: 778453455848996876
+          #MRP: 587858951522091018
+      await modlog.send(embed = embed)
+
+  @commands.command()
+  @commands.has_role("Realm OP")
+  async def blocks(self, ctx):
+    channel = ctx.message.channel
+    achannel = ctx.message.channel
+    author = ctx.message.author
+    guild = ctx.message.guild
+    mentions = [role.mention for role in ctx.message.author.roles if role.mentionable]
+    channel2 = str(channel.name)
+    channel = channel2.split('-')
+    if len(channel2) == 2: # #real-emoji
+      realm, emoji = channel
+    else: # #realm-name-emoji  
+      realm, emoji = channel[0], channel[-1]
+      realmName = realm.replace("-" , " ")
+      realmName1 = realmName.lower()
+    rolelist = []
+    print(realmName1)
+    a = solve(realmName1)
+    print(a)
+    realmName2 = str(a) + " OP"
+    print(realmName2)
+    embed = discord.Embed(title = "Channel Blocks", description = "Requested by: " + author.mention)
+    try: 
+      x = open(realmName1 + "_blocks.txt", "r")
+      lines = x.readlines()
+      with open(realmName1 + "_blocks.txt", "w") as f: 
+        for line in lines:
+          ID, reason = line.split(" - ")
+          embed.add_field(name = "Results: ", value = "**Username:** <@" + ID + "> **Reason:** " + reason)
+      await ctx.send(embed = embed)
+
+    except IOError:
+      await ctx.send("Looks like I can't find your channel's database, it may be due to the fact that the `block` command hasn't been used in your channel!")
+
+
+
+    
+
+   
+
+def setup(bot):
+  bot.add_cog(BetaCMD(bot))

@@ -1,0 +1,246 @@
+import discord
+import flask
+import keep_alive
+import logging
+from discord.ext import commands
+import json 
+import time
+import datetime
+from datetime import timedelta, datetime
+import io
+import contextlib
+from discord import Webhook, AsyncWebhookAdapter
+import aiohttp
+
+rules = [":one: **No Harassment**, threats, hate speech, inappropriate language, posts or user names!", ":two: **No spamming** in chat or direct messages!", ":three: **No religious or political topics**, those don’t usually end well!", ":four: **Keep pinging to a minimum**, it is annoying!", ":five: **No sharing personal information**, it is personal for a reason so keep it to yourself!", ":six: **No self-promotion or advertisement outside the appropriate channels!** Want your own realm channel? **Apply for one!**", ":seven: **No realm or server is better than another!** It is **not** a competition.", ":eight: **Have fun** and happy crafting!", ":nine: **Discord Terms of Service apply!** You must be at least **13** years old."]
+
+
+class MiscCMD(commands.Cog):
+  def __init__(self,bot):
+    self.bot = bot
+
+  @commands.command()
+  @commands.has_role("Moderator")
+  async def DM(self, ctx, user: discord.User, *, message=None):
+    message = message or "This Message is sent via DM"
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used DM \n")
+    logfile.close()
+    await user.send(message)
+    await user.send("Sent by: " + author.name)
+  
+  @DM.error
+  async def DM_error(self,ctx, error):
+    if isinstance(error, commands.MissingRole):
+      await ctx.send("Uh oh, looks like you don't have the Moderator role!")
+
+  @commands.command()
+  async def ping(self, ctx):
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used PING \n")
+    logfile.close()
+    #await ctx.send(f'**__Latency is__ ** {round(client.latency * 1000)}ms')
+    pingembed = discord.Embed(title = "Pong! ⌛", color = 0xb10d9f, description="Current Discord API Latency")
+    pingembed.add_field(name = "Current Ping:" , value = f'{round(self.bot.latency * 1000)}ms')
+    await ctx.send(embed = pingembed)
+
+  @commands.command()
+  async def uptime(self,ctx):
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used UPTIME \n")
+    logfile.close()
+    await ctx.send("Really long time, lost track. ")
+
+
+  @commands.command()
+  @commands.has_permissions(manage_messages = True)
+  async def clear(self, ctx,amount=2):
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used CLEAR \n")
+    logfile.close()
+    await ctx.channel.purge(limit = amount)
+
+  @commands.command()
+  @commands.has_permissions(manage_channels = True)
+  async def say(self, ctx,*,reason):
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used SAY \n")
+    logfile.close()
+    await ctx.channel.purge(limit = 1)
+    await ctx.send(reason) 
+
+  @commands.command()
+  @commands.has_permissions(manage_channels = True)
+  async def embed(self, ctx, channel : discord.TextChannel, color : discord.Color , *, body):
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used EMBED \n")
+    logfile.close()
+    title , bottom = body.split(" | ")
+    embed = discord.Embed(title = title, description = bottom, color = color)
+    await channel.send(embed = embed)
+    
+
+  @commands.command()
+  @commands.has_role("Moderator")
+  async def nick(self, ctx, user :discord.Member, channel : discord.TextChannel):
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used NICK \n")
+    logfile.close()
+    name = user.display_name
+    channel = channel.name.split('-')
+    if len(channel) == 2: # #real-emoji
+      realm, emoji = channel
+    else: # #realm-name-emoji  
+      realm, emoji = channel[0], channel[-1]
+    await user.edit(nick=str(name) + " " + str(emoji))
+    await ctx.send("Changed nickname!")
+
+  @nick.error
+  async def nick_error(self,ctx, error):
+    if isinstance(error, commands.MissingRole):
+      await ctx.send("Uh oh, looks like you don't have the Moderator role!")
+
+
+  @commands.command()
+  async def rememoji(self, ctx):
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used REMEMOJI \n")
+    logfile.close()
+    name = author.name
+    await author.edit(nick = str(author.name))
+    await ctx.send("Removed your nickname!")
+
+  @commands.command()
+  async def addemoji(self, ctx, channel : discord.TextChannel):
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used ADDEMOJI \n")
+    logfile.close()
+    name = author.display_name
+    channel = channel.name.split('-')
+    if len(channel) == 2: # #real-emoji
+      realm, emoji = channel
+    else: # #realm-name-emoji  
+      realm, emoji = channel[0], channel[-1]
+    await author.edit(nick=str(name) + str(emoji))
+    await ctx.send("Changed your nickname!")
+  
+  @addemoji.error
+  async def addemoji_error(self,ctx, error):
+    if isinstance(error, commands.BadArgument):
+      await ctx.send("Hmm, you didn't give me all the arguments.")
+
+
+  @commands.command()
+  async def rule(self, ctx,*,number):
+    author = ctx.message.author
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used RULE \n")
+    logfile.close()
+    await ctx.send(rules[int(number)-1])
+
+
+  @commands.command()
+  async def gamertag(self, ctx, gamertag):
+    author = ctx.message.author
+    channel = ctx.message.channel
+    logfile = open("commandlog.txt", "a")
+    logfile.write(str(author.name) + " used GAMERTAG \n")
+    logfile.close()
+    GamerTag = open("Gamertags.txt", "a")
+    GamerTag.write(gamertag + " " + str(author.id) + "\n")
+    def check(m):
+      return m.content is not None and m.channel == channel and m.author is not self.bot.user
+    await channel.send("Success! \nWould you like to change your nickname to your gamertag? (If so, you may have to add your emojis to your nickname again!)\n> *Reply with:* **YES** or **NO**")
+    answer7 = await self.bot.wait_for('message', check=check)
+
+    if answer7.content == "YES":
+      await author.edit(nick = gamertag)
+      await ctx.send("Success!")
+
+    elif answer7.content == "NO":
+      await ctx.send("Okay, canceled it...")
+
+  @gamertag.error
+  async def gamertag_error(self, ctx, error):
+    if isinstance(error, commands.BadArgument):
+      await ctx.send("Uh oh, you didn't include all the arguments! ")
+
+
+  @commands.command()
+  async def tag(self, ctx, tagnum):
+    if tagnum == "1":
+      text_channel = self.bot.get_channel("587502693246042112")
+      text_channel2 = self.bot.get_channel("587632638819434507")
+      contentc = discord.Embed(title = "Content Creators", description = f"Minecraft Related Content may go in the <#587632638819434507> channel while other content can go in <#587502693246042112>! \n**Make content?** Feel free to ask a Moderator to give you the Content Creator role!", color = 0xfc0303)
+      await ctx.send(embed = contentc)
+    elif tagnum == "2":
+      text_channel2 = self.bot.get_channel("587850399759990794")
+      realm = discord.Embed(title = "Realm Applications", description = f"Welcome! I see you've asked about joining a realm! The Realm Portal has a ton of realms you can choose from. Each having their own application process, if you would like to join one check out the Realms and Server tab! You can view details about each reakm by checking its pings and channel description! Please remember that there is no 'better' realm! \n**Community Realm** Don't know what to join? Consider joining the MRP Community Realm! \n**Apply for a Realm Channel!** Have a realm you would like to advertise? Once you reach Zombie Slayer, you should be able to fill out the application in <#587850399759990794>!", color = 0xeb07cc)
+      await ctx.send(embed = realm)
+    
+    elif tagnum == "help":
+      await ctx.send("**Tag Numbers:** \n1: Content Related \n2: Realm Applications")
+
+    else:
+      await ctx.send("That number isn't a valid response!")
+
+
+  @commands.command()
+  @commands.is_owner()
+  async def loadbeta(self, ctx):
+    await ctx.send("Please wait, loading `BETA` **Extensions...**") 
+    msg = await ctx.send("`[#---------]`")
+    time.sleep(1)
+    await msg.edit(content = "`[##--------]`")
+    time.sleep(1)
+    await msg.edit(content = "`[###-------]`")
+    time.sleep(1)
+    await msg.edit(content = "`[####------]`")
+    time.sleep(2)
+    await msg.edit(content = "`[#####-----]`")
+    time.sleep(1)
+    await msg.edit(content = "`[######----]`")
+    time.sleep(3)
+    await msg.edit(content = "`[#######---]`")
+    time.sleep(1)
+    await msg.edit(content = "`[########--]`")
+    time.sleep(2)
+    await msg.edit(content = "`[#########-]`")
+    time.sleep(1)
+    await msg.edit(content = "`[##########]`")
+    time.sleep(3)
+    await msg.edit(content = "`COMPLETE`")
+    self.bot.load_extension("cogs.BetaCMD")
+  
+  @commands.command()
+  @commands.is_owner()
+  async def unloadbeta(self, ctx):
+    await ctx.send("Unloaded `BETA` and all of its **Extensions**.")
+    self.bot.unload_extension("cogs.BetaCMD")
+
+  @commands.command()
+  async def webhook(self, ctx, *, reason):
+    async with aiohttp.ClientSession() as session:
+      url = 'https://discord.com/api/webhooks/783135151155970049/nTOU4H3ch2Q3Z3lLEDUGj8jq-tNZ-cZFRvBPdjphl5aMYtM5j3Urv7p1KtTMxXfrwZmo'
+      webhook = Webhook.from_url(url, adapter=AsyncWebhookAdapter(session)) #something here to cycle through url's
+      author = ctx.message.author
+      await webhook.send(reason ,username=author.name, avatar_url = author.avatar_url)
+
+
+
+
+
+
+ 
+
+def setup(bot):
+  bot.add_cog(MiscCMD(bot))
