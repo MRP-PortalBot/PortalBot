@@ -1,0 +1,21 @@
+version = 1
+
+exclude_patterns = [
+    "Gamertags.txt",
+    "DailyQuestions.txt",
+    "MRPBlock.txt",
+    "MRPCombine.txt",
+    "MRPDiscord.txt",
+    "MRPFull.txt",
+    "MRPGamertags,txt",
+    "Message_Lock.txt",
+    "commandlog.txt",
+    "discord.log"
+]
+
+[[analyzers]]
+name = "python"
+enabled = true
+
+  [analyzers.meta]
+  runtime_version = "3.x.x"
