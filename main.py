@@ -1,9 +1,7 @@
 import discord
-import flask
 import keep_alive
 import logging
 from discord.ext import commands
-import json 
 from TOKENPASS import TOKENPASS
 import time
 

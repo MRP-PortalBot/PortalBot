@@ -1,11 +1,7 @@
 import discord
-import flask
-import keep_alive
-import logging
 from discord.ext import commands
-import json 
 import datetime
-from datetime import timedelta, datetime
+from datetime import datetime
 import time
 Q1 = "User's Discord: "
 Q2 = "User's Discord Long ID: "

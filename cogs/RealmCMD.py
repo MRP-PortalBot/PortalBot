@@ -1,13 +1,6 @@
 import discord
 from discord.ext import commands
-import data
-import datetime
-from datetime import timedelta, datetime
-import keep_alive
-import json
-import time
-from discord.utils import get
-import difflib
+from datetime import datetime
 i = 1
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 

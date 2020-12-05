@@ -1,12 +1,7 @@
 import discord
-import flask
-import keep_alive
-import logging
 from discord.ext import commands
-import json 
 import datetime
-from datetime import timedelta, datetime
-import sys
+from datetime import datetime
 
 def solve(s):
   a = s.split(' ')
