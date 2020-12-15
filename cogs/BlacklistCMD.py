@@ -1,12 +1,35 @@
 import discord
-import flask
-import keep_alive
-import logging
 from discord.ext import commands
-import json 
-import datetime
-from datetime import timedelta, datetime
+from datetime import datetime
 import time
+
+#--------------------------------------------------
+#pip3 install gspread oauth2client
+
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+scope = ["https://spreadsheets.google.com/feeds",'https://www.googleapis.com/auth/spreadsheets',"https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive"]
+
+creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
+
+client = gspread.authorize(creds)
+
+sheet = client.open("MRP Blacklist Data").sheet1
+#9 Values to fill
+
+#Template on modfying spreadsheet
+'''
+row = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+sheet.insert_row(row, 3)  
+print("Done.")
+
+cell = sheet.cell(3,1).value
+print(cell)
+'''
+#-----------------------------------------------------
+
+
 Q1 = "User's Discord: "
 Q2 = "User's Discord Long ID: "
 Q3 = "User's Gamertag: "
@@ -25,6 +48,7 @@ class BlacklistCMD(commands.Cog):
   def __init__(self,bot):
     self.bot = bot
 
+  #Starts the blacklist process.
   @commands.command()
   @commands.has_role("Realm OP")
   async def blacklist(self, ctx):
@@ -32,16 +56,17 @@ class BlacklistCMD(commands.Cog):
     author = ctx.message.author
     guild = ctx.message.guild
     channel = await ctx.author.create_dm()
+    #schannel = self.bot.get_channel(778453455848996876)
+    
     schannel = self.bot.get_channel(778453455848996876)
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used BLACKLIST \n")
-    logfile.close()
+    await ctx.send("Please take a look at your DM's!")
    
 
     def check(m):
         return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
-    
+    await channel.send("Please answer the questions with as much detail as you can. \nWant to cancel the command? Answer everything and at the end then you have the option to either break or submit the responses, there you could say 'break'!\nIf you are having trouble with the command, please contact Space! \n\n*Starting Questions Now...*")
+    time.sleep(2)
     await channel.send(Q1)
     answer1 = await self.bot.wait_for('message', check=check)
  
@@ -70,30 +95,15 @@ class BlacklistCMD(commands.Cog):
     answer9 = await self.bot.wait_for('message', check=check)
     time.sleep(0.5)
 
-  
+    #Spreadsheet Data
+    row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
+    sheet.insert_row(row, 3)  
 
-    MRPShort = open("MRPDiscord.txt", "a")
-    MRPShort.write("`" + str(answer1.content) + "` - `" + str(answer2.content) + "`" + "\n")
-    MRPShort.close()
-    MRPLong = open("MRPGamertags.txt", "a")
-    MRPLong.write("`" + str(answer3.content) + "` \n")
-    MRPLong.close()
-
-    MRPLong = open("MRPCombine.txt", "a")
-    MRPLong.write("`" + str(answer1.content) + "` - `" + str(answer2.content) + "` - `" + str(answer3.content) + "` - `" + str(answer6.content) + "`" + "\n")
-    MRPLong.close()
-
-    MRPLong = open("MRPFull.txt", "a")
-    MRPLong.write("`" + str(answer1.content) + "` - `" + str(answer2.content) + "` - `" + str(answer3.content) + "` - `" + str(answer4.content) + "` - `" + str(answer5.content) + "` - `" + str(answer6.content) + "` - `" + str(answer7.content) + "` - `" + str(answer8.content) + "` - `" + str(answer9.content) + "` \n")
-    MRPLong.close()
     submit_wait = True
     while submit_wait:
-      await channel.send('End of questions, send "**submit**". If you want to cancel, send "**break**".  ')
-      print("1")
+      await channel.send('End of questions, send "**submit**". If you want to cancel, send "**break**".  \nPlease note that the bot is **CASE SENSITIVE**!')
       msg = await self.bot.wait_for('message', check=check)
-      print("22")
-      if "submit" in msg.content.lower():
-        print("2")
+      if "submit" in msg.content:
         submit_wait = False         
         blacklistembed = discord.Embed(title = "Blacklist Report", description = "Sent from: " + author.mention, color = 0xb10d9f) 
         blacklistembed.add_field(name = "Questions", value = f'**{Q1}** \n {answer1.content} \n\n'
@@ -105,13 +115,11 @@ class BlacklistCMD(commands.Cog):
         f'**{Q7}** \n {answer7.content} \n\n'
         f'**{Q8}** \n {answer8.content} \n\n'
         f'**{Q9}** \n {answer9.content} \n\n')
-        print("3")
         timestamp = datetime.now()
         blacklistembed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-        print("4")
         await schannel.send(embed = blacklistembed)
-        print("5")
-      elif "break" in msg.content.lower():
+        await channel.send("I have sent in your blacklist report, thank you! \n*Here is your cookie!* 🍪")
+      elif "break" in msg.content:
         schannel.send("Canceled Request...")
         submit_wait = False
           
@@ -121,111 +129,14 @@ class BlacklistCMD(commands.Cog):
     if isinstance(error, commands.MissingRole):
       await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
   
-
-
   @commands.command()
-  @commands.has_role("Realm OP")
   async def blogs(self, ctx):
     author = ctx.message.author
-    guild = ctx.message.guild
-    channel = ctx.message.channel
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used BLOGS \n")
-    logfile.close()
-    if ctx.channel.name == ("banned-players"):
+    em = discord.Embed(title = "Google Sheets Link", description = "")
 
-      def check(m):
-        return m.content is not None and m.channel == channel and m.author is not self.bot.user
-
-
-      await channel.send(QQ1)
-      checklogsA = await self.bot.wait_for('message', check=check)
-
-      if checklogsA.content == "Gamertag":
-        MRPShort = open("MRPGamertags.txt", "r")
-        file_contents = MRPShort.read()
-        blacklistdata = discord.Embed(title = "Recorded Gamertag Blacklists", description = "Data requested by: " + author.mention, color = 0xb10d9f)
-        blacklistdata.add_field(name = "Logs:", value = file_contents)
-        blacklistdata.set_thumbnail(url = guild.icon_url)
-        timestamp = datetime.now()
-        blacklistdata.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-        MRPShort.close()
-        await ctx.send(embed = blacklistdata)
-
-      elif checklogsA.content == "Discord":
-        MRPShort = open("MRPDiscord.txt", "r")
-        file_contents = MRPShort.read()
-        blacklistdata = discord.Embed(title = "Recorded Discord Blacklists", description = "Data requested by: " + author.mention, color = 0xb10d9f)
-        blacklistdata.add_field(name = "Logs:", value = file_contents)
-        blacklistdata.set_thumbnail(url = guild.icon_url)
-        timestamp = datetime.now()
-        blacklistdata.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-        MRPShort.close()
-        await ctx.send(embed = blacklistdata)
-
-      elif checklogsA.content == "Combined":
-        MRPShort = open("MRPCombine.txt", "r")
-        file_contents = MRPShort.read()
-        blacklistdata = discord.Embed(title = "Recorded  Blacklists", description = "Data requested by: " + author.mention, color = 0xb10d9f)
-        blacklistdata.add_field(name = "Logs:", value ="Discord Username - Discord ID - Gamertag - Reason for ban:\n" + file_contents)
-        blacklistdata.set_thumbnail(url = guild.icon_url)
-        timestamp = datetime.now()
-        blacklistdata.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-        MRPShort.close()
-        await ctx.send(embed = blacklistdata) 
-
-
-      else:
-        await ctx.send("I'm sorry, I didn't understand what you said. ")
-        return 
-    else:
-      await ctx.send("You sure you in the right channel bud? 👀")
-
-
-
-  @blogs.error
-  async def blogs_error(self, ctx, error):
-    if isinstance(error, commands.MissingRole):
-      await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
   
-  @commands.command()
-  @commands.has_role("Realm OP")
-  async def bsearch(self, ctx):
-    channel = ctx.message.channel
-    author = ctx.message.author
-    guild = ctx.message.guild
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used BSEARCH \n")
-    logfile.close()
-    blacklistdata = discord.Embed(title = "Blacklist Search Results", description = "Data requested by: " + author.mention, color = 0xb10d9f)
-  
-    def check(m):
-      return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
-    await channel.send("Enter search phrase: ")
-    searchphrase = await self.bot.wait_for('message', check=check)
-    
-    searchfile = open("MRPFull.txt", "r")
-    for line in searchfile:
-      if searchphrase.content in line: 
-        #Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, = line.split(" - ")
-        #blacklistdata.add_field(name = "Results:" , value = "Discord Username: " + str(Q1) + "\n" + "Discord ID: " + str(Q2) + "\n" + "Gamertag: " + str(Q3) + "\n" + "Realm they were Banned from: " + str(Q4) + "\n" + "Known Alts: " + str(Q5) + "\n" + "Reason for the Ban: " + str(Q6) + "\n" + "Date of Incident: " + str(Q7) + "\n" + "Type of Ban Faced: " + str(Q8) + "\n" + "End Date of Ban: " + str(Q9), inline = False)
-        blacklistdata.add_field(name = "Results:", value = line, inline = False)
-        
-    blacklistdata.set_thumbnail(url = guild.icon_url)
-    timestamp = datetime.now()
-    blacklistdata.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-    await ctx.send(embed = blacklistdata)
-    await ctx.send("**Format:** \n >>> Discord Username - Discord ID - Gamertag - Realm they were banned from - Known Alts - Reason for ban - Date of Incident - Type of ban faced - End date for ban:\n")
-    searchfile.close()
-    return
-  
-  @bsearch.error
-  async def bsearch_error(self,ctx, error):
-    if isinstance(error, commands.MissingRole):
-      await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
-
-
+  #searches gamertags
   @commands.command()
   @commands.has_role("Realm OP")
   async def gsearch(self, ctx):
