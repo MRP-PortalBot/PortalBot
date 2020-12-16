@@ -30,15 +30,16 @@ print(cell)
 #-----------------------------------------------------
 
 
-Q1 = "User's Discord: "
-Q2 = "User's Discord Long ID: "
-Q3 = "User's Gamertag: "
-Q4 = "Banned from (realm): "
-Q5 = "Known Alts: "
-Q6 = "Reason for Ban: "
-Q7 = "Date of Incident"
-Q8 = "The User has faced a (Temporary/Permanent) ban: "
-Q9 = "If the ban is Temporary, the ban ends on: "
+Q1 = "User's Discord: (Please don't include the last 4 tag numbers!)"
+Q2 = "User's Tag: (Example: #1086)"
+Q3 = "User's Discord Long ID: "
+Q4 = "User's Gamertag: "
+Q5 = "Banned from (realm): "
+Q6 = "Known Alts: "
+Q7 = "Reason for Ban: "
+Q8 = "Date of Incident"
+Q9 = "The User has faced a (Temporary/Permanent) ban: "
+Q10 = "If the ban is Temporary, the ban ends on: "
 
 QQ1 = "What should I open for you? \n >  **Options:** `Gamertag` / `Discord` / `Combined`"
 a_list = []
@@ -93,10 +94,13 @@ class BlacklistCMD(commands.Cog):
 
     await channel.send(Q9)
     answer9 = await self.bot.wait_for('message', check=check)
+
+    await channel.send(Q10)
+    answer10 = await self.bot.wait_for('message', check=check)
     time.sleep(0.5)
 
     #Spreadsheet Data
-    row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
+    row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content, answer10.content]
     sheet.insert_row(row, 3)  
 
     submit_wait = True
@@ -118,7 +122,7 @@ class BlacklistCMD(commands.Cog):
         timestamp = datetime.now()
         blacklistembed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
         await schannel.send(embed = blacklistembed)
-        await channel.send("I have sent in your blacklist report, thank you! \n*Here is your cookie!* 🍪")
+        await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
       elif "break" in msg.content:
         schannel.send("Canceled Request...")
         submit_wait = False
@@ -130,10 +134,29 @@ class BlacklistCMD(commands.Cog):
       await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
   
   @commands.command()
-  async def blogs(self, ctx):
+  async def bsearch(self, ctx, * , username):
+    checkcheck = "FALSE"
     author = ctx.message.author
-    em = discord.Embed(title = "Google Sheets Link", description = "")
-
+    em = discord.Embed(title = "Google Sheets Search", description = "Requested by Operator " + author.mention, color = 0x18c927)
+    values = sheet.findall(username)
+    print(values)
+    try:
+      checkempty = ', '.join(sheet.row_values(sheet.find(username).row))
+      print(checkempty)
+    except:
+      checkcheck = "TRUE"
+    print(checkcheck)
+    if checkcheck == "FALSE":
+      for r in values:
+        output = ', '.join(sheet.row_values(r.row))
+        print(output)
+        A1, A2, A3, A4, A5, A6, A7, A8 ,A9, A10 = output.split(", ")
+        em.add_field(name = "Results: \n",value = "```python\n" + "Discord Username: " + str(A1) + "\nDiscord Tag Number: " + str(A2) + "\nDiscord ID: " + str(A3) + "\nGamertag: " + str(A4) +"\nBanned From: " + str(A5) + "\nKnown Alts: " + str(A6) + "\nBan Reason: " + str(A7) + "\nDate of Ban: " + str(A8) + "\nType of Ban: " + str(A9) + "\nDate the Ban Ends: " + str(A10) + "\n```",inline = False) 
+      await ctx.send(embed = em)
+    else:
+      em.add_field(name = "No Results", value = "I'm sorry, but it looks like the [spreadsheet](https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit?usp=sharing) doesn't have any results for the query you have sent! \n\n**Tips:**\n- Don't include the user's tag number! (Ex: #1879)\n- Try other ways of spelling out the username such as putting everything as lowercase! \n- Try checking the orginal spreadsheet for the value and try searching any term in the row here!")
+      await ctx.send(embed = em)
+   
   
 
   #searches gamertags
