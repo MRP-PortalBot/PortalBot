@@ -188,50 +188,6 @@ class BlacklistCMD(commands.Cog):
     elif isinstance(error, commands.CommandInvokeError):
       await ctx.send("Your search returned to many results. Please narrow your search, or try a different search term.") 
 
-  async def get_row(self, index):
-    """Get row of spreadsheet at provided index"""
-    values = sheet.get_all_values()
-    results = values[index:index+1]
-    return results
-
-  async def populate_embed(self, embed, starting_point):
-    """Used to populate the embed for the 'blogs' command."""
-    i = 0
-    index = starting_point
-    for field in embed.fields:  # cleans embed before rebuilding
-      embed.fields.remove(field)
-    while i < 3:
-      results = self.get_row(index)
-      embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(results)}")
-      index += 1
-      i += 1
-    return embed, index+1
-
-  @commands.command()
-  async def blogsnew(self, ctx):
-    """View all data in the blacklist spreadsheet"""
-    async def check_reaction(reaction, user):
-      return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
-    
-    author = ctx.message.author
-    embed = discord.Embed(title = "MRP Blacklist Data", description = f"Requested by Operator {author.mention}")
-    embed, index = self.populate_embed(embed, 2)
-    message = await ctx.send(embed=embed)
-    await message.add_reaction("◀️")
-    await message.add_reaction("▶️")
-    while True:
-      try:
-        reaction, user = await self.bot.wait_for("reaction_add", timeout=60, check=check_reaction)
-        if str(reaction.emoji) == "▶️":
-          embed, index = self.populate_embed(embed, index)
-          await message.edit(embed=embed)
-        elif str(reaction.emoji) == "◀️":
-          embed, index = self.populate_embed(embed, index-3)
-          await message.edit(embed=embed)
-      except asyncio.TimeoutError:  # ends loop after timeout.
-          await message.remove_reaction(reaction, user)
-          break
-
   @commands.command()
   async def blogs(self, ctx):
     author = ctx.message.author
