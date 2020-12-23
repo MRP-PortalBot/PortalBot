@@ -19,26 +19,30 @@ class OperatorCMD(commands.Cog):
   async def _addOP(self, ctx, user: discord.Member ,*,role: discord.Role):
     guild = ctx.message.guild
     channel = ctx.message.channel
-    RealmOP = guild.get_role(630770012524642314)
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used ADDOP \n")
-    logfile.close()
-    check_role = discord.utils.get(ctx.guild.roles, name=role)
+    check_role = discord.utils.get(ctx.guild.roles, name=role.name)
     print(check_role)
     print(str(role) + author.name)
     if role not in author.roles:
       await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
+      return
     else:
       await user.add_roles(role)
-      await ctx.send(f"The role '{str(role)}' has been given to {user.mention}.")
-      await user.send("Hello, you have been given OP privileges for " + str(role) + " in the Minecraft Realm Portal. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules.")
-    modlog = self.bot.get_channel(587858951522091018)
+    embed = discord.Embed(title = "Realm Operator Command", description = user.mention + " now has " + role.mention + "!\nPlease remember you require Spider Sniper or above in order to get the Realm OP role!", color = 0x4287f5)
+    await ctx.send(embed = embed)
+
+    await user.send("Hello, you have been given OP privileges for " + str(role) + " in the Minecraft Realm Portal. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules.")
+
+    '''
+    channel = self.bot.get_channel(778453455848996876)
+    #778453455848996876
+    #587858951522091018
     embed = discord.Embed(title = "Operator Command Used!" ,description = author.name + " used addOP on " + user.name, color = 0xb10d9f)
     embed.add_field(name = "Usage Details", value = "**Result:**\n" + user.name + " was given the " + role.mention + " role. \n **Channel:**\nThe action took place in <#" + str(channel.id) + ">")
     timestamp = datetime.now()
     embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-    await modlog.send(embed=embed)
+    await channel.send(embed=embed)
+    '''
 
   
   @_addOP.error
@@ -60,30 +64,24 @@ class OperatorCMD(commands.Cog):
   async def _removeOP(self, ctx, user: discord.Member ,*,role: discord.Role):
     guild = ctx.message.guild
     channel = ctx.message.channel
-    RealmOP = guild.get_role(630770012524642314)
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used REMOVEOP \n")
-    logfile.close()
-    check_role = discord.utils.get(ctx.guild.roles, name=role)
+    check_role = discord.utils.get(ctx.guild.roles, name=role.name)
     print(check_role)
     if role not in author.roles:
       await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
     else:
       await user.remove_roles(role)
-      check_role = discord.utils.get(ctx.guild.roles, name=role)
-      if role not in user.roles:
-        await user.remove_roles(role)
-      else:
-        await user.remove_roles(role)
-        await user.remove_roles(RealmOP)
-      await ctx.send(f"The role '{str(role)}' has been removed from {user.mention}.")
-    modlog = self.bot.get_channel(587858951522091018)
-    embed = discord.Embed(title = "Operator Command Used!" ,description = author.name + " used removeOP on " + user.name, color = 0xb10d9f)
-    embed.add_field(name = "Usage Details", value = "**Result:**\n" + user.name + " had the " + role.mention + " removed. \n **Channel:**\nThe action took place in <#" + str(channel.id) + ">")
-    timestamp = datetime.now()
-    embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-    await modlog.send(embed=embed)
+      embed = discord.Embed(title = "Realm Operator Command", description = "**Operator** " + author.mention + " removed " + role.mention + " from " + user.name, color =0x4287f5)
+      await ctx.send(embed = embed)
+
+      '''
+      modlog = self.bot.get_channel(778453455848996876)
+      em = discord.Embed(title = "Operator Command Used!" ,description = author.name + " used removeOP on " + user.name, color = 0xb10d9f)
+      em.add_field(name = "Usage Details", value = "**Result:**\n" + user.name + " had the " + role.mention + " removed. \n **Channel:**\nThe action took place in <#" + str(channel.id) + ">")
+      timestamp = datetime.now()
+      em.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
+      await modlog.send(embed=em)
+      '''
 
   @_removeOP.error
   async def removeOP_error(self,ctx, error):
