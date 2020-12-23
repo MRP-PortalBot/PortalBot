@@ -39,7 +39,7 @@ class CommandErrorHandler(commands.Cog):
         if len(exception_msg)+160 > 2000:
           error_file = Path("error.txt")
           error_file.touch()
-          with error_file.open("r") as f:
+          with error_file.open("r+") as f:
             f.write(exception_msg)
             await ctx.send(f"**Hey you!** *Mr. Turtle here has found an error, and boy is it a big one!* You might want to doublecheck what you sent and/or check out the help command!\nI've attached the file below:", file=File(f, "error"))
             error_file.unlink()
