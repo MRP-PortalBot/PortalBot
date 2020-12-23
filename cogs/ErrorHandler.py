@@ -16,9 +16,8 @@ class CommandErrorHandler(commands.Cog):
     async def on_command_error(self, ctx, error: Exception):
       exc_traceback = error.__traceback__
       exception: List[str] = traceback.format_tb(exc_traceback)
-      exception.reverse()
       exception_msg: str = ""
-      for line in exception:
+      for line in exception[-3:]:
           exception_msg += f"{line.strip()}\n"
 
       if hasattr(ctx.command, 'on_error'):
