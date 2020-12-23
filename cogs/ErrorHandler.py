@@ -15,7 +15,7 @@ class CommandErrorHandler(commands.Cog):
       
       #No command that exists
       elif isinstance(error, commands.CommandNotFound):
-        await ctx.send("No such command! Please contact the only **Lord Turtle** if you are having trouble! \nPlease also refer to the help command! `>help`")
+        await ctx.send("No such command! Please contact the only **Lord Turtle** if you are having trouble! \nPlease also refer to the help command! `!help`")
         print("ingored error: " + str(ctx.command))
 
       #Return Error
