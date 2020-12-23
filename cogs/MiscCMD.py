@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import Webhook, AsyncWebhookAdapter
 import aiohttp
-
+import random
 
 rules = [":one: **No Harassment**, threats, hate speech, inappropriate language, posts or user names!", ":two: **No spamming** in chat or direct messages!", ":three: **No religious or political topics**, those don’t usually end well!", ":four: **Keep pinging to a minimum**, it is annoying!", ":five: **No sharing personal information**, it is personal for a reason so keep it to yourself!", ":six: **No self-promotion or advertisement outside the appropriate channels!** Want your own realm channel? **Apply for one!**", ":seven: **No realm or server is better than another!** It is **not** a competition.", ":eight: **Have fun** and happy crafting!", ":nine: **Discord Terms of Service apply!** You must be at least **13** years old."]
 
@@ -54,9 +54,6 @@ class MiscCMD(commands.Cog):
   @commands.has_permissions(manage_messages = True)
   async def clear(self, ctx,amount=2):
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used CLEAR \n")
-    logfile.close()
     await ctx.channel.purge(limit = amount)
 
   #Say Command
@@ -205,6 +202,35 @@ class MiscCMD(commands.Cog):
       author = ctx.message.author
       await webhook.send(reason ,username=author.name, avatar_url = author.avatar_url)
 
-  
+  @commands.command(description="Rock Paper Scissors")
+  async def rps(self, msg: str):
+        """Rock paper scissors. Example : /rps Rock if you want to use the rock."""
+        # Les options possibles
+        t = ["rock", "paper", "scissors"]
+        # random choix pour le bot
+        computer = t[random.randint(0, 2)]
+        player = msg.lower()
+        print(msg)
+        if player == computer:
+            await self.bot.say("Tie!")
+        elif player == "rock":
+            if computer == "paper":
+                await self.bot.say("You lose! {0} covers {1}".format(computer, player))
+            else:
+                await self.bot.say("You win! {0} smashes {1}".format(player, computer))
+        elif player == "paper":
+            if computer == "scissors":
+                await self.bot.say("You lose! {0} cut {1}".format(computer, player))
+            else:
+                await self.bot.say("You win! {0} covers {1}".format(player, computer))
+        elif player == "scissors":
+            if computer == "rock":
+                await self.bot.say("You lose! {0} smashes {1}".format(computer, player))
+            else:
+                await self.bot.say("You win! {0} cut {1}".format(player, computer))
+        else:
+            await self.bot.say("That's not a valid play. Check your spelling!")
+
+
 def setup(bot):
   bot.add_cog(MiscCMD(bot))
