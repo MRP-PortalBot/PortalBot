@@ -3,8 +3,10 @@ import keep_alive
 import logging
 from discord.ext import commands
 from datetime import datetime
-import os
 import asyncio
+
+from pathlib import Path
+import json
 #-----------------------------------------------
 '''
 Tips/Board
@@ -30,8 +32,24 @@ else:
 intents = discord.Intents.default()
 intents.reactions = True
 
+#Ensures botconfig.json exists
+config_file = Path("botconfig.json")
+config_file.touch(exist_ok=True)
+if config_file.read_text() == "":
+  config_file.write_text("{}")
+with config_file.open("r") as f:
+  config = json.load(f)
+if "token" not in config:
+  config['token'] = input("Enter bot token here: ")
+  with config_file.open("w+") as f:
+    json.dump(config, f, indent=4)
+if "prefix" not in config:
+  config['prefix'] = input("Enter bot prefix here: ")
+  with config_file.open("w+") as f:
+    json.dump(config, f, indent=4)
+
 #Define Client and remove help command since the predefined help command sucks.
-client = commands.Bot(command_prefix=">", intents = intents)
+client = commands.Bot(command_prefix=config['prefix'], intents = intents)
 client.remove_command("help")
 
 #Logging
@@ -139,4 +157,4 @@ async def restart(ctx, typerestart = None):
 
       
 #.env File.
-client.run(os.getenv("TokenDebug"))
+client.run(config['token'])
