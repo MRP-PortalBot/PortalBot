@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import datetime
+from datetime import datetime
 import random
 import threading
 
@@ -45,6 +45,9 @@ class DailyCMD(commands.Cog):
           f = open("DailyQuestions.txt", "a")
           f.write(str(lc) + " - " + question + "\n")
           f.close()
+          reactions = ['✅', '❌']
+          for emoji in reactions: 
+            await msg.clear_reaction(emoji)
         
         
 
@@ -57,6 +60,9 @@ class DailyCMD(commands.Cog):
           embed2 = discord.Embed(title = "Suggestion Approved", description = "<@" + str(payload.user_id) + "> has approved a suggestion! ", color = 0xf50505)
           embed.add_field(name = "Question Approved", value = "Question Approved: " + str(question))
           await channel.send(embed = embed2)
+          reactions = ['✅', '❌']
+          for emoji in reactions: 
+            await msg.clear_reaction(emoji)
         else:
           return
       else:
@@ -211,7 +217,8 @@ class DailyCMD(commands.Cog):
     channel = ctx.message.channel
     guild = ctx.message.guild
     DMChannel = await ctx.author.create_dm()
-    if channel == "bot-spam":
+    if channel.name == "bot-spam":
+      print(channel)
       def check(m):
         return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
