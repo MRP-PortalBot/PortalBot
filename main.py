@@ -80,6 +80,7 @@ async def on_ready():
   print(f"{bcolors.OKGREEN}Successfully connected to Discord!{bcolors.ENDC}")
   print(f"{bcolors.OKCYAN}BOT INFORMATION: {bcolors.ENDC}")
   print(f"{bcolors.OKCYAN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{bcolors.ENDC}")
+  print("PORTALBOT Stable")
   print(f"{bcolors.WARNING}ID: 777361919211732993 \n{bcolors.ENDC}")
   print(f"{bcolors.WARNING}URL: https://discord.com/oauth2/authorize?client_id=777361919211732993&scope=bot&permissions=8{bcolors.ENDC}")
 

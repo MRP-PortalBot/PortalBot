@@ -88,13 +88,6 @@ class DailyCMD(commands.Cog):
   async def dailyq(self, ctx):
     await ctx.channel.purge(limit = 1)
     author = ctx.message.author
-    rew = open('DailyQuestionsC.txt', "r")
-    copy = open("DailyQuestions.txt", "a")
-    for line in rew:
-      if line != "\n":
-        copy.write(line)
-    rew.close()
-    copy.close()
     file = open("DailyQuestions.txt", "r")
     line_count = 0
     for line in file:
