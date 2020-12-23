@@ -14,7 +14,12 @@ class CommandErrorHandler(commands.Cog):
     #Checks if the command has a local error handler. 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error: Exception):
-      exception = traceback.format_exc(chain=True)
+      tb = error.__traceback__
+      etype = type(error)
+      exception = traceback.format_exception(etype, error, tb, chain=True)
+      exception_msg = ""
+      for line in exception[-4:]:
+        exception_msg += line
 
       if hasattr(ctx.command, 'on_error'):
         return
@@ -27,7 +32,7 @@ class CommandErrorHandler(commands.Cog):
       #Return Error
       else:
         print(error)
-        await ctx.send(f"**Hey you!** *Mr. Turtle here has found an error!*\nYou might want to doublecheck what you sent and/or check out the help command!\n**Error:** ```\n{exception}\n```")
+        await ctx.send(f"**Hey you!** *Mr. Turtle here has found an error!*\nYou might want to doublecheck what you sent and/or check out the help command!\n**Error:** ```\n{exception_msg}\n```")
 
 def setup(bot):
   bot.add_cog(CommandErrorHandler(bot))
