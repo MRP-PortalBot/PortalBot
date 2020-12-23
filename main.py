@@ -107,8 +107,7 @@ if __name__ == '__main__':
 async def restart(ctx, typerestart = None):
   author = ctx.message.author
   channel = ctx.message.channel
-  ops = [409152798609899530, 306070011028439041, 196335906871967744]
-  if author.id in ops:
+  if author.id == 409152798609899530 or 306070011028439041:
     if typerestart == "1":
       extensions = ['cogs.RealmCMD', 'cogs.HelpCMD', 'cogs.BlacklistCMD', 'cogs.MiscCMD', 'cogs.OperatorCMD',  'cogs.DailyQuestionCMD', 'cogs.BetaCMD', 'cogs.MusicCMD', 'cogs.OnCommandlog', 'cogs.GamertagCMD', 'cogs.ErrorHandler'] 
       if __name__ == '__main__':
@@ -158,3 +157,4 @@ async def restart(ctx, typerestart = None):
       
 #.env File.
 client.run(config['token'])
+
