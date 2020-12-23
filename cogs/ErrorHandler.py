@@ -9,6 +9,7 @@ class CustomError(Exception):
       self.chars = chars
       self.pre = "This is a custom error:"
       self.message = f"{self.pre} {'b'*self.chars}"
+      super().__init__(self.message)
 
 class CommandErrorHandler(commands.Cog):
 
@@ -16,8 +17,8 @@ class CommandErrorHandler(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def error(self, ctx, chars=100):
-      raise CustomError(chars)
+    async def error(self, ctx, chars: int=100):
+      raise CustomError(int(chars))
 
     #Checks if the command has a local error handler. 
     @commands.Cog.listener()
