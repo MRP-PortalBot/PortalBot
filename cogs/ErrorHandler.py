@@ -9,7 +9,7 @@ class CommandErrorHandler(commands.Cog):
 
     @commands.command()
     async def error(self, ctx):
-      return 1/0
+      raise ZeroDivisionError
 
     #Checks if the command has a local error handler. 
     @commands.Cog.listener()
