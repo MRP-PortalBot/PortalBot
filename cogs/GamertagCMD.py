@@ -120,7 +120,7 @@ class GamertagCMD(commands.Cog):
 
   #Add's a gamertag to the database. 
   @commands.command()
-  async def gtadd(self, ctx, gamertag):
+  async def gtadd(self, ctx, *, gamertag):
     author = ctx.message.author
     channel = ctx.message.channel
     logfile = open("commandlog.txt", "a")
