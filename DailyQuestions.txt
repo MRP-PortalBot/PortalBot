@@ -1,16 +1,28 @@
-What is your favorite block in the game?
-If you had to stay in the Nether or the End, what would it be and why?
-What is your favorite type of wood in the game?
-How do you start off with your builds?
-What is your favorite mob in the game?
-What do you enchant on your sword?
-What do you enchant on your tools?
-What is your hotbar order? (How do you organize things?)
-Who is your favorite Minecraft content creator?
-What is your favorite stone block in the game?
-What type of style do you build in?
-If you had to chose between a shulker box or a ender chest, what would you pick?
-What type of light source do you use?
-What would you chose, an elytra or a turtle helmet?
-What device would you love to play Minecraft on?
-What is your favorite Minecraft server?
+1 - What is your favorite block in the game?
+2 - If you had to stay in the Nether or the End, what would it be and why?
+3 - What is your favorite type of wood in the game?
+4 - How do you start off with your builds?
+5 - What is your favorite mob in the game?
+6 - What is your hotbar order? (How do you organize things?)
+7 - Who is your favorite Minecraft content creator?
+8 - What is your favorite stone block in the game?
+9 - What type of style do you build in?
+10 - If you had to chose between a shulker box or a ender chest, what would you pick?
+11 - What is your favorite Minecraft server?
+12 - What's the weirdest Glitch you've seen in game?
+13 - How do you spend your first day in survival?
+14 - What is your favourite biome to build in?
+15 - What was your first redstone contraption?
+16 - If you could only have one redstone farm what would it be?
+17 - Do you pre-build in creative before starting a project in survival?
+18 - What feature would you like removed from Minecraft?
+19 - What was your favourite Redstone farm that no longer works?
+20 - What does Vanilla game play mean to you?
+21 - What was your most memorable Minecraft project?
+22 - If you could add a naturally generated structure to the game, what would it be?
+23 - If Minecraft added seasons, what type of effects or damages do you think we be added with it?
+24 - What made you first decided to try Minecraft?
+25 - Best prank you pull on another player or had pulled on you?
+26 - What food item would you like to see added to Minecraft
+27 - What is one fun fact about Minecraft that is not commonly known?
+28 - If a biome is to be added to end what biome you would like to have?
