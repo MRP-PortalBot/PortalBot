@@ -1,6 +1,5 @@
 from discord.ext import commands
 from typing import List
-import sys
 import traceback
 
 class CommandErrorHandler(commands.Cog):
