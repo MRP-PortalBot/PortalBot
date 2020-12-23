@@ -17,7 +17,7 @@ class HelpCMD(commands.Cog):
     role = discord.utils.find(lambda r: r.name == 'Realm OP', ctx.message.guild.roles)
     if role in author.roles:
       embed = discord.Embed(title = "Help", description = "Commands are listed here for further help!", color = 0xb10d9f)
-      embed.add_field(name = "Realm Creation \n", value = "**NewRealm** \n *Create's a realm channel, role, and overrides!* \n **Usage:** >newrealm ('realm name') (emoji) (mention:owner) \n \n")
+      embed.add_field(name = "=============================", value = "============================")
       embed.set_thumbnail(url = guild.icon_url)
       await ctx.send(embed = embed)
 
@@ -27,10 +27,10 @@ class HelpCMD(commands.Cog):
       embed2 = discord.Embed(title = "Misc Commands \n", description = "**Ping** \n *Check's API Latency!* \n **Usage:** >ping \n \n **Uptime** \n *Check's how long the bot has been up!* \n **Usage:** >uptime \n", color = 0xb10d9f)
       await ctx.send(embed = embed2)
 
-      embed2 = discord.Embed(title = "Blacklist Commands \n", description = "**Blacklist** \n *Start's the Blacklist Process!* \n **Usage:** >blacklist \n \n **Blacklist Logs** \n *Gives every user that was blacklisted!* \n **Usage:** >blogs \n \n **Blacklist Search** \n *Check's for a specific user in the blacklist logs!* \n **Usage:** >bsearch \n \n **Gamertag Search** \n *Searches the Portal's database for a gamertag or a user!* \n *Usage:* >gsearch \n", color = 0xb10d9f)
+      embed2 = discord.Embed(title = "Blacklist Commands \n", description = "**Blacklist** \n *Start's the Blacklist Process!* \n **Usage:** >blacklist \n \n **~~Blacklist Logs~~** \n *~~Gives every user that was blacklisted!~~* \n ~~**Usage:** >blogs~~ \n \n **Blacklist Search** \n *Check's for a specific user in the blacklist logs!* \n **Usage:** >bsearch \n \n **Gamertag Search** \n *Searches the Portal's database for a gamertag or a user!* \n *Usage:* >gtsearch \n", color = 0xb10d9f)
       await ctx.send(embed = embed2)
 
-      embed2 = discord.Embed(title = "Nickname Commands \n", description = "**AddEmoji** \n *Add's a realm's emoji to your nickname!* \n **Usage:** >addemoji #channel \n \n **RemoveNickname** \n *Removes your nickname!* \n **Usage:** >rememoji \n \n **Gamertag** \n *Add's your gamertag to the database! (You can also add your gamertag to your nickname) \n *Usage:* >gamertag \n", color = 0xb10d9f)
+      embed2 = discord.Embed(title = "Nickname Commands \n", description = "**AddEmoji** \n *Add's a realm's emoji to your nickname!* \n **Usage:** >addemoji #channel \n \n **RemoveNickname** \n *Removes your nickname!* \n **Usage:** >rememoji \n \n **Gamertag** \n *Add's your gamertag to the database! (You can also add your gamertag to your nickname) \n *Usage:* >gtadd (GAMERTAG) \n", color = 0xb10d9f)
       timestamp = datetime.now()
       embed2.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
       await ctx.send(embed = embed2)
@@ -38,7 +38,7 @@ class HelpCMD(commands.Cog):
     else:
       embed2 = discord.Embed(title = "Misc Commands \n", description = "**Ping** \n *Check's API Latency!* \n **Usage:** >ping \n \n **Uptime** \n *Check's how long the bot has been up!* \n **Usage:** >uptime \n", color = 0xb10d9f)
       await ctx.send(embed = embed2)
-      embed2 = discord.Embed(title = "Nickname Commands \n", description = "**AddEmoji** \n *Add's a realm's emoji to your nickname!* \n **Usage:** >addemoji #channel \n \n **RemoveNickname** \n *Removes your nickname!* \n **Usage:** >rememoji \n \n **Gamertag** \n *Add's your gamertag to the database! (You can also add your gamertag to your nickname) \n *Usage:* >gamertag", color = 0xb10d9f)
+      embed2 = discord.Embed(title = "Nickname Commands \n", description = "**AddEmoji** \n *Add's a realm's emoji to your nickname!* \n **Usage:** >addemoji #channel \n \n **RemoveNickname** \n *Removes your nickname!* \n **Usage:** >rememoji \n \n **Gamertag** \n *Add's your gamertag to the database! (You can also add your gamertag to your nickname) \n *Usage:* >gtadd (GAMERTAG)", color = 0xb10d9f)
       embed2.set_thumbnail(url = guild.icon_url)
       timestamp = datetime.now()
       embed2.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
@@ -64,9 +64,9 @@ class HelpCMD(commands.Cog):
     em = discord.Embed(title = "Help Command", description = "**REMEMOJI:** Reverts your nickname back to your username! \nUsage: **>rememoji**" ,color = 0xb10d9f)
     await ctx.send(embed = em)
   
-  @help.command(aliases = ["Gamertag", "gamertag"])
+  @help.command(aliases = ["gtadd", "GTadd", "Gamertag", "gamertag"])
   async def _gamertag(self, ctx):
-    em = discord.Embed(title = "Help Command", description = "**GAMERTAG:** Add's your gamertag so Realm OP's can easily find/contact you! \nUsage: **>gamertag (GT)**",color = 0xb10d9f)
+    em = discord.Embed(title = "Help Command", description = "**GAMERTAG:** Add's your gamertag so Realm OP's can easily find/contact you! \nUsage: **>gtadd (GAMERTAG)**",color = 0xb10d9f)
     await ctx.send(embed = em)
   
   @help.command(aliases = ["Say", "say"])
