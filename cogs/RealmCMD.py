@@ -41,9 +41,6 @@ class RealmCMD(commands.Cog):
     ChannelPermissions = "FALSE"
     DMStatus = "FALSE"
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used NEWREALM \n")
-    logfile.close()
     guild = ctx.message.guild
     channel = ctx.message.channel
     color = discord.Colour(0x3498DB)

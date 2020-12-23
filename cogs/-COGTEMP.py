@@ -1,6 +1,4 @@
 import discord
-import flask
-import keep_alive
 import logging
 from discord.ext import commands
 import json 
@@ -15,6 +13,7 @@ class DailyCMD(commands.Cog):
 def setup(bot):
   bot.add_cog(DailyCMD(bot))
 
+#Old Logging Method, don't use this as logging is automatic
 '''
 logfile = open("commandlog.txt", "a")
 logfile.write(author + " used C \n")
