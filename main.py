@@ -93,15 +93,16 @@ async def reload(ctx, ext):
       client.reload_extension(extension)
       embed = discord.Embed(title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
     await ctx.send(embed=embed)
-  elif ext in get_extensions():
-    if "cogs." not in ext:
+    return
+  
+  if "cogs." not in ext:
       ext = f"cogs.{ext}"
+  
+  if ext in get_extensions():
     client.reload_extension(ext)
     embed = discord.Embed(title="Cogs - Reload", description=f"Reloaded cog: {ext}", color=0xd6b4e8)
     await ctx.send(embed=embed) 
   else:
-    if "cogs." not in ext:
-      ext = f"cogs.{ext}"
     embed = discord.Embed(title="Cogs - Reload", description=f"Cog '{ext}' not found.", color=0xd6b4e8)
     await ctx.send(embed=embed)
 
