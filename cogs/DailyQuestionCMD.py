@@ -41,7 +41,7 @@ class DailyCMD(commands.Cog):
           lc = line_count + 1
 
           embed = discord.Embed(title = "Suggestion Approved", description = "<@" + str(payload.user_id) + "> has approved a suggestion! ", color = 0x31f505)
-          embed.add_field(name = "Question Approved", value = str(question))
+          embed.add_field(name = "Question Approved", value = "Question: " + str(question))
           await channel.send(embed = embed)
 
           f = open("DailyQuestions.txt", "a")
@@ -56,7 +56,7 @@ class DailyCMD(commands.Cog):
         
         elif str(payload.emoji) == "❌":
           embed2 = discord.Embed(title = "Suggestion Denied", description = "<@" + str(payload.user_id) + "> has denied a suggestion! ", color = 0xf50505)
-          embed.add_field(name = "Question Denied", value = str(question))
+          embed.add_field(name = "Question Denied", value = "Question: " + str(question))
           await channel.send(embed = embed2)
           reactions = ['✅', '❌']
           for emoji in reactions: 
@@ -214,7 +214,7 @@ class DailyCMD(commands.Cog):
         return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
       await channel.send("Are you sure you want to submit this question for approval? \n**Warning:** You will be subjected to a warn/mute if your suggestion is deemed inappropriate!")
-      message = await channel.send("**Steps to either submit or cancel:**\n\nReaction Key:\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel.* ")
+      message = await channel.send("**Steps to either submit or cancel:**\n\nReaction Key:\n✅ - SUBMIT\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
       reactions = ['✅', '❌']
       for emoji in reactions: 
         await message.add_reaction(emoji)
@@ -222,7 +222,7 @@ class DailyCMD(commands.Cog):
       def check2(reaction, user):
         return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
       try:
-        reaction, user = await self.bot.wait_for('reaction_add', timeout=300.0, check=check2)
+        reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
 
       except asyncio.TimeoutError:
         await channel.send("Looks like you didn't react in time, please try again later!")
