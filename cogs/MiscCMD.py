@@ -5,6 +5,7 @@ import aiohttp
 import random
 import json
 import requests
+import ast
 rules = [":one: **No Harassment**, threats, hate speech, inappropriate language, posts or user names!", ":two: **No spamming** in chat or direct messages!", ":three: **No religious or political topics**, those don’t usually end well!", ":four: **Keep pinging to a minimum**, it is annoying!", ":five: **No sharing personal information**, it is personal for a reason so keep it to yourself!", ":six: **No self-promotion or advertisement outside the appropriate channels!** Want your own realm channel? **Apply for one!**", ":seven: **No realm or server is better than another!** It is **not** a competition.", ":eight: **Have fun** and happy crafting!", ":nine: **Discord Terms of Service apply!** You must be at least **13** years old."]
 
 
@@ -14,6 +15,20 @@ def get_quote():
   quote = json_data[0]['q'] + " -" + json_data[0]['a']
   return(quote)
 
+def insert_returns(body):
+    # insert return stmt if the last expression is a expression statement
+    if isinstance(body[-1], ast.Expr):
+        body[-1] = ast.Return(body[-1].value)
+        ast.fix_missing_locations(body[-1])
+
+    # for if statements, we insert returns into the body and the orelse
+    if isinstance(body[-1], ast.If):
+        insert_returns(body[-1].body)
+        insert_returns(body[-1].orelse)
+
+    # for with blocks, again we insert returns into the body
+    if isinstance(body[-1], ast.With):
+        insert_returns(body[-1].body)
 
 class MiscCMD(commands.Cog):
   def __init__(self,bot):
@@ -216,6 +231,44 @@ class MiscCMD(commands.Cog):
     embed = discord.Embed(title = "Inspirational Quotes", description = "Here is your quote {0}".format(author.mention) ,color = 0xffe74d)
     embed.add_field(name = "Quote", value = quote)
     await ctx.send(embed = embed)
+
+
+  @commands.command()
+  async def eval_fn(self, ctx, *, cmd):
+    """Evaluates input"""
+    ops = [409152798609899530, 306070011028439041, 196335906871967744]
+    author = ctx.message.author
+    if author.id not in ops:
+      return
+    fn_name = "_eval_expr"
+
+    cmd = cmd.strip("` ")
+
+    # add a layer of indentation
+    cmd = "\n".join(f"    {i}" for i in cmd.splitlines())
+
+    # wrap in async def body
+    body = f"async def {fn_name}():\n{cmd}"
+
+    parsed = ast.parse(body)
+    body = parsed.body[0].body
+
+    insert_returns(body)
+
+    env = {
+        'bot': ctx.bot,
+        'discord': discord,
+        'commands': commands,
+        'ctx': ctx,
+        '__import__': __import__
+    }
+    exec(compile(parsed, filename="<ast>", mode="exec"), env)
+
+    result = (await eval(f"{fn_name}()", env))
+    embed = discord.Embed(title = "Python Execution", description = "Code Run Requeseted by " + author.mention, color = 0xffe854)
+    embed.add_field(name = "Results", value = result)
+    await ctx.send(embed = embed)
+
 
 def setup(bot):
   bot.add_cog(MiscCMD(bot))
