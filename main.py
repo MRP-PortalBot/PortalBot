@@ -56,18 +56,22 @@ async def cogs(ctx):
 async def unload(ctx, ext):
   if ext in extensions:
     client.unload_extension(ext)
-    ctx.send(f"Unloaded cog: {ext}")
+    embed = discord.Embed(title="Cog - Unload", description=f"Unloaded cog: {ext}", color=0xd6b4e8)
+    await ctx.send(embed=embed)
   else:
-    ctx.send("Cog '{ext}' not found.")
+    embed = discord.Embed(title="Cog Reloaded", description=f"Cog '{ext}' not found", color=0xd6b4e8)
+    await ctx.send(embed=embed)
 
 @cogs.command()
 @commands.has_role('Bot Manager')
 async def load(ctx, ext):
   if ext in extensions:
     client.load_extension(ext)
-    ctx.send(f"Loaded cog: {ext}")
+    embed = discord.Embed(title="Cog - Load", description=f"Loaded cog: {ext}", color=0xd6b4e8)
+    await ctx.send(embed=embed)
   else:
-    ctx.send("Cog '{ext}' not found.")
+    embed = discord.Embed(title="Cog - Load", description=f"Cog '{ext}' not found.", color=0xd6b4e8)
+    await ctx.send(embed=embed)
 
 @cogs.command()
 @commands.has_role('Bot Manager')
@@ -75,17 +79,21 @@ async def reload(ctx, ext):
   if ext == "all":
     for extension in extensions:
       client.reload_extension(extension)
-    ctx.send("Reloaded all cogs!")
+      embed = discord.Embed(title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
+    await ctx.send(embed=embed)
   elif ext in extensions:
       client.reload_extension(ext)
-      ctx.send("Reloaded cog: {ext}")
+      embed = discord.Embed(title="Cog - Reload", description=f"Reloaded cog: {ext}", color=0xd6b4e8)
+      await ctx.send(embed=embed) 
   else:
-    ctx.send("Cog '{ext}' not found.")
+    embed = discord.Embed(title="Cog - Reload", description=f"Cog '{ext}' not found.", color=0xd6b4e8)
+    await ctx.send(embed=embed)
 
 @cogs.command()
 @commands.has_role('Bot Manager')
 async def view(ctx):
   msg = " ".join(extensions)
-  ctx.send(msg)
+  embed = discord.Embed(title="Cog - View", description=msg, color=0xd6b4e8)
+  await ctx.send(embed=embed)
 
 client.run(config['token'])
