@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import datetime
+from datetime import datetime
 
 class DailyCMD(commands.Cog):
   def __init__(self,bot):
@@ -10,9 +11,6 @@ class DailyCMD(commands.Cog):
 async def info(self, ctx, user: discord.Member):
     mentions = [role.mention for role in ctx.message.author.roles if role.mentionable]
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used INFO \n")
-    logfile.close()
     guild = ctx.message.guild
     channel = ctx.message.channel
     searchfile = open("MRPFull.txt", "r")
@@ -22,7 +20,7 @@ async def info(self, ctx, user: discord.Member):
       rolelist.append(role.mention)
     roles = '\n'.join(rolelist)
     for line in searchfile:
-      if str(user.id) in list:
+      if str(user.id) in rolelist:
         count = count + 1
     accountcreate = user.created_at
     mem_join = user.joined_at
