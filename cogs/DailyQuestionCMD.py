@@ -22,7 +22,7 @@ class DailyCMD(commands.Cog):
   #Waits for either the approval or denial on a question suggestion
   @commands.Cog.listener()
   async def on_raw_reaction_add(self, payload):
-    if payload.user_id != 777361919211732993:
+    if payload.user_id != 791393792854196274:
       if payload.channel_id == 777987716008509490:
         if str(payload.emoji) == "✅":
           channel = self.bot.get_channel(payload.channel_id)
