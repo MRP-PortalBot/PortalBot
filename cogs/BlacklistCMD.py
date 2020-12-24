@@ -201,7 +201,7 @@ class BlacklistCMD(commands.Cog):
     for field in embed.fields:  # cleans embed before rebuilding
       embed.fields.remove(field)
     while i < 3:
-      results = self.get_row(index)
+      results = await self.get_row(index)
       embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(results)}")
       index += 1
       i += 1
