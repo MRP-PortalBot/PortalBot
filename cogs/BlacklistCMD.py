@@ -191,11 +191,18 @@ class BlacklistCMD(commands.Cog):
     index = starting_point
     for field in embed.fields:  # cleans embed before rebuilding
       embed.fields.remove(field)
-    while i < 3:
-      values = sheet.row_values(index)
-      embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(values)}")
-      index += 1
-      i += 1
+    values = sheet.row_values(index)
+    embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(values)}```", inline=False)
+    embed.add_field(name="Discord Username", value=values[0], inline=False)
+    embed.add_field(name="Discord ID", value=values[1], inline=False)
+    embed.add_field(name="Gamertag", value=values[2], inline=False)
+    embed.add_field(name="Banned From", value=values[3], inline=False)
+    embed.add_field(name="Known Alts", value=values[4], inline=False)
+    embed.add_field(name="Reason for ban", value=values[5], inline=False)
+    embed.add_field(name="Date of Incident", value=values[6], inline=False)
+    embed.add_field(name="Type of Ban", value=values[7], inline=False)
+    embed.add_field(name="Date the Ban ends", value=values[8], inline=False)
+    index += 1
     return embed, index+1
 
   @commands.command()
@@ -217,7 +224,7 @@ class BlacklistCMD(commands.Cog):
           embed, index = await self.populate_embed(embed, index)
           await message.edit(embed=embed)
         elif str(reaction.emoji) == "◀️":
-          embed, index = await self.populate_embed(embed, index-3)
+          embed, index = await self.populate_embed(embed, index-1)
           await message.edit(embed=embed)
       except asyncio.TimeoutError:  # ends loop after timeout.
           await message.remove_reaction(reaction, user)
