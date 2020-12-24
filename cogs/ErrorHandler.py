@@ -3,6 +3,7 @@ import discord
 from typing import List
 import traceback
 from pathlib import Path
+import core.config
 
 class CustomError(Exception):
     def __init__(self, times: int, msg: str):
@@ -35,7 +36,8 @@ class CommandErrorHandler(commands.Cog):
       if hasattr(ctx.command, 'on_error'):
         return
       elif isinstance(error, commands.CommandNotFound):
-        await ctx.send("No such command! Please contact the only **Lord Turtle** if you are having trouble! \nPlease also refer to the help command! `>help`")
+        config, _ = core.config.load_config()
+        await ctx.send(f"No such command! Please contact the only **Lord Turtle** if you are having trouble! \nPlease also refer to the help command! `{config['prefix']}help`")
         print("ingored error: " + str(ctx.command))
       else:
         if len(exception_msg)+160 > 2000:
