@@ -63,12 +63,19 @@ class OperatorCMD(commands.Cog):
   async def _removeOP(self, ctx, user: discord.Member ,*,role: discord.Role):
     author = ctx.message.author
     check_role = discord.utils.get(ctx.guild.roles, name=role.name)
+    realm_op_role = discord.utils.get(ctx.guild.roles, name="Realm OP")
     print(check_role)
     if "OP" in role.name and "Realm OP" not in role.name:
       if role not in author.roles:
         await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
       else:
         await user.remove_roles(role)
+        remove_realmop = True
+        for role in user.roles:
+          if "OP" in role.name and "Realm OP" not in role.name:
+            remove_realmop = False
+        if remove_realmop:
+          await user.remove_roles(realm_op_role)
         embed = discord.Embed(title = "Realm Operator Command", description = "**Operator** " + author.mention + " removed " + role.mention + " from " + user.name, color =0x4287f5)
         await ctx.send(embed = embed)
     else:
