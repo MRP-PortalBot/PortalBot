@@ -74,7 +74,7 @@ class BlacklistCMD(commands.Cog):
     channel = await ctx.author.create_dm()
     #schannel = self.bot.get_channel(778453455848996876)
     
-    schannel = self.bot.get_channel(590226302171349003)
+    schannel = self.bot.get_channel(777987716008509490)
     await ctx.send("Please take a look at your DM's!")
    
 

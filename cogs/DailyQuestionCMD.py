@@ -212,8 +212,8 @@ class DailyCMD(commands.Cog):
       def check(m):
         return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
-      await channel.send("Are you sure you want to submit this question for approval? \n**Warning:** You will be subjected to a warn/mute if your suggestion is deemed inappropriate! \n*Please respond with either `YES` or `NO`*")
-      message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel. ")
+      await channel.send("Are you sure you want to submit this question for approval? \n**Warning:** You will be subjected to a warn/mute if your suggestion is deemed inappropriate!")
+      message = await channel.send("**Steps to either submit or cancel:**\n\nReaction Key:\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel.* ")
       reactions = ['✅', '❌']
       for emoji in reactions: 
         await message.add_reaction(emoji)
