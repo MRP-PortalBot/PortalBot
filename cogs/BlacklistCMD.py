@@ -224,7 +224,7 @@ class BlacklistCMD(commands.Cog):
           embed, index = await self.populate_embed(embed, index)
           await message.remove_reaction(reaction, user)
           await message.edit(embed=embed)
-        elif str(reaction.emoji) == "◀️" and index >= 3:
+        elif str(reaction.emoji) == "◀️" and index > 3:
           await message.remove_reaction(reaction, user)
           embed, index = await self.populate_embed(embed, index-2)
           await message.edit(embed=embed)
