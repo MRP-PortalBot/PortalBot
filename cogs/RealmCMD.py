@@ -33,7 +33,7 @@ class RealmCMD(commands.Cog):
    
   @commands.command()
   @commands.has_permissions(manage_roles = True)
-  async def newrealm(self, ctx, realm, emoji,  user: discord.Member, *, message=None):
+  async def newrealm(self, ctx, *, realm, emoji,  user: discord.Member):
     #Status set to null
     RoleCreate = "FALSE"
     ChannelCreate = "FALSE"
