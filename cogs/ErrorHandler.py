@@ -1,14 +1,15 @@
 from discord.ext import commands
-from discord import File
+import discord
 from typing import List
 import traceback
 from pathlib import Path
 
 class CustomError(Exception):
-    def __init__(self, chars: int):
-      self.chars = chars
+    def __init__(self, times: int, msg: str):
+      self.times = times
+      self.msg = msg
       self.pre = "This is a custom error:"
-      self.message = f"{self.pre} {'b'*self.chars}"
+      self.message = f"{self.pre} {self.msg*self.times}"
       super().__init__(self.message)
 
 class CommandErrorHandler(commands.Cog):
@@ -17,12 +18,13 @@ class CommandErrorHandler(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def error(self, ctx, chars: int=100):
-      raise CustomError(int(chars))
+    async def error(self, ctx, times: int=20, msg="error"):
+      raise CustomError(int(times), msg)
 
-    #Checks if the command has a local error handler. 
+    #Checks if the command has a local error handler.
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error: Exception):
+      dev_role = discord.utils.get(ctx.guild.roles, name='Bot Manager')
       tb = error.__traceback__
       etype = type(error)
       exception = traceback.format_exception(etype, error, tb, chain=True)
@@ -42,10 +44,16 @@ class CommandErrorHandler(commands.Cog):
           with error_file.open("w") as f:
             f.write(exception_msg)
           with error_file.open("r") as f:
-            await ctx.send(f"**Hey you!** *Mr. Turtle here has found an error, and boy is it a big one!* You might want to doublecheck what you sent and/or check out the help command!\nI've attached the file below:", file=File(f, "error.txt"))
+            if dev_role not in ctx.user.roles:
+              await ctx.send(f"**Hey you!** *Mr. Turtle here has found an error, and boy is it a big one! I'll let the {dev_role.mention}'s know!*\nYou might also want to doublecheck what you sent and/or check out the help command!\nThe traceback file is attached below:", file=discord.File(f, "error.txt"))
+            else:
+              await ctx.send(f"**Hey guys look!** *A developer broke something big!* They should probably get to fixing that.\nThe traceback might be helpful though, good thing it's attached:", file=discord.File(f, "error.txt"))
             error_file.unlink()
         else:
-          await ctx.send(f"**Hey you!** *Mr. Turtle here has found an error!*\nYou might want to doublecheck what you sent and/or check out the help command!\n**Error:** ```\n{exception_msg}\n```")
+          if dev_role not in ctx.user.roles:
+            await ctx.send(f"**Hey you!** *Mr. Turtle here has found an error! I'll let the {dev_role.mention}'s know!*\nYou might also want to doublecheck what you sent and/or check out the help command!\n**Error:** ```\n{exception_msg}\n```")
+          else:
+            await ctx.send(f"**Hey guys look!** *A developer broke something!* They should probably get to fixing that.\nThe traceback could be useful: ```\n{exception_msg}\n```")
         print(error)
 
 def setup(bot):

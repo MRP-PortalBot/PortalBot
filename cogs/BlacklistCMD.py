@@ -215,7 +215,7 @@ class BlacklistCMD(commands.Cog):
     
     author = ctx.message.author
     embed = discord.Embed(title = "MRP Blacklist Data", description = f"Requested by Operator {author.mention}")
-    embed, index = self.populate_embed(embed, 2)
+    embed, index = await self.populate_embed(embed, 2)
     message = await ctx.send(embed=embed)
     await message.add_reaction("◀️")
     await message.add_reaction("▶️")
@@ -223,10 +223,10 @@ class BlacklistCMD(commands.Cog):
       try:
         reaction, user = await self.bot.wait_for("reaction_add", timeout=60, check=check_reaction)
         if str(reaction.emoji) == "▶️":
-          embed, index = self.populate_embed(embed, index)
+          embed, index = await self.populate_embed(embed, index)
           await message.edit(embed=embed)
         elif str(reaction.emoji) == "◀️":
-          embed, index = self.populate_embed(embed, index-3)
+          embed, index = await self.populate_embed(embed, index-3)
           await message.edit(embed=embed)
       except asyncio.TimeoutError:  # ends loop after timeout.
           await message.remove_reaction(reaction, user)
