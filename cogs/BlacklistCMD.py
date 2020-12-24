@@ -187,7 +187,6 @@ class BlacklistCMD(commands.Cog):
 
   async def populate_embed(self, embed, starting_point):
     """Used to populate the embed for the 'blogs' command."""
-    i = 0
     index = starting_point
     for field in embed.fields:  # cleans embed before rebuilding
       embed.fields.remove(field)
@@ -202,7 +201,6 @@ class BlacklistCMD(commands.Cog):
     embed.add_field(name="Date of Incident", value=values[6], inline=False)
     embed.add_field(name="Type of Ban", value=values[7], inline=False)
     embed.add_field(name="Date the Ban ends", value=values[8], inline=False)
-    index += 1
     return embed, index+1
 
   @commands.command()
