@@ -64,12 +64,12 @@ class RealmCMD(commands.Cog):
     try:
       channelrr = guild.get_channel(683454087206928435) 
       await channelrr.send(role.mention + "\n **Please agree to the rules to gain access to the Realm Owner Chats!**")
-    finally:
       perms12 = channelrr.overwrites_for(role)
       perms12.read_messages = True
-      #Muted = guild.get_role(778267159138402324)
+    finally:
+      Muted = guild.get_role(778267159138402324)
       #MRP below
-      Muted = guild.get_role(630770012524642314)
+      #Muted = guild.get_role(630770012524642314)
       permsM = channel.overwrites_for(Muted)
       permsM.read_messages = False
       permsM.send_messages = False
