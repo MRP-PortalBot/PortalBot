@@ -3,8 +3,16 @@ from discord.ext import commands
 from discord import Webhook, AsyncWebhookAdapter
 import aiohttp
 import random
-
+import json
+import requests
 rules = [":one: **No Harassment**, threats, hate speech, inappropriate language, posts or user names!", ":two: **No spamming** in chat or direct messages!", ":three: **No religious or political topics**, those don’t usually end well!", ":four: **Keep pinging to a minimum**, it is annoying!", ":five: **No sharing personal information**, it is personal for a reason so keep it to yourself!", ":six: **No self-promotion or advertisement outside the appropriate channels!** Want your own realm channel? **Apply for one!**", ":seven: **No realm or server is better than another!** It is **not** a competition.", ":eight: **Have fun** and happy crafting!", ":nine: **Discord Terms of Service apply!** You must be at least **13** years old."]
+
+
+def get_quote():
+  response = requests.get("https://zenquotes.io/api/random")
+  json_data = json.loads(response.text)
+  quote = json_data[0]['q'] + " -" + json_data[0]['a']
+  return(quote)
 
 
 class MiscCMD(commands.Cog):
@@ -17,9 +25,6 @@ class MiscCMD(commands.Cog):
   async def DM(self, ctx, user: discord.User, *, message=None):
     message = message or "This Message is sent via DM"
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used DM \n")
-    logfile.close()
     await user.send(message)
     await user.send("Sent by: " + author.name)
   
@@ -32,9 +37,6 @@ class MiscCMD(commands.Cog):
   @commands.command()
   async def ping(self, ctx):
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used PING \n")
-    logfile.close()
     #await ctx.send(f'**__Latency is__ ** {round(client.latency * 1000)}ms')
     pingembed = discord.Embed(title = "Pong! ⌛", color = 0xb10d9f, description="Current Discord API Latency")
     pingembed.add_field(name = "Current Ping:" , value = f'{round(self.bot.latency * 1000)}ms')
@@ -44,9 +46,6 @@ class MiscCMD(commands.Cog):
   @commands.command()
   async def uptime(self,ctx):
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used UPTIME \n")
-    logfile.close()
     await ctx.send("Really long time, lost track. ")
 
   #Purge Command
@@ -61,9 +60,6 @@ class MiscCMD(commands.Cog):
   @commands.has_permissions(manage_channels = True)
   async def say(self, ctx,*,reason):
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used SAY \n")
-    logfile.close()
     await ctx.channel.purge(limit = 1)
     await ctx.send(reason) 
 
@@ -72,9 +68,6 @@ class MiscCMD(commands.Cog):
   @commands.has_permissions(manage_channels = True)
   async def embed(self, ctx, channel : discord.TextChannel, color : discord.Color , *, body):
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used EMBED \n")
-    logfile.close()
     title , bottom = body.split(" | ")
     embed = discord.Embed(title = title, description = bottom, color = color)
     await channel.send(embed = embed)
@@ -84,9 +77,6 @@ class MiscCMD(commands.Cog):
   @commands.has_role("Moderator")
   async def nick(self, ctx, user :discord.Member, channel : discord.TextChannel):
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used NICK \n")
-    logfile.close()
     name = user.display_name
     channel = channel.name.split('-')
     if len(channel) == 2: # #real-emoji
@@ -105,9 +95,6 @@ class MiscCMD(commands.Cog):
   @commands.command()
   async def rememoji(self, ctx):
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used REMEMOJI \n")
-    logfile.close()
     name = author.name
     await author.edit(nick = str(author.name))
     await ctx.send("Removed your nickname!")
@@ -116,9 +103,6 @@ class MiscCMD(commands.Cog):
   @commands.command()
   async def addemoji(self, ctx, channel : discord.TextChannel):
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used ADDEMOJI \n")
-    logfile.close()
     name = author.display_name
     channel = channel.name.split('-')
     if len(channel) == 2: # #real-emoji
@@ -137,9 +121,6 @@ class MiscCMD(commands.Cog):
   @commands.command()
   async def rule(self, ctx,*,number):
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used RULE \n")
-    logfile.close()
     await ctx.send(rules[int(number)-1])
 
 
@@ -148,9 +129,6 @@ class MiscCMD(commands.Cog):
   async def gamertag(self, ctx, gamertag):
     author = ctx.message.author
     channel = ctx.message.channel
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used GAMERTAG \n")
-    logfile.close()
     GamerTag = open("Gamertags.txt", "a")
     GamerTag.write(gamertag + " " + str(author.id) + "\n")
     def check(m):
@@ -230,7 +208,14 @@ class MiscCMD(commands.Cog):
                 await self.bot.say("You win! {0} cut {1}".format(player, computer))
         else:
             await self.bot.say("That's not a valid play. Check your spelling!")
-
+  
+  @commands.command()
+  async def inspire(self, ctx):
+    quote = get_quote()
+    author = ctx.message.author
+    embed = discord.Embed(title = "Inspirational Quotes", description = "Here is your quote {0}".format(author.mention) ,color = 0xffe74d)
+    embed.add_field(name = "Quote", value = quote)
+    await ctx.send(embed = embed)
 
 def setup(bot):
   bot.add_cog(MiscCMD(bot))

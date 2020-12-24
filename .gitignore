@@ -1,4 +1,11 @@
-
 .vscode/settings.json
 botconfig.json
 __pycache__
+__pycache__/
+poetry.lock
+pyproject.toml
+label.yml
+.replit
+discord.log
+creds.json
+commandlog.txt

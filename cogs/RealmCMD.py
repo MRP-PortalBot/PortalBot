@@ -41,9 +41,6 @@ class RealmCMD(commands.Cog):
     ChannelPermissions = "FALSE"
     DMStatus = "FALSE"
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used NEWREALM \n")
-    logfile.close()
     guild = ctx.message.guild
     channel = ctx.message.channel
     color = discord.Colour(0x3498DB)
@@ -62,43 +59,53 @@ class RealmCMD(commands.Cog):
     perms.manage_webhooks = True
     perms.manage_messages = True
     await channel.set_permissions(role, overwrite=perms, reason="Created New Realm!")
-    channelrr = guild.get_channel(683454087206928435) 
-    await channelrr.send(role.mention + "\n **Please agree to the rules to gain access to the Realm Owner Chats!**")
-    perms12 = channelrr.overwrites_for(role)
-    perms12.read_messages = True
-    #Muted = guild.get_role(778267159138402324)
-    #MRP below
-    Muted = guild.get_role(630770012524642314)
-    permsM = channel.overwrites_for(Muted)
-    permsM.read_messages = False
-    permsM.send_messages = False
-    ChannelPermissions = "DONE"
-    await channel.set_permissions(Muted, overwrite=permsM)
-    await user.send(user.mention)
+
+    #This try statement is here incase we are testing this in the testing server as this channel does not appear in that server!
     try:
-      await user.send("Enjoy your new channel. Use this channel to advertise your realm, and engage the community. The more active a channel the more likely people will be to stop by and check you out. You have moderation privileges in your channel. You can change the description, pin messages, and delete messages. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules. If you would like to add an OP to your team, in your channel type: ")
-      await user.send("```>addOP @newOP @reamlrole```")
-      await user.send("In order to have your Realm listed in #realm-channels-info, please do not remove the ]]Realm: Survival Multiplayer[[ portion of your channel description. Feel free to edit this in the following way ]]Anything You Want To Show Up After Your Realm Name: Short Description Of Your Realm[[. ")
-      await user.send("Thanks for joining the Portal, and if you have any questions contact an Admin.")
-    except:
-      await ctx.send("Uh oh, something went wrong while trying to DM the Realm Owner. \n`Error: Discord Forbidden (User's Privacy Settings Prevented the DM Message)`")
-      await ctx.send("DM Status: **FAILED**")
-      DMStatus = "FAILED"
-    else:
-      await ctx.send("DM Status: **SENT**")
-      DMStatus = "DONE"
+      channelrr = guild.get_channel(683454087206928435) 
+      await channelrr.send(role.mention + "\n **Please agree to the rules to gain access to the Realm Owner Chats!**")
+      perms12 = channelrr.overwrites_for(role)
+      perms12.read_messages = True
     finally:
-      await ctx.send("**The command has finished all of its tasks.**\n> *If there was an error with anything, you should see the status for that specific argument.*")
-      time.sleep(2)
-      #Variables:
+      Muted = discord.utils.get(ctx.guild.roles, name="Muted")
+
       '''
-      RoleCreate = "FALSE"
-      ChannelCreate = "FALSE"
-      RoleGiven = "FALSE"
-      ChannelPermissions = "FALSE"
-      DMStatus = "FALSE"
+      ROLE ID's! [No longer used, instead using discord.utils to search by name]
+      Muted = guild.get_role(778267159138402324)
+      #MRP below
+      Muted = guild.get_role(630770012524642314)
       '''
-      await ctx.send("**Console Logs** \n```\nRole Created: " + RoleCreate + "\nChannel Created: " + ChannelCreate + "\nRole Given: " + RoleGiven + "\nChannel Permissions: " + ChannelPermissions + "\nDMStatus: " +DMStatus + "\n```")
+
+      permsM = channel.overwrites_for(Muted)
+      permsM.read_messages = False
+      permsM.send_messages = False
+      ChannelPermissions = "DONE"
+      await channel.set_permissions(Muted, overwrite=permsM)
+      await user.send(user.mention)
+      try:
+        await user.send("Enjoy your new channel. Use this channel to advertise your realm, and engage the community. The more active a channel the more likely people will be to stop by and check you out. You have moderation privileges in your channel. You can change the description, pin messages, and delete messages. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules. If you would like to add an OP to your team, in your channel type: ")
+        await user.send("```>addOP @newOP @reamlrole```")
+        await user.send("In order to have your Realm listed in #realm-channels-info, please do not remove the ]]Realm: Survival Multiplayer[[ portion of your channel description. Feel free to edit this in the following way ]]Anything You Want To Show Up After Your Realm Name: Short Description Of Your Realm[[. ")
+        await user.send("Thanks for joining the Portal, and if you have any questions contact an Admin.")
+      except:
+        await ctx.send("Uh oh, something went wrong while trying to DM the Realm Owner. \n`Error: Discord Forbidden (User's Privacy Settings Prevented the DM Message)`")
+        await ctx.send("DM Status: **FAILED**")
+        DMStatus = "FAILED"
+      else:
+        await ctx.send("DM Status: **SENT**")
+        DMStatus = "DONE"
+      finally:
+        await ctx.send("**The command has finished all of its tasks.**\n> *If there was an error with anything, you should see the status for that specific argument.*")
+        time.sleep(2)
+        #Variables:
+        '''
+        RoleCreate = "FALSE"
+        ChannelCreate = "FALSE"
+        RoleGiven = "FALSE"
+        ChannelPermissions = "FALSE"
+        DMStatus = "FALSE"
+        '''
+        await ctx.send("**Console Logs** \n```\nRole Created: " + RoleCreate + "\nChannel Created: " + ChannelCreate + "\nRole Given: " + RoleGiven + "\nChannel Permissions: " + ChannelPermissions + "\nDMStatus: " +DMStatus + "\n```")
 
 
   @newrealm.error

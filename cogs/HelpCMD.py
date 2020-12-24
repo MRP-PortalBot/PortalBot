@@ -11,9 +11,6 @@ class HelpCMD(commands.Cog):
   async def help(self, ctx):
     author = ctx.message.author
     guild = ctx.message.guild
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used HELP \n")
-    logfile.close()
     role = discord.utils.find(lambda r: r.name == 'Realm OP', ctx.message.guild.roles)
     if role in author.roles:
       embed = discord.Embed(title = "Help", description = "Commands are listed here for further help!", color = 0xb10d9f)
