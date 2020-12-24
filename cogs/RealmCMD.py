@@ -33,7 +33,11 @@ class RealmCMD(commands.Cog):
    
   @commands.command()
   @commands.has_permissions(manage_roles = True)
-  async def newrealm(self, ctx, *, realm, emoji,  user: discord.Member):
+  async def newrealm(self, ctx, realm, emoji,  user: discord.Member, *, message=None):
+    print(realm)
+    print(emoji)
+    print(user.name)
+    await ctx.send('Reached this far')
     #Status set to null
     RoleCreate = "FALSE"
     ChannelCreate = "FALSE"
