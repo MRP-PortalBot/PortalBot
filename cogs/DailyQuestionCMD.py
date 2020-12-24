@@ -26,10 +26,10 @@ class DailyCMD(commands.Cog):
       if payload.channel_id == 777987716008509490:
         channel = self.bot.get_channel(payload.channel_id)
         msg = await channel.fetch_message(payload.message_id)
+        embed = msg.embeds[0]
+        contentval = embed.fields[2].value
+        linec, question = contentval.split(" | ")
         if str(payload.emoji) == "✅":
-          embed = msg.embeds[0]
-          contentval = embed.fields[2].value
-          linec, question = contentval.split(" | ")
           file = open("DailyQuestions.txt", "r")
           line_count = 0
           for line in file:
@@ -53,12 +53,8 @@ class DailyCMD(commands.Cog):
 
         
         elif str(payload.emoji) == "❌":
-          embed = msg.embeds[0]
-          contentval = embed.fields[2].value
-          channel = self.bot.get_channel(payload.channel_id)
-          linec, question = contentval.split(" | ")
           embed2 = discord.Embed(title = "Suggestion Denied", description = "<@" + str(payload.user_id) + "> has denied a suggestion! ", color = 0xf50505)
-          embed.add_field(name = "Question Denied", value = "Question Denied: " + str(question))
+          embed.add_field(name = "Question Denied", value = str(question))
           await channel.send(embed = embed2)
           reactions = ['✅', '❌']
           for emoji in reactions: 
