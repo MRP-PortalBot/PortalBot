@@ -3,6 +3,7 @@ from discord.ext import commands
 from datetime import datetime
 import random
 import threading
+import asyncio
 
 #Counts current lines in a file.
 def LineCount():
@@ -212,8 +213,23 @@ class DailyCMD(commands.Cog):
         return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
       await channel.send("Are you sure you want to submit this question for approval? \n**Warning:** You will be subjected to a warn/mute if your suggestion is deemed inappropriate! \n*Please respond with either `YES` or `NO`*")
-      msg2 = await self.bot.wait_for('message', check=check)
-      if "YES" in msg2.content:
+      message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel. ")
+      reactions = ['✅', '❌']
+      for emoji in reactions: 
+        await message.add_reaction(emoji)
+      
+      def check2(reaction, user):
+        return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+      try:
+        reaction, user = await self.bot.wait_for('reaction_add', timeout=300.0, check=check2)
+
+      except asyncio.TimeoutError:
+        await channel.send("Looks like you didn't react in time, please try again later!")
+
+      if str(reaction.emoji) == "❌":
+        await ctx.send("Okay, I didn't send your suggestion...")
+        return
+      else:     
         msga = await ctx.send("Standby, sending your suggestion. ")
         channels = await self.bot.fetch_channel(777987716008509490)
         embed = discord.Embed(title = "Daily Question Suggestion", description = str(author.name) + " suggested a question in <#" + str(channel.id) + ">", color = 0xfcba03)
@@ -237,8 +253,6 @@ class DailyCMD(commands.Cog):
         for emoji in reactions: 
           await msg.add_reaction(emoji)
         await msga.edit(content = "I have sent your question! \nPlease wait for an admin to approve it. ")
-      else:
-        print("invalid")
     else:
       await ctx.channel.purge(limit = 1)
       embed = discord.Embed(title = "Woah Slow Down!", description = "This command is locked to <#588728994661138494>!\nI also sent your command in your DM's so all you have to do is just copy it and send it in the right channel!", color = 0xb10d9f)

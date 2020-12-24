@@ -129,12 +129,11 @@ class BlacklistCMD(commands.Cog):
     except asyncio.TimeoutError:
       await channel.send("Looks like you didn't react in time, please try again later!")
 
+    if str(reaction.emoji) == "❌":
+      await channel.send("Ended Form...")
+      return
     else:
-      if str(reaction.emoji) == "✅":
-        await ctx.send("Standby...")
-      else:
-        await ctx.send("Ended Application...")
-        return       
+      await channel.send("Sending your responses!")
       blacklistembed = discord.Embed(title = "Blacklist Report", description = "Sent from: " + author.mention, color = 0xb10d9f) 
       blacklistembed.add_field(name = "Questions", value = f'**{Q1}** \n {answer1.content} \n\n'
       f'**{Q2}** \n {answer2.content} \n\n'
