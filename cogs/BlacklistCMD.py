@@ -184,14 +184,12 @@ class BlacklistCMD(commands.Cog):
     elif isinstance(error, commands.CommandInvokeError):
       await ctx.send("Your search returned to many results. Please narrow your search, or try a different search term.") 
 
-  async def populate_embed(self, embed, starting_point, debug):
+  async def populate_embed(self, embed, starting_point):
     """Used to populate the embed for the 'blogs' command."""
     index = starting_point
     embed.clear_fields() # cleans embed before rebuilding
-    values = sheet.row_values(index)
-    embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(values)}```", inline=False)
-    if debug is not None:
-      embed.add_field(name="Index", value=index, inline=False)
+    values = sheet.row_values(index+1)
+    embed.add_field(name=f"Row: {index}", value=f"```\n {' '.join(values)}```", inline=False)
     embed.add_field(name="Discord Username", value=values[0], inline=False)
     embed.add_field(name="Discord ID", value=values[1], inline=False)
     embed.add_field(name="Gamertag", value=values[2], inline=False)
@@ -201,17 +199,20 @@ class BlacklistCMD(commands.Cog):
     embed.add_field(name="Date of Incident", value=values[6], inline=False)
     embed.add_field(name="Type of Ban", value=values[7], inline=False)
     embed.add_field(name="Date the Ban ends", value=values[8], inline=False)
+    embed.set_footer(text="[spreadsheet](https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit?usp=sharing)")
     return embed, index+1
 
-  @commands.command()
-  async def blogsnew(self, ctx, debug=None):
+  @commands.command(aliases=["blogsnew"])
+  async def blogs(self, ctx, row=None):
     """View all data in the blacklist spreadsheet"""
     async def check_reaction(reaction, user):
       return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
     
+    if row is None or row < 2:
+      row = 2
     author = ctx.message.author
     embed = discord.Embed(title = "MRP Blacklist Data", description = f"Requested by Operator {author.mention}")
-    embed, index = await self.populate_embed(embed, 3, debug)
+    embed, index = await self.populate_embed(embed, row)
     message = await ctx.send(embed=embed)
     await message.add_reaction("◀️")
     await message.add_reaction("▶️")
@@ -221,101 +222,16 @@ class BlacklistCMD(commands.Cog):
         if user == self.bot.user:
           continue
         if str(reaction.emoji) == "▶️" and index < sheet.row_count:
-          embed, index = await self.populate_embed(embed, index, debug)
+          embed, index = await self.populate_embed(embed, index)
           await message.remove_reaction(reaction, user)
           await message.edit(embed=embed)
-        elif str(reaction.emoji) == "◀️" and index > 3:
+        elif str(reaction.emoji) == "◀️" and index > 2:
           await message.remove_reaction(reaction, user)
-          embed, index = await self.populate_embed(embed, index-2, debug)
+          embed, index = await self.populate_embed(embed, index-2)
           await message.edit(embed=embed)
       except asyncio.TimeoutError:  # ends loop after timeout.
           await message.clear_reactions()
           break
-
-  @commands.command()
-  async def blogs(self, ctx):
-    author = ctx.message.author
-    def check(reaction, user):
-      return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
-    values = sheet.get_all_values()
-    #-----------
-    current_index = 2
-    results = values[current_index:current_index+1]
-    results =  ', '.join([str(elem) for elem in results])
-    print(results)
-    A1, A2, A3, A4, A5, A6, A7, A8 ,A9 = results.split(", ")
-    current_index+=1
-    results = values[current_index:current_index+1]
-    results =  ', '.join([str(elem) for elem in results])
-    B1, B2, B3, B4, B5, B6, B7, B8 ,B9 = results.split(", ")
-    current_index+=1
-    results = values[current_index:current_index+1]
-    results =  ', '.join([str(elem) for elem in results])
-    C1, C2, C3, C4, C5, C6, C7, C8 ,C9 = results.split(", ")
-    current_index+=1
-    #-----------
-    embed = discord.Embed(title = "MRP Blacklist Data", description = "Requested by Operator " + author.mention)
-    embed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-    #Replace these 2 lines
-    #message = await ctx.send(values[current_index:current_index+3])
-    message = await ctx.send(embed = embed)
-    await message.add_reaction("◀️")
-    await message.add_reaction("▶️")
-    
-    while True:
-        try:
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=60, check=check)
-            # waiting for a reaction to be added - times out after x seconds, 60 in this
-            # example
-
-            if str(reaction.emoji) == "▶️":
-                results = values[current_index:current_index+1]
-                results =  ', '.join([str(elem) for elem in results])
-                A1, A2, A3, A4, A5, A6, A7, A8 ,A9 = results.split(", ")
-                current_index+=1
-                results = values[current_index:current_index+1]
-                results =  ', '.join([str(elem) for elem in results])
-                B1, B2, B3, B4, B5, B6, B7, B8 ,B9 = results.split(", ")
-                current_index+=1
-                results = values[current_index:current_index+1]
-                results =  ', '.join([str(elem) for elem in results])
-                C1, C2, C3, C4, C5, C6, C7, C8 ,C9 = results.split(", ")
-                current_index+=1
-                #embed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-                newembed = discord.Embed(title = "MRP Blacklist Data", description = "Requested by Operator " + author.mention)
-                newembed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-                await message.edit(embed = newembed)
-                await message.remove_reaction(reaction, user)
-
-            elif str(reaction.emoji) == "◀️":
-                results = values[current_index:current_index-1]
-                results =  ', '.join([str(elem) for elem in results])
-                print(results)
-                A1, A2, A3, A4, A5, A6, A7, A8 ,A9 = results.split(", ")
-                current_index-=1
-                results = values[current_index:current_index-1]
-                results =  ', '.join([str(elem) for elem in results])
-                B1, B2, B3, B4, B5, B6, B7, B8 ,B9 = results.split(", ")
-                current_index-=1
-                results = values[current_index:current_index-1]
-                results =  ', '.join([str(elem) for elem in results])
-                C1, C2, C3, C4, C5, C6, C7, C8 ,C9 = results.split(", ")
-                current_index-=1
-                #embed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-                newembed = discord.Embed(title = "MRP Blacklist Data", description = "Requested by Operator " + author.mention)
-                newembed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-                await message.edit(embed = newembed)
-                await message.remove_reaction(reaction, user)
-                                                         
-            else:
-                await message.remove_reaction(reaction, user)
-                # removes reactions if the user tries to go forward on the last page or
-                # backwards on the first page
-        except asyncio.TimeoutError:
-            await message.remove_reaction(reaction, user)
-            break
-            # ending the loop if user doesn't react after x seconds
-
   
 def setup(bot):
   bot.add_cog(BlacklistCMD(bot))
