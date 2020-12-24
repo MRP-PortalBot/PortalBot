@@ -219,7 +219,7 @@ class BlacklistCMD(commands.Cog):
         if str(reaction.emoji) == "▶️" and index > 2:
           embed, index = await self.populate_embed(embed, index)
           await message.edit(embed=embed)
-        elif str(reaction.emoji) == "◀️" and index < sheet.row_count():
+        elif str(reaction.emoji) == "◀️" and index < sheet.row_count:
           embed, index = await self.populate_embed(embed, index-1)
           await message.edit(embed=embed)
       except asyncio.TimeoutError:  # ends loop after timeout.
