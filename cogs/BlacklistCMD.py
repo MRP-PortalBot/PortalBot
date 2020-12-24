@@ -4,7 +4,6 @@ from datetime import datetime
 import time
 import re
 import asyncio
-from discord import Embed
 #--------------------------------------------------
 #pip3 install gspread oauth2client
 

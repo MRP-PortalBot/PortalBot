@@ -1,11 +1,5 @@
-import discord
-import flask
-import keep_alive
-import logging
 from discord.ext import commands
-import json 
-import datetime
-from datetime import timedelta, datetime
+from datetime import datetime
 
 class DailyCMD(commands.Cog):
   def __init__(self,bot):

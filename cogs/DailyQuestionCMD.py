@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 import random
-import threading
 
 #Counts current lines in a file.
 def LineCount():
