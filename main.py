@@ -85,7 +85,7 @@ async def load(ctx, ext):
     embed = discord.Embed(title="Cogs - Load", description=f"Cog '{ext}' not found.", color=0xd6b4e8)
     await ctx.send(embed=embed)
 
-@cogs.command()
+@cogs.command(aliases=['restart'])
 @commands.has_role('Bot Manager')
 async def reload(ctx, ext):
   if ext == "all":
