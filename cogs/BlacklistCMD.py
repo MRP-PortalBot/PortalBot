@@ -216,11 +216,13 @@ class BlacklistCMD(commands.Cog):
     while True:
       try:
         reaction, user = await self.bot.wait_for("reaction_add", timeout=60, check=check_reaction)
-        if str(reaction.emoji) == "▶️" and index > 2:
+        if user == self.bot.user:
+          continue
+        if str(reaction.emoji) == "▶️" and index < sheet.row_count:
           embed, index = await self.populate_embed(embed, index)
           await message.remove_reaction(reaction, user)
           await message.edit(embed=embed)
-        elif str(reaction.emoji) == "◀️" and index < sheet.row_count:
+        elif str(reaction.emoji) == "◀️" and index > 2:
           await message.remove_reaction(reaction, user)
           embed, index = await self.populate_embed(embed, index-2)
           await message.edit(embed=embed)
