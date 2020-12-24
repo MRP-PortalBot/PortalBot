@@ -116,30 +116,39 @@ class BlacklistCMD(commands.Cog):
     row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
     sheet.insert_row(row, 3)  
 
-    submit_wait = True
-    while submit_wait:
-      await channel.send('End of questions, send "**submit**". If you want to cancel, send "**break**".  \nPlease note that the bot is **CASE SENSITIVE**!')
-      msg = await self.bot.wait_for('message', check=check)
-      if "submit" in msg.content:
-        submit_wait = False         
-        blacklistembed = discord.Embed(title = "Blacklist Report", description = "Sent from: " + author.mention, color = 0xb10d9f) 
-        blacklistembed.add_field(name = "Questions", value = f'**{Q1}** \n {answer1.content} \n\n'
-        f'**{Q2}** \n {answer2.content} \n\n'
-        f'**{Q3}** \n {answer3.content} \n\n'
-        f'**{Q4}** \n {answer4.content} \n\n'
-        f'**{Q5}** \n {answer5.content} \n\n'
-        f'**{Q6}** \n {answer6.content} \n\n'
-        f'**{Q7}** \n {answer7.content} \n\n'
-        f'**{Q8}** \n {answer8.content} \n\n'
-        f'**{Q9}** \n {answer9.content} \n\n')
-        timestamp = datetime.now()
-        blacklistembed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-        await schannel.send(embed = blacklistembed)
-        await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
-      elif "break" in msg.content:
-        await channel.send("Canceled Request...")
-        await ctx.send("Canceled Request...")
-        submit_wait = False
+    message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel. ")
+    reactions = ['✅', '❌']
+    for emoji in reactions: 
+      await message.add_reaction(emoji)
+      
+    def check2(reaction, user):
+      return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+    try:
+      reaction, user = await self.bot.wait_for('reaction_add', timeout=300.0, check=check2)
+
+    except asyncio.TimeoutError:
+      await channel.send("Looks like you didn't react in time, please try again later!")
+
+    else:
+      if str(reaction.emoji) == "✅":
+        await ctx.send("Standby...")
+      else:
+        await ctx.send("Ended Application...")
+        return       
+      blacklistembed = discord.Embed(title = "Blacklist Report", description = "Sent from: " + author.mention, color = 0xb10d9f) 
+      blacklistembed.add_field(name = "Questions", value = f'**{Q1}** \n {answer1.content} \n\n'
+      f'**{Q2}** \n {answer2.content} \n\n'
+      f'**{Q3}** \n {answer3.content} \n\n'
+      f'**{Q4}** \n {answer4.content} \n\n'
+      f'**{Q5}** \n {answer5.content} \n\n'
+      f'**{Q6}** \n {answer6.content} \n\n'
+      f'**{Q7}** \n {answer7.content} \n\n'
+      f'**{Q8}** \n {answer8.content} \n\n'
+      f'**{Q9}** \n {answer9.content} \n\n')
+      timestamp = datetime.now()
+      blacklistembed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
+      await schannel.send(embed = blacklistembed)
+      await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
   
   @blacklist.error
   async def blacklist_error(self,ctx, error):
