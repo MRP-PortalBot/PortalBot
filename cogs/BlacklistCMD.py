@@ -199,11 +199,10 @@ class BlacklistCMD(commands.Cog):
     embed.add_field(name="Date of Incident", value=values[6], inline=False)
     embed.add_field(name="Type of Ban", value=values[7], inline=False)
     embed.add_field(name="Date the Ban ends", value=values[8], inline=False)
-    embed.set_footer(text="[spreadsheet](https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit?usp=sharing)")
     return embed, index+1
 
   @commands.command(aliases=["blogsnew"])
-  async def blogs(self, ctx, row=None):
+  async def blogs(self, ctx, row: int=None):
     """View all data in the blacklist spreadsheet"""
     async def check_reaction(reaction, user):
       return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
@@ -225,7 +224,7 @@ class BlacklistCMD(commands.Cog):
           embed, index = await self.populate_embed(embed, index)
           await message.remove_reaction(reaction, user)
           await message.edit(embed=embed)
-        elif str(reaction.emoji) == "◀️" and index > 2:
+        elif str(reaction.emoji) == "◀️" and index >= 3:
           await message.remove_reaction(reaction, user)
           embed, index = await self.populate_embed(embed, index-2)
           await message.edit(embed=embed)
