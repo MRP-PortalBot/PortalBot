@@ -69,7 +69,6 @@ class BlacklistCMD(commands.Cog):
   @commands.command()
   @commands.has_role("Realm OP")
   async def blacklist(self, ctx):
-    a_list = []
     author = ctx.message.author
     guild = ctx.message.guild
     channel = await ctx.author.create_dm()
@@ -186,12 +185,6 @@ class BlacklistCMD(commands.Cog):
     elif isinstance(error, commands.CommandInvokeError):
       await ctx.send("Your search returned to many results. Please narrow your search, or try a different search term.") 
 
-  async def get_row(self, index):
-    """Get row of spreadsheet at provided index"""
-    values = sheet.get_all_values()
-    results = values[index:index+1]
-    return results
-
   async def populate_embed(self, embed, starting_point):
     """Used to populate the embed for the 'blogs' command."""
     i = 0
@@ -199,8 +192,8 @@ class BlacklistCMD(commands.Cog):
     for field in embed.fields:  # cleans embed before rebuilding
       embed.fields.remove(field)
     while i < 3:
-      results = await self.get_row(index)
-      embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(results)}")
+      values = sheet.row_values(index)
+      embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(values)}")
       index += 1
       i += 1
     return embed, index+1
