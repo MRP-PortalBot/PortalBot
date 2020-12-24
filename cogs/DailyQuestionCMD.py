@@ -23,7 +23,7 @@ class DailyCMD(commands.Cog):
   @commands.Cog.listener()
   async def on_raw_reaction_add(self, payload):
     if payload.user_id != 777361919211732993:
-      if payload.channel_id == 787803726168588318:
+      if payload.channel_id == 777987716008509490:
         if str(payload.emoji) == "✅":
           channel = self.bot.get_channel(payload.channel_id)
           msg = await channel.fetch_message(payload.message_id)
@@ -57,8 +57,8 @@ class DailyCMD(commands.Cog):
           contentval = embed.fields[2].value
           channel = self.bot.get_channel(payload.channel_id)
           linec, question = contentval.split(" | ")
-          embed2 = discord.Embed(title = "Suggestion Approved", description = "<@" + str(payload.user_id) + "> has approved a suggestion! ", color = 0xf50505)
-          embed.add_field(name = "Question Approved", value = "Question Approved: " + str(question))
+          embed2 = discord.Embed(title = "Suggestion Denied", description = "<@" + str(payload.user_id) + "> has denied a suggestion! ", color = 0xf50505)
+          embed.add_field(name = "Question Denied", value = "Question Denied: " + str(question))
           await channel.send(embed = embed2)
           reactions = ['✅', '❌']
           for emoji in reactions: 
@@ -219,7 +219,7 @@ class DailyCMD(commands.Cog):
       msg2 = await self.bot.wait_for('message', check=check)
       if "YES" in msg2.content:
         msga = await ctx.send("Standby, sending your suggestion. ")
-        channels = await self.bot.fetch_channel(787803726168588318)
+        channels = await self.bot.fetch_channel(777987716008509490)
         embed = discord.Embed(title = "Daily Question Suggestion", description = str(author.name) + " suggested a question in <#" + str(channel.id) + ">", color = 0xfcba03)
         embed.add_field(name = "Suggestion:", value = str(question))
         #QuestionSuggestQ.txt
