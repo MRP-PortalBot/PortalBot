@@ -116,7 +116,7 @@ class BlacklistCMD(commands.Cog):
     row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
     sheet.insert_row(row, 3)  
 
-    message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel. ")
+    message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel.* ")
     reactions = ['✅', '❌']
     for emoji in reactions: 
       await message.add_reaction(emoji)
