@@ -5,6 +5,8 @@ import time
 import re
 import asyncio
 from discord import Embed
+from core.config import load_config
+config, _ = load_config()
 #--------------------------------------------------
 #pip3 install gspread oauth2client
 
@@ -74,7 +76,7 @@ class BlacklistCMD(commands.Cog):
     channel = await ctx.author.create_dm()
     #schannel = self.bot.get_channel(778453455848996876)
     
-    schannel = self.bot.get_channel(777987716008509490)
+    schannel = self.bot.get_channel(config['blacklistChannel'])
     await ctx.send("Please take a look at your DM's!")
    
 

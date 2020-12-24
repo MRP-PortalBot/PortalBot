@@ -132,15 +132,30 @@ class GamertagCMD(commands.Cog):
     #GamerTag.write(gamertag + " " + str(author.id) + "\n")
     def check(m):
       return m.content is not None and m.channel == channel and m.author is not self.bot.user
-    await channel.send("Success! \nWould you like to change your nickname to your gamertag? (If so, you may have to add your emojis to your nickname again!)\n> *Reply with:* **YES** or **NO**")
+    await channel.send("Success! \nWould you like to change your nickname to your gamertag? (If so, you may have to add your emojis to your nickname again!)")
     answer7 = await self.bot.wait_for('message', check=check)
 
-    if answer7.content == "YES":
+    message = await channel.send("✅ - CHANGE NICKNAME\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+    reactions = ['✅', '❌']
+    for emoji in reactions: 
+      await message.add_reaction(emoji)
+      
+    def check2(reaction, user):
+      return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+    try:
+      reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
+
+    except asyncio.TimeoutError:
+      await channel.send("Looks like you didn't react in time, please try again later!")
+
+    if str(reaction.emoji) == "❌":
+      await channel.send("Okay, won't change your nickname!")
+      return
+    else:
       await author.edit(nick = gamertag)
       await ctx.send("Success!")
 
-    elif answer7.content == "NO":
-      await ctx.send("Okay, canceled it...")
+
 
   @gtadd.error
   async def gtadd_error(self, ctx, error):

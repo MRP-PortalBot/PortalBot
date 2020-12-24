@@ -4,7 +4,8 @@ from datetime import datetime
 import random
 import threading
 import asyncio
-
+from core.config import load_config
+config, _ = load_config()
 #Counts current lines in a file.
 def LineCount():
   file = open("DailyQuestions.txt", "r")
@@ -24,7 +25,7 @@ class DailyCMD(commands.Cog):
   @commands.Cog.listener()
   async def on_raw_reaction_add(self, payload):
     if payload.user_id != self.bot.user.id:
-      if payload.channel_id == 777987716008509490:
+      if payload.channel_id == config['questionSuggestChannel']:
         channel = self.bot.get_channel(payload.channel_id)
         msg = await channel.fetch_message(payload.message_id)
         embed = msg.embeds[0]
@@ -231,7 +232,7 @@ class DailyCMD(commands.Cog):
         return
       else:     
         msga = await ctx.send("Standby, sending your suggestion. ")
-        channels = await self.bot.fetch_channel(777987716008509490)
+        channels = await self.bot.fetch_channel(config['questionSuggestChannel'])
         embed = discord.Embed(title = "Daily Question Suggestion", description = str(author.name) + " suggested a question in <#" + str(channel.id) + ">", color = 0xfcba03)
         embed.add_field(name = "Suggestion:", value = str(question))
         #QuestionSuggestQ.txt
