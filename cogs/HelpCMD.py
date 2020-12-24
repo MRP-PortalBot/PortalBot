@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime
+import core.config
 
 class HelpCMD(commands.Cog):
   def __init__(self,bot):
@@ -128,13 +129,14 @@ class HelpCMD(commands.Cog):
   
   @commands.command()
   async def info(self,ctx):
+    config, _ = core.config.load_config()
     guild = ctx.message.guild
     em = discord.Embed(title = "PortalBot Info", description = "Hello. I am PortalBot, a `Discord.py` powered bot!", color = 0xffd700)
     em.add_field(name = "PortalBot Owner:", value = "SpaceRanger#0001")
     em.add_field(name = "Python Version: ", value = "3.8.6")
     em.add_field(name = "Discord.py Version:", value = "1.5.1")
     em.add_field(name = "PortalBot Version:", value = "1.3")
-    em.add_field(name = "Help Command:", value = "Prefix: **>** | Help Command: **>help** *or* **>help (command)**")
+    em.add_field(name = "Help Command:", value = f"Prefix: **{config['prefix']}** | Help Command: **{config['prefix']}help** *or* **{config['prefix']}help (command)**")
     em.set_thumbnail(url = guild.icon_url)
     timestamp = datetime.now()
     em.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))

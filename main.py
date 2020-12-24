@@ -28,7 +28,7 @@ logger.addHandler(handler)
 def get_extensions():  # Gets extension list dynamically
   extensions = []
   for file in Path("cogs").glob("**/*.py"):
-    if "!" in file.name:
+    if "!" in file.name or "__" in file.name:
       continue
     extensions.append(str(file).replace("/", ".").replace(".py", ""))
   return extensions
@@ -46,7 +46,7 @@ async def on_ready():
   now = datetime.now().strftime("%H:%M:%S")
   print("Current Time =", now)
 
-  await client.change_presence(status=discord.Status.idle,activity=discord.Activity(type=discord.ActivityType.watching, name="over the Portal! | >help"))
+  await client.change_presence(status=discord.Status.idle,activity=discord.Activity(type=discord.ActivityType.watching, name=f"over the Portal! | {config['prefix']}help"))
 
 keep_alive.keep_alive() # webserver setup, used w/ REPL
 

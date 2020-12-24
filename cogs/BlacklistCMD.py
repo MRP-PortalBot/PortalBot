@@ -140,7 +140,6 @@ class BlacklistCMD(commands.Cog):
         await channel.send("Canceled Request...")
         await ctx.send("Canceled Request...")
         submit_wait = False
-          
   
   @blacklist.error
   async def blacklist_error(self,ctx, error):
@@ -188,8 +187,7 @@ class BlacklistCMD(commands.Cog):
   async def populate_embed(self, embed, starting_point):
     """Used to populate the embed for the 'blogs' command."""
     index = starting_point
-    for field in embed.fields:  # cleans embed before rebuilding
-      embed.fields.remove(field)
+    embed.clear_fields() # cleans embed before rebuilding
     values = sheet.row_values(index)
     embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(values)}```", inline=False)
     embed.add_field(name="Discord Username", value=values[0], inline=False)
@@ -211,17 +209,17 @@ class BlacklistCMD(commands.Cog):
     
     author = ctx.message.author
     embed = discord.Embed(title = "MRP Blacklist Data", description = f"Requested by Operator {author.mention}")
-    embed, index = await self.populate_embed(embed, 2)
+    embed, index = await self.populate_embed(embed, 3)
     message = await ctx.send(embed=embed)
     await message.add_reaction("◀️")
     await message.add_reaction("▶️")
     while True:
       try:
         reaction, user = await self.bot.wait_for("reaction_add", timeout=60, check=check_reaction)
-        if str(reaction.emoji) == "▶️":
+        if str(reaction.emoji) == "▶️" and index > 2:
           embed, index = await self.populate_embed(embed, index)
           await message.edit(embed=embed)
-        elif str(reaction.emoji) == "◀️":
+        elif str(reaction.emoji) == "◀️" and index < sheet.row_count():
           embed, index = await self.populate_embed(embed, index-1)
           await message.edit(embed=embed)
       except asyncio.TimeoutError:  # ends loop after timeout.
