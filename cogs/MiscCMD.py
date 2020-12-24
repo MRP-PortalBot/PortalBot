@@ -185,15 +185,6 @@ class MiscCMD(commands.Cog):
     else:
       await ctx.send("That number isn't a valid response!")
 
-  #OfO command. 
-  @commands.command()
-  async def webhook(self, ctx, *, reason):
-    return
-    async with aiohttp.ClientSession() as session:
-      url = 'https://discord.com/api/webhooks/783135151155970049/nTOU4H3ch2Q3Z3lLEDUGj8jq-tNZ-cZFRvBPdjphl5aMYtM5j3Urv7p1KtTMxXfrwZmo'
-      webhook = Webhook.from_url(url, adapter=AsyncWebhookAdapter(session)) #something here to cycle through url's
-      author = ctx.message.author
-      await webhook.send(reason ,username=author.name, avatar_url = author.avatar_url)
 
   @commands.command(description="Rock Paper Scissors")
   async def rps(self, msg: str):

@@ -48,12 +48,10 @@ class GamertagCMD(commands.Cog):
     def check(m):
       return m.content is not None and m.channel == channel and m.author is not self.bot.user
     
-    await ctx.send("How do you want to search\?\n**Discord**\n**LongID**\n**Gamertag**")
+    await ctx.send("How do you want to search?\n**Discord**\n**LongID**\n**Gamertag**")
     message1 = await self.bot.wait_for('message', check=check)
     
     message1c = message1.content
-    def check(opt1):
-      return opt1.content is not None and opt1.channel == channel and opt1.author is not self.bot.user
     if 'Discord' in message1c:
       await ctx.send("Please enter the Discord Username")
       messageopt1 = await self.bot.wait_for('message', check=check)
