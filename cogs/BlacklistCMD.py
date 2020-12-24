@@ -184,12 +184,14 @@ class BlacklistCMD(commands.Cog):
     elif isinstance(error, commands.CommandInvokeError):
       await ctx.send("Your search returned to many results. Please narrow your search, or try a different search term.") 
 
-  async def populate_embed(self, embed, starting_point):
+  async def populate_embed(self, embed, starting_point, debug):
     """Used to populate the embed for the 'blogs' command."""
     index = starting_point
     embed.clear_fields() # cleans embed before rebuilding
     values = sheet.row_values(index)
     embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(values)}```", inline=False)
+    if debug is not None:
+      embed.add_field(name="Index", value=index, inline=False)
     embed.add_field(name="Discord Username", value=values[0], inline=False)
     embed.add_field(name="Discord ID", value=values[1], inline=False)
     embed.add_field(name="Gamertag", value=values[2], inline=False)
@@ -202,14 +204,14 @@ class BlacklistCMD(commands.Cog):
     return embed, index+1
 
   @commands.command()
-  async def blogsnew(self, ctx):
+  async def blogsnew(self, ctx, debug=None):
     """View all data in the blacklist spreadsheet"""
     async def check_reaction(reaction, user):
       return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
     
     author = ctx.message.author
     embed = discord.Embed(title = "MRP Blacklist Data", description = f"Requested by Operator {author.mention}")
-    embed, index = await self.populate_embed(embed, 3)
+    embed, index = await self.populate_embed(embed, 3, debug)
     message = await ctx.send(embed=embed)
     await message.add_reaction("◀️")
     await message.add_reaction("▶️")
@@ -219,12 +221,12 @@ class BlacklistCMD(commands.Cog):
         if user == self.bot.user:
           continue
         if str(reaction.emoji) == "▶️" and index < sheet.row_count:
-          embed, index = await self.populate_embed(embed, index)
+          embed, index = await self.populate_embed(embed, index, debug)
           await message.remove_reaction(reaction, user)
           await message.edit(embed=embed)
-        elif str(reaction.emoji) == "◀️" and index > 2:
+        elif str(reaction.emoji) == "◀️" and index > 3:
           await message.remove_reaction(reaction, user)
-          embed, index = await self.populate_embed(embed, index-2)
+          embed, index = await self.populate_embed(embed, index-2, debug)
           await message.edit(embed=embed)
       except asyncio.TimeoutError:  # ends loop after timeout.
           await message.clear_reactions()
