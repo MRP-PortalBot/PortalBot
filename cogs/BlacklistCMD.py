@@ -65,8 +65,6 @@ class BlacklistCMD(commands.Cog):
   def __init__(self,bot):
     self.bot = bot
 
-
-
   #Starts the blacklist process.
   @commands.command()
   @commands.has_role("Realm OP")

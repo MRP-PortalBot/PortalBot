@@ -123,9 +123,6 @@ class GamertagCMD(commands.Cog):
   async def gtadd(self, ctx, *, gamertag):
     author = ctx.message.author
     channel = ctx.message.channel
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used GAMERTAG \n")
-    logfile.close()
     alid = str(author.id)
     aname = str(author.name + '#' + author.discriminator)
 
