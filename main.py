@@ -18,8 +18,6 @@ intents.reactions = True
 client = commands.Bot(command_prefix=config['prefix'], intents = intents)
 client.remove_command("help")
 
-await client.change_presence(status=discord.Status.idle,activity=discord.Activity(type=discord.ActivityType.watching, name="over the Portal! | >help"))
-
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
@@ -38,6 +36,8 @@ async def on_ready():
 
   now = datetime.now().strftime("%H:%M:%S")
   print("Current Time =", now)
+
+  await client.change_presence(status=discord.Status.idle,activity=discord.Activity(type=discord.ActivityType.watching, name="over the Portal! | >help"))
 
 keep_alive.keep_alive() # webserver setup, used w/ REPL
 
