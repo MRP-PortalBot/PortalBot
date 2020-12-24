@@ -233,41 +233,7 @@ class MiscCMD(commands.Cog):
     await ctx.send(embed = embed)
 
 
-  @commands.command()
-  async def eval_fn(self, ctx, *, cmd):
-    """Evaluates input"""
-    ops = [409152798609899530, 306070011028439041, 196335906871967744]
-    author = ctx.message.author
-    if author.id not in ops:
-      return
-    fn_name = "_eval_expr"
-
-    cmd = cmd.strip("` ")
-
-    # add a layer of indentation
-    cmd = "\n".join(f"    {i}" for i in cmd.splitlines())
-
-    # wrap in async def body
-    body = f"async def {fn_name}():\n{cmd}"
-
-    parsed = ast.parse(body)
-    body = parsed.body[0].body
-
-    insert_returns(body)
-
-    env = {
-        'bot': ctx.bot,
-        'discord': discord,
-        'commands': commands,
-        'ctx': ctx,
-        '__import__': __import__
-    }
-    exec(compile(parsed, filename="<ast>", mode="exec"), env)
-
-    result = (await eval(f"{fn_name}()", env))
-    embed = discord.Embed(title = "Python Execution", description = "Code Run Requeseted by " + author.mention, color = 0xffe854)
-    embed.add_field(name = "Results", value = result)
-    await ctx.send(embed = embed)
+  
 
 
 def setup(bot):
