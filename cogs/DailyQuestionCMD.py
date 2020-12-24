@@ -24,9 +24,9 @@ class DailyCMD(commands.Cog):
   async def on_raw_reaction_add(self, payload):
     if payload.user_id != self.bot.user.id:
       if payload.channel_id == 777987716008509490:
+        channel = self.bot.get_channel(payload.channel_id)
+        msg = await channel.fetch_message(payload.message_id)
         if str(payload.emoji) == "✅":
-          channel = self.bot.get_channel(payload.channel_id)
-          msg = await channel.fetch_message(payload.message_id)
           embed = msg.embeds[0]
           contentval = embed.fields[2].value
           linec, question = contentval.split(" | ")
