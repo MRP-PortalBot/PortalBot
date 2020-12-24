@@ -6,4 +6,3 @@ Flask==1.1.2
 async_timeout==3.0.1
 discord.py==1.5.1
 discord==1.0.1
-keep_alive==0.0.1
