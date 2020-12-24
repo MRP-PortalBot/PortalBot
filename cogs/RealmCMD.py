@@ -67,9 +67,15 @@ class RealmCMD(commands.Cog):
       perms12 = channelrr.overwrites_for(role)
       perms12.read_messages = True
     finally:
+      Muted = discord.utils.get(ctx.guild.roles, name="Muted")
+
+      '''
+      ROLE ID's! [No longer used, instead using discord.utils to search by name]
       Muted = guild.get_role(778267159138402324)
       #MRP below
-      #Muted = guild.get_role(630770012524642314)
+      Muted = guild.get_role(630770012524642314)
+      '''
+
       permsM = channel.overwrites_for(Muted)
       permsM.read_messages = False
       permsM.send_messages = False
