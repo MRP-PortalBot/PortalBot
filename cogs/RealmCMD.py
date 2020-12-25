@@ -99,7 +99,7 @@ class RealmCMD(commands.Cog):
         DMStatus = "FALSE"
         '''
         embed = discord.Embed(title = "Realm Channel Output", description= "Realm Requested by: " + author.mention, color = 0x38ebeb)
-        embed.add_field(name = "**Console Logs**" ,value = "**Role Created:** " + RoleCreate + " : " + role.mention "\n**Channel Created:** " + ChannelCreate + " : <#" + channel.id + ">\n**Role Given:** " + RoleGiven + "\n**Channel Permissions:** " + ChannelPermissions + "\n**DMStatus:** " + DMStatus)
+        embed.add_field(name = "**Console Logs**" ,value = "**Role Created:** " + RoleCreate + " : " + role.mention + "\n**Channel Created:** " + ChannelCreate + " : <#" + channel.id + ">\n**Role Given:** " + RoleGiven + "\n**Channel Permissions:** " + ChannelPermissions + "\n**DMStatus:** " + DMStatus)
         await ctx.send(embed = embed)
 
 
