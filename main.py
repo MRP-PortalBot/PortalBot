@@ -11,6 +11,11 @@ import core.bcolors as bcolors
 
 prompt_config("Enter bot token here: ", "token")
 prompt_config("Enter bot prefix here: ", "prefix")
+prompt_config("Enter channel (ID) to display blacklist responses: ", "blacklistChannel")
+prompt_config("Enter channel (ID) to display question suggestions: ","questionSuggestChannel")
+prompt_config("Enter bot-spam channel (ID)","botspamChannel")
+prompt_config("Enter channel (ID) to display realm channel applications: ","realmChannelResponse")
+prompt_config("Enter bot type (Stable/Beta)","BotType")
 config, _ = load_config()
 
 intents = discord.Intents.default()  # we use intents in BlacklistCMD
@@ -36,10 +41,11 @@ def get_extensions():  # Gets extension list dynamically
 @client.event
 async def on_ready():
   print(f"{bcolors.WARNING}Attempting to connect to Discord API...{bcolors.ENDC}")
-  await asyncio.sleep(2)
+  await asyncio.sleep(1)
   print(f"{bcolors.OKGREEN}Successfully connected to Discord!{bcolors.ENDC}")
   print(f"{bcolors.OKCYAN}BOT INFORMATION: {bcolors.ENDC}")
   print(f"{bcolors.OKCYAN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{bcolors.ENDC}")
+  print(f"{bcolors.OKGREEN}BOT TYPE: {bcolors.ENDC}" + config['BotType'])
   print(f"{bcolors.WARNING}ID: {client.user.id}{bcolors.ENDC}")
   print(f"{bcolors.WARNING}URL: https://discord.com/oauth2/authorize?client_id={client.user.id}&scope=bot&permissions=8{bcolors.ENDC}")
 
