@@ -37,7 +37,7 @@ class CommandErrorHandler(commands.Cog):
         return
       elif isinstance(error, commands.CommandNotFound):
         config, _ = core.config.load_config()
-        await ctx.send(f"No such command! Please contact the only **Lord Turtle** if you are having trouble! \nPlease also refer to the help command! `{config['prefix']}help`")
+        await ctx.send(f"No such command! Please contact a Bot Manager if you are having trouble! \nPlease also refer to the help command! `{config['prefix']}help`")
         print("ingored error: " + str(ctx.command))
       else:
         if len(exception_msg)+160 > 2000:

@@ -48,7 +48,6 @@ print(cell)
 
 
 Q1 = "User's Discord: "
-#Savaged, changed the question so it doesn't say not to include the tag number here
 Q2 = "User's Discord Long ID: "
 Q3 = "User's Gamertag: "
 Q4 = "Banned from (realm): "

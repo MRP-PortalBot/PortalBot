@@ -70,14 +70,6 @@ class RealmCMD(commands.Cog):
       perms12.read_messages = True
     finally:
       Muted = discord.utils.get(ctx.guild.roles, name="Muted")
-
-      '''
-      ROLE ID's! [No longer used, instead using discord.utils to search by name]
-      Muted = guild.get_role(778267159138402324)
-      #MRP below
-      Muted = guild.get_role(630770012524642314)
-      '''
-
       permsM = channel.overwrites_for(Muted)
       permsM.read_messages = False
       permsM.send_messages = False
@@ -91,10 +83,9 @@ class RealmCMD(commands.Cog):
         await user.send("Thanks for joining the Portal, and if you have any questions contact an Admin.")
       except:
         await ctx.send("Uh oh, something went wrong while trying to DM the Realm Owner. \n`Error: Discord Forbidden (User's Privacy Settings Prevented the DM Message)`")
-        await ctx.send("DM Status: **FAILED**")
+        await ctx.send("DM Status: **FAILED**") 
         DMStatus = "FAILED"
       else:
-        await ctx.send("DM Status: **SENT**")
         DMStatus = "DONE"
       finally:
         await ctx.send("**The command has finished all of its tasks.**\n> *If there was an error with anything, you should see the status for that specific argument.*")
@@ -107,7 +98,9 @@ class RealmCMD(commands.Cog):
         ChannelPermissions = "FALSE"
         DMStatus = "FALSE"
         '''
-        await ctx.send("**Console Logs** \n```\nRole Created: " + RoleCreate + "\nChannel Created: " + ChannelCreate + "\nRole Given: " + RoleGiven + "\nChannel Permissions: " + ChannelPermissions + "\nDMStatus: " +DMStatus + "\n```")
+        embed = discord.Embed(title = "Realm Channel Output", description= "Realm Requested by: " + author.mention, color = 0x38ebeb)
+        embed.add_field(name = "**Console Logs**" ,value = "**Role Created:** " + RoleCreate + " : " + role.mention "\n**Channel Created:** " + ChannelCreate + " : <#" + channel.id + ">\n**Role Given:** " + RoleGiven + "\n**Channel Permissions:** " + ChannelPermissions + "\n**DMStatus:** " + DMStatus)
+        await ctx.send(embed = embed)
 
 
   @newrealm.error
