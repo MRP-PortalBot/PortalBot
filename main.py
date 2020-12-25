@@ -1,78 +1,38 @@
 import discord
-import keep_alive
 import logging
 from discord.ext import commands
 from datetime import datetime
 import asyncio
-
 from pathlib import Path
-import json
-#-----------------------------------------------
-'''
-Tips/Board
 
-1. Use await asyncio.sleep()
+from core.config import prompt_config, load_config
+import core.keep_alive as keep_alive
+import core.bcolors as bcolors
 
+prompt_config("Enter bot token here: ", "token")
+prompt_config("Enter bot prefix here: ", "prefix")
+config, _ = load_config()
 
-
-
-'''
-#-----------------------------------------------
-''''
-typelog = input("Start with OnBoard Discord Error Handler?: (y/n) ")
-if typelog == "y":
-  extensions = ['cogs.RealmCMD', 'cogs.HelpCMD', 'cogs.BlacklistCMD', 'cogs.MiscCMD', 'cogs.OperatorCMD',  'cogs.DailyQuestionCMD', 'cogs.BetaCMD', 'cogs.MusicCMD', 'cogs.OnCommandlog', 'cogs.GamertagCMD', 'cogs.ErrorHandler'] 
-elif typelog == "n":
-  extensions = ['cogs.RealmCMD', 'cogs.HelpCMD', 'cogs.BlacklistCMD', 'cogs.MiscCMD', 'cogs.OperatorCMD',  'cogs.DailyQuestionCMD', 'cogs.BetaCMD', 'cogs.MusicCMD', 'cogs.OnCommandlog', 'cogs.GamertagCMD'] 
-else:
-  print("Didn't understand that, proceeding with Discord Error Handler...")
-  extensions = ['cogs.RealmCMD', 'cogs.HelpCMD', 'cogs.BlacklistCMD', 'cogs.MiscCMD', 'cogs.OperatorCMD',  'cogs.DailyQuestionCMD', 'cogs.BetaCMD', 'cogs.MusicCMD', 'cogs.OnCommandlog', 'cogs.GamertagCMD', 'cogs.ErrorHandler']
-'''
-#We need Intents as we are checking for reactions in cogs.DailyQuestions.py
-intents = discord.Intents.default()
+intents = discord.Intents.default()  # we use intents in BlacklistCMD
 intents.reactions = True
 
-#Ensures botconfig.json exists
-config_file = Path("botconfig.json")
-config_file.touch(exist_ok=True)
-if config_file.read_text() == "":
-  config_file.write_text("{}")
-with config_file.open("r") as f:
-  config = json.load(f)
-if "token" not in config:
-  config['token'] = input("Enter bot token here: ")
-  with config_file.open("w+") as f:
-    json.dump(config, f, indent=4)
-if "prefix" not in config:
-  config['prefix'] = input("Enter bot prefix here: ")
-  with config_file.open("w+") as f:
-    json.dump(config, f, indent=4)
-
-#Define Client and remove help command since the predefined help command sucks.
 client = commands.Bot(command_prefix=config['prefix'], intents = intents)
 client.remove_command("help")
 
-#Logging
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-#Colorful Text!
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+def get_extensions():  # Gets extension list dynamically
+  extensions = []
+  for file in Path("cogs").glob("**/*.py"):
+    if "!" in file.name or "__" in file.name:
+      continue
+    extensions.append(str(file).replace("/", ".").replace(".py", ""))
+  return extensions
 
-
-#Confirmation that we have logged in.
 @client.event
 async def on_ready():
   print(f"{bcolors.WARNING}Attempting to connect to Discord API...{bcolors.ENDC}")
@@ -80,82 +40,77 @@ async def on_ready():
   print(f"{bcolors.OKGREEN}Successfully connected to Discord!{bcolors.ENDC}")
   print(f"{bcolors.OKCYAN}BOT INFORMATION: {bcolors.ENDC}")
   print(f"{bcolors.OKCYAN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{bcolors.ENDC}")
-  print("PORTALBOT Stable")
-  print(f"{bcolors.WARNING}ID: 777361919211732993 \n{bcolors.ENDC}")
-  print(f"{bcolors.WARNING}URL: https://discord.com/oauth2/authorize?client_id=777361919211732993&scope=bot&permissions=8{bcolors.ENDC}")
+  print(f"{bcolors.WARNING}ID: {client.user.id}{bcolors.ENDC}")
+  print(f"{bcolors.WARNING}URL: https://discord.com/oauth2/authorize?client_id={client.user.id}&scope=bot&permissions=8{bcolors.ENDC}")
 
+  now = datetime.now().strftime("%H:%M:%S")
+  print("Current Time =", now)
 
-  #Status Stuff
-  await client.change_presence(status=discord.Status.idle,activity=discord.Activity(type=discord.ActivityType.watching, name="over the Portal! | >help"))
+  await client.change_presence(status=discord.Status.idle,activity=discord.Activity(type=discord.ActivityType.watching, name=f"over the Portal! | {config['prefix']}help"))
 
-  #Time
-  now = datetime.now()
-  current_time = now.strftime("%H:%M:%S")
-  print("Current Time =", current_time)
+keep_alive.keep_alive() # webserver setup, used w/ REPL
 
-#Webserver setup, 
-keep_alive.keep_alive()
-
-#Loading every cog. 
-extensions = ['cogs.RealmCMD', 'cogs.HelpCMD', 'cogs.BlacklistCMD', 'cogs.MiscCMD', 'cogs.OperatorCMD',  'cogs.DailyQuestionCMD', 'cogs.BetaCMD', 'cogs.MusicCMD', 'cogs.OnCommandlog', 'cogs.GamertagCMD']
 if __name__ == '__main__':
-  for ext in extensions:
+  for ext in get_extensions():
     client.load_extension(ext)
 
-#Manual Restart Command
-# - Basically reloads every cog file. 
-@client.command()
-async def restart(ctx, typerestart = None):
-  author = ctx.message.author
-  channel = ctx.message.channel
-  if author.id == 409152798609899530 or 306070011028439041:
-    if typerestart == "1":
-      extensions = ['cogs.RealmCMD', 'cogs.HelpCMD', 'cogs.BlacklistCMD', 'cogs.MiscCMD', 'cogs.OperatorCMD',  'cogs.DailyQuestionCMD', 'cogs.BetaCMD', 'cogs.MusicCMD', 'cogs.OnCommandlog', 'cogs.GamertagCMD', 'cogs.ErrorHandler'] 
-      if __name__ == '__main__':
-        try:
-          client.load_extension('cogs.ErrorHandler')
-        finally:
-          for ext in extensions:
-            client.reload_extension(ext)
-          await ctx.send("Done! \n*-Loaded Local Error Handler.*")
-    elif typerestart == "2":
-      extensions = ['cogs.RealmCMD', 'cogs.HelpCMD', 'cogs.BlacklistCMD', 'cogs.MiscCMD', 'cogs.OperatorCMD',  'cogs.DailyQuestionCMD', 'cogs.BetaCMD', 'cogs.MusicCMD', 'cogs.OnCommandlog', 'cogs.GamertagCMD'] 
-      if __name__ == '__main__':
-        for ext in extensions:
-          client.reload_extension(ext)
-        try:
-          client.unload_extension('cogs.ErrorHandler')
-        finally:
-          await ctx.send("Done! \n*-Forwarding Errors to the console!*")
+@client.group(aliases=['cog'])
+@commands.has_role('Bot Manager')
+async def cogs(ctx):
+  pass
 
+@cogs.command()
+@commands.has_role('Bot Manager')
+async def unload(ctx, ext):
+  if "cogs." not in ext:
+    ext = f"cogs.{ext}"
+  if ext in get_extensions():
+    client.unload_extension(ext)
+    embed = discord.Embed(title="Cogs - Unload", description=f"Unloaded cog: {ext}", color=0xd6b4e8)
+    await ctx.send(embed=embed)
+  else:
+    embed = discord.Embed(title="Cogs Reloaded", description=f"Cog '{ext}' not found", color=0xd6b4e8)
+    await ctx.send(embed=embed)
+
+@cogs.command()
+@commands.has_role('Bot Manager')
+async def load(ctx, ext):
+  if "cogs." not in ext:
+    ext = f"cogs.{ext}"
+  if ext in get_extensions():
+    client.load_extension(ext)
+    embed = discord.Embed(title="Cogs - Load", description=f"Loaded cog: {ext}", color=0xd6b4e8)
+    await ctx.send(embed=embed)
+  else:
+    embed = discord.Embed(title="Cogs - Load", description=f"Cog '{ext}' not found.", color=0xd6b4e8)
+    await ctx.send(embed=embed)
+
+@cogs.command(aliases=['restart'])
+@commands.has_role('Bot Manager')
+async def reload(ctx, ext):
+  if ext == "all":
+    for extension in get_extensions():
+      client.reload_extension(extension)
+      embed = discord.Embed(title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
+    await ctx.send(embed=embed)
+    return
   
-    else:
-      def check(m):
-        return m.content is not None and m.channel == channel and m.author is not client.user
-      await ctx.send("**You have not provided a restart value, please pick one!** \n**1:** Load Discord Error Handler\n**2:** Unload Discord Error Handler and forward errors to the console. *(Provides more detailed errors)*")
-      ans = await client.wait_for('message', check=check)
-      if ans.content == "1":
-        extensions = ['cogs.RealmCMD', 'cogs.HelpCMD', 'cogs.BlacklistCMD', 'cogs.MiscCMD', 'cogs.OperatorCMD',  'cogs.DailyQuestionCMD', 'cogs.BetaCMD', 'cogs.MusicCMD', 'cogs.OnCommandlog', 'cogs.GamertagCMD'] 
-        try:
-          client.load_extension('cogs.ErrorHandler')
-        finally:
-          if __name__ == '__main__':
-            for ext in extensions:
-              client.reload_extension(ext)
-            await ctx.send("Done! \n*-Loaded Local Error Handler.*")
-      elif ans.content == "2":
-        extensions = ['cogs.RealmCMD', 'cogs.HelpCMD', 'cogs.BlacklistCMD', 'cogs.MiscCMD', 'cogs.OperatorCMD',  'cogs.DailyQuestionCMD', 'cogs.BetaCMD', 'cogs.MusicCMD', 'cogs.OnCommandlog', 'cogs.GamertagCMD'] 
-        try:
-          client.unload_extension('cogs.ErrorHandler')
-        finally: 
-          if __name__ == '__main__':
-            for ext in extensions:
-              client.reload_extension(ext)
-            await ctx.send("Done! \n*-Forwarding Errors to the console!*")
-      else:
-        await ctx.send("Sorry I didn't get that, please try again later.")
+  if "cogs." not in ext:
+      ext = f"cogs.{ext}"
+  
+  if ext in get_extensions():
+    client.reload_extension(ext)
+    embed = discord.Embed(title="Cogs - Reload", description=f"Reloaded cog: {ext}", color=0xd6b4e8)
+    await ctx.send(embed=embed) 
+  else:
+    embed = discord.Embed(title="Cogs - Reload", description=f"Cog '{ext}' not found.", color=0xd6b4e8)
+    await ctx.send(embed=embed)
 
-      
-#.env File.
+@cogs.command()
+@commands.has_role('Bot Manager')
+async def view(ctx):
+  msg = " ".join(get_extensions())
+  embed = discord.Embed(title="Cogs - View", description=msg, color=0xd6b4e8)
+  await ctx.send(embed=embed)
+
 client.run(config['token'])
-
