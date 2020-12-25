@@ -5,6 +5,8 @@ import time
 import re
 import asyncio
 from discord import Embed
+from core.config import load_config
+config, _ = load_config()
 #--------------------------------------------------
 #pip3 install gspread oauth2client
 
@@ -65,19 +67,16 @@ class BlacklistCMD(commands.Cog):
   def __init__(self,bot):
     self.bot = bot
 
-
-
   #Starts the blacklist process.
   @commands.command()
   @commands.has_role("Realm OP")
   async def blacklist(self, ctx):
-    a_list = []
     author = ctx.message.author
     guild = ctx.message.guild
     channel = await ctx.author.create_dm()
     #schannel = self.bot.get_channel(778453455848996876)
     
-    schannel = self.bot.get_channel(590226302171349003)
+    schannel = self.bot.get_channel(config['blacklistChannel'])
     await ctx.send("Please take a look at your DM's!")
    
 
@@ -119,31 +118,38 @@ class BlacklistCMD(commands.Cog):
     row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
     sheet.insert_row(row, 3)  
 
-    submit_wait = True
-    while submit_wait:
-      await channel.send('End of questions, send "**submit**". If you want to cancel, send "**break**".  \nPlease note that the bot is **CASE SENSITIVE**!')
-      msg = await self.bot.wait_for('message', check=check)
-      if "submit" in msg.content:
-        submit_wait = False         
-        blacklistembed = discord.Embed(title = "Blacklist Report", description = "Sent from: " + author.mention, color = 0xb10d9f) 
-        blacklistembed.add_field(name = "Questions", value = f'**{Q1}** \n {answer1.content} \n\n'
-        f'**{Q2}** \n {answer2.content} \n\n'
-        f'**{Q3}** \n {answer3.content} \n\n'
-        f'**{Q4}** \n {answer4.content} \n\n'
-        f'**{Q5}** \n {answer5.content} \n\n'
-        f'**{Q6}** \n {answer6.content} \n\n'
-        f'**{Q7}** \n {answer7.content} \n\n'
-        f'**{Q8}** \n {answer8.content} \n\n'
-        f'**{Q9}** \n {answer9.content} \n\n')
-        timestamp = datetime.now()
-        blacklistembed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-        await schannel.send(embed = blacklistembed)
-        await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
-      elif "break" in msg.content:
-        await channel.send("Canceled Request...")
-        await ctx.send("Canceled Request...")
-        submit_wait = False
-          
+    message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel.* ")
+    reactions = ['✅', '❌']
+    for emoji in reactions: 
+      await message.add_reaction(emoji)
+      
+    def check2(reaction, user):
+      return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+    try:
+      reaction, user = await self.bot.wait_for('reaction_add', timeout=300.0, check=check2)
+
+    except asyncio.TimeoutError:
+      await channel.send("Looks like you didn't react in time, please try again later!")
+
+    if str(reaction.emoji) == "❌":
+      await channel.send("Ended Form...")
+      return
+    else:
+      await channel.send("Sending your responses!")
+      blacklistembed = discord.Embed(title = "Blacklist Report", description = "Sent from: " + author.mention, color = 0xb10d9f) 
+      blacklistembed.add_field(name = "Questions", value = f'**{Q1}** \n {answer1.content} \n\n'
+      f'**{Q2}** \n {answer2.content} \n\n'
+      f'**{Q3}** \n {answer3.content} \n\n'
+      f'**{Q4}** \n {answer4.content} \n\n'
+      f'**{Q5}** \n {answer5.content} \n\n'
+      f'**{Q6}** \n {answer6.content} \n\n'
+      f'**{Q7}** \n {answer7.content} \n\n'
+      f'**{Q8}** \n {answer8.content} \n\n'
+      f'**{Q9}** \n {answer9.content} \n\n')
+      timestamp = datetime.now()
+      blacklistembed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
+      await schannel.send(embed = blacklistembed)
+      await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
   
   @blacklist.error
   async def blacklist_error(self,ctx, error):
@@ -188,134 +194,53 @@ class BlacklistCMD(commands.Cog):
     elif isinstance(error, commands.CommandInvokeError):
       await ctx.send("Your search returned to many results. Please narrow your search, or try a different search term.") 
 
-  async def get_row(self, index):
-    """Get row of spreadsheet at provided index"""
-    values = sheet.get_all_values()
-    results = values[index:index+1]
-    return results
-
   async def populate_embed(self, embed, starting_point):
     """Used to populate the embed for the 'blogs' command."""
-    i = 0
     index = starting_point
-    for field in embed.fields:  # cleans embed before rebuilding
-      embed.fields.remove(field)
-    while i < 3:
-      results = self.get_row(index)
-      embed.add_field(name=f"Row: {index-1}", value=f"```\n {' '.join(results)}")
-      index += 1
-      i += 1
+    embed.clear_fields() # cleans embed before rebuilding
+    values = sheet.row_values(index+1)
+    embed.add_field(name=f"Row: {index}", value=f"```\n {' '.join(values)}```", inline=False)
+    embed.add_field(name="Discord Username", value=values[0], inline=False)
+    embed.add_field(name="Discord ID", value=values[1], inline=False)
+    embed.add_field(name="Gamertag", value=values[2], inline=False)
+    embed.add_field(name="Banned From", value=values[3], inline=False)
+    embed.add_field(name="Known Alts", value=values[4], inline=False)
+    embed.add_field(name="Reason for ban", value=values[5], inline=False)
+    embed.add_field(name="Date of Incident", value=values[6], inline=False)
+    embed.add_field(name="Type of Ban", value=values[7], inline=False)
+    embed.add_field(name="Date the Ban ends", value=values[8], inline=False)
     return embed, index+1
 
-  @commands.command()
-  async def blogsnew(self, ctx):
+  @commands.command(aliases=["blogsnew"])
+  async def blogs(self, ctx, row: int=None):
     """View all data in the blacklist spreadsheet"""
     async def check_reaction(reaction, user):
       return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
     
+    if row is None or row < 2:
+      row = 2
     author = ctx.message.author
     embed = discord.Embed(title = "MRP Blacklist Data", description = f"Requested by Operator {author.mention}")
-    embed, index = self.populate_embed(embed, 2)
+    embed, index = await self.populate_embed(embed, row)
     message = await ctx.send(embed=embed)
     await message.add_reaction("◀️")
     await message.add_reaction("▶️")
     while True:
       try:
         reaction, user = await self.bot.wait_for("reaction_add", timeout=60, check=check_reaction)
-        if str(reaction.emoji) == "▶️":
-          embed, index = self.populate_embed(embed, index)
+        if user == self.bot.user:
+          continue
+        if str(reaction.emoji) == "▶️" and index < sheet.row_count:
+          embed, index = await self.populate_embed(embed, index)
+          await message.remove_reaction(reaction, user)
           await message.edit(embed=embed)
-        elif str(reaction.emoji) == "◀️":
-          embed, index = self.populate_embed(embed, index-3)
+        elif str(reaction.emoji) == "◀️" and index > 3:
+          await message.remove_reaction(reaction, user)
+          embed, index = await self.populate_embed(embed, index-2)
           await message.edit(embed=embed)
       except asyncio.TimeoutError:  # ends loop after timeout.
-          await message.remove_reaction(reaction, user)
+          await message.clear_reactions()
           break
-
-  @commands.command()
-  async def blogs(self, ctx):
-    author = ctx.message.author
-    def check(reaction, user):
-      return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
-    values = sheet.get_all_values()
-    #-----------
-    current_index = 2
-    results = values[current_index:current_index+1]
-    results =  ', '.join([str(elem) for elem in results])
-    print(results)
-    A1, A2, A3, A4, A5, A6, A7, A8 ,A9 = results.split(", ")
-    current_index+=1
-    results = values[current_index:current_index+1]
-    results =  ', '.join([str(elem) for elem in results])
-    B1, B2, B3, B4, B5, B6, B7, B8 ,B9 = results.split(", ")
-    current_index+=1
-    results = values[current_index:current_index+1]
-    results =  ', '.join([str(elem) for elem in results])
-    C1, C2, C3, C4, C5, C6, C7, C8 ,C9 = results.split(", ")
-    current_index+=1
-    #-----------
-    embed = discord.Embed(title = "MRP Blacklist Data", description = "Requested by Operator " + author.mention)
-    embed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-    #Replace these 2 lines
-    #message = await ctx.send(values[current_index:current_index+3])
-    message = await ctx.send(embed = embed)
-    await message.add_reaction("◀️")
-    await message.add_reaction("▶️")
-    
-    while True:
-        try:
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=60, check=check)
-            # waiting for a reaction to be added - times out after x seconds, 60 in this
-            # example
-
-            if str(reaction.emoji) == "▶️":
-                results = values[current_index:current_index+1]
-                results =  ', '.join([str(elem) for elem in results])
-                A1, A2, A3, A4, A5, A6, A7, A8 ,A9 = results.split(", ")
-                current_index+=1
-                results = values[current_index:current_index+1]
-                results =  ', '.join([str(elem) for elem in results])
-                B1, B2, B3, B4, B5, B6, B7, B8 ,B9 = results.split(", ")
-                current_index+=1
-                results = values[current_index:current_index+1]
-                results =  ', '.join([str(elem) for elem in results])
-                C1, C2, C3, C4, C5, C6, C7, C8 ,C9 = results.split(", ")
-                current_index+=1
-                #embed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-                newembed = discord.Embed(title = "MRP Blacklist Data", description = "Requested by Operator " + author.mention)
-                newembed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-                await message.edit(embed = newembed)
-                await message.remove_reaction(reaction, user)
-
-            elif str(reaction.emoji) == "◀️":
-                results = values[current_index:current_index-1]
-                results =  ', '.join([str(elem) for elem in results])
-                print(results)
-                A1, A2, A3, A4, A5, A6, A7, A8 ,A9 = results.split(", ")
-                current_index-=1
-                results = values[current_index:current_index-1]
-                results =  ', '.join([str(elem) for elem in results])
-                B1, B2, B3, B4, B5, B6, B7, B8 ,B9 = results.split(", ")
-                current_index-=1
-                results = values[current_index:current_index-1]
-                results =  ', '.join([str(elem) for elem in results])
-                C1, C2, C3, C4, C5, C6, C7, C8 ,C9 = results.split(", ")
-                current_index-=1
-                #embed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-                newembed = discord.Embed(title = "MRP Blacklist Data", description = "Requested by Operator " + author.mention)
-                newembed.add_field(name = "Spreadsheet", value = "```\n" + A1 + A2 + A3 + A4 + A5 + A6 + A7 + A8 + A9 + "\n" + B1 + B2 + B3 + B4 + B5 + B6 + B7 + B8 + B9 + "\n" + C1 + C2 + C3 + C4 + C5 + C6 + C7 + C8 + C9 + "\n```")
-                await message.edit(embed = newembed)
-                await message.remove_reaction(reaction, user)
-                                                         
-            else:
-                await message.remove_reaction(reaction, user)
-                # removes reactions if the user tries to go forward on the last page or
-                # backwards on the first page
-        except asyncio.TimeoutError:
-            await message.remove_reaction(reaction, user)
-            break
-            # ending the loop if user doesn't react after x seconds
-
   
 def setup(bot):
   bot.add_cog(BlacklistCMD(bot))

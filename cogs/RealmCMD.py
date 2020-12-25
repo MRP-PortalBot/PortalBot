@@ -5,6 +5,8 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
+from core.config import load_config
+config, _ = load_config()
 i = 1
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 
@@ -41,9 +43,6 @@ class RealmCMD(commands.Cog):
     ChannelPermissions = "FALSE"
     DMStatus = "FALSE"
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used NEWREALM \n")
-    logfile.close()
     guild = ctx.message.guild
     channel = ctx.message.channel
     color = discord.Colour(0x3498DB)
@@ -62,43 +61,53 @@ class RealmCMD(commands.Cog):
     perms.manage_webhooks = True
     perms.manage_messages = True
     await channel.set_permissions(role, overwrite=perms, reason="Created New Realm!")
-    channelrr = guild.get_channel(683454087206928435) 
-    await channelrr.send(role.mention + "\n **Please agree to the rules to gain access to the Realm Owner Chats!**")
-    perms12 = channelrr.overwrites_for(role)
-    perms12.read_messages = True
-    #Muted = guild.get_role(778267159138402324)
-    #MRP below
-    Muted = guild.get_role(630770012524642314)
-    permsM = channel.overwrites_for(Muted)
-    permsM.read_messages = False
-    permsM.send_messages = False
-    ChannelPermissions = "DONE"
-    await channel.set_permissions(Muted, overwrite=permsM)
-    await user.send(user.mention)
+
+    #This try statement is here incase we are testing this in the testing server as this channel does not appear in that server!
     try:
-      await user.send("Enjoy your new channel. Use this channel to advertise your realm, and engage the community. The more active a channel the more likely people will be to stop by and check you out. You have moderation privileges in your channel. You can change the description, pin messages, and delete messages. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules. If you would like to add an OP to your team, in your channel type: ")
-      await user.send("```>addOP @newOP @reamlrole```")
-      await user.send("In order to have your Realm listed in #realm-channels-info, please do not remove the ]]Realm: Survival Multiplayer[[ portion of your channel description. Feel free to edit this in the following way ]]Anything You Want To Show Up After Your Realm Name: Short Description Of Your Realm[[. ")
-      await user.send("Thanks for joining the Portal, and if you have any questions contact an Admin.")
-    except:
-      await ctx.send("Uh oh, something went wrong while trying to DM the Realm Owner. \n`Error: Discord Forbidden (User's Privacy Settings Prevented the DM Message)`")
-      await ctx.send("DM Status: **FAILED**")
-      DMStatus = "FAILED"
-    else:
-      await ctx.send("DM Status: **SENT**")
-      DMStatus = "DONE"
+      channelrr = guild.get_channel(683454087206928435) 
+      await channelrr.send(role.mention + "\n **Please agree to the rules to gain access to the Realm Owner Chats!**")
+      perms12 = channelrr.overwrites_for(role)
+      perms12.read_messages = True
     finally:
-      await ctx.send("**The command has finished all of its tasks.**\n> *If there was an error with anything, you should see the status for that specific argument.*")
-      time.sleep(2)
-      #Variables:
+      Muted = discord.utils.get(ctx.guild.roles, name="Muted")
+
       '''
-      RoleCreate = "FALSE"
-      ChannelCreate = "FALSE"
-      RoleGiven = "FALSE"
-      ChannelPermissions = "FALSE"
-      DMStatus = "FALSE"
+      ROLE ID's! [No longer used, instead using discord.utils to search by name]
+      Muted = guild.get_role(778267159138402324)
+      #MRP below
+      Muted = guild.get_role(630770012524642314)
       '''
-      await ctx.send("**Console Logs** \n```\nRole Created: " + RoleCreate + "\nChannel Created: " + ChannelCreate + "\nRole Given: " + RoleGiven + "\nChannel Permissions: " + ChannelPermissions + "\nDMStatus: " +DMStatus + "\n```")
+
+      permsM = channel.overwrites_for(Muted)
+      permsM.read_messages = False
+      permsM.send_messages = False
+      ChannelPermissions = "DONE"
+      await channel.set_permissions(Muted, overwrite=permsM)
+      await user.send(user.mention)
+      try:
+        await user.send("Enjoy your new channel. Use this channel to advertise your realm, and engage the community. The more active a channel the more likely people will be to stop by and check you out. You have moderation privileges in your channel. You can change the description, pin messages, and delete messages. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules. If you would like to add an OP to your team, in your channel type: ")
+        await user.send("```>addOP @newOP @reamlrole```")
+        await user.send("In order to have your Realm listed in #realm-channels-info, please do not remove the ]]Realm: Survival Multiplayer[[ portion of your channel description. Feel free to edit this in the following way ]]Anything You Want To Show Up After Your Realm Name: Short Description Of Your Realm[[. ")
+        await user.send("Thanks for joining the Portal, and if you have any questions contact an Admin.")
+      except:
+        await ctx.send("Uh oh, something went wrong while trying to DM the Realm Owner. \n`Error: Discord Forbidden (User's Privacy Settings Prevented the DM Message)`")
+        await ctx.send("DM Status: **FAILED**")
+        DMStatus = "FAILED"
+      else:
+        await ctx.send("DM Status: **SENT**")
+        DMStatus = "DONE"
+      finally:
+        await ctx.send("**The command has finished all of its tasks.**\n> *If there was an error with anything, you should see the status for that specific argument.*")
+        time.sleep(2)
+        #Variables:
+        '''
+        RoleCreate = "FALSE"
+        ChannelCreate = "FALSE"
+        RoleGiven = "FALSE"
+        ChannelPermissions = "FALSE"
+        DMStatus = "FALSE"
+        '''
+        await ctx.send("**Console Logs** \n```\nRole Created: " + RoleCreate + "\nChannel Created: " + ChannelCreate + "\nRole Given: " + RoleGiven + "\nChannel Permissions: " + ChannelPermissions + "\nDMStatus: " +DMStatus + "\n```")
 
 
   @newrealm.error
@@ -109,61 +118,7 @@ class RealmCMD(commands.Cog):
     if isinstance(error, commands.TooManyArguments):
       await ctx.send("You sent too many arguments! Did you use quotes for realm names over 2 words?")
       
-  
 
-  @commands.command()
-  async def checkin(self, ctx):
-    await ctx.send("This command is locked. Try `>checkin2` ")
-    return
-    reactions = []
-    category = discord.utils.get(ctx.guild.categories, id=788794712474910771)
-    channels = category.channels
-    await ctx.send("Please note that adding reactions will not be as fast due to the rate limit")
-    embed = discord.Embed(title='Realms channels')
-    #Math Stuff
-    totalrealms = len(category.channels)
-    #Remove Total Ignored Channels
-    totalrealms-=2
-    total = totalrealms / 2
-    print(total)
-    if not total.is_integer():
-      total+=0.5
-      print(total)
-    for channel in category.channels[:int(total)]:
-      #Ignore Channel List
-      if channel.id in [788803551974785066, 788803379261997116]:
-        continue
- 
-      channel = channel.name.split('-')
-      emoji = channel[-1]
-      reactions.append(emoji)
-      embed.add_field(name='-'.join(channel[:-1]), value=emoji, inline=False)
-
-    msg = await ctx.send(embed=embed)
-    #for emoji in reactions:
-      #time.sleep(3)
-      #await msg.add_reaction(emoji)
-
-    #Number 2
-    #total = int(totalrealms) - int(total) 
-    listofchannels = category.channels
-    listofchannels.reverse()
-    sliced = len(channels)//2
-    newchannel = ','.join(str(listofchannels))
-    for channel in listofchannels[:sliced]:
-  
-      channel = channel.name.split('-')
-      emoji = channel[-1]
-      reactions.append(emoji)
-      embed.add_field(name='-'.join(channel[:-1]), value=emoji, inline=False)
-
-    msg = await ctx.send(embed=embed)
-    #Ignore Channel List
-      #if channel.id in [788803551974785066, 788803379261997116]:
-        #continue
-    #for emoji in reactions:
-     # time.sleep(3)
-      #await msg.add_reaction(emoji)
   
   @commands.command()
   async def checkin2(self,ctx):
@@ -224,7 +179,7 @@ class RealmCMD(commands.Cog):
     author = ctx.message.author
     channel = await ctx.author.create_dm()
     guild = ctx.message.guild
-    responseChannel = self.bot.get_channel(588408514796322816)
+    responseChannel = self.bot.get_channel(config['realmChannelResponse'])
     
     #Elgibilty Checks
     '''

@@ -3,7 +3,9 @@ from discord.ext import commands
 from datetime import datetime
 import random
 import threading
-
+import asyncio
+from core.config import load_config
+config, _ = load_config()
 #Counts current lines in a file.
 def LineCount():
   file = open("DailyQuestions.txt", "r")
@@ -22,14 +24,14 @@ class DailyCMD(commands.Cog):
   #Waits for either the approval or denial on a question suggestion
   @commands.Cog.listener()
   async def on_raw_reaction_add(self, payload):
-    if payload.user_id != 777361919211732993:
-      if payload.channel_id == 787803726168588318:
+    if payload.user_id != self.bot.user.id:
+      if payload.channel_id == config['questionSuggestChannel']:
+        channel = self.bot.get_channel(payload.channel_id)
+        msg = await channel.fetch_message(payload.message_id)
+        embed = msg.embeds[0]
+        contentval = embed.fields[2].value
+        linec, question = contentval.split(" | ")
         if str(payload.emoji) == "✅":
-          channel = self.bot.get_channel(payload.channel_id)
-          msg = await channel.fetch_message(payload.message_id)
-          embed = msg.embeds[0]
-          contentval = embed.fields[2].value
-          linec, question = contentval.split(" | ")
           file = open("DailyQuestions.txt", "r")
           line_count = 0
           for line in file:
@@ -39,7 +41,7 @@ class DailyCMD(commands.Cog):
           lc = line_count + 1
 
           embed = discord.Embed(title = "Suggestion Approved", description = "<@" + str(payload.user_id) + "> has approved a suggestion! ", color = 0x31f505)
-          embed.add_field(name = "Question Approved", value = str(question))
+          embed.add_field(name = "Question Approved", value = "Question: " + str(question))
           await channel.send(embed = embed)
 
           f = open("DailyQuestions.txt", "a")
@@ -53,12 +55,8 @@ class DailyCMD(commands.Cog):
 
         
         elif str(payload.emoji) == "❌":
-          embed = msg.embeds[0]
-          contentval = embed.fields[2].value
-          channel = self.bot.get_channel(payload.channel_id)
-          linec, question = contentval.split(" | ")
-          embed2 = discord.Embed(title = "Suggestion Approved", description = "<@" + str(payload.user_id) + "> has approved a suggestion! ", color = 0xf50505)
-          embed.add_field(name = "Question Approved", value = "Question Approved: " + str(question))
+          embed2 = discord.Embed(title = "Suggestion Denied", description = "<@" + str(payload.user_id) + "> has denied a suggestion! ", color = 0xf50505)
+          embed.add_field(name = "Question Denied", value = "Question: " + str(question))
           await channel.send(embed = embed2)
           reactions = ['✅', '❌']
           for emoji in reactions: 
@@ -215,11 +213,26 @@ class DailyCMD(commands.Cog):
       def check(m):
         return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
-      await channel.send("Are you sure you want to submit this question for approval? \n**Warning:** You will be subjected to a warn/mute if your suggestion is deemed inappropriate! \n*Please respond with either `YES` or `NO`*")
-      msg2 = await self.bot.wait_for('message', check=check)
-      if "YES" in msg2.content:
+      await channel.send("Are you sure you want to submit this question for approval? \n**Warning:** You will be subjected to a warn/mute if your suggestion is deemed inappropriate!")
+      message = await channel.send("**Steps to either submit or cancel:**\n\nReaction Key:\n✅ - SUBMIT\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+      reactions = ['✅', '❌']
+      for emoji in reactions: 
+        await message.add_reaction(emoji)
+      
+      def check2(reaction, user):
+        return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+      try:
+        reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
+
+      except asyncio.TimeoutError:
+        await channel.send("Looks like you didn't react in time, please try again later!")
+
+      if str(reaction.emoji) == "❌":
+        await ctx.send("Okay, I didn't send your suggestion...")
+        return
+      else:     
         msga = await ctx.send("Standby, sending your suggestion. ")
-        channels = await self.bot.fetch_channel(787803726168588318)
+        channels = await self.bot.fetch_channel(config['questionSuggestChannel'])
         embed = discord.Embed(title = "Daily Question Suggestion", description = str(author.name) + " suggested a question in <#" + str(channel.id) + ">", color = 0xfcba03)
         embed.add_field(name = "Suggestion:", value = str(question))
         #QuestionSuggestQ.txt
@@ -241,8 +254,6 @@ class DailyCMD(commands.Cog):
         for emoji in reactions: 
           await msg.add_reaction(emoji)
         await msga.edit(content = "I have sent your question! \nPlease wait for an admin to approve it. ")
-      else:
-        print("invalid")
     else:
       await ctx.channel.purge(limit = 1)
       embed = discord.Embed(title = "Woah Slow Down!", description = "This command is locked to <#588728994661138494>!\nI also sent your command in your DM's so all you have to do is just copy it and send it in the right channel!", color = 0xb10d9f)

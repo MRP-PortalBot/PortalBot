@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import datetime
+from datetime import datetime
 from discord import CategoryChannel
 
 
@@ -17,21 +17,20 @@ class OperatorCMD(commands.Cog):
   @commands.command(aliases=['addop', 'addOP', 'Addop', 'AddOP'])
   @commands.has_role("Realm OP")
   async def _addOP(self, ctx, user: discord.Member ,*,role: discord.Role):
-    guild = ctx.message.guild
-    channel = ctx.message.channel
     author = ctx.message.author
-    check_role = discord.utils.get(ctx.guild.roles, name=role.name)
-    print(check_role)
     print(str(role) + author.name)
-    if role not in author.roles:
-      await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
-      return
-    else:
-      await user.add_roles(role)
-    embed = discord.Embed(title = "Realm Operator Command", description = user.mention + " now has " + role.mention + "!\nPlease remember you require Spider Sniper or above in order to get the Realm OP role!", color = 0x4287f5)
-    await ctx.send(embed = embed)
+    if "OP" in role.name and "Realm OP" not in role.name:
+      if role not in author.roles:
+        await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
+        return
+      else:
+        await user.add_roles(role)
+      embed = discord.Embed(title = "Realm Operator Command", description = user.mention + " now has " + role.mention + "!\nPlease remember you require Spider Sniper or above in order to get the Realm OP role!", color = 0x4287f5)
+      await ctx.send(embed = embed)
 
-    await user.send("Hello, you have been given OP privileges for " + str(role) + " in the Minecraft Realm Portal. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules.")
+      await user.send("Hello, you have been given OP privileges for " + str(role) + " in the Minecraft Realm Portal. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules.")
+    else:
+      await ctx.send("This role is not a Realm role. Please contact an Admin if you believe this is a mistake.")
 
     '''
     channel = self.bot.get_channel(778453455848996876)
@@ -62,17 +61,19 @@ class OperatorCMD(commands.Cog):
   @commands.command(aliases=['removeop', 'removeOP', 'Removeop' , 'RemoveOP'])
   @commands.has_role("Realm OP")
   async def _removeOP(self, ctx, user: discord.Member ,*,role: discord.Role):
-    guild = ctx.message.guild
-    channel = ctx.message.channel
     author = ctx.message.author
     check_role = discord.utils.get(ctx.guild.roles, name=role.name)
+    realm_op_role = discord.utils.get(ctx.guild.roles, name="Realm OP")
     print(check_role)
-    if role not in author.roles:
-      await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
+    if "OP" in role.name and "Realm OP" not in role.name:
+      if role not in author.roles:
+        await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
+      else:  # TODO: Remove Realm OP role if only has one OP role
+        await user.remove_roles(role)
+        embed = discord.Embed(title = "Realm Operator Command", description = "**Operator** " + author.mention + " removed " + role.mention + " from " + user.name, color =0x4287f5)
+        await ctx.send(embed = embed)
     else:
-      await user.remove_roles(role)
-      embed = discord.Embed(title = "Realm Operator Command", description = "**Operator** " + author.mention + " removed " + role.mention + " from " + user.name, color =0x4287f5)
-      await ctx.send(embed = embed)
+      await ctx.send("This role is not a Realm role. Please contact an Admin if you believe this is a mistake.")
 
       '''
       modlog = self.bot.get_channel(778453455848996876)

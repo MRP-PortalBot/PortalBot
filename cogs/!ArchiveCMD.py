@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import datetime
+from datetime import datetime
 
 class DailyCMD(commands.Cog):
   def __init__(self,bot):
@@ -10,9 +11,6 @@ class DailyCMD(commands.Cog):
 async def info(self, ctx, user: discord.Member):
     mentions = [role.mention for role in ctx.message.author.roles if role.mentionable]
     author = ctx.message.author
-    logfile = open("commandlog.txt", "a")
-    logfile.write(str(author.name) + " used INFO \n")
-    logfile.close()
     guild = ctx.message.guild
     channel = ctx.message.channel
     searchfile = open("MRPFull.txt", "r")
@@ -22,7 +20,7 @@ async def info(self, ctx, user: discord.Member):
       rolelist.append(role.mention)
     roles = '\n'.join(rolelist)
     for line in searchfile:
-      if str(user.id) in list:
+      if str(user.id) in rolelist:
         count = count + 1
     accountcreate = user.created_at
     mem_join = user.joined_at
@@ -210,6 +208,62 @@ MRPShort = open("MRPDiscord.txt", "a")
               webhook = Webhook.from_url(url, adapter=AsyncWebhookAdapter(session)) #something here to cycle through url's
               author = message.author
               await webhook.send(message.content ,username= message.author.name + " - " + guild.name, avatar_url = author.avatar_url)
+  
+  @commands.command()
+  async def checkin(self, ctx):
+    await ctx.send("This command is locked. Try `>checkin2` ")
+    return
+    reactions = []
+    category = discord.utils.get(ctx.guild.categories, id=788794712474910771)
+    channels = category.channels
+    await ctx.send("Please note that adding reactions will not be as fast due to the rate limit")
+    embed = discord.Embed(title='Realms channels')
+    #Math Stuff
+    totalrealms = len(category.channels)
+    #Remove Total Ignored Channels
+    totalrealms-=2
+    total = totalrealms / 2
+    print(total)
+    if not total.is_integer():
+      total+=0.5
+      print(total)
+    for channel in category.channels[:int(total)]:
+      #Ignore Channel List
+      if channel.id in [788803551974785066, 788803379261997116]:
+        continue
+ 
+      channel = channel.name.split('-')
+      emoji = channel[-1]
+      reactions.append(emoji)
+      embed.add_field(name='-'.join(channel[:-1]), value=emoji, inline=False)
+
+    msg = await ctx.send(embed=embed)
+    #for emoji in reactions:
+      #time.sleep(3)
+      #await msg.add_reaction(emoji)
+
+    #Number 2
+    #total = int(totalrealms) - int(total) 
+    listofchannels = category.channels
+    listofchannels.reverse()
+    sliced = len(channels)//2
+    newchannel = ','.join(str(listofchannels))
+    for channel in listofchannels[:sliced]:
+  
+      channel = channel.name.split('-')
+      emoji = channel[-1]
+      reactions.append(emoji)
+      embed.add_field(name='-'.join(channel[:-1]), value=emoji, inline=False)
+
+    msg = await ctx.send(embed=embed)
+    #Ignore Channel List
+      #if channel.id in [788803551974785066, 788803379261997116]:
+        #continue
+    #for emoji in reactions:
+     # time.sleep(3)
+      #await msg.add_reaction(emoji)
+  
+  
   '''
         
 def setup(bot):

@@ -1,5 +1,6 @@
 .vscode/settings.json
 botconfig.json
+__pycache__
 __pycache__/
 poetry.lock
 pyproject.toml

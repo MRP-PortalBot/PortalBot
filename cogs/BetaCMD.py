@@ -20,7 +20,8 @@ class BetaCMD(commands.Cog):
     guild = ctx.message.guild
     channel = ctx.message.channel
     emoji = "🐢"
-    if 1 == 1:
+    x = 1
+    if x == 1:
       def check(m):
         return m.channel == channel and m.author != self.bot.user
       await channel.send("Getting Embed Configuration...")
