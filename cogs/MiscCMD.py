@@ -6,8 +6,10 @@ import random
 import json
 import requests
 import ast
+from datetime import datetime
 rules = [":one: **No Harassment**, threats, hate speech, inappropriate language, posts or user names!", ":two: **No spamming** in chat or direct messages!", ":three: **No religious or political topics**, those don’t usually end well!", ":four: **Keep pinging to a minimum**, it is annoying!", ":five: **No sharing personal information**, it is personal for a reason so keep it to yourself!", ":six: **No self-promotion or advertisement outside the appropriate channels!** Want your own realm channel? **Apply for one!**", ":seven: **No realm or server is better than another!** It is **not** a competition.", ":eight: **Have fun** and happy crafting!", ":nine: **Discord Terms of Service apply!** You must be at least **13** years old."]
-
+from core.config import load_config
+config, _ = load_config()
 
 def get_quote():
   response = requests.get("https://zenquotes.io/api/random")
@@ -33,6 +35,17 @@ def insert_returns(body):
 class MiscCMD(commands.Cog):
   def __init__(self,bot):
     self.bot = bot
+
+
+  @commands.Cog.listener()
+  async def on_member_update(self, before, after):
+    if before.id == config['OtherBotID']:
+      if before.status == discord.Status.idle and after.status == discord.Status.offline:
+        channel = self.bot.get_channel(792485617954586634)
+        timestamp = datetime.now()
+        embed = discord.Embed(title = "⚠️ PortalBot is down!", description = "PortalBot was down at: " + str(timestamp.strftime("%H:%M:%S")) , color = 0xf03224)
+        embed.add_field(name = "REPL Restart Link", value = "https://repl.it/join/ohvpqkio-rohitturtle0")
+        await channel.send(embed = embed)
 
   #DM Command
   @commands.command()
