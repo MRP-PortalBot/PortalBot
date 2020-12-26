@@ -20,6 +20,7 @@ config, _ = load_config()
 
 intents = discord.Intents.default()  # we use intents in BlacklistCMD
 intents.reactions = True
+intents.members = True
 
 client = commands.Bot(command_prefix=config['prefix'], intents = intents)
 client.remove_command("help")
