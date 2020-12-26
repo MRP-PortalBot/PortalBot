@@ -40,7 +40,7 @@ class MiscCMD(commands.Cog):
   @commands.Cog.listener()
   async def on_member_update(self, before, after):
     if before.id == config['OtherBotID']:
-      if before.status == discord.Status.idle and after.status == discord.Status.offline:
+      if after.status == discord.Status.offline:
         channel = self.bot.get_channel(792485617954586634)
         timestamp = datetime.now()
         embed = discord.Embed(title = "⚠️ PortalBot is down!", description = "PortalBot was down at: " + str(timestamp.strftime("%H:%M:%S")) , color = 0xf03224)
