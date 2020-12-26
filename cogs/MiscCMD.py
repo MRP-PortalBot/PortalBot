@@ -46,6 +46,10 @@ class MiscCMD(commands.Cog):
         embed = discord.Embed(title = "⚠️ PortalBot is offline!", description = "Recorded Downtime (start): " + str(timestamp.strftime("%H:%M:%S")) , color = 0xf03224)
         embed.add_field(name = "REPL Restart Link", value = "https://repl.it/join/ohvpqkio-rohitturtle0")
         await channel.send(embed = embed)
+      else:
+        print("Error")
+    else:
+      print("error")
 
   #DM Command
   @commands.command()
