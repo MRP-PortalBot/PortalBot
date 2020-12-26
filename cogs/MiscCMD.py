@@ -39,7 +39,7 @@ class MiscCMD(commands.Cog):
 
   @commands.Cog.listener()
   async def on_member_update(self, before, after):
-    if before.id == config['OtherBotID']:
+    if before.id == 777361919211732993:
       if after.status == discord.Status.offline:
         channel = self.bot.get_channel(792485617954586634)
         timestamp = datetime.now()
