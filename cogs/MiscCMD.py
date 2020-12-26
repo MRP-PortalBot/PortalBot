@@ -42,6 +42,7 @@ class MiscCMD(commands.Cog):
     if before.id == 777361919211732993:
       if after.status == discord.Status.offline:
         channel = self.bot.get_channel(792485617954586634)
+        await channel.send("Test")
         timestamp = datetime.now()
         embed = discord.Embed(title = "⚠️ PortalBot is offline!", description = "Recorded Downtime (start): " + str(timestamp.strftime("%H:%M:%S")) , color = 0xf03224)
         embed.add_field(name = "REPL Restart Link", value = "https://repl.it/join/ohvpqkio-rohitturtle0")
