@@ -216,6 +216,11 @@ class BlacklistCMD(commands.Cog):
         embed.add_field(name="Type of Ban", value=values[7], inline=False)
         embed.add_field(name="Date the Ban ends",
                         value=values[8], inline=False)
+
+        emb_dict = embed.to_dict()
+        for key in emb_dict:
+            if isinstance(emb_dict[key], set):
+                print(key, "is a set.")
         return embed
 
     @commands.command(aliases=['blogsnew'])
