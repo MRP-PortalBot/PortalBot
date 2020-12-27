@@ -217,17 +217,13 @@ class BlacklistCMD(commands.Cog):
         embed.add_field(name="Date the Ban ends",
                         value=values[8], inline=False)
 
-        emb_dict = embed.to_dict()
-        for key in emb_dict:
-            if isinstance(emb_dict[key], set):
-                print(key, "is a set.")
         return embed
 
     @commands.command(aliases=['blogsnew'])
     async def blogs(self, ctx, page: int = 2):
         author = ctx.message.author
-        embed = discord.Embed(title="MRP Blacklist Data", description={
-            f"Requested by Operator {author.mention}"})
+        embed = discord.Embed(title="MRP Blacklist Data", description=
+            f"Requested by Operator {author.mention}")
         await paginate_embed(self.bot, ctx, embed, self.populate_embed, sheet.row_count, page=page, begin=2)
 
 

@@ -32,7 +32,6 @@ async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, populat
     async def check_reaction(reaction, user):
         return user == ctx.author and str(reaction.emoji) in emotes
 
-    await ctx.send("Populating embed")
     embed = await population_func(embed, page)
     if isinstance(embed, discord.Embed):
         message = await ctx.send(embed=embed)
