@@ -262,6 +262,8 @@ class DailyCMD(commands.Cog):
                     for emoji in reactions:
                         await msg.add_reaction(emoji)
                     await msga.edit(content="I have sent your question! \nPlease wait for an admin to approve it. ")
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
             except asyncio.TimeoutError:
                 await channel.send("Looks like you didn't react in time, please try again later!")
         else:
