@@ -45,12 +45,12 @@ async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, populat
             reaction, user = await bot.wait_for("reaction_add", timeout=60, check=check_reaction)
             if user == bot.user:
                 continue
-            if str(reaction.emoji) == emotes[0] and page < end:
+            if str(reaction.emoji) == emotes[1] and page < end:
                 page += 1
                 embed = await population_func(embed, page)
                 await message.remove_reaction(reaction, user)
                 await message.edit(embed=embed)
-            elif str(reaction.emoji) == emotes[1] and page > begin:
+            elif str(reaction.emoji) == emotes[0] and page > begin:
                 page -= 1
                 embed = await population_func(embed, page)
                 await message.remove_reaction(reaction, user)
