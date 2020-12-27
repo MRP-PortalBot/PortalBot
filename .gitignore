@@ -9,3 +9,4 @@ label.yml
 discord.log
 creds.json
 commandlog.txt
+*.db

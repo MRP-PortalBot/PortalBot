@@ -1,7 +1,9 @@
+from pathlib import Path
 from core.config import load_config
 import discord
 from discord.ext import commands
 from discord import Webhook, AsyncWebhookAdapter
+from core import database
 import aiohttp
 import random
 import json
@@ -183,28 +185,17 @@ class MiscCMD(commands.Cog):
         if isinstance(error, commands.BadArgument):
             await ctx.send("Uh oh, you didn't include all the arguments! ")
 
-    # Tag command, extra commands basically.
-
     @commands.command()
-    async def tag(self, ctx, tagnum):
-        if tagnum == "1":
-            text_channel = self.bot.get_channel("587502693246042112")
-            text_channel2 = self.bot.get_channel("587632638819434507")
-            contentc = discord.Embed(
-                title="Content Creators", description=f"Minecraft Related Content may go in the <#587632638819434507> channel while other content can go in <#587502693246042112>! \n**Make content?** Feel free to ask a Moderator to give you the Content Creator role!", color=0xfc0303)
-            await ctx.send(embed=contentc)
-        elif tagnum == "2":
-            text_channel2 = self.bot.get_channel("587850399759990794")
-            realm = discord.Embed(title="Realm Applications", description=f"Welcome! I see you've asked about joining a realm! The Realm Portal has a ton of realms you can choose from. Each having their own application process, if you would like to join one check out the Realms and Server tab! You can view details about each realm by checking its pins and channel description! Please remember that there is no 'better' realm! \n**Community Realm** Don't know what to join? Consider joining the MRP Community Realm! \n**Apply for a Realm Channel!** Have a realm you would like to advertise? Once you reach Zombie Slayer, you should be able to fill out the application in <#587850399759990794>!", color=0xeb07cc)
-            await ctx.send(embed=realm)
-        elif tagnum == "3":
-            realm = discord.Embed(title="Realm Applications", description="Hello! It looks like you wanted to join a realm! Please not that all realms that are shown in the Realm Portal are **BEDROCK**! If you would like to join a realm, please take a moment and read the channel's description **and** the pins! You can find things like their application, realm details, etc in there. \n**NOTE:** Please do not contact Moderators or Admins if you have a question regarding a realm. It's best to contact the realm owners/operators as we are not a representative for that specific realm! ")
-
-        elif tagnum == "help":
-            await ctx.send("**Tag Numbers:** \n1: Content Related \n2: Realm Applications")
-
-        else:
-            await ctx.send("That number isn't a valid response!")
+    @commands.has_role('Bot Manager')
+    async def requestdb(self, ctx):
+        """Request the database file for manual inspection"""
+        db = Path("data.db")
+        if not db.exists():
+            await ctx.send("Database does not exist yet.")
+            return
+        with db.open() as f:
+            ctx.user.send(file=discord.File(f, "database.db"))
+        await ctx.send("Database file sent to your DMs.")
 
     @commands.command(description="Rock Paper Scissors")
     async def rps(self, msg: str):
