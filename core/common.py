@@ -26,7 +26,7 @@ def prompt_config(msg, key):
             json.dump(config, f, indent=4)
 
 
-async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, population_func: function, end: int, begin: int = 1, page=1):
+async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, population_func, end: int, begin: int = 1, page=1):
     emotes = ["◀️", "▶️"]
 
     async def check_reaction(reaction, user):
