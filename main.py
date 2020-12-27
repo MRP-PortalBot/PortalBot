@@ -5,7 +5,7 @@ from datetime import datetime
 import asyncio
 from pathlib import Path
 
-from core.config import prompt_config, load_config
+from core.common import prompt_config, load_config
 import core.keep_alive as keep_alive
 import core.bcolors as bcolors
 
@@ -113,10 +113,10 @@ async def load(ctx, ext):
 @commands.has_role('Bot Manager')
 async def reload(ctx, ext):
     if ext == "all":
+        embed = discord.Embed(
+            title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
         for extension in get_extensions():
             client.reload_extension(extension)
-            embed = discord.Embed(
-                title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
         await ctx.send(embed=embed)
         return
 

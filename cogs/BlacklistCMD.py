@@ -7,7 +7,7 @@ import time
 import re
 import asyncio
 from discord import Embed
-from core.config import load_config
+from core.common import load_config, paginate_embed
 config, _ = load_config()
 # --------------------------------------------------
 # pip3 install gspread oauth2client
@@ -138,20 +138,19 @@ class BlacklistCMD(commands.Cog):
                 blacklistembed = discord.Embed(
                     title="Blacklist Report", description="Sent from: " + author.mention, color=0xb10d9f)
                 blacklistembed.add_field(name="Questions", value=f'**{Q1}** \n {answer1.content} \n\n'
-                                        f'**{Q2}** \n {answer2.content} \n\n'
-                                        f'**{Q3}** \n {answer3.content} \n\n'
-                                        f'**{Q4}** \n {answer4.content} \n\n'
-                                        f'**{Q5}** \n {answer5.content} \n\n'
-                                        f'**{Q6}** \n {answer6.content} \n\n'
-                                        f'**{Q7}** \n {answer7.content} \n\n'
-                                        f'**{Q8}** \n {answer8.content} \n\n'
-                                        f'**{Q9}** \n {answer9.content} \n\n')
+                                         f'**{Q2}** \n {answer2.content} \n\n'
+                                         f'**{Q3}** \n {answer3.content} \n\n'
+                                         f'**{Q4}** \n {answer4.content} \n\n'
+                                         f'**{Q5}** \n {answer5.content} \n\n'
+                                         f'**{Q6}** \n {answer6.content} \n\n'
+                                         f'**{Q7}** \n {answer7.content} \n\n'
+                                         f'**{Q8}** \n {answer8.content} \n\n'
+                                         f'**{Q9}** \n {answer9.content} \n\n')
                 timestamp = datetime.now()
                 blacklistembed.set_footer(
                     text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
                 await schannel.send(embed=blacklistembed)
                 await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
-
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
@@ -201,13 +200,12 @@ class BlacklistCMD(commands.Cog):
         elif isinstance(error, commands.CommandInvokeError):
             await ctx.send("Your search returned to many results. Please narrow your search, or try a different search term.")
 
-    async def populate_embed(self, embed, starting_point):
+    async def populate_embed(self, embed, page):
         """Used to populate the embed for the 'blogs' command."""
-        index = starting_point
-        embed.clear_fields()  # cleans embed before rebuilding
-        values = sheet.row_values(index+1)
+        embed.clear_fields()
+        values = sheet.row_values(page)
         embed.add_field(
-            name=f"Row: {index}", value=f"```\n {' '.join(values)}```", inline=False)
+            name=f"Row: {page}", value=f"```\n {' '.join(values)}```", inline=False)
         embed.add_field(name="Discord Username", value=values[0], inline=False)
         embed.add_field(name="Discord ID", value=values[1], inline=False)
         embed.add_field(name="Gamertag", value=values[2], inline=False)
@@ -218,39 +216,15 @@ class BlacklistCMD(commands.Cog):
         embed.add_field(name="Type of Ban", value=values[7], inline=False)
         embed.add_field(name="Date the Ban ends",
                         value=values[8], inline=False)
-        return embed, index+1
+        return embed
 
-    @commands.command(aliases=["blogsnew"])
-    async def blogs(self, ctx, row: int = None):
-        """View all data in the blacklist spreadsheet"""
-        async def check_reaction(reaction, user):
-            return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
 
-        if row is None or row < 2:
-            row = 2
+    @commands.command(aliases=['blogsnew'])
+    async def blogs(self, ctx, page: int = 2):
         author = ctx.message.author
-        embed = discord.Embed(title="MRP Blacklist Data",
-                              description=f"Requested by Operator {author.mention}")
-        embed, index = await self.populate_embed(embed, row)
-        message = await ctx.send(embed=embed)
-        await message.add_reaction("◀️")
-        await message.add_reaction("▶️")
-        while True:
-            try:
-                reaction, user = await self.bot.wait_for("reaction_add", timeout=60, check=check_reaction)
-                if user == self.bot.user:
-                    continue
-                if str(reaction.emoji) == "▶️" and index < sheet.row_count:
-                    embed, index = await self.populate_embed(embed, index)
-                    await message.remove_reaction(reaction, user)
-                    await message.edit(embed=embed)
-                elif str(reaction.emoji) == "◀️" and index > 3:
-                    await message.remove_reaction(reaction, user)
-                    embed, index = await self.populate_embed(embed, index-2)
-                    await message.edit(embed=embed)
-            except asyncio.TimeoutError:  # ends loop after timeout.
-                await message.clear_reactions()
-                break
+        embed = discord.Embed(title="MRP Blacklist Data", description={
+                                f"Requested by Operator {author.mention}"})
+        await paginate_embed(self.bot, ctx, embed, self.populate_embed, sheet.row_count, page=page, begin=2)
 
 
 def setup(bot):

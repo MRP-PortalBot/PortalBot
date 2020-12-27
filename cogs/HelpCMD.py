@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime
-import core.config
+import core.common
 
 
 class HelpCMD(commands.Cog):
@@ -150,7 +150,7 @@ class HelpCMD(commands.Cog):
 
     @commands.command()
     async def info(self, ctx):
-        config, _ = core.config.load_config()
+        config, _ = core.common.load_config()
         guild = ctx.message.guild
         em = discord.Embed(
             title="PortalBot Info", description="Hello. I am PortalBot, a `Discord.py` powered bot!", color=0xffd700)

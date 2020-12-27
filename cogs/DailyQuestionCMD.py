@@ -4,7 +4,7 @@ from datetime import datetime
 import random
 import threading
 import asyncio
-from core.config import load_config
+from core.common import load_config
 config, _ = load_config()
 # Counts current lines in a file.
 

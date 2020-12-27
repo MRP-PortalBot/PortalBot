@@ -3,7 +3,7 @@ import discord
 from typing import List
 import traceback
 from pathlib import Path
-import core.config
+import core.common
 
 
 class CustomError(Exception):
@@ -38,7 +38,7 @@ class CommandErrorHandler(commands.Cog):
         if hasattr(ctx.command, 'on_error'):
             return
         elif isinstance(error, commands.CommandNotFound):
-            config, _ = core.config.load_config()
+            config, _ = core.common.load_config()
             await ctx.send(f"No such command! Please contact a Bot Manager if you are having trouble! \nPlease also refer to the help command! `{config['prefix']}help`")
             print("ingored error: " + str(ctx.command))
         else:

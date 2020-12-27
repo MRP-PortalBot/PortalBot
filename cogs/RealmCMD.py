@@ -5,7 +5,7 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
-from core.config import load_config
+from core.common import load_config
 config, _ = load_config()
 i = 1
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}

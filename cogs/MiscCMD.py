@@ -1,4 +1,4 @@
-from core.config import load_config
+from core.common import load_config
 import discord
 from discord.ext import commands
 from discord import Webhook, AsyncWebhookAdapter
