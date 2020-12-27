@@ -220,11 +220,11 @@ class BlacklistCMD(commands.Cog):
         return embed
 
     @commands.command(aliases=['blogsnew'])
-    async def blogs(self, ctx, page: int = 2):
+    async def blogs(self, ctx, page: int = 3):
         author = ctx.message.author
         embed = discord.Embed(title="MRP Blacklist Data", description=
             f"Requested by Operator {author.mention}")
-        await paginate_embed(self.bot, ctx, embed, self.populate_embed, sheet.row_count, page=page, begin=2)
+        await paginate_embed(self.bot, ctx, embed, self.populate_embed, sheet.row_count, page=page, begin=3)
 
 
 def setup(bot):
