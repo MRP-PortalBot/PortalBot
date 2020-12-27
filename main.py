@@ -61,7 +61,7 @@ async def on_ready():
     print("Current Time =", now)
     await client.change_presence(status=discord.Status.idle, activity=discord.Activity(type=discord.ActivityType.watching, name=f"over the Portal! | {config['prefix']}help"))
     channel = client.get_channel(792485617954586634)
-    embed = discord.Embed(title = f"{client.user.name} is Back Up!", value = "Time: " + now)
+    embed = discord.Embed(title = f"{client.user.name} is Back Up!", description = "Time: " + now, color = 0x3df5a2)
     await channel.send(embed=embed)
 
 keep_alive.keep_alive()  # webserver setup, used w/ REPL
