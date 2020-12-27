@@ -57,11 +57,12 @@ async def on_ready():
     print(f"{bcolors.OKGREEN}BOT TYPE: {bcolors.ENDC}" + config['BotType'])
     print(f"{bcolors.WARNING}ID: {client.user.id}{bcolors.ENDC}")
     print(f"{bcolors.WARNING}URL: https://discord.com/oauth2/authorize?client_id={client.user.id}&scope=bot&permissions=8{bcolors.ENDC}")
-
     now = datetime.now().strftime("%H:%M:%S")
     print("Current Time =", now)
-
     await client.change_presence(status=discord.Status.idle, activity=discord.Activity(type=discord.ActivityType.watching, name=f"over the Portal! | {config['prefix']}help"))
+    channel = client.get_channel(792485617954586634)
+    embed = discord.Embed(title = f"{client.user.name} is Back Up!", value = "Time: " + now)
+    await channel.send(embed=embed)
 
 keep_alive.keep_alive()  # webserver setup, used w/ REPL
 
