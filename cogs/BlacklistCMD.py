@@ -200,7 +200,7 @@ class BlacklistCMD(commands.Cog):
         elif isinstance(error, commands.CommandInvokeError):
             await ctx.send("Your search returned to many results. Please narrow your search, or try a different search term.")
 
-    async def populate_embed(self, embed, page):
+    async def populate_embed(self, embed: discord.Embed, page):
         """Used to populate the embed for the 'blogs' command."""
         embed.clear_fields()
         values = sheet.row_values(page)
@@ -218,12 +218,11 @@ class BlacklistCMD(commands.Cog):
                         value=values[8], inline=False)
         return embed
 
-
     @commands.command(aliases=['blogsnew'])
     async def blogs(self, ctx, page: int = 2):
         author = ctx.message.author
         embed = discord.Embed(title="MRP Blacklist Data", description={
-                                f"Requested by Operator {author.mention}"})
+            f"Requested by Operator {author.mention}"})
         await paginate_embed(self.bot, ctx, embed, self.populate_embed, sheet.row_count, page=page, begin=2)
 
 

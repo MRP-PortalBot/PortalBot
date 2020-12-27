@@ -33,7 +33,11 @@ async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, populat
         return user == ctx.author and str(reaction.emoji) in emotes
 
     embed = await population_func(embed, page)
-    message = await ctx.send(embed=embed)
+    if isinstance(embed, discord.Embed):
+        message = await ctx.send(embed=embed)
+    else:
+        ctx.send(str(type(embed)))
+        return
     await message.add_reaction(emotes[0])
     await message.add_reaction(emotes[1])
     while True:
@@ -51,6 +55,6 @@ async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, populat
                 embed = await population_func(embed, page)
                 await message.remove_reaction(reaction, user)
                 await message.edit(embed=embed)
-        except asyncio.TimeoutError:  # ends loop after timeout.
+        except asyncio.TimeoutError:
             await message.clear_reactions()
             break
