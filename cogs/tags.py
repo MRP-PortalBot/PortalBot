@@ -90,7 +90,7 @@ class Tags(commands.Cog):
             database.db.connect(reuse_if_open=True)
             if database.Tag.select().count() == 0:
                 tag_list = "No tags found"
-            for tag in database.Tag.select().order_by(database.Tag.id).paginate(page, 10):
+            for tag in database.Tag.select().order_by(database.Tag.rowid).paginate(page, 10):
                 tag_list += f"{tag.rowid}. {tag.tag_name}\n"
             embed.add_field(name=f"Page {page}", value=tag_list)
             database.db.close()
