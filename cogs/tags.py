@@ -91,7 +91,7 @@ class Tags(commands.Cog):
     async def listtag(self, ctx, page=1):
         """List all tags in the database"""
         embed = discord.Embed(title="Tag List")
-        embed = common.paginate_embed(self.bot, ctx, embed, self.populate_embed, self.get_beginning(10), page=page)
+        embed = await common.paginate_embed(self.bot, ctx, embed, self.populate_embed, self.get_beginning(10), page=page)
 
 
 def setup(bot):
