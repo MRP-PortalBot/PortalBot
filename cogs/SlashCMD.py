@@ -21,6 +21,7 @@ class Slash(commands.Cog):
         embed = discord.Embed(title="embed test")
         await ctx.send(content="test", embeds=[embed])
 
+
     @cog_ext.cog_slash(name = "say2")
     async def _say2(self, ctx: SlashContext, *, phrase : str):
         await ctx.channel.purge(limit=1)
