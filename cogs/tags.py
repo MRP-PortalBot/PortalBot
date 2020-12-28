@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.core import command
-from core import database
+from core import database, common
 import asyncio
 import logging
 
@@ -9,7 +9,6 @@ from discord.ext import commands
 
 logger = logging.getLogger(__name__)
 
-# TODO: Convert messages to embeds
 class Tags(commands.Cog):
     """Commands related to our dynamic tag system."""
 
@@ -17,15 +16,23 @@ class Tags(commands.Cog):
         logger.info("Tags: Cog Loaded!")
         self.bot = bot
 
-    # TODO: Catch for when no tags.
+    def get_beginning(self, page_size: int):
+        database.db.connect(reuse_if_open=True)
+        tags: int = database.Tag.select().count()
+        return tags/page_size + tags%page_size
+
     def populate_embed(self, embed: discord.Embed, page: int):
         """Used to populate the embed in listtag command"""
         tag_list = ""
         embed.clear_fields()
+        database.db.connect(reuse_if_open=True)
+        if database.Tag.select().count() == 0:
+            tag_list = "No tags found"
         for tag in database.Tag.select().order_by(database.Tag.id).paginate(page, 10):
             tag_list += f"- {tag.tag_name}\n"
         embed.add_field(name=f"Page {page}", value=tag_list)
-        return embed, page
+        database.db.close()
+        return embed
 
     @commands.command(aliases=['t'])
     async def tag(self, ctx, tag_id):
@@ -34,13 +41,13 @@ class Tags(commands.Cog):
             database.db.connect(reuse_if_open=True)
             tag: database.Tag = database.Tag.select().where(
                 database.Tag.tag_name == tag_id).get()
-            await ctx.send(tag.text)
+            embed = discord.Embed(title=tag.embed_title, description=tag.text)
+            await ctx.send(embed=embed)
         except database.DoesNotExist:
             await ctx.send("Tag not found, please try again.")
         finally:
             database.db.close()
 
-    # TODO: Add user feedback
     @commands.command(aliases=['newtag', 'ntag', 'mtag'])
     @commands.has_any_role('Bot Manager', 'Moderator')
     async def modtag(self, ctx, name, title, *, text):
@@ -52,12 +59,14 @@ class Tags(commands.Cog):
             tag.text = text
             tag.embed_title = title
             tag.save()
+            await ctx.send(f"Tag {tag.tag_name} has been modified successfully.")
         except database.DoesNotExist:
             try:
                 database.db.connect(reuse_if_open=True)
                 tag: database.Tag = database.Tag.create(
                     tag_name=name, embed_title=title, text=text)
                 tag.save()
+                await ctx.send(f"Tag {tag.tag_name} has been created successfully.")
             except database.IntegrityError:
                 await ctx.send("That tag name is already taken!")
         finally:
@@ -78,34 +87,11 @@ class Tags(commands.Cog):
         finally:
             database.db.close()
 
-    # TODO: Catch for beginning of list, and end of list
-    # TODO: Create a wrapper for easy pagination of embeds
     @commands.command(aliases=['ltag'])
     async def listtag(self, ctx, page=1):
         """List all tags in the database"""
-        async def check_reaction(reaction, user):
-            return user == ctx.author and str(reaction.emoji) in ["◀️", "▶️"]
         embed = discord.Embed(title="Tag List")
-        embed, page = self.populate_embed(embed, page)
-        message = await ctx.send(embed=embed)
-        await message.add_reaction("◀️")
-        await message.add_reaction("▶️")
-        while True:
-            try:
-                reaction, user = await self.bot.wait_for("reaction_add", timeout=60, check=check_reaction)
-                if user == self.bot.user:
-                    continue
-                if str(reaction.emoji) == "▶️":
-                    embed, page = await self.populate_embed(embed, page)
-                    await message.remove_reaction(reaction, user)
-                    await message.edit(embed=embed)
-                elif str(reaction.emoji) == "◀️" and page > 2:
-                    await message.remove_reaction(reaction, user)
-                    embed, page = await self.populate_embed(embed, page-2)
-                    await message.edit(embed=embed)
-            except asyncio.TimeoutError:  # ends loop after timeout.
-                await message.clear_reactions()
-                break
+        embed = common.paginate_embed(self.bot, ctx, embed, self.populate_embed, self.get_beginning(10), page=page)
 
 
 def setup(bot):
