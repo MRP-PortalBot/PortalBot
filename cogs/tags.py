@@ -21,7 +21,7 @@ class Tags(commands.Cog):
         tags: int = database.Tag.select().count()
         return tags/page_size + tags%page_size
 
-    def populate_embed(self, embed: discord.Embed, page: int):
+    async def populate_embed(self, embed: discord.Embed, page: int):
         """Used to populate the embed in listtag command"""
         tag_list = ""
         embed.clear_fields()
