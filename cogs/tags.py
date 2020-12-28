@@ -9,6 +9,7 @@ from discord.ext import commands
 
 logger = logging.getLogger(__name__)
 
+
 class Tags(commands.Cog):
     """Commands related to our dynamic tag system."""
 
@@ -19,7 +20,7 @@ class Tags(commands.Cog):
     def get_beginning(self, page_size: int):
         database.db.connect(reuse_if_open=True)
         tags: int = database.Tag.select().count()
-        return tags/page_size + tags%page_size
+        return tags/page_size + tags % page_size
 
     async def populate_embed(self, embed: discord.Embed, page: int):
         """Used to populate the embed in listtag command"""
@@ -39,8 +40,13 @@ class Tags(commands.Cog):
         """Activate a tag"""
         try:
             database.db.connect(reuse_if_open=True)
-            tag: database.Tag = database.Tag.select().where(
-                (database.Tag.tag_name == tag_name) | (str(database.Tag.id) == tag_name)).get()
+            try: # tried selecting with or and with (statement) | (statement), led to nothing, so this.
+                tag_name = int(tag_name)
+                tag: database.Tag = database.Tag.select().where(
+                    database.Tag.id == tag_name).get()
+            except ValueError:
+                tag: database.Tag = database.Tag.select().where(
+                    database.Tag.tag_name == tag_name).get()
             embed = discord.Embed(title=tag.embed_title, description=tag.text)
             await ctx.send(embed=embed)
         except database.DoesNotExist:
