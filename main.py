@@ -29,7 +29,7 @@ intents.members = True
 intents.presences = True
 
 client = commands.Bot(command_prefix=config['prefix'], intents=intents)
-slash = SlashCommand(client)
+slash = SlashCommand(client, auto_register=True)
 client.remove_command("help")
 
 logger = logging.getLogger('discord')
@@ -79,7 +79,7 @@ async def _test(ctx: SlashContext):
     embed = discord.Embed(title="embed test")
     await ctx.send(content="test", embeds=[embed])
 
-    
+
 @client.group(aliases=['cog'])
 @commands.has_role('Bot Manager')
 async def cogs(ctx):
