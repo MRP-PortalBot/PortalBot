@@ -25,7 +25,7 @@ class Tags(commands.Cog):
             try: # tried selecting with or and with (statement) | (statement), led to nothing, so this.
                 tag_name = int(tag_name)
                 tag: database.Tag = database.Tag.select().where(
-                    database.Tag.id == tag_name).get()
+                    database.Tag.rowid == tag_name).get()
             except ValueError:
                 tag: database.Tag = database.Tag.select().where(
                     database.Tag.tag_name == tag_name).get()
