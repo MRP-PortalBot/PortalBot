@@ -74,6 +74,12 @@ if __name__ == '__main__':
         client.load_extension(ext)
 
 
+@slash.slash(name="test")
+async def _test(ctx: SlashContext):
+    embed = discord.Embed(title="embed test")
+    await ctx.send(content="test", embeds=[embed])
+
+    
 @client.group(aliases=['cog'])
 @commands.has_role('Bot Manager')
 async def cogs(ctx):
