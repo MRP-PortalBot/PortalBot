@@ -200,31 +200,30 @@ class BlacklistCMD(commands.Cog):
         elif isinstance(error, commands.CommandInvokeError):
             await ctx.send("Your search returned to many results. Please narrow your search, or try a different search term.")
 
-    async def populate_embed(self, embed: discord.Embed, page):
-        """Used to populate the embed for the 'blogs' command."""
-        embed.clear_fields()
-        values = sheet.row_values(page)
-        embed.add_field(
-            name=f"Row: {page}", value=f"```\n {' '.join(values)}```", inline=False)
-        embed.add_field(name="Discord Username", value=values[0], inline=False)
-        embed.add_field(name="Discord ID", value=values[1], inline=False)
-        embed.add_field(name="Gamertag", value=values[2], inline=False)
-        embed.add_field(name="Banned From", value=values[3], inline=False)
-        embed.add_field(name="Known Alts", value=values[4], inline=False)
-        embed.add_field(name="Reason for ban", value=values[5], inline=False)
-        embed.add_field(name="Date of Incident", value=values[6], inline=False)
-        embed.add_field(name="Type of Ban", value=values[7], inline=False)
-        embed.add_field(name="Date the Ban ends",
-                        value=values[8], inline=False)
-
-        return embed
-
     @commands.command(aliases=['blogsnew'])
     async def blogs(self, ctx, page: int = 3):
+        async def populate_embed(self, embed: discord.Embed, page: int):
+            """Used to populate the embed for the 'blogs' command."""
+            embed.clear_fields()
+            values = sheet.row_values(page)
+            embed.add_field(
+                name=f"Row: {page}", value=f"```\n {' '.join(values)}```", inline=False)
+            embed.add_field(name="Discord Username", value=values[0], inline=False)
+            embed.add_field(name="Discord ID", value=values[1], inline=False)
+            embed.add_field(name="Gamertag", value=values[2], inline=False)
+            embed.add_field(name="Banned From", value=values[3], inline=False)
+            embed.add_field(name="Known Alts", value=values[4], inline=False)
+            embed.add_field(name="Reason for ban", value=values[5], inline=False)
+            embed.add_field(name="Date of Incident", value=values[6], inline=False)
+            embed.add_field(name="Type of Ban", value=values[7], inline=False)
+            embed.add_field(name="Date the Ban ends",
+                            value=values[8], inline=False)
+            return embed
+
         author = ctx.message.author
         embed = discord.Embed(title="MRP Blacklist Data", description=
             f"Requested by Operator {author.mention}")
-        await paginate_embed(self.bot, ctx, embed, self.populate_embed, sheet.row_count, page=page, begin=3)
+        await paginate_embed(self.bot, ctx, embed, populate_embed, sheet.row_count, page=page, begin=3)
 
 
 def setup(bot):

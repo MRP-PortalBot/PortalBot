@@ -17,24 +17,6 @@ class Tags(commands.Cog):
         logger.info("Tags: Cog Loaded!")
         self.bot = bot
 
-    def get_beginning(self, page_size: int):
-        database.db.connect(reuse_if_open=True)
-        tags: int = database.Tag.select().count()
-        return tags/page_size + tags % page_size
-
-    async def populate_embed(self, embed: discord.Embed, page: int):
-        """Used to populate the embed in listtag command"""
-        tag_list = ""
-        embed.clear_fields()
-        database.db.connect(reuse_if_open=True)
-        if database.Tag.select().count() == 0:
-            tag_list = "No tags found"
-        for tag in database.Tag.select().order_by(database.Tag.id).paginate(page, 10):
-            tag_list += f"{tag.id}. {tag.tag_name}\n"
-        embed.add_field(name=f"Page {page}", value=tag_list)
-        database.db.close()
-        return embed
-
     @commands.command(aliases=['t'])
     async def tag(self, ctx, tag_name):
         """Activate a tag"""
@@ -96,8 +78,26 @@ class Tags(commands.Cog):
     @commands.command(aliases=['ltag'])
     async def listtag(self, ctx, page=1):
         """List all tags in the database"""
+        def get_beginning(self, page_size: int):
+            database.db.connect(reuse_if_open=True)
+            tags: int = database.Tag.select().count()
+            return tags/page_size + tags % page_size
+
+        async def populate_embed(self, embed: discord.Embed, page: int):
+            """Used to populate the embed in listtag command"""
+            tag_list = ""
+            embed.clear_fields()
+            database.db.connect(reuse_if_open=True)
+            if database.Tag.select().count() == 0:
+                tag_list = "No tags found"
+            for tag in database.Tag.select().order_by(database.Tag.id).paginate(page, 10):
+                tag_list += f"{tag.id}. {tag.tag_name}\n"
+            embed.add_field(name=f"Page {page}", value=tag_list)
+            database.db.close()
+            return embed
+
         embed = discord.Embed(title="Tag List")
-        embed = await common.paginate_embed(self.bot, ctx, embed, self.populate_embed, self.get_beginning(10), page=page)
+        embed = await common.paginate_embed(self.bot, ctx, embed, populate_embed, get_beginning(10), page=page)
 
 
 def setup(bot):
