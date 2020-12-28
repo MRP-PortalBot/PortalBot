@@ -16,11 +16,6 @@ class Slash(commands.Cog):
     def cog_unload(self):
         self.bot.slash.remove_cog_commands(self)
 
-    @cog_ext.cog_slash(name="test")
-    async def _test(self, ctx: SlashContext):
-        embed = discord.Embed(title="embed test")
-        await ctx.send(content="test", embeds=[embed])
-
 
     @cog_ext.cog_slash(name = "say2")
     async def _say2(self, ctx: SlashContext, *, phrase : str):
