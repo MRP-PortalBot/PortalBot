@@ -17,7 +17,7 @@ class Slash(commands.Cog):
         self.bot.slash.remove_cog_commands(self)
 
 
-    @cog_ext.cog_slash(name="test2")
+    @cog_ext.cog_slash(name="test2", guild_ids=[448488274562908170])
     async def _test2(self, ctx: SlashContext):
         embed = discord.Embed(title="embed test")
         await ctx.send(content="test", embeds=[embed])
