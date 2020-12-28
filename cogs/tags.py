@@ -78,10 +78,10 @@ class Tags(commands.Cog):
     @commands.command(aliases=['ltag'])
     async def listtag(self, ctx, page=1):
         """List all tags in the database"""
-        def get_beginning(page_size: int):
+        def get_end(page_size: int):
             database.db.connect(reuse_if_open=True)
             tags: int = database.Tag.select().count()
-            return tags/page_size + tags % page_size
+            return (tags/page_size) + (tags % page_size)
 
         async def populate_embed(embed: discord.Embed, page: int):
             """Used to populate the embed in listtag command"""
@@ -97,7 +97,7 @@ class Tags(commands.Cog):
             return embed
 
         embed = discord.Embed(title="Tag List")
-        embed = await common.paginate_embed(self.bot, ctx, embed, populate_embed, get_beginning(10), page=page)
+        embed = await common.paginate_embed(self.bot, ctx, embed, populate_embed, get_end(10), page=page)
 
 
 def setup(bot):

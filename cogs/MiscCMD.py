@@ -48,12 +48,14 @@ class MiscCMD(commands.Cog):
             if after.status == discord.Status.offline and before.status != discord.Status.offline:
                 channel = self.bot.get_channel(792485617954586634)
                 now = datetime.now().strftime("%H:%M:%S")
-                embed = discord.Embed(title = "⚠️ PortalBot is offline!", description = "Recorded Downtime (start): " + str(now) , color = 0xf03224)
-                embed.add_field(name = "Restart Link", value = "__https://repl.it/join/ohvpqkio-rohitturtle0__")
-                await channel.send(embed = embed)
-
+                embed = discord.Embed(title="⚠️ PortalBot is offline!",
+                                      description="Recorded Downtime (start): " + str(now), color=0xf03224)
+                embed.add_field(
+                    name="Restart Link", value="__https://repl.it/join/ohvpqkio-rohitturtle0__")
+                await channel.send(embed=embed)
 
     # DM Command
+
     @commands.command()
     @commands.has_role("Moderator")
     async def DM(self, ctx, user: discord.User, *, message=None):
@@ -196,6 +198,33 @@ class MiscCMD(commands.Cog):
         with db.open(mode="rb") as f:
             await ctx.author.send(file=discord.File(f, "database.db"))
         await ctx.send("Database file sent to your DMs.")
+
+    @commands.command()
+    @commands.has_role('Bot Manager')
+    async def deletedb(self, ctx):
+        """Delete database file"""
+        if database.db.is_closed():
+            db = Path("data.db")
+            if not db.exists():
+                await ctx.send("Database file does not exist.")
+                return
+            db.unlink()
+            await ctx.send("Database file has been deleted.")
+        else:
+            await ctx.send("Cannot delete; database is currently in use.")
+
+    @commands.command()
+    @commands.has_role("Bot Manager")
+    async def replacedb(self, ctx):
+        """Replace database file with attachment"""
+        if database.db.is_closed():
+            db = Path("data.db")
+            if db.exists():
+                db.unlink()
+            with db.open(mode="wb+") as f:
+                await ctx.message.attachments.save(f)
+        else:
+            await ctx.send("Cannot replace; database is currently in use.")
 
     @commands.command(description="Rock Paper Scissors")
     async def rps(self, msg: str):

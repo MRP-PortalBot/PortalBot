@@ -1,6 +1,7 @@
 import logging
 from peewee import AutoField, ForeignKeyField, Model, IntegerField, PrimaryKeyField, TextField, SqliteDatabase, DoesNotExist, DateTimeField, UUIDField, IntegrityError
 from playhouse.shortcuts import model_to_dict, dict_to_model  # these can be used to convert an item to or from json http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#model_to_dict
+from playhouse.sqlite_ext import RowIDField
 from datetime import datetime
 
 db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
@@ -10,8 +11,10 @@ def iter_table(model_dict):
     """Iterates through a dictionary of tables, confirming they exist and creating them if necessary."""
     for key in model_dict:
         if not db.table_exists(key):
+            db.connect(reuse_if_open=True)
             db.create_tables([model_dict[key]])
             logger.debug(f"Created table '{key}'")
+            db.close()
 
 class BaseModel(Model):
     """Base Model class used for creating new tables."""
@@ -20,7 +23,7 @@ class BaseModel(Model):
 
 class Tag(BaseModel):
     """Stores our tags accessed by the tag command."""
-    id = PrimaryKeyField()
+    rowid = RowIDField()
     tag_name = TextField(unique=True)
     embed_title = TextField()
     text = TextField()
