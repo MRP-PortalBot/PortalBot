@@ -17,10 +17,10 @@ class Slash(commands.Cog):
         self.bot.slash.remove_cog_commands(self)
 
 
-    @cog_ext.cog_slash(name = "say2")
-    async def _say2(self, ctx: SlashContext, *, phrase : str):
-        await ctx.channel.purge(limit=1)
-        await ctx.send(phrase)
+    @cog_ext.cog_slash(name="test2")
+    async def _test2(self, ctx: SlashContext):
+        embed = discord.Embed(title="embed test")
+        await ctx.send(content="test", embeds=[embed])
 
 
 
