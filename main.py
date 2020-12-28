@@ -4,6 +4,7 @@ from discord.ext import commands
 from datetime import datetime
 import asyncio
 from pathlib import Path
+from discord.utils import manage_commands
 
 from core.common import prompt_config, load_config
 import core.keep_alive as keep_alive
@@ -145,5 +146,8 @@ async def view(ctx):
     msg = " ".join(get_extensions())
     embed = discord.Embed(title="Cogs - View", description=msg, color=0xd6b4e8)
     await ctx.send(embed=embed)
+
+
+asyncio.get_event_loop().run_until_complete(manage_commands.get_all_commands(client.user.id, config['token'], 448488274562908170))
 
 client.run(config['token'])

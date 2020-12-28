@@ -22,6 +22,8 @@ class Slash(commands.Cog):
         embed = discord.Embed(title="embed test")
         await ctx.send(content="test", embeds=[embed])
 
+    
+
 
 
 def setup(bot):
