@@ -4,7 +4,7 @@ from discord.ext import commands
 from datetime import datetime
 import asyncio
 from pathlib import Path
-from discord.utils import manage_commands
+from discord_slash.utils import manage_commands
 
 from core.common import prompt_config, load_config
 import core.keep_alive as keep_alive
