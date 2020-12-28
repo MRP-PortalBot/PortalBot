@@ -8,6 +8,8 @@ from pathlib import Path
 from core.common import prompt_config, load_config
 import core.keep_alive as keep_alive
 import core.bcolors as bcolors
+from discord_slash import SlashCommand
+from discord_slash import SlashContext
 
 prompt_config("Enter bot token here: ", "token")
 prompt_config("Enter bot prefix here: ", "prefix")
@@ -27,6 +29,7 @@ intents.members = True
 intents.presences = True
 
 client = commands.Bot(command_prefix=config['prefix'], intents=intents)
+slash = SlashCommand(client)
 client.remove_command("help")
 
 logger = logging.getLogger('discord')
