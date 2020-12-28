@@ -23,9 +23,11 @@ class Tags(commands.Cog):
         try:
             database.db.connect(reuse_if_open=True)
             try: # tried selecting with or and with (statement) | (statement), led to nothing, so this.
+                tag = None
                 tag_name = int(tag_name)
-                tag: database.Tag = database.Tag.select().where(
-                    database.Tag.rowid == tag_name).get()
+                for i, t in enumerate(database.Tag.select()):  # TODO: Find better way to do this.
+                    if i == tag_name:
+                        tag = t
             except ValueError:
                 tag: database.Tag = database.Tag.select().where(
                     database.Tag.tag_name == tag_name).get()
@@ -90,8 +92,8 @@ class Tags(commands.Cog):
             database.db.connect(reuse_if_open=True)
             if database.Tag.select().count() == 0:
                 tag_list = "No tags found"
-            for tag in database.Tag.select().order_by(database.Tag.rowid).paginate(page, 10):
-                tag_list += f"{tag.rowid}. {tag.tag_name}\n"
+            for i, tag in enumerate(database.Tag.select().paginate(page, 10)):
+                tag_list += f"{i}. {tag.tag_name}\n"
             embed.add_field(name=f"Page {page}", value=tag_list)
             database.db.close()
             return embed

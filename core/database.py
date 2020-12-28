@@ -23,7 +23,7 @@ class BaseModel(Model):
 
 class Tag(BaseModel):
     """Stores our tags accessed by the tag command."""
-    rowid = RowIDField()
+    id = PrimaryKeyField()
     tag_name = TextField(unique=True)
     embed_title = TextField()
     text = TextField()
