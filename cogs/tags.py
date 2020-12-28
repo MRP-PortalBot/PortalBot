@@ -29,18 +29,18 @@ class Tags(commands.Cog):
         if database.Tag.select().count() == 0:
             tag_list = "No tags found"
         for tag in database.Tag.select().order_by(database.Tag.id).paginate(page, 10):
-            tag_list += f"- {tag.tag_name}\n"
+            tag_list += f"{tag.id}. {tag.tag_name}\n"
         embed.add_field(name=f"Page {page}", value=tag_list)
         database.db.close()
         return embed
 
     @commands.command(aliases=['t'])
-    async def tag(self, ctx, tag_id):
+    async def tag(self, ctx, tag_name):
         """Activate a tag"""
         try:
             database.db.connect(reuse_if_open=True)
             tag: database.Tag = database.Tag.select().where(
-                database.Tag.tag_name == tag_id).get()
+                database.Tag.tag_name == tag_name or str(database.Tag.id) == tag_name).get()
             embed = discord.Embed(title=tag.embed_title, description=tag.text)
             await ctx.send(embed=embed)
         except database.DoesNotExist:
