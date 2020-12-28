@@ -40,7 +40,7 @@ class Tags(commands.Cog):
         try:
             database.db.connect(reuse_if_open=True)
             tag: database.Tag = database.Tag.select().where(
-                database.Tag.tag_name == tag_name or str(database.Tag.id) == tag_name).get()
+                (database.Tag.tag_name == tag_name) | (str(database.Tag.id) == tag_name)).get()
             embed = discord.Embed(title=tag.embed_title, description=tag.text)
             await ctx.send(embed=embed)
         except database.DoesNotExist:
