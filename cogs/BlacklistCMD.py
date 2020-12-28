@@ -202,7 +202,7 @@ class BlacklistCMD(commands.Cog):
 
     @commands.command(aliases=['blogsnew'])
     async def blogs(self, ctx, page: int = 3):
-        async def populate_embed(self, embed: discord.Embed, page: int):
+        async def populate_embed(embed: discord.Embed, page: int):
             """Used to populate the embed for the 'blogs' command."""
             embed.clear_fields()
             values = sheet.row_values(page)
