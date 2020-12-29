@@ -93,14 +93,6 @@ class MiscCMD(commands.Cog):
         author = ctx.message.author
         await ctx.channel.purge(limit=amount)
 
-    # Say Command
-    @commands.command()
-    @commands.has_permissions(manage_channels=True)
-    async def say(self, ctx, *, reason):
-        author = ctx.message.author
-        await ctx.channel.purge(limit=1)
-        await ctx.send(reason)
-
     # Embed Command
     @commands.command()
     @commands.has_permissions(manage_channels=True)

@@ -16,12 +16,13 @@ class Slash(commands.Cog):
     def cog_unload(self):
         self.bot.slash.remove_cog_commands(self)
 
-'''
-    @cog_ext.cog_slash(name="test2", guild_ids=[448488274562908170])
-    async def _test2(self, ctx: SlashContext):
-        embed = discord.Embed(title="embed test")
-        await ctx.send(content="test", embeds=[embed])
-'''
+
+    @cog_ext.cog_slash(name="Say_Command", description = "Iterates something as the bot!", guild_ids=[448488274562908170])
+    @commands.has_permissions(manage_channels=True)
+    async def say(self, ctx, *, reason):
+        await ctx.channel.purge(limit=1)
+        await ctx.send(reason)
+
     
 
 
