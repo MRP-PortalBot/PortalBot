@@ -155,12 +155,12 @@ async def slashm(ctx):
 
 @slashm.command()
 @commands.has_role('Bot Manager')
-async def view(ctx, guildid = client.guild.id):
+async def get(ctx, guildid = client.guild.id):
     await ctx.send("```\n" + str(asyncio.get_event_loop().run_until_complete(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
 
 @slashm.command()
 @commands.has_role('Bot Manager')
-async def viewall(ctx, guildid = None):
+async def getall(ctx, guildid = None):
     await ctx.send("```\n" + str(asyncio.get_event_loop().run_until_complete(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
 
 @slashm.command()
