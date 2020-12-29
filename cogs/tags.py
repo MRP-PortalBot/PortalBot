@@ -4,6 +4,7 @@ from discord.ext.commands.core import command
 from core import database, common
 import asyncio
 import logging
+import math
 
 from discord.ext import commands
 
@@ -17,17 +18,19 @@ class Tags(commands.Cog):
         logger.info("Tags: Cog Loaded!")
         self.bot = bot
 
+    def get_by_index(self, index):
+        for i, t in enumerate(database.Tag.select()):
+            if i+1 == index:
+                return t
+
     @commands.command(aliases=['t'])
     async def tag(self, ctx, tag_name):
         """Activate a tag"""
         try:
             database.db.connect(reuse_if_open=True)
-            try: # tried selecting with or and with (statement) | (statement), led to nothing, so this.
-                tag = None
+            try:
                 tag_name = int(tag_name)
-                for i, t in enumerate(database.Tag.select()):  # TODO: Find better way to do this.
-                    if i+1 == tag_name:
-                        tag = t
+                tag = self.get_by_index(tag_name)
             except ValueError:
                 tag: database.Tag = database.Tag.select().where(
                     database.Tag.tag_name == tag_name).get()
@@ -40,6 +43,7 @@ class Tags(commands.Cog):
 
     @commands.command(aliases=['newtag', 'ntag', 'mtag'])
     @commands.has_any_role('Bot Manager', 'Moderator')
+    # don't let this recognize tag number, name is a required field for new tags. - Fire
     async def modtag(self, ctx, name, title, *, text):
         """Modify a tag, or create a new one if it doesn't exist."""
         try:
@@ -68,8 +72,12 @@ class Tags(commands.Cog):
         """Delete a tag"""
         try:
             database.db.connect(reuse_if_open=True)
-            tag: database.Tag = database.Tag.select().where(
-                database.Tag.tag_name == name).get()
+            try:
+                name = int(name)
+                tag = self.get_by_index(name)
+            except ValueError:
+                tag: database.Tag = database.Tag.select().where(
+                    database.Tag.tag_name == name).get()
             tag.delete_instance()
             await ctx.send(f"{tag.tag_name} has been deleted.")
         except database.DoesNotExist:
@@ -83,7 +91,7 @@ class Tags(commands.Cog):
         def get_end(page_size: int):
             database.db.connect(reuse_if_open=True)
             tags: int = database.Tag.select().count()
-            return (tags/page_size) + (tags % page_size)
+            return math.ceil(tags/10)
 
         async def populate_embed(embed: discord.Embed, page: int):
             """Used to populate the embed in listtag command"""
