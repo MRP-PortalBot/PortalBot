@@ -148,10 +148,12 @@ async def view(ctx):
     await ctx.send(embed=embed)
 
 
-@client.group()
+@client.group(invoke_without_command=True)
 @commands.has_role('Bot Manager')
 async def slashm(ctx):
-    pass
+    embed = discord.Embed(title = "Slash Management Commands", description = "Slash Commands", color = 0x1ebdf7)
+    embed.add_field(name = "Commands:", value = "**get** - Get's current slash commands in the API \n**remove** - Remove's slash commands from the API. (Needs commandid and guildid)")
+    await ctx.send(embed = embed)
 
 @slashm.command()
 @commands.has_role('Bot Manager')
@@ -162,10 +164,6 @@ async def get(ctx, guildid = None):
     else:
         await ctx.send("```\n" + str(await(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
 
-@slashm.command()
-@commands.has_role('Bot Manager')
-async def getall(ctx, guildid = None):
-    await ctx.send("```\n" + str(await(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
 
 @slashm.command()
 @commands.has_role('Bot Manager')
