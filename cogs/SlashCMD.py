@@ -17,13 +17,11 @@ class Slash(commands.Cog):
         self.bot.slash.remove_cog_commands(self)
 
 
-    @cog_ext.cog_slash(name="Say_Command", description = "Iterates something as the bot!", guild_ids=[448488274562908170], options=[manage_commands.create_option(name = "Phrase" , description = "Phrase to reiterate", required = True, )])
-    @commands.has_permissions(manage_channels=True)
-    async def say(self, ctx, options):
-        await ctx.channel.purge(limit=1)
-        await ctx.send(options)
-
-    
+    @cog_ext.cog_slash(name="say", description = "Iterates something as the bot!", guild_ids=[448488274562908170], options=[manage_commands.create_option(name = "phrase" , description = "Phrase to reiterate", option_type = 3, required = False)])
+    async def say(self, ctx, phrase=None):
+        #await ctx.channel.purge(limit=1)
+        print(ctx)
+        await ctx.send(content = phrase)
 
 
 

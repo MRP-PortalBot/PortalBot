@@ -11,7 +11,7 @@ import core.keep_alive as keep_alive
 import core.bcolors as bcolors
 from discord_slash import SlashCommand
 from discord_slash import SlashContext
-
+#pip install discord-py-slash-command
 prompt_config("Enter bot token here: ", "token")
 prompt_config("Enter bot prefix here: ", "prefix")
 prompt_config(
