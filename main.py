@@ -158,19 +158,19 @@ async def slashm(ctx):
 async def get(ctx, guildid = None):
     if guildid == None:
         guildid == ctx.message.guild.id
-        await ctx.send("```\n" + str(asyncio.get_event_loop().run_until_complete(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
+        await ctx.send("```\n" + str(asyncio.get_event_loop().await(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
     else:
-        await ctx.send("```\n" + str(asyncio.get_event_loop().run_until_complete(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
+        await ctx.send("```\n" + str(asyncio.get_event_loop().await(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
 
 @slashm.command()
 @commands.has_role('Bot Manager')
 async def getall(ctx, guildid = None):
-    await ctx.send("```\n" + str(asyncio.get_event_loop().run_until_complete(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
+    await ctx.send("```\n" + str(asyncio.get_event_loop().await(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
 
 @slashm.command()
 @commands.has_role('Bot Manager')
 async def remove(ctx, commandid):
-    await ctx.send("Response: " + str(asyncio.get_event_loop().run_until_complete(manage_commands.remove_slash_command(791393792854196274, config['token'], 448488274562908170, 793256758415589486))))
+    await ctx.send("Response: " + str(asyncio.get_event_loop().await(manage_commands.remove_slash_command(791393792854196274, config['token'], 448488274562908170, 793256758415589486))))
 
 
 
