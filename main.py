@@ -169,8 +169,11 @@ async def getall(ctx, guildid = None):
 
 @slashm.command()
 @commands.has_role('Bot Manager')
-async def remove(ctx, commandid):
-    await ctx.send("Response: " + str(await(manage_commands.remove_slash_command(791393792854196274, config['token'], 448488274562908170, 793256758415589486))))
+async def remove(ctx, commandid, guildid = None):
+    try:
+        await ctx.send("Response: " + str(await(manage_commands.remove_slash_command(config['BotID'], config['token'], guildid, commandid))))
+    except:
+        await ctx.send("Something went wrong!")
 
 
 
