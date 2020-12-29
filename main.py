@@ -148,6 +148,27 @@ async def view(ctx):
     await ctx.send(embed=embed)
 
 
-asyncio.get_event_loop().run_until_complete(manage_commands.get_all_commands(client.user.id, config['token'], 448488274562908170))
+@client.group(aliases=['slashm'])
+@commands.has_role('Bot Manager')
+async def slashm(ctx):
+    pass
+
+@slashm.command()
+@commands.has_role('Bot Manager')
+async def view(ctx, guildid = client.guild.id):
+    await ctx.send("```\n" + str(asyncio.get_event_loop().run_until_complete(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
+
+@slashm.command()
+@commands.has_role('Bot Manager')
+async def viewall(ctx, guildid = None):
+    await ctx.send("```\n" + str(asyncio.get_event_loop().run_until_complete(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
+
+@slashm.command()
+@commands.has_role('Bot Manager')
+async def remove(ctx, commandid):
+    await ctx.send("Response: " + str(asyncio.get_event_loop().run_until_complete(manage_commands.remove_slash_command(791393792854196274, config['token'], 448488274562908170, 793256758415589486))))
+
+
+
 
 client.run(config['token'])
