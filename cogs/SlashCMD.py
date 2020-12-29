@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord_slash import cog_ext
 from discord_slash import SlashCommand
 from discord_slash import SlashContext
-
+from discord_slash.utils import manage_commands
 
 class Slash(commands.Cog):
     def __init__(self, bot):
@@ -17,11 +17,11 @@ class Slash(commands.Cog):
         self.bot.slash.remove_cog_commands(self)
 
 
-    @cog_ext.cog_slash(name="Say_Command", description = "Iterates something as the bot!", guild_ids=[448488274562908170])
+    @cog_ext.cog_slash(name="Say_Command", description = "Iterates something as the bot!", guild_ids=[448488274562908170], options=[manage_commands.create_option(name = "Phrase" , description = "Phrase to reiterate", required = True, )])
     @commands.has_permissions(manage_channels=True)
-    async def say(self, ctx, *, reason):
+    async def say(self, ctx, options):
         await ctx.channel.purge(limit=1)
-        await ctx.send(reason)
+        await ctx.send(options)
 
     
 
