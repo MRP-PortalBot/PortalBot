@@ -10,6 +10,10 @@ import json
 import requests
 import ast
 from datetime import datetime
+from discord_slash import cog_ext
+from discord_slash import SlashCommand
+from discord_slash import SlashContext
+from discord_slash.utils import manage_commands
 rules = [":one: **No Harassment**, threats, hate speech, inappropriate language, posts or user names!", ":two: **No spamming** in chat or direct messages!", ":three: **No religious or political topics**, those don’t usually end well!", ":four: **Keep pinging to a minimum**, it is annoying!", ":five: **No sharing personal information**, it is personal for a reason so keep it to yourself!",
          ":six: **No self-promotion or advertisement outside the appropriate channels!** Want your own realm channel? **Apply for one!**", ":seven: **No realm or server is better than another!** It is **not** a competition.", ":eight: **Have fun** and happy crafting!", ":nine: **Discord Terms of Service apply!** You must be at least **13** years old."]
 config, _ = load_config()
@@ -40,7 +44,11 @@ def insert_returns(body):
 
 class MiscCMD(commands.Cog):
     def __init__(self, bot):
+        if not hasattr(bot, "slash"):
+            # Creates new SlashCommand instance to bot if bot doesn't have.
+            bot.slash = SlashCommand(bot, override_type=True)
         self.bot = bot
+        self.bot.slash.get_cog_commands(self)
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
@@ -70,7 +78,7 @@ class MiscCMD(commands.Cog):
             await ctx.send("Uh oh, looks like you don't have the Moderator role!")
 
     # Ping Command
-    @commands.command()
+    @cog_ext.cog_slash(name="ping", description = "Shows the bots latency", guild_ids=[config['ServerID']])
     async def ping(self, ctx):
         author = ctx.message.author
         # await ctx.send(f'**__Latency is__ ** {round(client.latency * 1000)}ms')
@@ -122,7 +130,7 @@ class MiscCMD(commands.Cog):
             await ctx.send("Uh oh, looks like you don't have the Moderator role!")
 
     # Removes your nickname.
-    @commands.command()
+    @cog_ext.cog_slash(name="rememoji", description = "Reverts your nickname back to your username!", guild_ids=[config['ServerID']])
     async def rememoji(self, ctx):
         author = ctx.message.author
         name = author.name
@@ -130,8 +138,8 @@ class MiscCMD(commands.Cog):
         await ctx.send("Removed your nickname!")
 
     # Add's an emoji to your nickname.
-    @commands.command()
-    async def addemoji(self, ctx, channel: discord.TextChannel):
+    @cog_ext.cog_slash(name="addemoji", description = "Add's an emoji to your nickname!", guild_ids=[config['ServerID']], options=[manage_commands.create_option(name = "channel" , description = "Channel's Emoji", option_type = 7, required = True)])
+    async def addemoji(self, ctx, channel: discord.TextChannel = None):
         author = ctx.message.author
         name = author.display_name
         channel = channel.name.split('-')
@@ -148,9 +156,8 @@ class MiscCMD(commands.Cog):
             await ctx.send("Hmm, you didn't give me all the arguments.")
 
     # Rule Command [INT]
-    @commands.command()
-    async def rule(self, ctx, *, number):
-        author = ctx.message.author
+    @cog_ext.cog_slash(name="rule", description = "Sends out MRP Server Rules", guild_ids=[config['ServerID']], options=[manage_commands.create_option(name = "number" , description = "Rule Number", option_type = 4, required = True)])
+    async def rule(self, ctx, number = None):
         await ctx.send(rules[int(number)-1])
 
     # Add's a gamertag to the database.
