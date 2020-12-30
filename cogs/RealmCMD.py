@@ -84,7 +84,7 @@ class RealmCMD(commands.Cog):
             ChannelPermissions = "DONE"
             await channel.set_permissions(Muted, overwrite=permsM)
             try:
-                embed = discord.Embed(title="Congrats On Your New Realm Channel!",description="Your new channel: <#" + channel.id + ">", color=0x42f5bc)
+                embed = discord.Embed(title="Congrats On Your New Realm Channel!",description="Your new channel: <#" + str(channel.id) + ">", color=0x42f5bc)
                 embed.add_field(name="Information", value="Enjoy your new channel. Use this channel to advertise your realm, and engage the community. The more active a channel the more likely people will be to stop by and check you out. You have moderation privileges in your channel. You can change the description, pin messages, and delete messages. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules. If you would like to add an OP to your team, in your channel type: \n```>addOP @newOP @reamlrole``` \n")
                 embed.add_field(name="Realm Information Embed",value="In order to have your Realm listed in #realm-channels-info, please do not remove the ]]Realm: Survival Multiplayer[[ portion of your channel description. Feel free to edit this in the following way ]]Anything You Want To Show Up After Your Realm Name: Short Description Of Your Realm[[. ")
                 embed.add_field(name="Questions", value="Thanks for joining the Portal, and if you have any questions contact an Admin or a Moderator!")
