@@ -150,10 +150,6 @@ class MiscCMD(commands.Cog):
         await author.edit(nick=str(name) + str(emoji))
         await ctx.send("Changed your nickname!")
 
-    @addemoji.error
-    async def addemoji_error(self, ctx, error):
-        if isinstance(error, commands.BadArgument):
-            await ctx.send("Hmm, you didn't give me all the arguments.")
 
     # Rule Command [INT]
     @cog_ext.cog_slash(name="rule", description = "Sends out MRP Server Rules", guild_ids=[config['ServerID']], options=[manage_commands.create_option(name = "number" , description = "Rule Number", option_type = 4, required = True)])
