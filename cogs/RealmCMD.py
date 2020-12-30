@@ -56,8 +56,7 @@ class RealmCMD(commands.Cog):
         role = await guild.create_role(name=realm + " OP", color=color, mentionable=True)
         RoleCreate = "DONE"
         #category = discord.utils.get(guild.categories, name = "Realm Channels List Test")
-        category = discord.utils.get(
-            guild.categories, name="🎮 Realms & Servers")
+        category = discord.utils.get(guild.categories, name="🎮 Realms & Servers")
         channel = await category.create_text_channel(realm + "-" + emoji)
         await channel.send(role.mention + " **Welcome to the MRP!** \n Your channel has been created and you should have gotten a DM regarding some stuff about your channel! \n If you have any questions, feel free to DM an Admin or a Moderator! ")
         await channel.edit(topic="The newest Realm on the Minecraft Realm Portal, Check it out and chat with the owners for more Realm information. \n \n ]]Realm: Survival Multiplayer[[")
