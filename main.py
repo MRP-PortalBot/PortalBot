@@ -192,9 +192,9 @@ async def gitpull(ctx):
             for extension in get_extensions():
                 client.reload_extension(extension)
         except:
-            msg.add_reaction("⚠️")
+            await msg.add_reaction("⚠️")
         else:
-            msg.add_reaction("✅")
+            await msg.add_reaction("✅")
 
     elif typebot == "STABLE":
         p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
