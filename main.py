@@ -182,18 +182,23 @@ async def gitpull(ctx):
         os.system("git reset --hard origin/TestingInstance")
         await ctx.send("I have attempted to *pull* the most recent changes in **TestingInstance**")
         print("made it here!!")
-        await ctx.invoke(client.get_command('cogs reload'), query='all')
-        print("made it here!!")
+        embed = discord.Embed(title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
+        for extension in get_extensions():
+            client.reload_extension(extension)
+        await ctx.send(embed=embed)
     elif typebot == "STABLE":
         os.system("git fetch --all")
         os.system("git reset --hard origin/master")
         await ctx.send("I have attempted to *pull* the most recent changes in **Master**")
-        await ctx.invoke(client.get_command('cogs reload'), query='all')
+        embed = discord.Embed(title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
+        for extension in get_extensions():
+            client.reload_extension(extension)
+        await ctx.send(embed=embed)
 
 
 @client.command()
 async def testingthis(ctx):
     await ctx.send("Testing GitHub Stuff")
-    await ctx.send("2")
+    await ctx.send("3")
 
 client.run(config['token'])
