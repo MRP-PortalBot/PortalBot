@@ -173,7 +173,7 @@ async def remove(ctx, commandid, guildid = None):
     except:
         await ctx.send("Something went wrong!")
 
-@commands.command()
+@client.command()
 @commands.has_role('Bot Manager')
 async def gitpull(ctx):
     typebot = config['BotType']
@@ -191,8 +191,9 @@ async def gitpull(ctx):
         await ctx.invoke(client.get_command('cogs reload'), query='all')
 
 
-@commands.command()
+@client.command()
 async def testingthis(ctx):
     await ctx.send("Testing GitHub Stuff")
+    await ctx.send("2")
 
 client.run(config['token'])
