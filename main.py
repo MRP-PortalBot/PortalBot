@@ -184,7 +184,9 @@ async def gitpull(ctx):
         output += p.stdout
         p = subprocess.run("git reset --hard origin/TestingInstance", shell=True, text=True, capture_output=True, check=True)
         output += p.stdout
-        await ctx.send(f"I have attempted to *pull* the most recent changes in **TestingInstance**\n```shell\n$ {output}\n```")
+        embed = discord.Embed(title = "GitHub Local Reset", description = "Local Files changed to match PortalBot/TestingInstance", color = 0x3af250)
+        embed.add_field(name = "Shell Output", value = f"```shell\n{output}\n```")
+        await ctx.send(embed=embed)
         for extension in get_extensions():
             client.reload_extension(extension)
     elif typebot == "STABLE":
@@ -192,7 +194,9 @@ async def gitpull(ctx):
         output += p.stdout
         p = subprocess.run("git reset --hard origin/master", shell=True, text=True, capture_output=True, check=True)
         output += p.stdout
-        await ctx.send(f"I have attempted to *pull* the most recent changes in **Master**\n```shell\n$ {output}\n```")
+        embed = discord.Embed(title = "GitHub Local Reset", description = "Local Files changed to match PortalBot/Main", color = 0x3af250)
+        embed.add_field(name = "Shell Output", value = f"```shell\n{output}\n```")
+        await ctx.send(embed=embed)
         for extension in get_extensions():
             client.reload_extension(extension)
 
