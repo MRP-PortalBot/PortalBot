@@ -191,5 +191,8 @@ async def gitpull(ctx):
         await ctx.invoke(client.get_command('cogs reload'), query='all')
 
 
+@commands.command()
+async def testingthis(ctx):
+    await ctx.send("Testing GitHub Stuff")
 
 client.run(config['token'])
