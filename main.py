@@ -11,6 +11,7 @@ import core.keep_alive as keep_alive
 import core.bcolors as bcolors
 from discord_slash import SlashCommand
 from discord_slash import SlashContext
+import subprocess
 #pip install discord-py-slash-command
 prompt_config("Enter bot token here: ", "token")
 prompt_config("Enter bot prefix here: ", "prefix")
@@ -177,28 +178,22 @@ async def remove(ctx, commandid, guildid = None):
 @commands.has_role('Bot Manager')
 async def gitpull(ctx):
     typebot = config['BotType']
+    output = ''
     if typebot == "BETA":
-        os.system("git fetch --all")
-        os.system("git reset --hard origin/TestingInstance")
-        await ctx.send("I have attempted to *pull* the most recent changes in **TestingInstance**")
-        print("made it here!!")
-        embed = discord.Embed(title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
+        p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
+        output += p.stdout
+        p = subprocess.run("git reset --hard origin/TestingInstance", shell=True, text=True, capture_output=True, check=True)
+        output += p.stdout
+        await ctx.send(f"I have attempted to *pull* the most recent changes in **TestingInstance**\n```bash\n$ {output}\n```")
         for extension in get_extensions():
             client.reload_extension(extension)
-        await ctx.send(embed=embed)
     elif typebot == "STABLE":
-        os.system("git fetch --all")
-        os.system("git reset --hard origin/master")
-        await ctx.send("I have attempted to *pull* the most recent changes in **Master**")
-        embed = discord.Embed(title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
+        p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
+        output += p.stdout
+        p = subprocess.run("git reset --hard origin/master", shell=True, text=True, capture_output=True, check=True)
+        output += p.stdout
+        await ctx.send(f"I have attempted to *pull* the most recent changes in **Master**\n```bash\n$ {output}\n```")
         for extension in get_extensions():
             client.reload_extension(extension)
-        await ctx.send(embed=embed)
-
-
-@client.command()
-async def testingthis(ctx):
-    await ctx.send("Testing GitHub Stuff")
-    await ctx.send("3")
 
 client.run(config['token'])
