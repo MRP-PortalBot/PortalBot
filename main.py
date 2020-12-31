@@ -181,12 +181,12 @@ async def gitpull(ctx):
         os.system("git fetch --all")
         os.system("git reset --hard origin/TestingInstance")
         await ctx.send("I have attempted to *pull* the most recent changes in **TestingInstance**")
-        await ctx.invoke(client.get_command('reload'), query='all')
+        await ctx.invoke(client.get_command('cogs reload'), query='all')
     elif typebot == "STABLE":
         os.system("git fetch --all")
         os.system("git reset --hard origin/master")
         await ctx.send("I have attempted to *pull* the most recent changes in **Master**")
-        await ctx.invoke(client.get_command('reload'), query='all')
+        await ctx.invoke(client.get_command('cogs reload'), query='all')
 
 
 
