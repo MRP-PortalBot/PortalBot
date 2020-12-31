@@ -186,9 +186,16 @@ async def gitpull(ctx):
         output += p.stdout
         embed = discord.Embed(title = "GitHub Local Reset", description = "Local Files changed to match PortalBot/TestingInstance", color = 0x3af250)
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
-        await ctx.send(embed=embed)
-        for extension in get_extensions():
-            client.reload_extension(extension)
+        embed.set_footer(text = "Attempting to restart the bot...")
+        msg = await ctx.send(embed=embed)
+        try:
+            for extension in get_extensions():
+                client.reload_extension(extension)
+        except:
+            msg.add_reaction("⚠️")
+        else:
+            msg.add_reaction("✅")
+            
     elif typebot == "STABLE":
         p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
         output += p.stdout
@@ -196,8 +203,14 @@ async def gitpull(ctx):
         output += p.stdout
         embed = discord.Embed(title = "GitHub Local Reset", description = "Local Files changed to match PortalBot/Main", color = 0x3af250)
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
-        await ctx.send(embed=embed)
-        for extension in get_extensions():
-            client.reload_extension(extension)
+        embed.set_footer(text = "Attempting to restart the bot...")
+        msg = await ctx.send(embed=embed)
+        try:
+            for extension in get_extensions():
+                client.reload_extension(extension)
+        except:
+            msg.add_reaction("⚠️")
+        else:
+            msg.add_reaction("✅")
 
 client.run(config['token'])
