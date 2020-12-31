@@ -5,7 +5,7 @@ from datetime import datetime
 import asyncio
 from pathlib import Path
 from discord_slash.utils import manage_commands
-
+import os
 from core.common import prompt_config, load_config
 import core.keep_alive as keep_alive
 import core.bcolors as bcolors
@@ -173,6 +173,18 @@ async def remove(ctx, commandid, guildid = None):
     except:
         await ctx.send("Something went wrong!")
 
+@commands.command()
+@commands.has_role('Bot Manager')
+async def gitpull(ctx):
+    typebot = config['BotType']
+    if typebot == "BETA":
+        os.system("git fetch --all")
+        os.system("git reset --hard origin/TestingInstance")
+        await ctx.send("I have attempted to *pull* the most recent changes in **TestingInstance**")
+    elif typebot == "STABLE":
+        os.system("git fetch --all")
+        os.system("git reset --hard origin/master")
+        await ctx.send("I have attempted to *pull* the most recent changes in **Master**")
 
 
 

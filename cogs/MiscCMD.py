@@ -80,7 +80,6 @@ class MiscCMD(commands.Cog):
     # Ping Command
     @cog_ext.cog_slash(name="ping", description = "Shows the bots latency", guild_ids=[config['ServerID']])
     async def ping(self, ctx):
-        author = ctx.message.author
         # await ctx.send(f'**__Latency is__ ** {round(client.latency * 1000)}ms')
         pingembed = discord.Embed(
             title="Pong! ⌛", color=0xb10d9f, description="Current Discord API Latency")
@@ -132,7 +131,7 @@ class MiscCMD(commands.Cog):
     # Removes your nickname.
     @cog_ext.cog_slash(name="rememoji", description = "Reverts your nickname back to your username!", guild_ids=[config['ServerID']])
     async def rememoji(self, ctx):
-        author = ctx.message.author
+        author = ctx.author
         name = author.name
         await author.edit(nick=str(author.name))
         await ctx.send("Removed your nickname!")
@@ -140,7 +139,7 @@ class MiscCMD(commands.Cog):
     # Add's an emoji to your nickname.
     @cog_ext.cog_slash(name="addemoji", description = "Add's an emoji to your nickname!", guild_ids=[config['ServerID']], options=[manage_commands.create_option(name = "channel" , description = "Channel's Emoji", option_type = 7, required = True)])
     async def addemoji(self, ctx, channel: discord.TextChannel = None):
-        author = ctx.message.author
+        author = ctx.author
         name = author.display_name
         channel = channel.name.split('-')
         if len(channel) == 2:  # real-emoji

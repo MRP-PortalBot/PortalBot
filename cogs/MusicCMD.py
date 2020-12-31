@@ -330,6 +330,7 @@ class Music(commands.Cog):
 
         await ctx.voice_state.stop()
         del self.voice_states[ctx.guild.id]
+        await ctx.send("Left your VC")
 
     @commands.command(name='volume')
     async def _volume(self, ctx: commands.Context, *, volume: int):

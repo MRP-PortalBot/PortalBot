@@ -37,7 +37,7 @@ class HelpCMD(commands.Cog):
             embed2 = discord.Embed(title="Nickname Commands \n", description="**AddEmoji** \n *Add's a realm's emoji to your nickname!* \n **Usage:** >addemoji #channel \n \n **RemoveNickname** \n *Removes your nickname!* \n **Usage:** >rememoji \n \n **Gamertag** \n *Add's your gamertag to the database! (You can also add your gamertag to your nickname) \n *Usage:* >gtadd (GAMERTAG) \n", color=0xb10d9f)
             timestamp = datetime.now()
             embed2.set_footer(text=guild.name + " | Date: " +
-                              str(timestamp.strftime(r"%x")))
+                              str(timestamp.strftime(r"%x"))) 
             await ctx.send(embed=embed2)
 
         else:
