@@ -13,3 +13,4 @@ commandlog.txt
 QuestionSuggestQ.txt
 DailyQuestions.txt
 *.txt
+.env

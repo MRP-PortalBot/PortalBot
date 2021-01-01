@@ -231,4 +231,4 @@ async def shell(ctx, * , command):
     await ctx.send(embed = embed)
     
 
-client.run(config['token'])
+client.run(os.getenv("TOKEN"))
