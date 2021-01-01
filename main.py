@@ -59,8 +59,6 @@ def get_extensions():  # Gets extension list dynamically
 
 @client.event
 async def on_ready():
-    print(f"{bcolors.WARNING}Attempting to connect to Discord API...{bcolors.ENDC}")
-    await asyncio.sleep(1)
     print(f"{bcolors.OKGREEN}Successfully connected to Discord!{bcolors.ENDC}")
     print(f"{bcolors.OKCYAN}BOT INFORMATION: {bcolors.ENDC}")
     print(f"{bcolors.OKCYAN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{bcolors.ENDC}")
