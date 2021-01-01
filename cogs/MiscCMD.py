@@ -87,7 +87,7 @@ class MiscCMD(commands.Cog):
             title="Pong! ⌛", color=0xb10d9f, description="Current Discord API Latency")
         pingembed.add_field(name="Current Ping:",
                             value=f'{round(self.bot.latency * 1000)}ms')
-        await ctx.send(embeds=[pingembed])
+        await ctx.send(3, embeds=[pingembed])
 
     # Uptime Command
     @commands.command()
@@ -136,7 +136,7 @@ class MiscCMD(commands.Cog):
         author = ctx.author
         name = author.name
         await author.edit(nick=str(author.name))
-        await ctx.send("Removed your nickname!")
+        await ctx.send(3, content = "Removed your nickname!")
 
     # Add's an emoji to your nickname.
     @cog_ext.cog_slash(name="addemoji", description = "Add's an emoji to your nickname!", guild_ids=[config['ServerID']], options=[manage_commands.create_option(name = "channel" , description = "Channel's Emoji", option_type = 7, required = True)])
@@ -149,13 +149,13 @@ class MiscCMD(commands.Cog):
         else:  # realm-name-emoji
             realm, emoji = channel[0], channel[-1]
         await author.edit(nick=str(name) + str(emoji))
-        await ctx.send("Changed your nickname!")
+        await ctx.send(3, content = "Changed your nickname!")
 
 
     # Rule Command [INT]
     @cog_ext.cog_slash(name="rule", description = "Sends out MRP Server Rules", guild_ids=[config['ServerID']], options=[manage_commands.create_option(name = "number" , description = "Rule Number", option_type = 4, required = True)])
     async def rule(self, ctx, number = None):
-        await ctx.send(rules[int(number)-1])
+        await ctx.send(3, content = rules[int(number)-1])
 
     # Add's a gamertag to the database.
 

@@ -21,7 +21,7 @@ class Slash(commands.Cog):
 
     @cog_ext.cog_slash(name="say", description = "Iterates something as the bot!", guild_ids=[448488274562908170], options=[manage_commands.create_option(name = "phrase" , description = "Phrase to reiterate", option_type = 3, required = True)])
     async def say(self, ctx, phrase=None):
-        await ctx.send(content = phrase)
+        await ctx.send(3, content = phrase)
 
     
 

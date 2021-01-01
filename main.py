@@ -15,7 +15,6 @@ from discord_slash import SlashContext
 import subprocess
 
 #Filling botconfig incase the file is missing
-prompt_config("Enter bot token here: ", "token")
 prompt_config("Enter bot prefix here: ", "prefix")
 prompt_config(
     "Enter channel (ID) to display blacklist responses: ", "blacklistChannel")
