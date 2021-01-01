@@ -12,9 +12,8 @@ class CommandLogger(commands.Cog):
         author = ctx.message.author
         authorname = author.name
         timestamp = datetime.now()
-        file = open("commandlog.txt", "a")
-        file.write(str(authorname) + " used " + str(ctx.command) + " | Executed on: (Date | Time) " +
-                   str(timestamp.strftime("%m/%d/%y")) + " : " + str(timestamp.strftime("%H:%M:%S")) + "\n")
+        with open("commandlog.txt", "a") as file:
+            file.write(str(authorname) + " used " + str(ctx.command) + " | Executed on: (Date | Time) " + str(timestamp.strftime("%m/%d/%y")) + " : " + str(timestamp.strftime("%H:%M:%S")) + "\n")
 
 
 def setup(bot):

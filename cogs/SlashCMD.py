@@ -1,3 +1,4 @@
+#Example of SlashCog Usage
 import discord
 from discord.ext import commands
 from discord_slash import cog_ext
@@ -20,8 +21,6 @@ class Slash(commands.Cog):
 
     @cog_ext.cog_slash(name="say", description = "Iterates something as the bot!", guild_ids=[448488274562908170], options=[manage_commands.create_option(name = "phrase" , description = "Phrase to reiterate", option_type = 3, required = True)])
     async def say(self, ctx, phrase=None):
-        #await ctx.channel.purge(limit=1)
-        print(ctx)
         await ctx.send(content = phrase)
 
     

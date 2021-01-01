@@ -1,3 +1,4 @@
+#Importing Modules
 import discord
 import logging
 from discord.ext import commands
@@ -12,7 +13,8 @@ import core.bcolors as bcolors
 from discord_slash import SlashCommand
 from discord_slash import SlashContext
 import subprocess
-#pip install discord-py-slash-command
+
+#Filling botconfig incase the file is missing
 prompt_config("Enter bot token here: ", "token")
 prompt_config("Enter bot prefix here: ", "prefix")
 prompt_config(
@@ -25,15 +27,18 @@ prompt_config("Enter channel (ID) to display realm channel applications: ",
 prompt_config("Enter bot type (Stable/Beta)", "BotType")
 config, _ = load_config()
 
-intents = discord.Intents.default()  # we use intents in BlacklistCMD
+#Applying towards intents
+intents = discord.Intents.default()  
 intents.reactions = True
 intents.members = True
 intents.presences = True
 
+#Defining client and SlashCommands
 client = commands.Bot(command_prefix=config['prefix'], intents=intents)
 client.slash = SlashCommand(client, auto_register=True)
 client.remove_command("help")
 
+#Logging
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(
@@ -212,5 +217,20 @@ async def gitpull(ctx):
             await msg.add_reaction("⚠️")
         else:
             await msg.add_reaction("✅")
+
+@client.command()
+@commands.command()
+async def shell(ctx, * , command):
+    author = ctx.message.author
+    guild = ctx.message.guild
+    output = ""
+    p = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
+    output += p.stdout
+    embed = discord.Embed(title = "Shell Process", description = f"Shell Process started by {author.mention}", color = 0x4c594b)
+    embed.add_field(name = "Output", value = f"```bash\n{output}\n```")
+    timestamp = datetime.now()
+    embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
+    await ctx.send(embed = embed)
+    
 
 client.run(config['token'])

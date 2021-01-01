@@ -52,6 +52,8 @@ class MiscCMD(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before, after):
+        if config['BotType'] == "STABLE":
+            return   #We can't track ourself, so we return
         if after.id == 777361919211732993:
             if after.status == discord.Status.offline and before.status != discord.Status.offline:
                 channel = self.bot.get_channel(792485617954586634)

@@ -6,10 +6,6 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
-from discord_slash import cog_ext
-from discord_slash import SlashCommand
-from discord_slash import SlashContext
-from discord_slash.utils import manage_commands
 from core.common import load_config
 config, _ = load_config()
 i = 1

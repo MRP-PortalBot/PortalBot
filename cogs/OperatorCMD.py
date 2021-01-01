@@ -34,17 +34,6 @@ class OperatorCMD(commands.Cog):
         else:
             await ctx.send("This role is not a Realm role. Please contact an Admin if you believe this is a mistake.")
 
-        '''
-    channel = self.bot.get_channel(778453455848996876)
-    #778453455848996876
-    #587858951522091018
-    embed = discord.Embed(title = "Operator Command Used!" ,description = author.name + " used addOP on " + user.name, color = 0xb10d9f)
-    embed.add_field(name = "Usage Details", value = "**Result:**\n" + user.name + " was given the " + role.mention + " role. \n **Channel:**\nThe action took place in <#" + str(channel.id) + ">")
-    timestamp = datetime.now()
-    embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-    await channel.send(embed=embed)
-    '''
-
     @_addOP.error
     async def addOP_error(self, ctx, error):
         if isinstance(error, commands.MissingRole):
@@ -73,15 +62,6 @@ class OperatorCMD(commands.Cog):
                 await ctx.send(embed=embed)
         else:
             await ctx.send("This role is not a Realm role. Please contact an Admin if you believe this is a mistake.")
-
-            '''
-      modlog = self.bot.get_channel(778453455848996876)
-      em = discord.Embed(title = "Operator Command Used!" ,description = author.name + " used removeOP on " + user.name, color = 0xb10d9f)
-      em.add_field(name = "Usage Details", value = "**Result:**\n" + user.name + " had the " + role.mention + " removed. \n **Channel:**\nThe action took place in <#" + str(channel.id) + ">")
-      timestamp = datetime.now()
-      em.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-      await modlog.send(embed=em)
-      '''
 
     @_removeOP.error
     async def removeOP_error(self, ctx, error):
