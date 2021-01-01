@@ -34,7 +34,7 @@ intents.presences = True
 
 #Defining client and SlashCommands
 client = commands.Bot(command_prefix=config['prefix'], intents=intents)
-client.slash = SlashCommand(client, auto_register=True)
+#client.slash = SlashCommand(client, auto_register=True)  TODO: Fix Slash Commands
 client.remove_command("help")
 
 #Logging
