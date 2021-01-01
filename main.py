@@ -219,7 +219,7 @@ async def gitpull(ctx):
             await msg.add_reaction("✅")
 
 @client.command()
-@commands.command()
+@commands.has_role('Bot Manager')
 async def shell(ctx, * , command):
     author = ctx.message.author
     guild = ctx.message.guild
