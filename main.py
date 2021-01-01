@@ -224,7 +224,9 @@ async def shell(ctx, * , command):
     p = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
     output += p.stdout
     embed = discord.Embed(title = "Shell Process", description = f"Shell Process started by {author.mention}", color = 0x4c594b)
-    embed.add_field(name = "Output", value = f"```bash\n{output}\n```")
+    num_of_fields = len(output)//1024 + 1
+    for i in range(num_of_fields):
+        embed.add_field(name="Output" if i == 0 else "\u200b",  value="```bash\n" + output[i*1024:i+1*1024] + "\n```")
     timestamp = datetime.now()
     embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
     await ctx.send(embed = embed)
