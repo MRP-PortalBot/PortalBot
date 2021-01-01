@@ -87,7 +87,7 @@ class MiscCMD(commands.Cog):
             title="Pong! ⌛", color=0xb10d9f, description="Current Discord API Latency")
         pingembed.add_field(name="Current Ping:",
                             value=f'{round(self.bot.latency * 1000)}ms')
-        await ctx.send(embed=pingembed)
+        await ctx.send(embeds=[pingembed])
 
     # Uptime Command
     @commands.command()
