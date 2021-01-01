@@ -54,7 +54,6 @@ def get_extensions():  # Gets extension list dynamically
         if "!" in file.name or "__" in file.name:
             continue
         extensions.append(str(file).replace("/", ".").replace(".py", ""))
-        extensions.append("main.py")
     return extensions
 
 
