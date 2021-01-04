@@ -15,6 +15,13 @@ from discord_slash import SlashContext
 import subprocess
 import time
 import sys
+#Sentry Panel Stuff
+import sentry_sdk
+sentry_sdk.init(
+    "https://75b468c0a2e34f8ea4b724ca2a5e68a1@o500070.ingest.sentry.io/5579376",
+    traces_sample_rate=1.0
+)
+
 
 #Filling botconfig incase the file is missing
 prompt_config("Enter bot prefix here: ", "prefix")
