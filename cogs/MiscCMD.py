@@ -222,6 +222,12 @@ class MiscCMD(commands.Cog):
         else:
             await ctx.send("Cannot replace; database is currently in use.")
 
+    @commands.command()
+    @commands.has_role("Moderator")
+    async def say(self, ctx, *, msg):
+        await ctx.channel.purge(limit = 1)
+        await ctx.send(msg)
+    
     @commands.command(description="Rock Paper Scissors")
     async def rps(self, msg: str):
         """Rock paper scissors. Example : /rps Rock if you want to use the rock."""
