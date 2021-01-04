@@ -5,6 +5,7 @@ import time
 import re
 import asyncio
 from discord import Embed
+import requests
 
 # --------------------------------------------------
 # pip3 install gspread oauth2client
@@ -199,6 +200,17 @@ class GamertagCMD(commands.Cog):
             else:
                 print("User Found!")
                 await ctx.send(value)
+
+
+    @commands.command()
+    async def getname(ctx, member: discord.Member):
+
+        await ctx.send(f'User name: {member.name}, id: {member.id}')
+
+        with requests.get(member.avatar_url_as(format='png')) as r:
+            img_data = r.content
+        with open(f'{member.name}.png', 'wb') as f:
+            f.write(img_data)
 
 
 '''
