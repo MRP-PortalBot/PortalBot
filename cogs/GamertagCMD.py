@@ -189,7 +189,7 @@ class GamertagCMD(commands.Cog):
         alid = str(username.id)        
         pfp = username.avatar_url
         profileembed = discord.Embed(
-            title=aname + "'s Profile", description="Requested by Operator " + author.mention, color=0x18c927)
+            title=aname + "'s Profile", description="=======================", color=0x18c927)
         username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
 
         try:
@@ -201,9 +201,10 @@ class GamertagCMD(commands.Cog):
             await ctx.send(embed=noprofileembed) 
         else:
             print("User Found!")
-            profileembed.set_author(name=aname + "'s Profile", url=pfp, icon_url=pfp)
+            profileembed.set_thumbnail(url=pfp)
             profileembed.add_field(
                 name="Discord", value=usercell.value)
+            profileembed.set_footer(text="Requested by Operator " + author.mention)
             await ctx.send(embed=profileembed)
             await ctx.send(usercell)
 
