@@ -197,8 +197,8 @@ class GamertagCMD(commands.Cog):
         except:
             print("User Not Found")
             noprofileembed = discord.Embed(
-            title="Sorry " + author.mention, description="No user by that name has been found.", color=0x18c927)
-            await ctx.send(embed=noprofileembed)
+            title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
+            await ctx.send(embed=noprofileembed) 
         else:
             print("User Found!")
             profileembed.set_image(url=pfp)
@@ -212,7 +212,7 @@ class GamertagCMD(commands.Cog):
         author = ctx.message.author
         if isinstance(error, commands.UserNotFound):
             noprofileembed = discord.Embed(
-            title="Sorry " + author.mention, description="No user by that name has been found.", color=0x18c927)
+            title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
             await ctx.send(embed=noprofileembed)          
 
 
