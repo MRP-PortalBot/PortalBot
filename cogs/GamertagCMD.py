@@ -172,8 +172,8 @@ class GamertagCMD(commands.Cog):
             await ctx.send("Uh oh, you didn't include all the arguments! ")
 
     @commands.command()
-    async def gtfind(self, ctx, *, gamertag = None):
-        if gamertag == None:
+    async def profile(self, ctx, *, profile = None):
+        if profile == None:
             author = ctx.message.author
             channel = ctx.message.channel
             alid = str(author.id)
@@ -188,7 +188,7 @@ class GamertagCMD(commands.Cog):
                 print("User Found!")
                 await ctx.send(value)
         else:
-            aname = str(gamertag.name + "#" + gamertag.discriminator)
+            aname = str(profile.name + "#" + profile.discriminator)
             print(aname)
             
             try:
