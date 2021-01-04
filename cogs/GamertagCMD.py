@@ -171,6 +171,17 @@ class GamertagCMD(commands.Cog):
         if isinstance(error, commands.BadArgument):
             await ctx.send("Uh oh, you didn't include all the arguments! ")
 
+    @commands.command()
+    async def gtfind(message):
+        user = (message.author.name+message.author.discriminator)
+        print(user)
+
+        try:
+            gtsheet.find(user, in_column=1)
+        except:
+            print("User Not Found")    
+        else:
+            print("User Found!")
 
 '''
   #searches gamertags
