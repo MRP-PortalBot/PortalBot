@@ -172,7 +172,8 @@ class GamertagCMD(commands.Cog):
             await ctx.send("Uh oh, you didn't include all the arguments! ")
 
     @commands.command()
-    async def profile(self, ctx, *, profile = None):
+    async def profile(self, ctx, *, member: discord.Member):
+        profile = str(member.name + '#' + member.discriminator)
         if profile == None:
             author = ctx.message.author
             channel = ctx.message.channel
@@ -188,7 +189,7 @@ class GamertagCMD(commands.Cog):
                 print("User Found!")
                 await ctx.send(value)
         else:
-            aname = str(profile.name + "#" + profile.discriminator)
+            aname = profile
             print(aname)
             
             try:
