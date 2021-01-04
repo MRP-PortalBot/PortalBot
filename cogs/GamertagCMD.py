@@ -175,6 +175,7 @@ class GamertagCMD(commands.Cog):
     @commands.command()
     async def profile(self, ctx, *, profile: discord.Member = None):
         print(profile)
+        author = ctx.message.author
         channel = ctx.message.channel
 
         if profile == None:
