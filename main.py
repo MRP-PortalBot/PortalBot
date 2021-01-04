@@ -61,7 +61,7 @@ def get_extensions():  # Gets extension list dynamically
     return extensions
 
 def force_restart():  #Forces REPL to apply changes to everything
-    os.system("python main.py")
+    subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
     sys.exit(0)
 
 @client.event
