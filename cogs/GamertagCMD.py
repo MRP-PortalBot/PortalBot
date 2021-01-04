@@ -156,16 +156,22 @@ class GamertagCMD(commands.Cog):
             return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
+            if str(reaction.emoji) == "❌":
+                await channel.send("Okay, won't change your nickname!")
+                for emoji in reactions:
+                    await message.clear_reaction(emoji)
+                return
+            else:
+                for emoji in reactions:
+                    await message.clear_reaction(emoji)
+                await author.edit(nick=gamertag)
+                await ctx.send("Success!")
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
 
-        if str(reaction.emoji) == "❌":
-            await channel.send("Okay, won't change your nickname!")
-            return
-        else:
-            await author.edit(nick=gamertag)
-            await ctx.send("Success!")
+
+            
 
     @gtadd.error
     async def gtadd_error(self, ctx, error):
