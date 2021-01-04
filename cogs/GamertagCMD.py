@@ -201,11 +201,13 @@ class GamertagCMD(commands.Cog):
             await ctx.send(embed=noprofileembed) 
         else:
             print("User Found!")
+            discordname = usercell.value
+            longid = (usercell.column_number + 1).value
             profileembed.set_thumbnail(url=pfp)
             profileembed.add_field(
-                name="Discord", value=usercell.value)
+                name="Discord", value=discordname)
             profileembed.add_field(
-                name="LongID", value=usercell.value(column_number=2))    
+                name="LongID", value=longid)    
             profileembed.set_footer(text="Requested by " + author.name)
             await ctx.send(embed=profileembed)
             await ctx.send(usercell)
