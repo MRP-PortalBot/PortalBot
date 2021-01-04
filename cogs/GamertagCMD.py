@@ -214,6 +214,10 @@ class GamertagCMD(commands.Cog):
             discordname = usercell.value
             longid = gtsheet.cell(userrow, 2).value
             xbox = gtsheet.cell(userrow, 3).value
+            
+            if xbox == "":
+                xbox = "N/A"
+            
             profileembed.set_thumbnail(url=pfp)
             profileembed.add_field(name="Discord", value=discordname, inline=True)
             profileembed.add_field(name="LongID", value=longid, inline=True)
