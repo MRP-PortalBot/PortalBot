@@ -215,16 +215,16 @@ async def gitpull(ctx):
 @client.command()
 @commands.has_role('Bot Manager')
 async def shell(ctx, * , command):
+    timestamp = datetime.now()
     author = ctx.message.author
     guild = ctx.message.guild
     output = ""
     p = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
     output += p.stdout
     embed = discord.Embed(title = "Shell Process", description = f"Shell Process started by {author.mention}", color = 0x4c594b)
-    num_of_fields = len(output)//1024 + 1
+    num_of_fields = len(output)//1014 + 1
     for i in range(num_of_fields):
-        embed.add_field(name="Output" if i == 0 else "\u200b",  value="```bash\n" + output[i*1024:i+1*1024] + "\n```")
-    timestamp = datetime.now()
+        embed.add_field(name="Output" if i == 0 else "\u200b",  value="```bash\n" + output[i*1014:i+1*1014] + "\n```")
     embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
     await ctx.send(embed = embed)
     
