@@ -175,31 +175,32 @@ class GamertagCMD(commands.Cog):
     @commands.command()
     async def profile(self, ctx, *, profile: discord.Member = None):
         print(profile)
+        author = ctx.message.author
+        channel = ctx.message.channel
+        alid = str(author.id)
+        pfp = user.avatar_url
+
+
         if profile == None:
-            author = ctx.message.author
-            channel = ctx.message.channel
-            alid = str(author.id)
             aname = str(author.name + '#' + author.discriminator)
             print(aname)
-
-            try:
-                value = gtsheet.find(aname, in_column=1)
-            except:
-                print("User Not Found")    
-            else:
-                print("User Found!")
-                await ctx.send(value)
         else:
             aname = str(profile.name + "#" + profile.discriminator)
-            print(aname)
-            
-            try:
-                value = gtsheet.find(aname, in_column=1)
-            except:
-                print("User Not Found")    
-            else:
-                print("User Found!")
-                await ctx.send(value)
+            print(aname)            
+
+        profileembed = discord.Embed(
+            title=aname + "'s Profile", description="Requested by Operator " + author.mention, color=0x18c927)
+
+        try:
+            usercell = gtsheet.find(aname, in_column=1)
+        except:
+            print("User Not Found")    
+        else:
+            print("User Found!")
+            profileembed.add_field(
+                name="Discord", value=usercell.value)
+            await ctx.send(embed=profileembed)
+            await ctx.send(value)            
 
 
     @commands.command()
