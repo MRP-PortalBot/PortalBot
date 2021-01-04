@@ -207,7 +207,7 @@ class GamertagCMD(commands.Cog):
             await ctx.send(embed=noprofileembed) 
         else:
             print("User Found!")
-            userrow = usercell.row_number
+            userrow = usercell.row
             print(userrow)
             discordname = usercell.value
             longid = gtsheet.cell(userrow, 2).value
