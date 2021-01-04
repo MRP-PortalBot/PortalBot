@@ -61,6 +61,7 @@ def get_extensions():  # Gets extension list dynamically
 
 @client.event
 async def on_ready():
+    print(discord.__version__)
     print(f"{bcolors.OKGREEN}Successfully connected to Discord!{bcolors.ENDC}")
     print(f"{bcolors.OKCYAN}BOT INFORMATION: {bcolors.ENDC}")
     print(f"{bcolors.OKCYAN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{bcolors.ENDC}")
