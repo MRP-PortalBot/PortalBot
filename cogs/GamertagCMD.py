@@ -183,6 +183,7 @@ class GamertagCMD(commands.Cog):
     async def profile(self, ctx, *, profile: discord.User = None):
         print(profile)
         author = ctx.message.author
+        role = discord.utils.get(ctx.guild.roles, name="Realm OP")
         channel = ctx.message.channel
 
         if profile == None:
@@ -218,12 +219,15 @@ class GamertagCMD(commands.Cog):
             profileembed.add_field(name="LongID", value=longid, inline=True)
             profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)     
             profileembed.set_footer(text="Requested by " + author.name)
-            try:
-                longid = sheet.find(longid, in_column=2)
-            except:
-                await ctx.send(embed=profileembed)
+            if role in author.roles: 
+                try:
+                    longid = sheet.find(longid, in_column=2)
+                except:
+                    await ctx.send(embed=profileembed)
+                else:
+                    profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
+                    await ctx.send(embed=profileembed)
             else:
-                profileembed.color(0xff0000)
                 await ctx.send(embed=profileembed)
 
 
