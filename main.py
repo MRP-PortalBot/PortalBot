@@ -215,6 +215,7 @@ async def gitpull(ctx):
 @client.command()
 @commands.has_role('Bot Manager')
 async def shell(ctx, * , command):
+    timestamp = datetime.now()
     author = ctx.message.author
     guild = ctx.message.guild
     output = ""
@@ -224,7 +225,6 @@ async def shell(ctx, * , command):
     num_of_fields = len(output)//1014 + 1
     for i in range(num_of_fields):
         embed.add_field(name="Output" if i == 0 else "\u200b",  value="```bash\n" + output[i*1014:i+1*1014] + "\n```")
-    timestamp = datetime.now()
     embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
     await ctx.send(embed = embed)
     
