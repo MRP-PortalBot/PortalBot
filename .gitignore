@@ -14,3 +14,4 @@ QuestionSuggestQ.txt
 DailyQuestions.txt
 *.txt
 .env
+.DS_Store

@@ -24,6 +24,9 @@ prompt_config("Enter bot-spam channel (ID)", "botspamChannel")
 prompt_config("Enter channel (ID) to display realm channel applications: ",
               "realmChannelResponse")
 prompt_config("Enter bot type (Stable/Beta)", "BotType")
+prompt_config("Other bot's ID", "OtherBotID")
+prompt_config("Bot's ID","BotID")
+prompt_config("Slash Commands Server ID","ServerID")
 config, _ = load_config()
 
 #Applying towards intents
