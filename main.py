@@ -13,6 +13,7 @@ import core.bcolors as bcolors
 from discord_slash import SlashCommand
 from discord_slash import SlashContext
 import subprocess
+import time
 
 #Filling botconfig incase the file is missing
 prompt_config("Enter bot prefix here: ", "prefix")
@@ -58,6 +59,14 @@ def get_extensions():  # Gets extension list dynamically
         extensions.append(str(file).replace("/", ".").replace(".py", ""))
     return extensions
 
+def force_restart():  #Forces REPL to apply changes to everything
+  output = ""
+  p = subprocess.run("pkill python", shell=True, text=True, capture_output=True, check=True)
+  output += p.stdout
+  time.sleep(2)   #Time to recover and kill task
+  p = subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
+  output += p.stdout
+  return output
 
 @client.event
 async def on_ready():
@@ -194,13 +203,7 @@ async def gitpull(ctx):
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
-        try:
-            for extension in get_extensions():
-                client.reload_extension(extension)
-        except:
-            await msg.add_reaction("⚠️")
-        else:
-            await msg.add_reaction("✅")
+        force_restart()
 
     elif typebot == "STABLE":
         p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
@@ -211,13 +214,7 @@ async def gitpull(ctx):
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
-        try:
-            for extension in get_extensions():
-                client.reload_extension(extension)
-        except:
-            await msg.add_reaction("⚠️")
-        else:
-            await msg.add_reaction("✅")
+        force_restart()
 
 @client.command()
 @commands.has_role('Bot Manager')
