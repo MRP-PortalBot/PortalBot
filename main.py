@@ -60,13 +60,7 @@ def get_extensions():  # Gets extension list dynamically
     return extensions
 
 def force_restart():  #Forces REPL to apply changes to everything
-  output = ""
-  p = subprocess.run("pkill python", shell=True, text=True, capture_output=True, check=True)
-  output += p.stdout
-  time.sleep(2)   #Time to recover and kill task
-  p = subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
-  output += p.stdout
-  return output
+    os.system("python core/force_restart.py")
 
 @client.event
 async def on_ready():
