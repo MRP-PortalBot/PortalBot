@@ -172,16 +172,16 @@ async def slashm(ctx):
 async def get(ctx, guildid = None):
     if guildid == None:
         guildid == ctx.message.guild.id
-        await ctx.send("```\n" + str(await(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
+        await ctx.send("```\n" + str(await(manage_commands.get_all_commands(client.user.id, os.getenv("TOKEN"), guildid))) + "\n```")
     else:
-        await ctx.send("```\n" + str(await(manage_commands.get_all_commands(client.user.id, config['token'], guildid))) + "\n```")
+        await ctx.send("```\n" + str(await(manage_commands.get_all_commands(client.user.id, os.getenv("TOKEN"), guildid))) + "\n```")
 
 
 @slashm.command()
 @commands.has_role('Bot Manager')
 async def remove(ctx, commandid, guildid = None):
     try:
-        await ctx.send("Response: " + str(await(manage_commands.remove_slash_command(config['BotID'], config['token'], guildid, commandid))))
+        await ctx.send("Response: " + str(await(manage_commands.remove_slash_command(config['BotID'], os.getenv("TOKEN"), guildid, commandid))))
     except:
         await ctx.send("Something went wrong!")
 

@@ -18,11 +18,11 @@ class Slash(commands.Cog):
     def cog_unload(self):
         self.bot.slash.remove_cog_commands(self)
 
-
+'''
     @cog_ext.cog_slash(name="say", description = "Iterates something as the bot!", guild_ids=[448488274562908170], options=[manage_commands.create_option(name = "phrase" , description = "Phrase to reiterate", option_type = 3, required = True)])
     async def say(self, ctx, phrase=None):
         await ctx.send(3, content = phrase)
-
+'''
     
 
 
