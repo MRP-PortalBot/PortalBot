@@ -178,8 +178,6 @@ class GamertagCMD(commands.Cog):
         author = ctx.message.author
         channel = ctx.message.channel
         alid = str(author.id)
-        pfp = user.avatar_url
-
 
         if profile == None:
             aname = str(author.name + '#' + author.discriminator)
@@ -188,6 +186,7 @@ class GamertagCMD(commands.Cog):
             aname = str(profile.name + "#" + profile.discriminator)
             print(aname)            
 
+        pfp = aname.avatar_url
         profileembed = discord.Embed(
             title=aname + "'s Profile", description="Requested by Operator " + author.mention, color=0x18c927)
 
@@ -197,6 +196,7 @@ class GamertagCMD(commands.Cog):
             print("User Not Found")    
         else:
             print("User Found!")
+            profileembed.set_image(url=pfp)
             profileembed.add_field(
                 name="Discord", value=usercell.value)
             await ctx.send(embed=profileembed)
