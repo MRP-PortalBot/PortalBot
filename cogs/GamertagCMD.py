@@ -207,8 +207,9 @@ class GamertagCMD(commands.Cog):
             await ctx.send(embed=noprofileembed) 
         else:
             print("User Found!")
+            userrow = usercell.row_number
             discordname = usercell.value
-            longid = (usercell.column_number + 1).value
+            longid = gtsheet.cell(userrow, 2).value
             profileembed.set_thumbnail(url=pfp)
             profileembed.add_field(
                 name="Discord", value=discordname)
