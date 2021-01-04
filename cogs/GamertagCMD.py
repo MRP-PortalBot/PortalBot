@@ -203,7 +203,7 @@ class GamertagCMD(commands.Cog):
 
 
     @commands.command()
-    async def getname(ctx, member: discord.Member):
+    async def getname(self, ctx, member: discord.Member):
 
         await ctx.send(f'User name: {member.name}, id: {member.id}')
 
