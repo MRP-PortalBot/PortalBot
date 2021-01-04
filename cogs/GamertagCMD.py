@@ -172,7 +172,7 @@ class GamertagCMD(commands.Cog):
             await ctx.send("Uh oh, you didn't include all the arguments! ")
 
     @commands.command()
-    async def gtfind(message):
+    async def gtfind(self, ctx, message):
         user = (message.author.name+message.author.discriminator)
         print(user)
 
