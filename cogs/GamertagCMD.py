@@ -21,6 +21,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 client = gspread.authorize(creds)
 
 gtsheet = client.open("Gamertag Data").sheet1
+sheet = client.open("MRP Blacklist Data").sheet1
 # 3 Values to fill
 
 # Template on modfying spreadsheet
@@ -207,8 +208,8 @@ class GamertagCMD(commands.Cog):
             await ctx.send(embed=noprofileembed) 
         else:
             print("User Found!")
+
             userrow = usercell.row
-            print(userrow)
             discordname = usercell.value
             longid = gtsheet.cell(userrow, 2).value
             xbox = gtsheet.cell(userrow, 3).value
@@ -217,7 +218,14 @@ class GamertagCMD(commands.Cog):
             profileembed.add_field(name="LongID", value=longid, inline=True)
             profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)     
             profileembed.set_footer(text="Requested by " + author.name)
-            await ctx.send(embed=profileembed)
+            try:
+                longid = sheet.find(longid, in_column=2)
+            except:
+                await ctx.send(embed=profileembed)
+            else:
+                profileembed = discord.Embed(
+                    title=aname + "'s Profile", description="=======================", color=0xff0000)
+                await ctx.send(embed=profileembed)
 
 
     @profile.error
