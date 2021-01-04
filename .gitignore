@@ -9,3 +9,9 @@ label.yml
 discord.log
 creds.json
 commandlog.txt
+*.db
+QuestionSuggestQ.txt
+DailyQuestions.txt
+*.txt
+.env
+.DS_Store
