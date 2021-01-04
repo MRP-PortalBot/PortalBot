@@ -218,13 +218,7 @@ class GamertagCMD(commands.Cog):
             await ctx.send(embed=profileembed)
             await ctx.send(usercell)
 
-    @profile.error
-    async def profile_error(self, ctx, error):
-        author = ctx.message.author
-        if isinstance(error, commands.UserNotFound):
-            noprofileembed = discord.Embed(
-            title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
-            await ctx.send(embed=noprofileembed)          
+          
 
 
     @commands.command()
