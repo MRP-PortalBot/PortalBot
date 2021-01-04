@@ -15,3 +15,6 @@ DailyQuestions.txt
 *.txt
 .env
 .DS_Store
+*.png
+*.jpg
+*.gif
