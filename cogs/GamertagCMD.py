@@ -178,15 +178,15 @@ class GamertagCMD(commands.Cog):
         channel = ctx.message.channel
 
         if profile == None:
-            aname = ctx.message.author
-            print(aname)
+            username = ctx.message.author
+            print(username)
         else:
-            aname = profile
-            print(aname)  
+            username = profile
+            print(username)  
 
-        aname = str(profile.name + "#" + profile.discriminator)
-        alid = str(aname.id)        
-        pfp = aname.avatar_url
+        aname = str(username.name + "#" + username.discriminator)
+        alid = str(username.id)        
+        pfp = username.avatar_url
         profileembed = discord.Embed(
             title=aname + "'s Profile", description="Requested by Operator " + author.mention, color=0x18c927)
 
@@ -200,7 +200,7 @@ class GamertagCMD(commands.Cog):
             profileembed.add_field(
                 name="Discord", value=usercell.value)
             await ctx.send(embed=profileembed)
-            await ctx.send(value)            
+            await ctx.send(usercell)            
 
 
     @commands.command()
