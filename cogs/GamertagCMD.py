@@ -180,11 +180,12 @@ class GamertagCMD(commands.Cog):
         print(aname)
 
         try:
-            gtsheet.find(aname, in_column=1)
+            value = gtsheet.find(aname, in_column=1)
         except:
             print("User Not Found")    
         else:
             print("User Found!")
+            await ctx.send(value)
 
 '''
   #searches gamertags
