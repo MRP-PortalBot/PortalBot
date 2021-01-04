@@ -175,17 +175,17 @@ class GamertagCMD(commands.Cog):
     @commands.command()
     async def profile(self, ctx, *, profile: discord.Member = None):
         print(profile)
-        author = ctx.message.author
         channel = ctx.message.channel
         alid = str(author.id)
 
         if profile == None:
-            aname = str(author.name + '#' + author.discriminator)
+            aname = ctx.message.author
             print(aname)
         else:
-            aname = str(profile.name + "#" + profile.discriminator)
-            print(aname)            
+            aname = profile
+            print(aname)  
 
+        aname = str(profile.name + "#" + profile.discriminator)
         pfp = aname.avatar_url
         profileembed = discord.Embed(
             title=aname + "'s Profile", description="Requested by Operator " + author.mention, color=0x18c927)
