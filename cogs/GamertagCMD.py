@@ -204,7 +204,7 @@ class GamertagCMD(commands.Cog):
             profileembed.set_thumbnail(url=pfp)
             profileembed.add_field(
                 name="Discord", value=usercell.value)
-            profileembed.set_footer(text="Requested by Operator " + author.mention)
+            profileembed.set_footer(text="Requested by " + author.tag)
             await ctx.send(embed=profileembed)
             await ctx.send(usercell)
 
