@@ -212,10 +212,8 @@ class GamertagCMD(commands.Cog):
             discordname = usercell.value
             longid = gtsheet.cell(userrow, 2).value
             profileembed.set_thumbnail(url=pfp)
-            profileembed.add_field(
-                name="Discord", value=usercell.value)
-            profileembed.add_field(
-                name="LongID", value=gtsheet.cell(userrow, 2).value)    
+            profileembed.add_field(name="Discord", value=usercell.value)
+            profileembed.add_field(name="LongID", value=gtsheet.cell(userrow, 2).value)    
             profileembed.set_footer(text="Requested by " + author.name)
             await ctx.send(embed=profileembed)
             await ctx.send(usercell)
