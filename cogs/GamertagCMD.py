@@ -211,12 +211,14 @@ class GamertagCMD(commands.Cog):
             print(userrow)
             discordname = usercell.value
             longid = gtsheet.cell(userrow, 2).value
+            xbox = gtsheet.cell(userrow, 3).value
             profileembed.set_thumbnail(url=pfp)
-            profileembed.add_field(name="Discord", value=usercell.value)
-            profileembed.add_field(name="LongID", value=gtsheet.cell(userrow, 2).value)    
+            profileembed.add_field(name="Discord", value=discordname, inline=True)
+            profileembed.add_field(name="LongID", value=longid, inline=True)
+            profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)     
             profileembed.set_footer(text="Requested by " + author.name)
             await ctx.send(embed=profileembed)
-            await ctx.send(usercell)
+
 
     @profile.error
     async def profile_error(self, ctx, error):
