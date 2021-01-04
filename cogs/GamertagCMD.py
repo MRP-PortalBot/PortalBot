@@ -172,20 +172,33 @@ class GamertagCMD(commands.Cog):
             await ctx.send("Uh oh, you didn't include all the arguments! ")
 
     @commands.command()
-    async def gtfind(self, ctx, *, gamertag):
-        author = ctx.message.author
-        channel = ctx.message.channel
-        alid = str(author.id)
-        aname = str(author.name + '#' + author.discriminator)
-        print(aname)
+    async def gtfind(self, ctx, *, gamertag = None):
+        if gamertag == None:
+            author = ctx.message.author
+            channel = ctx.message.channel
+            alid = str(author.id)
+            aname = str(author.name + '#' + author.discriminator)
+            print(aname)
 
-        try:
-            value = gtsheet.find(aname, in_column=1)
-        except:
-            print("User Not Found")    
+            try:
+                value = gtsheet.find(aname, in_column=1)
+            except:
+                print("User Not Found")    
+            else:
+                print("User Found!")
+                await ctx.send(value)
         else:
-            print("User Found!")
-            await ctx.send(value)
+            aname = str(gamertag.name + "#" + gamertag.discriminator)
+            print(aname)
+            
+            try:
+                value = gtsheet.find(aname, in_column=1)
+            except:
+                print("User Not Found")    
+            else:
+                print("User Found!")
+                await ctx.send(value)
+
 
 '''
   #searches gamertags
