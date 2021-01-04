@@ -223,8 +223,7 @@ class GamertagCMD(commands.Cog):
             except:
                 await ctx.send(embed=profileembed)
             else:
-                profileembed = discord.Embed(
-                    title=aname + "'s Profile", description="=======================", color=0xff0000)
+                profileembed.color(0xff0000)
                 await ctx.send(embed=profileembed)
 
 
