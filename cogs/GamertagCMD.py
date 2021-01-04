@@ -223,7 +223,13 @@ class GamertagCMD(commands.Cog):
                 try:
                     longid = sheet.find(longid, in_column=2)
                 except:
-                    await ctx.send(embed=profileembed)
+                    try:
+                        discordname = sheet.find(username_re, in_column=1)
+                    except:
+                        await ctx.send(embed=profileembed)
+                    else:
+                        profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
+                        await ctx.send(embed=profileembed)
                 else:
                     profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
                     await ctx.send(embed=profileembed)
