@@ -156,6 +156,7 @@ class MiscCMD(commands.Cog):
     @cog_ext.cog_slash(name="rule", description = "Sends out MRP Server Rules", guild_ids=[config['ServerID']], options=[manage_commands.create_option(name = "number" , description = "Rule Number", option_type = 4, required = True)])
     async def rule(self, ctx, number = None):
         await ctx.send(content = rules[int(number)-1])
+        await ctx.send(content = "test", hidden = True)
 
     # Add's a gamertag to the database.
 
