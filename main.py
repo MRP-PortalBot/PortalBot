@@ -14,6 +14,7 @@ from discord_slash import SlashCommand
 from discord_slash import SlashContext
 import subprocess
 import time
+import sys
 
 #Filling botconfig incase the file is missing
 prompt_config("Enter bot prefix here: ", "prefix")
@@ -60,7 +61,8 @@ def get_extensions():  # Gets extension list dynamically
     return extensions
 
 def force_restart():  #Forces REPL to apply changes to everything
-    os.system("python core/force_restart.py")
+    os.system("python main.py")
+    sys.exit(0)
 
 @client.event
 async def on_ready():
@@ -197,7 +199,7 @@ async def gitpull(ctx):
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
-        #force_restart()
+        force_restart()
 
     elif typebot == "STABLE":
         p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
@@ -208,7 +210,7 @@ async def gitpull(ctx):
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
-        #force_restart()
+        force_restart()
 
 @client.command()
 @commands.has_role('Bot Manager')
