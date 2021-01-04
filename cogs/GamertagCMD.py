@@ -201,7 +201,7 @@ class GamertagCMD(commands.Cog):
             await ctx.send(embed=noprofileembed) 
         else:
             print("User Found!")
-            profileembed.set_image(url=pfp)
+            profileembed.set_author(name=aname + "'s Profile", url=pfp, icon_url=pfp)
             profileembed.add_field(
                 name="Discord", value=usercell.value)
             await ctx.send(embed=profileembed)
