@@ -15,9 +15,14 @@ from discord_slash import SlashContext
 import subprocess
 import time
 import sys
+import aiohttp
 
-
-
+'''
+- Incase REPL has problems finding packages: (Manual PIP Install)
+#pip install discord-py-slash-command
+#pip install --upgrade sentry-sdk
+#pip install discord-sentry-reporting
+'''
 
 #Filling botconfig incase the file is missing
 prompt_config("Enter bot prefix here: ", "prefix")
