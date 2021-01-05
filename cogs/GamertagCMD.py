@@ -146,7 +146,7 @@ class GamertagCMD(commands.Cog):
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
         await channel.send("Success! \nWould you like to change your nickname to your gamertag? (If so, you may have to add your emojis to your nickname again!)")
-        answer7 = await self.bot.wait_for('message', check=check)
+        
 
         message = await channel.send("✅ - CHANGE NICKNAME\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['✅', '❌']
