@@ -266,9 +266,9 @@ class MiscCMD(commands.Cog):
         embed.add_field(name="Quote", value=quote)
         await ctx.send(embed=embed)
     
-    @commands.command()
+    @commands.command() 
     async def raiseerror(self, ctx):
-        raise "errortest"
+        raise Exception("Error Uh Oh, did the webhook pick it up?")
 
 
 def setup(bot):
