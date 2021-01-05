@@ -42,9 +42,11 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        #do stuff here
         channel = self.bot.get_channel(791066359013441546)
-        await channel.send("Welcome to the server!")
+        count = int(member.guild.member_count) + 1
+        embed = discord.Embed(title = "Welcome to the Minecraft Realm Portal!", description = f"{str(member.display_name)} is the {str(count)}th member!")
+        embed.set_thumbnail(url=member.avatar_url)
+        await channel.send(embed=embed)
 
 
 def setup(bot):
