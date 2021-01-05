@@ -265,6 +265,10 @@ class MiscCMD(commands.Cog):
             author.mention), color=0xffe74d)
         embed.add_field(name="Quote", value=quote)
         await ctx.send(embed=embed)
+    
+    @commands.command()
+    async def raiseerror(self, ctx):
+        raise "errortest"
 
 
 def setup(bot):
