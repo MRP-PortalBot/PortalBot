@@ -75,6 +75,13 @@ def get_extensions():  # Gets extension list dynamically
 def force_restart():  #Forces REPL to apply changes to everything
     subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
     sys.exit(0)
+    
+@client.check
+async def globally_block_gamingportal(ctx):
+    if ctx.guild.id == 192052103017922567:
+        return
+    else:
+        return True
 
 @client.event
 async def on_ready():
