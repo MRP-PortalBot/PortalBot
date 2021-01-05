@@ -18,6 +18,11 @@ rules = [":one: **No Harassment**, threats, hate speech, inappropriate language,
          ":six: **No self-promotion or advertisement outside the appropriate channels!** Want your own realm channel? **Apply for one!**", ":seven: **No realm or server is better than another!** It is **not** a competition.", ":eight: **Have fun** and happy crafting!", ":nine: **Discord Terms of Service apply!** You must be at least **13** years old."]
 config, _ = load_config()
 
+import sentry_sdk
+sentry_sdk.init(
+    "https://75b468c0a2e34f8ea4b724ca2a5e68a1@o500070.ingest.sentry.io/5579376",
+    traces_sample_rate=1.0
+)
 
 def get_quote():
     response = requests.get("https://zenquotes.io/api/random")
