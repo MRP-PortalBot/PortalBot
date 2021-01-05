@@ -43,6 +43,7 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         #do stuff here
+        print("place holder for indent")
 
 
 def setup(bot):
