@@ -59,6 +59,7 @@ class CommandErrorHandler(commands.Cog):
                 else:
                     await ctx.send(f"**Hey guys look!** *A developer broke something!* They should probably get to fixing that.\nThe traceback could be useful: ```\n{exception_msg}\n```")
             print(error)
+        raise error
 
 
 def setup(bot):

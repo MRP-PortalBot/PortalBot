@@ -16,6 +16,9 @@ import subprocess
 import time
 import sys
 
+
+
+
 #Filling botconfig incase the file is missing
 prompt_config("Enter bot prefix here: ", "prefix")
 prompt_config(
@@ -41,6 +44,15 @@ intents.presences = True
 client = commands.Bot(command_prefix=config['prefix'], intents=intents)
 client.slash = SlashCommand(client, auto_register=True)  #TODO: Fix Slash Commands
 client.remove_command("help")
+
+#Sentry Panel Stuff - 
+from discord_sentry_reporting import use_sentry
+
+use_sentry(
+    client,  # it is typically named client or bot
+    dsn="https://75b468c0a2e34f8ea4b724ca2a5e68a1@o500070.ingest.sentry.io/5579376",
+    traces_sample_rate=1.0    
+)
 
 #Logging
 logger = logging.getLogger('discord')

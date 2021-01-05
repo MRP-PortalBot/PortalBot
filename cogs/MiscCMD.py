@@ -17,6 +17,13 @@ from discord_slash.utils import manage_commands
 rules = [":one: **No Harassment**, threats, hate speech, inappropriate language, posts or user names!", ":two: **No spamming** in chat or direct messages!", ":three: **No religious or political topics**, those don’t usually end well!", ":four: **Keep pinging to a minimum**, it is annoying!", ":five: **No sharing personal information**, it is personal for a reason so keep it to yourself!",
          ":six: **No self-promotion or advertisement outside the appropriate channels!** Want your own realm channel? **Apply for one!**", ":seven: **No realm or server is better than another!** It is **not** a competition.", ":eight: **Have fun** and happy crafting!", ":nine: **Discord Terms of Service apply!** You must be at least **13** years old."]
 config, _ = load_config()
+'''
+import sentry_sdk
+sentry_sdk.init(
+    "https://75b468c0a2e34f8ea4b724ca2a5e68a1@o500070.ingest.sentry.io/5579376",
+    traces_sample_rate=1.0
+)
+'''
 
 
 def get_quote():
@@ -265,6 +272,10 @@ class MiscCMD(commands.Cog):
             author.mention), color=0xffe74d)
         embed.add_field(name="Quote", value=quote)
         await ctx.send(embed=embed)
+    
+    @commands.command() 
+    async def raiseerror(self, ctx):
+        raise Exception("Error Uh Oh, did the webhook pick it up?")
 
 
 def setup(bot):
