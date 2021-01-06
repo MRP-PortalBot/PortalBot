@@ -274,7 +274,7 @@ class GamertagCMD(commands.Cog):
         except:
             discordname = str(username.name + "#" + username.discriminator)
             longid = alid
-            xbox = xboxid.value
+            xbox = xboxid.content
 
             row = [discordname, longid, xbox]
             print(row)
