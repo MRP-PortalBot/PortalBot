@@ -251,6 +251,6 @@ async def sentry(ctx):
     embed = discord.Embed(title = 'Sentry Traceback Logging', description = f"TYPE: PortalBot -{config['BotType']}", color = 0x4c594b)
     embed.set_thumbnail(url = "http://myovchev.github.io/sentry-slack/images/logo32.png")
     embed.add_field(name = "Sentry Project", value = "**BETA:** https://sentry.io/organizations/space-turtle0/issues/?project=5579376 \n**STABLE:** https://sentry.io/organizations/space-turtle0/issues/?project=5579425")
-    ctx.send(embed = embed)
+    await ctx.send(embed = embed)
 
 client.run(os.getenv("TOKEN"))
