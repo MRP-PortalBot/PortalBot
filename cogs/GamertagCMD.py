@@ -179,8 +179,8 @@ class GamertagCMD(commands.Cog):
         if isinstance(error, commands.BadArgument):
             await ctx.send("Uh oh, you didn't include all the arguments! ")
 
-    @commands.command()
-    async def profile(self, ctx, *, profile: discord.User = None):
+    @client.group(invoke_without_command=True)
+    async def profile(self, ctx, *, profile: discord.Member = None):
         print(profile)
         author = ctx.message.author
         role = discord.utils.get(ctx.guild.roles, name="Realm OP")
@@ -211,7 +211,7 @@ class GamertagCMD(commands.Cog):
             print("User Found!")
 
             userrow = usercell.row
-            discordname = usercell.value
+            discordname = gtsheet.cell(userrow, 1).value
             longid = gtsheet.cell(userrow, 2).value
             xbox = gtsheet.cell(userrow, 3).value
             
@@ -251,6 +251,42 @@ class GamertagCMD(commands.Cog):
 
         else:
             raise error          
+
+    @profile.command()
+    async def xbox(self, ctx):
+        channel = ctx.message.channel
+        username = ctx.message.author
+        aname = str(username.name)
+        alid = str(username.id)        
+        pfp = username.avatar_url
+        profileembed = discord.Embed(
+            title=aname + "'s XBOX Gamertag", description="=======================", color=0x18c927)
+        username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
+
+        def check(m):
+            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+
+        await ctx.send("What is your Gamertag")
+        xboxid = await self.bot.wait_for('message', check=check)
+
+        try:
+            usercell = gtsheet.find(alid, in_column=2)
+        except:
+            discordname = str(username.name + "#" + username.discriminator)
+            longid = alid
+            xbox = xboxid
+
+            row = [discordname, longid, xbox]
+            print(row)
+            gtsheet.insert_row(row, 3)
+
+            await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
+        else:
+            userrow = usercell.row
+            gtsheet.update_cell(userrow, 3, str(xboxid))
+            print("User Found!")
+
+
 
 
     @commands.command()
