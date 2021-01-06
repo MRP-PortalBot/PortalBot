@@ -267,14 +267,15 @@ class GamertagCMD(commands.Cog):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
         await ctx.send("What is your Gamertag")
-        xboxid = await self.bot.wait_for('message', check=check)
+        messagecontent = await self.bot.wait_for('message', check=check)
+        xboxid = messagecontent.content
 
         try:
             usercell = gtsheet.find(alid, in_column=2)
         except:
             discordname = str(username.name + "#" + username.discriminator)
             longid = alid
-            xbox = xboxid.content
+            xbox = xboxid
 
             row = [discordname, longid, xbox]
             print(row)
@@ -283,7 +284,7 @@ class GamertagCMD(commands.Cog):
             await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
         else:
             userrow = usercell.row
-            xbox = xboxid.value
+            xbox = xboxid
             gtsheet.update_cell(userrow, 3, str(xbox))
             print("User Found!")
             await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
