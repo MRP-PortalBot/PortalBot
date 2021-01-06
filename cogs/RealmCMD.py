@@ -55,7 +55,7 @@ class RealmCMD(commands.Cog):
         #category = discord.utils.get(guild.categories, name = "Realm Channels List Test")
         category = discord.utils.get(guild.categories, name="🎮 Realms & Servers")
         channel = await category.create_text_channel(realm + "-" + emoji)
-        welcomeEM = discord.Embed(title = "Welcome to the MRP!", description = f"{role.mention} **Welcome to the MRP!** \n Your channel has been created and you should have gotten a DM regarding some stuff about your channel! \n If you have any questions, feel free to DM an Admin or a Moderator!")
+        welcomeEM = discord.Embed(title = "Welcome to the MRP!", description = f"{role.mention} **Welcome to the MRP!** \n Your channel has been created and you should have gotten a DM regarding some stuff about your channel! \n If you have any questions, feel free to DM an Admin or a Moderator!", color = 0x4c594b)
         await channel.send(embed = welcomeEM)
         await channel.edit(topic="The newest Realm on the Minecraft Realm Portal, Check it out and chat with the owners for more Realm information. \n \n ]]Realm: Survival Multiplayer[[")
         ChannelCreate = "DONE"
