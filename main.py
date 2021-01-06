@@ -16,12 +16,15 @@ import subprocess
 import time
 import sys
 import aiohttp
+import xbox
+
+xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
 
 '''
 - Incase REPL has problems finding packages: (Manual PIP Install)
-#pip install discord-py-slash-command
-#pip install --upgrade sentry-sdk
-#pip install discord-sentry-reporting
+pip install discord-py-slash-command
+pip install --upgrade sentry-sdk
+pip install discord-sentry-reporting
 '''
 
 #Filling botconfig incase the file is missing
