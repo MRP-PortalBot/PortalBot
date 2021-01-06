@@ -6,7 +6,7 @@ import re
 import asyncio
 from discord import Embed
 import requests
-
+import xbox
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -303,7 +303,7 @@ class GamertagCMD(commands.Cog):
             f.write(img_data)
 
     @commands.command()
-    async def getxbox(self, ctx, input: str):
+    async def getxbox(self, ctx):
         channel = ctx.message.channel
         author = ctx.message.channel
         await ctx.send("How do you want to search?\n**gamertag**\n**xuid**")
@@ -313,23 +313,25 @@ class GamertagCMD(commands.Cog):
 
         message1c = message1.content
         if 'gamertag' in message1c:
-            await ctx.send("Please enter the Discord Username")
+            await ctx.send("Please enter the Gamertag")
             messageopt1 = await self.bot.wait_for('message', check=check)
             messageopt1c = messageopt1.content
             profile = xbox.GamerProfile.from_gamertag(messageopt1c)
             embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
             embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
             embed.set_thumbnail(url = profile.gamerpic)
+            await ctx.send(embed =embed)
   
 
         elif 'xuid' in message1c:
-            await ctx.send("Please enter the Discord LongID")
+            await ctx.send("Please enter the XUID")
             messageopt2 = await self.bot.wait_for('message', check=check)
             messageopt1c = messageopt2.content
             profile = xbox.GamerProfile.from_xuid(messageopt1c)
             embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
             embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
             embed.set_thumbnail(url = profile.gamerpic)
+            await ctx.send(embed = embed)
 
         else:
             await ctx.send("Returning...")
