@@ -306,35 +306,48 @@ class GamertagCMD(commands.Cog):
     async def getxbox(self, ctx):
         channel = ctx.message.channel
         author = ctx.message.author
-        await ctx.send("How do you want to search?\n**gamertag**\n**xuid**")
+        msg = await ctx.send("How do you want to search?\n**GAMERTAG** - 📇\n**XUID** - 🆔")
+        reactions = ['📇', '🆔']
+        for emoji in reactions:
+            await msg.add_reaction(emoji)
+
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
-        message1 = await self.bot.wait_for('message', check=check)
 
-        message1c = message1.content
-        if 'gamertag' in message1c:
-            await ctx.send("Please enter the Gamertag")
-            messageopt1 = await self.bot.wait_for('message', check=check)
-            messageopt1c = messageopt1.content
-            profile = xbox.GamerProfile.from_gamertag(messageopt1c)
-            embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
-            embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
-            embed.set_thumbnail(url = profile.gamerpic)
-            await ctx.send(embed =embed)
-  
+        def check2(reaction, user):
+            return user == ctx.author and (str(reaction.emoji) == '📇' or str(reaction.emoji) == '🆔')
 
-        elif 'xuid' in message1c:
-            await ctx.send("Please enter the XUID")
-            messageopt2 = await self.bot.wait_for('message', check=check)
-            messageopt1c = messageopt2.content
-            profile = xbox.GamerProfile.from_xuid(messageopt1c)
-            embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
-            embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
-            embed.set_thumbnail(url = profile.gamerpic)
-            await ctx.send(embed = embed)
+        try:
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=100.0, check=check2)
+            if str(reaction.emoji) == "📇":
+                for emoji in reactions:
+                    await msg.clear_reaction(emoji)
+                await ctx.send("Please enter the Gamertag")
+                messageopt1 = await self.bot.wait_for('message', check=check)
+                messageopt1c = messageopt1.content
+                profile = xbox.GamerProfile.from_gamertag(messageopt1c)
+                embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+                embed.set_thumbnail(url = profile.gamerpic)
+                await ctx.send(embed =embed)
+                return
+            else:
+                for emoji in reactions:
+                    await message.clear_reaction(emoji)
+                await ctx.send("Please enter the XUID")
+                messageopt2 = await self.bot.wait_for('message', check=check)
+                messageopt1c = messageopt2.content
+                profile = xbox.GamerProfile.from_xuid(messageopt1c)
+                embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+                embed.set_thumbnail(url = profile.gamerpic)
+                await ctx.send(embed = embed)
+                return
 
-        else:
-            await ctx.send("Returning...")
+        except asyncio.TimeoutError:
+            await channel.send("Looks like you didn't react in time, please try again later!")
+
+
 
 '''
   #searches gamertags
