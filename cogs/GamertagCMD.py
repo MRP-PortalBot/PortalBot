@@ -179,7 +179,7 @@ class GamertagCMD(commands.Cog):
         if isinstance(error, commands.BadArgument):
             await ctx.send("Uh oh, you didn't include all the arguments! ")
 
-    @client.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True)
     async def profile(self, ctx, *, profile: discord.Member = None):
         print(profile)
         author = ctx.message.author
