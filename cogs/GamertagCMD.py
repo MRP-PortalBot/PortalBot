@@ -274,7 +274,7 @@ class GamertagCMD(commands.Cog):
         except:
             discordname = str(username.name + "#" + username.discriminator)
             longid = alid
-            xbox = xboxid
+            xbox = xboxid.value
 
             row = [discordname, longid, xbox]
             print(row)
@@ -283,7 +283,8 @@ class GamertagCMD(commands.Cog):
             await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
         else:
             userrow = usercell.row
-            gtsheet.update_cell(userrow, 3, str(xboxid))
+            xbox = xboxid.value
+            gtsheet.update_cell(userrow, 3, str(xbox))
             print("User Found!")
             await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
 
