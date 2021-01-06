@@ -211,7 +211,7 @@ class GamertagCMD(commands.Cog):
                 return
             else:
                 for emoji in reactions:
-                    await message.clear_reaction(emoji)
+                    await msg.clear_reaction(emoji)
                 await ctx.send("Please enter the XUID")
                 messageopt2 = await self.bot.wait_for('message', check=check)
                 messageopt1c = messageopt2.content
