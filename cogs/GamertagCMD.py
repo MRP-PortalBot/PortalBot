@@ -305,7 +305,7 @@ class GamertagCMD(commands.Cog):
     @commands.command()
     async def getxbox(self, ctx):
         channel = ctx.message.channel
-        author = ctx.message.channel
+        author = ctx.message.author
         await ctx.send("How do you want to search?\n**gamertag**\n**xuid**")
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
