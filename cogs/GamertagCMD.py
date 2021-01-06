@@ -302,6 +302,37 @@ class GamertagCMD(commands.Cog):
         with open(f'{member.name}.png', 'wb') as f:
             f.write(img_data)
 
+    @commands.command()
+    async def getxbox(self, ctx, input: str):
+        channel = ctx.message.channel
+        author = ctx.message.channel
+        await ctx.send("How do you want to search?\n**gamertag**\n**xuid**")
+        def check(m):
+            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        message1 = await self.bot.wait_for('message', check=check)
+
+        message1c = message1.content
+        if 'gamertag' in message1c:
+            await ctx.send("Please enter the Discord Username")
+            messageopt1 = await self.bot.wait_for('message', check=check)
+            messageopt1c = messageopt1.content
+            profile = xbox.GamerProfile.from_gamertag(messageopt1c)
+            embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+            embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+            embed.set_thumbnail(url = profile.gamerpic)
+  
+
+        elif 'xuid' in message1c:
+            await ctx.send("Please enter the Discord LongID")
+            messageopt2 = await self.bot.wait_for('message', check=check)
+            messageopt1c = messageopt2.content
+            profile = xbox.GamerProfile.from_xuid(messageopt1c)
+            embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+            embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+            embed.set_thumbnail(url = profile.gamerpic)
+
+        else:
+            await ctx.send("Returning...")
 
 '''
   #searches gamertags
