@@ -285,6 +285,7 @@ class GamertagCMD(commands.Cog):
             userrow = usercell.row
             gtsheet.update_cell(userrow, 3, str(xboxid))
             print("User Found!")
+            await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
 
 
 
