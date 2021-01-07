@@ -31,7 +31,7 @@ def check_MRP():
     return commands.check(predicate)
 
 
-def check_MRP():
+def check_MGP():
     def predicate(ctx):
         return ctx.message.guild.id == 192052103017922567 or ctx.message.guild.id == 448488274562908170
     return commands.check(predicate)
