@@ -3,11 +3,6 @@ from discord.ext import commands
 from datetime import datetime
 from discord import CategoryChannel
 
-def check_MRP(ctx):
-    return ctx.message.guild.id == 587495640502763521
-
-def check_MGP(ctx):
-    return ctx.message.guild.id == 192052103017922567
 
 def solve(s):
     a = s.split(' ')
@@ -256,11 +251,6 @@ class OperatorCMD(commands.Cog):
 
         except IOError:
             await ctx.send("Looks like I can't find your channel's database, it may be due to the fact that the `block` command hasn't been used in your channel!")
-
-    @commands.command()
-    @commands.check(check_MRP)
-    async def testingcheck(self, ctx):
-        await ctx.send("This shouldn't work in PTS!")
 
 def setup(bot):
     bot.add_cog(OperatorCMD(bot))
