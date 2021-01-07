@@ -205,7 +205,7 @@ class GamertagCMD(commands.Cog):
                 messageopt1c = messageopt1.content
                 try:
                     profile = xbox.GamerProfile.from_gamertag(messageopt1c)
-                except xbox.GamertagNotFound:
+                except xbox.exceptions.GamertagNotFound:
                     embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
                     embed.add_field(name = "Information", value = "No results found!")
                     await ctx.send(embed = embed)
@@ -223,7 +223,7 @@ class GamertagCMD(commands.Cog):
                 messageopt1c = messageopt2.content
                 try:
                     profile = xbox.GamerProfile.from_xuid(messageopt1c)
-                except xbox.GamertagNotFound:
+                except xbox.exceptions.GamertagNotFound:
                     embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
                     embed.add_field(name = "Information", value = "No results found!")
                     await ctx.send(embed = embed)
