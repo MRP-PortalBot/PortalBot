@@ -299,7 +299,8 @@ class ProfileCMD(commands.Cog):
 
     @commands.command()
     async def getprofile(self, ctx, member: discord.Profile):
-        await ctx.send(f'User name: {member.user.name}, Connected: {member.connected_accounts}')
+        print(member.connect_accounts)
+        await ctx.send(f'User name: {member.user.name}')
 
 def setup(bot):
     bot.add_cog(ProfileCMD(bot))
