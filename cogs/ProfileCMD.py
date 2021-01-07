@@ -298,7 +298,7 @@ class ProfileCMD(commands.Cog):
 
 
     @commands.command()
-    async def getprofile(self, ctx, member: discord.User = None):
+    async def getprofile(self, ctx, user: discord.User = None):
 
         if user is None:
             user = ctx.author
