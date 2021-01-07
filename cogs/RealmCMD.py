@@ -25,6 +25,15 @@ sheet = client.open(
 
 # -------------------------------------------------------
 
+def check_MRP(ctx):
+    return ctx.message.guild.id == 587495640502763521
+
+def check_MGP(ctx):
+    return ctx.message.guild.id == 192052103017922567
+
+def check_PTS(ctx):
+    return ctx.message.guild.id == 448488274562908170
+
 def convert(time):
     try:
         return int(time[:-1]) * time_convert[time[-1]]
@@ -37,6 +46,7 @@ class RealmCMD(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @commands.check_any(check_MRP, check_PTS)
     @commands.has_permissions(manage_roles=True)
     async def newrealm(self, ctx, realm, emoji,  user: discord.Member):
         # Status set to null
@@ -105,7 +115,11 @@ class RealmCMD(commands.Cog):
         if isinstance(error, commands.TooManyArguments):
             await ctx.send("You sent too many arguments! Did you use quotes for realm names over 2 words?")
 
+        if isinstance(error, commands.CheckFailure):
+            await ctx.send("This Command was not designed for this server!")
+
     @commands.command()
+    @commands.check_any(check_MRP, check_PTS)
     async def checkin2(self, ctx):
         # 28
         em = discord.Embed(
@@ -159,6 +173,7 @@ class RealmCMD(commands.Cog):
             time.sleep(3)
 
     @commands.command()
+    @commands.check_any(check_MRP, check_PTS)
     async def applyrealm(self, ctx):
         # Prior defines
         timestamp = datetime.now()
@@ -299,6 +314,16 @@ class RealmCMD(commands.Cog):
             title="Success!", description="I have sent in your application, you will hear back if you have passed!", color=0x03fc28)
         await channel.send(embed=response)
 
+    @applyrealm.error
+    async def applyrealm_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("Uh oh, looks like I can't execute this command because you don't have permissions!")
+
+        if isinstance(error, commands.TooManyArguments):
+            await ctx.send("You sent too many arguments! Did you use quotes for realm names over 2 words?")
+
+        if isinstance(error, commands.CheckFailure):
+            await ctx.send("This Command was not designed for this server!")
 
 def setup(bot):
     bot.add_cog(RealmCMD(bot))
