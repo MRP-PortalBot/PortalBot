@@ -25,12 +25,6 @@ sheet = client.open(
 
 # -------------------------------------------------------
 
-def check_MRP(ctx):
-    return ctx.message.guild.id == 587495640502763521
-
-def check_MGP(ctx):
-    return ctx.message.guild.id == 192052103017922567
-
 def convert(time):
     try:
         return int(time[:-1]) * time_convert[time[-1]]
@@ -43,7 +37,6 @@ class RealmCMD(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.check(check_MRP)
     @commands.has_permissions(manage_roles=True)
     async def newrealm(self, ctx, realm, emoji,  user: discord.Member):
         # Status set to null
@@ -113,7 +106,6 @@ class RealmCMD(commands.Cog):
             await ctx.send("You sent too many arguments! Did you use quotes for realm names over 2 words?")
 
     @commands.command()
-    @commands.check(check_MRP)
     async def checkin2(self, ctx):
         # 28
         em = discord.Embed(
@@ -167,7 +159,6 @@ class RealmCMD(commands.Cog):
             time.sleep(3)
 
     @commands.command()
-    @commands.check(check_MRP)
     async def applyrealm(self, ctx):
         # Prior defines
         timestamp = datetime.now()
