@@ -324,6 +324,8 @@ class RealmCMD(commands.Cog):
         if isinstance(error, commands.TooManyArguments):
             await ctx.send("You sent too many arguments! Did you use quotes for realm names over 2 words?")
 
+        if isinstance(error, commands.CheckFailure):
+            await ctx.send("This Command was not designed for this server!")
 
 
 def setup(bot):
