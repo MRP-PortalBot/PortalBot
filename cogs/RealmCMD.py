@@ -25,14 +25,16 @@ sheet = client.open(
 
 # -------------------------------------------------------
 
-def check_MRP(ctx):
-    return ctx.message.guild.id == 587495640502763521
+def check_MRP():
+    def predicate(ctx):
+        return ctx.message.guild.id == 587495640502763521 or ctx.message.guild.id == 448488274562908170
+    return commands.check(predicate)
 
-def check_MGP(ctx):
-    return ctx.message.guild.id == 192052103017922567
 
-def check_PTS(ctx):
-    return ctx.message.guild.id == 448488274562908170
+def check_MRP():
+    def predicate(ctx):
+        return ctx.message.guild.id == 192052103017922567 or ctx.message.guild.id == 448488274562908170
+    return commands.check(predicate)
 
 def convert(time):
     try:
@@ -46,7 +48,7 @@ class RealmCMD(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.check_any(check_MRP, check_PTS)
+    @check_MRP()
     @commands.has_permissions(manage_roles=True)
     async def newrealm(self, ctx, realm, emoji,  user: discord.Member):
         # Status set to null
@@ -119,7 +121,7 @@ class RealmCMD(commands.Cog):
             await ctx.send("This Command was not designed for this server!")
 
     @commands.command()
-    @commands.check_any(check_MRP, check_PTS)
+    @check_MRP()
     async def checkin2(self, ctx):
         # 28
         em = discord.Embed(
@@ -173,7 +175,7 @@ class RealmCMD(commands.Cog):
             time.sleep(3)
 
     @commands.command()
-    @commands.check_any(check_MRP, check_PTS)
+    @check_MRP()
     async def applyrealm(self, ctx):
         # Prior defines
         timestamp = datetime.now()
@@ -322,8 +324,7 @@ class RealmCMD(commands.Cog):
         if isinstance(error, commands.TooManyArguments):
             await ctx.send("You sent too many arguments! Did you use quotes for realm names over 2 words?")
 
-        if isinstance(error, commands.CheckFailure):
-            await ctx.send("This Command was not designed for this server!")
+
 
 def setup(bot):
     bot.add_cog(RealmCMD(bot))
