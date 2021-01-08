@@ -125,15 +125,13 @@ class BlacklistCMD(commands.Cog):
         def check2(reaction, user):
             return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
         try:
-            reaction, user = await self.bot.wait_for('reaction_add', timeout=300.0, check=check2)
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=150.0, check=check2)
             if str(reaction.emoji) == "❌":
                 await channel.send("Ended Form...")
-                for emoji in reactions:
-                    await message.clear_reaction(emoji)
+                await message.delete()
                 return
             else:
-                for emoji in reactions:
-                    await message.clear_reaction(emoji)
+                await message.delete()
                 await channel.send("Sending your responses!")
                 blacklistembed = discord.Embed(
                     title="Blacklist Report", description="Sent from: " + author.mention, color=0xb10d9f)

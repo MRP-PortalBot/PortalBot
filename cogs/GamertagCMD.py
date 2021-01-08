@@ -203,11 +203,17 @@ class GamertagCMD(commands.Cog):
                 await ctx.send("Please enter the Gamertag")
                 messageopt1 = await self.bot.wait_for('message', check=check)
                 messageopt1c = messageopt1.content
-                profile = xbox.GamerProfile.from_gamertag(messageopt1c)
-                embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
-                embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
-                embed.set_thumbnail(url = profile.gamerpic)
-                await ctx.send(embed =embed)
+                try:
+                    profile = xbox.GamerProfile.from_gamertag(messageopt1c)
+                except xbox.exceptions.GamertagNotFound:
+                    embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                    embed.add_field(name = "Information", value = "No results found!")
+                    await ctx.send(embed = embed)
+                else:
+                    embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                    embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+                    embed.set_thumbnail(url = profile.gamerpic)
+                    await ctx.send(embed =embed)
                 return
             else:
                 for emoji in reactions:
@@ -215,12 +221,19 @@ class GamertagCMD(commands.Cog):
                 await ctx.send("Please enter the XUID")
                 messageopt2 = await self.bot.wait_for('message', check=check)
                 messageopt1c = messageopt2.content
-                profile = xbox.GamerProfile.from_xuid(messageopt1c)
-                embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
-                embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
-                embed.set_thumbnail(url = profile.gamerpic)
-                await ctx.send(embed = embed)
+                try:
+                    profile = xbox.GamerProfile.from_xuid(messageopt1c)
+                except xbox.exceptions.GamertagNotFound:
+                    embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                    embed.add_field(name = "Information", value = "No results found!")
+                    await ctx.send(embed = embed)
+                else:
+                    embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                    embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+                    embed.set_thumbnail(url = profile.gamerpic)
+                    await ctx.send(embed =embed)
                 return
+
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")

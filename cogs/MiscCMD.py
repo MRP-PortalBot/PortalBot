@@ -274,9 +274,10 @@ class MiscCMD(commands.Cog):
         await ctx.send(embed=embed)
     
     @commands.command() 
-    async def raiseerror(self, ctx):
-        raise Exception("Error Uh Oh, did the webhook pick it up?")
-
+    async def reply(self, ctx):
+        id = ctx.message.id
+        await ctx.reply(content = "content") 
+        
 
 def setup(bot):
     bot.add_cog(MiscCMD(bot))
