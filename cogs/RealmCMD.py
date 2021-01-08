@@ -31,6 +31,9 @@ def check_MRP(ctx):
 def check_MGP(ctx):
     return ctx.message.guild.id == 192052103017922567
 
+def check_PTS(ctx):
+    return ctx.message.guild.id == 448488274562908170
+
 def convert(time):
     try:
         return int(time[:-1]) * time_convert[time[-1]]
@@ -43,7 +46,7 @@ class RealmCMD(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.check(check_MRP)
+    @commands.check_any(check_MRP, check_PTS)
     @commands.has_permissions(manage_roles=True)
     async def newrealm(self, ctx, realm, emoji,  user: discord.Member):
         # Status set to null
