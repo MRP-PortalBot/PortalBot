@@ -40,20 +40,20 @@ class CommandErrorHandler(commands.Cog):
         if headers is not None and isinstance(headers, dict):
             hdrs.update(headers)
 
-        try:
-            async with self.bot.session.request(method, req_url, params=params, json=data, headers=hdrs) as r:
-                remaining = r.headers.get('X-Ratelimit-Remaining')
-                js = await r.json()
-                if r.status == 429 or remaining == '0':
-                    # wait before we release the lock
-                    delta = discord.utils._parse_ratelimit_header(r)
-                    await asyncio.sleep(delta)
-                    self._req_lock.release()
-                    return await self.github_request(method, url, params=params, data=data, headers=headers)
-                elif 300 > r.status >= 200:
-                    return js
-                else:
-                    raise GithubError(js['message'])
+
+        async with self.bot.session.request(method, req_url, params=params, json=data, headers=hdrs) as r:
+            remaining = r.headers.get('X-Ratelimit-Remaining')
+            js = await r.json()
+            if r.status == 429 or remaining == '0':
+                # wait before we release the lock
+                delta = discord.utils._parse_ratelimit_header(r)
+                await asyncio.sleep(delta)
+                self._req_lock.release()
+                return await self.github_request(method, url, params=params, data=data, headers=headers)
+            elif 300 > r.status >= 200:
+                return js
+            else:
+                raise GithubError(js['message'])
 
 
     async def create_gist(self, content, *, description=None, filename=None, public=True):
