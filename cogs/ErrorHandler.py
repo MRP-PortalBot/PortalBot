@@ -4,6 +4,14 @@ from typing import List
 import traceback
 from pathlib import Path
 import core.common
+import asyncio
+import requests
+import yarl
+import os
+
+
+class GithubError(commands.CommandError):
+    pass
 
 
 class CustomError(Exception):
@@ -19,6 +27,72 @@ class CommandErrorHandler(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+    async def github_request(self, method, url, *, params=None, data=None, headers=None):
+        hdrs = {
+            'Accept': 'application/vnd.github.inertia-preview+json',
+            'User-Agent': 'RoboDanny DPYExclusive Cog',
+            'Authorization': f'token {os.getenv("GIST")}'
+        }
+
+        req_url = yarl.URL('https://api.github.com') / url
+
+        if headers is not None and isinstance(headers, dict):
+            hdrs.update(headers)
+
+        try:
+            async with self.bot.session.request(method, req_url, params=params, json=data, headers=hdrs) as r:
+                remaining = r.headers.get('X-Ratelimit-Remaining')
+                js = await r.json()
+                if r.status == 429 or remaining == '0':
+                    # wait before we release the lock
+                    delta = discord.utils._parse_ratelimit_header(r)
+                    await asyncio.sleep(delta)
+                    self._req_lock.release()
+                    return await self.github_request(method, url, params=params, data=data, headers=headers)
+                elif 300 > r.status >= 200:
+                    return js
+                else:
+                    raise GithubError(js['message'])
+
+
+    async def create_gist(self, content, *, description=None, filename=None, public=True):
+        headers = {
+            'Accept': 'application/vnd.github.v3+json',
+        }
+
+        filename = filename or 'output.txt'
+        data = {
+            'public': public,
+            'files': {
+                filename: {
+                    'content': content
+                }
+            }
+        }
+
+        description = 'PortalBot Traceback'
+
+        js = await self.github_request('POST', 'gists', data=data, headers=headers)
+        return js['html_url']
+
+    async def redirect_attachments(self, message):
+        attachment = message.attachments[0]
+        if not attachment.filename.endswith(('.txt', '.py', '.json')):
+            return
+
+        # If this file is more than 2MiB then it's definitely too big
+        if attachment.size > (2 * 1024 * 1024):
+            return
+
+        try:
+            contents = await attachment.read()
+            contents = contents.decode('utf-8')
+        except (UnicodeDecodeError, discord.HTTPException):
+            return
+
+        gist = await self.create_gist(contents, description = 'PortalBot Traceback', filename=attachment.filename)
+        await message.channel.send(f'File automatically uploaded to gist: <{gist}>')
 
     @commands.command()
     async def error(self, ctx, times: int = 20, msg="error"):
@@ -42,7 +116,7 @@ class CommandErrorHandler(commands.Cog):
             await ctx.send(f"No such command! Please contact a Bot Manager if you are having trouble! \nPlease also refer to the help command! `{config['prefix']}help`")
             print("ingored error: " + str(ctx.command))
         else:
-            if len(exception_msg)+160 > 2000:
+            if len(exception_msg)+160 > 1024:
                 error_file = Path("error.txt")
                 error_file.touch()
                 with error_file.open("w") as f:
@@ -56,7 +130,11 @@ class CommandErrorHandler(commands.Cog):
                         guild = self.bot.get_guild(448488274562908170)
                         channel = guild.get_channel(797193549992165456)
                         embed2 = discord.Embed(title = "Traceback Detected!", description = f"**Information:**\n**Server:** {ctx.message.guild.name}\n**User:** {ctx.message.author.mention}\n**Traceback:** *Download Below*", color= 0xfc3d03)
-                        await channel.send(embed = embed2, file=discord.File(f, "error.txt"))
+                        await channel.send(embed = embed2)
+                        message = await channel.send(file=discord.File(f, "error.txt"))
+                        await self.redirect_attachments(message)
+
+
                     else:
                         await ctx.send(f"**Hey guys look!** *A developer broke something big!* They should probably get to fixing that.\nThe traceback might be helpful though, good thing it's attached:", file=discord.File(f, "error.txt"))
                     error_file.unlink()
