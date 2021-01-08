@@ -55,7 +55,7 @@ class CommandErrorHandler(commands.Cog):
                         await ctx.send(embed = embed)
                         guild = self.bot.get_guild(448488274562908170)
                         channel = guild.get_channel(797193549992165456)
-                        embed2 = discord.embed(title = "Traceback Detected!", description = f"**Information:**\n**Server:** {ctx.message.guild.name}\n**User:** {ctx.message.author.mention}\n**Traceback:** *Download Below*", color= 0xfc3d03)
+                        embed2 = discord.Embed(title = "Traceback Detected!", description = f"**Information:**\n**Server:** {ctx.message.guild.name}\n**User:** {ctx.message.author.mention}\n**Traceback:** *Download Below*", color= 0xfc3d03)
                         await channel.send(embed = embed2, file=discord.File(f, "error.txt"))
                     else:
                         await ctx.send(f"**Hey guys look!** *A developer broke something big!* They should probably get to fixing that.\nThe traceback might be helpful though, good thing it's attached:", file=discord.File(f, "error.txt"))
@@ -68,7 +68,7 @@ class CommandErrorHandler(commands.Cog):
                     await ctx.send(embed = embed)
                     guild = self.bot.get_guild(448488274562908170)
                     channel = guild.get_channel(797193549992165456)
-                    embed2 = discord.embed(title = "Traceback Detected!", description = f"**Information:**\n**Server:** {ctx.message.guild.name}\n**User:** {ctx.message.author.mention}", color= 0xfc3d03)
+                    embed2 = discord.Embed(title = "Traceback Detected!", description = f"**Information:**\n**Server:** {ctx.message.guild.name}\n**User:** {ctx.message.author.mention}", color= 0xfc3d03)
                     embed2.add_field(name = "Traceback", value = f"```\n{exception_msg}\n```")
                     await channel.send(embed = embed2)
                 else:
