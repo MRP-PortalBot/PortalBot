@@ -69,6 +69,7 @@ class CommandErrorHandler(commands.Cog):
                     res=requests.post(url,headers=headers,params=params,data=json.dumps(payload))
                     j=json.loads(res.text)
                     gisturl = "gist.github.com/%s"%(j['id'])
+                    print(gisturl)
 
                     if dev_role not in ctx.author.roles:
                         embed = discord.Embed(title = "Traceback Detected!", description = f"**Hey you!** *Mr. Turtle here has found an error, and boy is it a big one! I'll let the {dev_role.mention}'s know!*\nYou might also want to doublecheck what you sent and/or check out the help command!", color = 0xfc3d03)
@@ -78,7 +79,7 @@ class CommandErrorHandler(commands.Cog):
                         guild = self.bot.get_guild(448488274562908170)
                         channel = guild.get_channel(797193549992165456)
                         embed2 = discord.Embed(title = "Traceback Detected!", description = f"**Information:**\n**Server:** {ctx.message.guild.name}\n**User:** {ctx.message.author.mention}", color= 0xfc3d03)
-                        embed2.add_field(name = "Gist URL", value = [gisturl]("Uploaded Traceback to GIST"))
+                        embed2.add_field(name = "Gist URL", value = ["Uploaded Traceback to GIST"](gisturl))
                         await channel.send(embed = embed2)
                
            
