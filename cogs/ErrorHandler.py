@@ -114,6 +114,9 @@ class CommandErrorHandler(commands.Cog):
         embed = discord.Embed(title = "User Bug Report!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
         embed.add_field(name = "Feedback", value = bug)
         await channel.send(embed = embed)
+        resp = discord.Embed(title = "Thank You For Submitting A Bug Report!", description = "I have sucessfully sent in your bug report!", color= 0xfc8003)
+        resp.add_field(name = "Feedback Sent:", value = bug)
+        await ctx.send(embed=resp)
 
 
 
