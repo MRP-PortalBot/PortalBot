@@ -79,7 +79,7 @@ class CommandErrorHandler(commands.Cog):
                         guild = self.bot.get_guild(448488274562908170)
                         channel = guild.get_channel(797193549992165456)
                         embed2 = discord.Embed(title = "Traceback Detected!", description = f"**Information:**\n**Server:** {ctx.message.guild.name}\n**User:** {ctx.message.author.mention}", color= 0xfc3d03)
-                        embed2.add_field(name = "Gist URL", value = ["Uploaded Traceback to GIST"](gisturl))
+                        embed2.add_field(name = "Gist URL", value = f"[Uploaded Traceback to GIST]({gisturl})")
                         await channel.send(embed = embed2)
                
            
