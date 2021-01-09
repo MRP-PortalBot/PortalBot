@@ -108,11 +108,12 @@ class CommandErrorHandler(commands.Cog):
     async def bug(self, ctx, *, bug : str):
         author = ctx.message.author
         channel = ctx.message.channel
+        responseguild = ctx.message.guild
         guild = self.bot.get_guild(448488274562908170)
         channel = guild.get_channel(797193549992165456)
-        embed = discord.Embed(title = "User Bug Report!", description = f"Author: {author.mention}\nChannel: {channel.name}", color=0xfc8003)
+        embed = discord.Embed(title = "User Bug Report!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
         embed.add_field(name = "Feedback", value = bug)
-        channel.send(embed = embed)
+        await channel.send(embed = embed)
 
 
 
