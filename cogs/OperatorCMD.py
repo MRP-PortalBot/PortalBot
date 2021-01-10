@@ -252,6 +252,5 @@ class OperatorCMD(commands.Cog):
         except IOError:
             await ctx.send("Looks like I can't find your channel's database, it may be due to the fact that the `block` command hasn't been used in your channel!")
 
-
 def setup(bot):
     bot.add_cog(OperatorCMD(bot))

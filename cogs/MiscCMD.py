@@ -57,20 +57,6 @@ class MiscCMD(commands.Cog):
         self.bot = bot
         self.bot.slash.get_cog_commands(self)
 
-    @commands.Cog.listener()
-    async def on_member_update(self, before, after):
-        if config['BotType'] == "STABLE":
-            return   #We can't track ourself, so we return
-        if after.id == 777361919211732993:
-            if after.status == discord.Status.offline and before.status != discord.Status.offline:
-                channel = self.bot.get_channel(792485617954586634)
-                now = datetime.now().strftime("%H:%M:%S")
-                embed = discord.Embed(title="⚠️ PortalBot is offline!",
-                                      description="Recorded Downtime (start): " + str(now), color=0xf03224)
-                embed.add_field(
-                    name="Restart Link", value="__https://repl.it/join/ohvpqkio-rohitturtle0__")
-                await channel.send(embed=embed)
-
     # DM Command
 
     @commands.command()
@@ -274,9 +260,10 @@ class MiscCMD(commands.Cog):
         await ctx.send(embed=embed)
     
     @commands.command() 
-    async def raiseerror(self, ctx):
-        raise Exception("Error Uh Oh, did the webhook pick it up?")
-
+    async def reply(self, ctx):
+        id = ctx.message.id
+        await ctx.reply(content = "content") 
+        
 
 def setup(bot):
     bot.add_cog(MiscCMD(bot))

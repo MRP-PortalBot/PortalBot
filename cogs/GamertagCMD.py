@@ -6,7 +6,7 @@ import re
 import asyncio
 from discord import Embed
 import requests
-
+import xbox
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -146,7 +146,7 @@ class GamertagCMD(commands.Cog):
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
         await channel.send("Success! \nWould you like to change your nickname to your gamertag? (If so, you may have to add your emojis to your nickname again!)")
-        answer7 = await self.bot.wait_for('message', check=check)
+        
 
         message = await channel.send("✅ - CHANGE NICKNAME\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['✅', '❌']
@@ -179,89 +179,65 @@ class GamertagCMD(commands.Cog):
         if isinstance(error, commands.BadArgument):
             await ctx.send("Uh oh, you didn't include all the arguments! ")
 
+
     @commands.command()
-    async def profile(self, ctx, *, profile: discord.User = None):
-        print(profile)
-        author = ctx.message.author
-        role = discord.utils.get(ctx.guild.roles, name="Realm OP")
+    async def getxbox(self, ctx):
         channel = ctx.message.channel
+        author = ctx.message.author
+        msg = await ctx.send("How do you want to search?\n**GAMERTAG** - 📇\n**XUID** - 🆔")
+        reactions = ['📇', '🆔']
+        for emoji in reactions:
+            await msg.add_reaction(emoji)
 
-        if profile == None:
-            username = ctx.message.author
-            print(username)
-        else:
-            username = profile
-            print(username)  
+        def check(m):
+            return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
-        aname = str(username.name)
-        alid = str(username.id)        
-        pfp = username.avatar_url
-        profileembed = discord.Embed(
-            title=aname + "'s Profile", description="=======================", color=0x18c927)
-        username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
+        def check2(reaction, user):
+            return user == ctx.author and (str(reaction.emoji) == '📇' or str(reaction.emoji) == '🆔')
 
         try:
-            usercell = gtsheet.find(username_re, in_column=1)
-        except:
-            print("User Not Found")
-            noprofileembed = discord.Embed(
-            title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
-            await ctx.send(embed=noprofileembed) 
-        else:
-            print("User Found!")
-
-            userrow = usercell.row
-            discordname = usercell.value
-            longid = gtsheet.cell(userrow, 2).value
-            xbox = gtsheet.cell(userrow, 3).value
-            
-            if xbox == "":
-                xbox = "N/A"
-            
-            profileembed.set_thumbnail(url=pfp)
-            profileembed.add_field(name="Discord", value=discordname, inline=True)
-            profileembed.add_field(name="LongID", value=longid, inline=True)
-            profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)     
-            profileembed.set_footer(text="Requested by " + author.name)
-            if role in author.roles: 
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=100.0, check=check2)
+            if str(reaction.emoji) == "📇":
+                for emoji in reactions:
+                    await msg.clear_reaction(emoji)
+                await ctx.send("Please enter the Gamertag")
+                messageopt1 = await self.bot.wait_for('message', check=check)
+                messageopt1c = messageopt1.content
                 try:
-                    longid = sheet.find(longid, in_column=2)
-                except:
-                    try:
-                        discordname = sheet.find(username_re, in_column=1)
-                    except:
-                        await ctx.send(embed=profileembed)
-                    else:
-                        profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
-                        await ctx.send(embed=profileembed)
+                    profile = xbox.GamerProfile.from_gamertag(messageopt1c)
+                except xbox.exceptions.GamertagNotFound:
+                    embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                    embed.add_field(name = "Information", value = "No results found!")
+                    await ctx.send(embed = embed)
                 else:
-                    profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
-                    await ctx.send(embed=profileembed)
+                    embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                    embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+                    embed.set_thumbnail(url = profile.gamerpic)
+                    await ctx.send(embed =embed)
+                return
             else:
-                await ctx.send(embed=profileembed)
+                for emoji in reactions:
+                    await msg.clear_reaction(emoji)
+                await ctx.send("Please enter the XUID")
+                messageopt2 = await self.bot.wait_for('message', check=check)
+                messageopt1c = messageopt2.content
+                try:
+                    profile = xbox.GamerProfile.from_xuid(messageopt1c)
+                except xbox.exceptions.GamertagNotFound:
+                    embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                    embed.add_field(name = "Information", value = "No results found!")
+                    await ctx.send(embed = embed)
+                else:
+                    embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
+                    embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+                    embed.set_thumbnail(url = profile.gamerpic)
+                    await ctx.send(embed =embed)
+                return
 
 
-    @profile.error
-    async def profile_error(self, ctx, error):
-        author = ctx.message.author
-        if isinstance(error, commands.UserNotFound):
-            noprofileembed = discord.Embed(
-            title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
-            await ctx.send(embed=noprofileembed)
+        except asyncio.TimeoutError:
+            await channel.send("Looks like you didn't react in time, please try again later!")
 
-        else:
-            raise error          
-
-
-    @commands.command()
-    async def getname(self, ctx, member: discord.Member):
-
-        await ctx.send(f'User name: {member.name}, id: {member.id}')
-
-        with requests.get(member.avatar_url_as(format='png')) as r:
-            img_data = r.content
-        with open(f'{member.name}.png', 'wb') as f:
-            f.write(img_data)
 
 
 '''

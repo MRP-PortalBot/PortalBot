@@ -15,9 +15,17 @@ from discord_slash import SlashContext
 import subprocess
 import time
 import sys
+import aiohttp
+import xbox
 
+xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
 
-
+'''
+- Incase REPL has problems finding packages: (Manual PIP Install)
+pip install discord-py-slash-command
+pip install --upgrade sentry-sdk
+pip install discord-sentry-reporting
+'''
 
 #Filling botconfig incase the file is missing
 prompt_config("Enter bot prefix here: ", "prefix")
@@ -247,5 +255,15 @@ async def shell(ctx, * , command):
     embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
     await ctx.send(embed = embed)
     
+@client.command()
+@commands.has_role('Bot Manager')
+async def sentry(ctx):
+    embed = discord.Embed(title = 'Sentry Traceback Logging', description = f"TYPE: PortalBot -{config['BotType']}", color = 0x4c594b)
+    embed.set_thumbnail(url = "http://myovchev.github.io/sentry-slack/images/logo32.png")
+    embed.add_field(name = "Sentry Project", value = "**BETA:** https://sentry.io/organizations/space-turtle0/issues/?project=5579376 \n**STABLE:** https://sentry.io/organizations/space-turtle0/issues/?project=5579425")
+    await ctx.send(embed = embed)
 
 client.run(os.getenv("TOKEN"))
+
+
+
