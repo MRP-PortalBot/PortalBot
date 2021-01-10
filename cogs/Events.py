@@ -14,7 +14,7 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         if member.guild.id == 192052103017922567:
-            return
+            print("Ignored")
         elif member.guild.id == 587495640502763521:
             guild = self.bot.get_guild(587495640502763521)
             channel = guild.get_channel(791066359013441546)
@@ -25,7 +25,7 @@ class Events(commands.Cog):
             await channel.send(embed=embed)
         else:
             print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
-            return
+            
 
 
 def setup(bot):
