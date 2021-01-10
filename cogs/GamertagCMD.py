@@ -190,7 +190,7 @@ class GamertagCMD(commands.Cog):
             await msg.add_reaction(emoji)
 
         def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user and m.author == author
+            return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
         def check2(reaction, user):
             return user == ctx.author and (str(reaction.emoji) == '📇' or str(reaction.emoji) == '🆔')
@@ -212,7 +212,6 @@ class GamertagCMD(commands.Cog):
                 else:
                     embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
                     embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
-                    embed.add_field(name = "Profile Links", value = f"**XBOX Lookup:** https://xboxgamertag.com/search/{profile.gamertag} \n**XBOX Profile:** https://account.xbox.com/en-us/profile?gamertag={profile.gamertag}")
                     embed.set_thumbnail(url = profile.gamerpic)
                     await ctx.send(embed =embed)
                 return
@@ -231,7 +230,6 @@ class GamertagCMD(commands.Cog):
                 else:
                     embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
                     embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
-                    embed.add_field(name = "Profile Links", value = f"**XBOX Lookup:** https://xboxgamertag.com/search/{profile.gamertag} \n**XBOX Profile:** https://account.xbox.com/en-us/profile?gamertag={profile.gamertag}")
                     embed.set_thumbnail(url = profile.gamerpic)
                     await ctx.send(embed =embed)
                 return

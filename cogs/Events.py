@@ -42,17 +42,12 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        if member.guild.id == 192052103017922567:
-            return
-        elif member.guild.id == 587495640502763521:
-            channel = self.bot.get_channel(588813558486269956)
-            count = int(member.guild.member_count) + 1
-            embed = discord.Embed(title = "Welcome to the Minecraft Realm Portal!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
-            embed.set_thumbnail(url=member.avatar_url)
-            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
-            await channel.send(embed=embed)
-        else:
-            print(f"Exception: {member.guild.name} is not being tracked! | {member.display_name}")
+        channel = self.bot.get_channel(791066359013441546)
+        count = int(member.guild.member_count) + 1
+        embed = discord.Embed(title = "Welcome to the Minecraft Realm Portal!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
+        await channel.send(embed=embed)
 
 
 def setup(bot):
