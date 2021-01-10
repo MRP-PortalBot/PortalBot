@@ -117,7 +117,7 @@ class BlacklistCMD(commands.Cog):
                answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
         sheet.insert_row(row, 3)
 
-        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 150 seconds to react, otherwise the application will automaically cancel.* ")
+        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['✅', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
@@ -153,7 +153,10 @@ class BlacklistCMD(commands.Cog):
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
 
-
+    @blacklist.error
+    async def blacklist_error(self, ctx, error):
+        if isinstance(error, commands.MissingRole):
+            await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
 
     @commands.command()
     @commands.has_role("Realm OP")

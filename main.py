@@ -58,7 +58,7 @@ from discord_sentry_reporting import use_sentry
 
 use_sentry(
     client,  # it is typically named client or bot
-    dsn="https://ae6e454771e04016b0d97d96ac7eece8@o500070.ingest.sentry.io/5579425",
+    dsn="https://75b468c0a2e34f8ea4b724ca2a5e68a1@o500070.ingest.sentry.io/5579376",
     traces_sample_rate=1.0    
 )
 
@@ -83,13 +83,6 @@ def get_extensions():  # Gets extension list dynamically
 def force_restart():  #Forces REPL to apply changes to everything
     subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
     sys.exit(0)
-    
-@client.check
-async def globally_block_gamingportal(ctx):
-    if ctx.guild.id == 192052103017922567:
-        return
-    else:
-        return True
 
 @client.event
 async def on_ready():
@@ -231,7 +224,7 @@ async def gitpull(ctx):
     elif typebot == "STABLE":
         p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
         output += p.stdout
-        p = subprocess.run("git reset --hard origin/main", shell=True, text=True, capture_output=True, check=True)
+        p = subprocess.run("git reset --hard origin/master", shell=True, text=True, capture_output=True, check=True)
         output += p.stdout
         embed = discord.Embed(title = "GitHub Local Reset", description = "Local Files changed to match PortalBot/Main", color = 0x3af250)
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
