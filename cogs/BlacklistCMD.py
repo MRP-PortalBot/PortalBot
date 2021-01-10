@@ -153,7 +153,10 @@ class BlacklistCMD(commands.Cog):
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
 
-
+    @blacklist.error
+    async def blacklist_error(self, ctx, error):
+        if isinstance(error, commands.MissingRole):
+            await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
 
     @commands.command()
     @commands.has_role("Realm OP")
