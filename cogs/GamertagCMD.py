@@ -205,6 +205,8 @@ class GamertagCMD(commands.Cog):
                 messageopt1c = messageopt1.content
                 try:
                     profile = xbox.GamerProfile.from_gamertag(messageopt1c)
+                    gamertagvalue = profile.gamertag
+                    GT = gamertagvalue.replace(" ", "-")
                 except xbox.exceptions.GamertagNotFound:
                     embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
                     embed.add_field(name = "Information", value = "No results found!")
@@ -212,6 +214,7 @@ class GamertagCMD(commands.Cog):
                 else:
                     embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
                     embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+                    embed.add_field(name = "Profile Links", value = f"**XBOX Lookup:** https://xboxgamertag.com/search/{GT} \n**XBOX Profile:** https://account.xbox.com/en-us/profile?gamertag={GT}")
                     embed.set_thumbnail(url = profile.gamerpic)
                     await ctx.send(embed =embed)
                 return
@@ -223,6 +226,8 @@ class GamertagCMD(commands.Cog):
                 messageopt1c = messageopt2.content
                 try:
                     profile = xbox.GamerProfile.from_xuid(messageopt1c)
+                    gamertagvalue = profile.gamertag
+                    GT = gamertagvalue.replace(" ", "-")
                 except xbox.exceptions.GamertagNotFound:
                     embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
                     embed.add_field(name = "Information", value = "No results found!")
@@ -230,6 +235,7 @@ class GamertagCMD(commands.Cog):
                 else:
                     embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {author.mention}", color =0x18c927)
                     embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+                    embed.add_field(name = "Profile Links", value = f"**XBOX Lookup:** https://xboxgamertag.com/search/{GT} \n**XBOX Profile:** https://account.xbox.com/en-us/profile?gamertag={GT}")
                     embed.set_thumbnail(url = profile.gamerpic)
                     await ctx.send(embed =embed)
                 return
