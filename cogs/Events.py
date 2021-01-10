@@ -7,35 +7,6 @@ import asyncio
 from discord import Embed
 import requests
 
-# --------------------------------------------------
-# pip3 install gspread oauth2client
-
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
-scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
-         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
-
-creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
-
-client = gspread.authorize(creds)
-
-gtsheet = client.open("Gamertag Data").sheet1
-sheet = client.open("MRP Blacklist Data").sheet1
-# 3 Values to fill
-
-# Template on modfying spreadsheet
-'''
-gtrow = ["1", "2", "3"]
-gtsheet.insert_row(row, 3)
-print("Done.")
-
-gtcell = sheet.cell(3,1).value
-print(cell)
-'''
-# -----------------------------------------------------
-
-
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
