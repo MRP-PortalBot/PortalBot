@@ -190,7 +190,7 @@ class GamertagCMD(commands.Cog):
             await msg.add_reaction(emoji)
 
         def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+            return m.content is not None and m.channel == channel and m.author is not self.bot.user and m.author == author
 
         def check2(reaction, user):
             return user == ctx.author and (str(reaction.emoji) == '📇' or str(reaction.emoji) == '🆔')
