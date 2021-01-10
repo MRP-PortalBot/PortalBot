@@ -85,7 +85,7 @@ class CommandErrorHandler(commands.Cog):
                         await channel.send(embed = embed2)
     
                     else:
-                        await ctx.send(f"**Hey guys look!** *A developer broke something big!* They should probably get to fixing that.\nThe traceback might be helpful though, good thing it's attached: [Uploaded Traceback to GIST](https://gist.github.com/{ID})")
+                        await ctx.send(f"**Hey guys look!** *A developer broke something big!* They should probably get to fixing that.\nThe traceback might be helpful though, good thing it's attached: \n> **https://gist.github.com/{ID}**")
                     error_file.unlink()
             else:
                 if dev_role not in ctx.author.roles:
