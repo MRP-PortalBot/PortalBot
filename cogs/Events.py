@@ -45,7 +45,8 @@ class Events(commands.Cog):
         if member.guild.id == 192052103017922567:
             return
         elif member.guild.id == 587495640502763521:
-            channel = self.bot.get_channel(791066359013441546)
+            guild = self.bot.get_guild(587495640502763521)
+            channel = guild.get_channel(791066359013441546)
             count = int(member.guild.member_count) + 1
             embed = discord.Embed(title = "Welcome to the Minecraft Realm Portal!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
             embed.set_thumbnail(url=member.avatar_url)
