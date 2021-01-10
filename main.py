@@ -224,7 +224,7 @@ async def gitpull(ctx):
     elif typebot == "STABLE":
         p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
         output += p.stdout
-        p = subprocess.run("git reset --hard origin/master", shell=True, text=True, capture_output=True, check=True)
+        p = subprocess.run("git reset --hard origin/main", shell=True, text=True, capture_output=True, check=True)
         output += p.stdout
         embed = discord.Embed(title = "GitHub Local Reset", description = "Local Files changed to match PortalBot/Main", color = 0x3af250)
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
