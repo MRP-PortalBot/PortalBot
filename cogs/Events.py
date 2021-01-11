@@ -17,7 +17,7 @@ class Events(commands.Cog):
             guild = self.bot.get_guild(587495640502763521)
             channel = guild.get_channel(588813558486269956)
             count = int(member.guild.member_count) + 1
-            embed = discord.Embed(title = f"Welcome to the {member.guild.name}", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
+            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
             embed.set_thumbnail(url=member.avatar_url)
             embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
             await channel.send(embed=embed)
