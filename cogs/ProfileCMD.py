@@ -20,7 +20,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 
 client = gspread.authorize(creds)
 
-gtsheet = client.open("Gamertag Data").sheet1
+gtsheet = client.open("PortalbotProfile").sheet1
 sheet = client.open("MRP Blacklist Data").sheet1
 # 3 Values to fill
 
