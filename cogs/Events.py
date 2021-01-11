@@ -54,6 +54,7 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        guild = self.bot.get_guild(587495640502763521)
         channel = guild.get_channel(791066359013441546)
         await channel.send("This Worked")
             
