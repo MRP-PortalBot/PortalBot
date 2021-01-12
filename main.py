@@ -92,7 +92,7 @@ async def mainModeCheck(ctx):
         with open("commandcheck.txt", "r") as f:
             first_line = f.readline()
         if first_line == "ON": #Mode ON, so return False
-            p = subprocess.run("git describe --always --dirty", shell=True, text=True, capture_output=True, check=True)
+            p = subprocess.run("git describe --always", shell=True, text=True, capture_output=True, check=True)
             output = p.stdout
             embed = discord.Embed(title = "⚠️ Maintenance Mode is Currently Active!", description = f"Currently PortalBot is updating to the latest version! \n**GitHub Version:** `{output}`", color = 0xfce303)
             embed.add_field(name = "Check Back Later!", value= "A developer is currently syncing changes with GitHub!")
@@ -294,17 +294,22 @@ async def sentry(ctx):
     embed.add_field(name = "Sentry Project", value = "**BETA:** https://sentry.io/organizations/space-turtle0/issues/?project=5579376 \n**STABLE:** https://sentry.io/organizations/space-turtle0/issues/?project=5579425")
     await ctx.send(embed = embed)
 
-@client.command()
+@client.command
 @commands.has_role('Bot Manager')
 async def maintenance(ctx, choice : str):
+    #0xfce303
     if choice == None:
         await ctx.send("Locks every command to only Bot Manager, this will be automatically applied when restarting the bot.")
     elif choice == "ON" or choice == "on" or choice == "On":
         with open("commandcheck.txt", "w") as f:
             f.write("ON")
+        embed = discord.Embed(title = "⚠️ Activated Maintenance Mode!", description = "Maintenance Mode has been turned **ON** and all commands will be locked to Bot Manager **ONLY**", color = 0xfce303)
+        await ctx.send(embed = embed)
     elif choice == "OFF" or choice == "off" or choice == "Off":
         with open("commandcheck.txt", "w") as f:
             f.write("OFF")
+        embed = discord.Embed(title = "⚠️ Removed Maintenance Mode!", description = "Maintenance Mode has been turned **OFF** and commands will be available to everyone again.", color = 0xfce303)
+        await ctx.send(embed = embed)
     else:
         await ctx.send("Sorry, I didn't understand you!\nChoices: ON/OFF")
 
