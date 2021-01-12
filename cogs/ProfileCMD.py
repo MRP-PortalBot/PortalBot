@@ -35,6 +35,10 @@ print(cell)
 '''
 # -----------------------------------------------------
 
+xboxcol = 3
+
+# -----------------------------------------------------
+
 '''
 class GamertagCMD(commands.Cog):
     def __init__(self, bot):
@@ -199,10 +203,11 @@ class ProfileCMD(commands.Cog):
             print(username)  
 
         aname = str(username.name)
+        anick = str(username.nick)
         alid = str(username.id)        
         pfp = username.avatar_url
         profileembed = discord.Embed(
-            title=aname + "'s Profile", description="=======================", color=0x18c927)
+            title=anick + "'s Profile", description="=======================", color=0x18c927)
         username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
 
         try:
@@ -218,7 +223,7 @@ class ProfileCMD(commands.Cog):
             userrow = usercell.row
             discordname = gtsheet.cell(userrow, 1).value
             longid = gtsheet.cell(userrow, 2).value
-            xbox = gtsheet.cell(userrow, 3).value
+            xbox = gtsheet.cell(userrow, xboxcol).value
             
             if xbox == "":
                 xbox = "N/A"
@@ -263,10 +268,6 @@ class ProfileCMD(commands.Cog):
         username = ctx.message.author
         aname = str(username.name)
         alid = str(username.id)        
-        pfp = username.avatar_url
-        profileembed = discord.Embed(
-            title=aname + "'s XBOX Gamertag", description="=======================", color=0x18c927)
-        username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
 
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
@@ -290,7 +291,7 @@ class ProfileCMD(commands.Cog):
         else:
             userrow = usercell.row
             xbox = xboxid
-            gtsheet.update_cell(userrow, 3, str(xbox))
+            gtsheet.update_cell(userrow, xboxcol, str(xbox))
             print("User Found!")
             await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
 
