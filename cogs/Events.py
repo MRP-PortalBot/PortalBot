@@ -53,6 +53,7 @@ class Events(commands.Cog):
             print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
 
 # profile events ---------------------------------------
+'''
     @commands.Cog.listener()
     async def on_member_join(self, member):
         username = member
@@ -69,7 +70,7 @@ class Events(commands.Cog):
             row = [discordname, longid]
             print(row)
             gtsheet.insert_row(row, 3)
-            
+'''            
 
 
 def setup(bot):
