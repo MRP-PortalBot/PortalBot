@@ -84,7 +84,7 @@ def force_restart():  #Forces REPL to apply changes to everything
     subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
     sys.exit(0)
 
-@client.check()
+@client.check
 async def mainModeCheck(ctx):
     dev_role = discord.utils.get(ctx.guild.roles, name='Bot Manager') #Role Check
 
