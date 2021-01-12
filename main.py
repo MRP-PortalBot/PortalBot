@@ -294,9 +294,9 @@ async def sentry(ctx):
     embed.add_field(name = "Sentry Project", value = "**BETA:** https://sentry.io/organizations/space-turtle0/issues/?project=5579376 \n**STABLE:** https://sentry.io/organizations/space-turtle0/issues/?project=5579425")
     await ctx.send(embed = embed)
 
-@client.command
+@client.command()
 @commands.has_role('Bot Manager')
-async def maintenance(ctx, choice : str = None):
+async def maintenance(ctx, choice = None):
     #0xfce303
     if choice == None:
         await ctx.send("Locks every command to only Bot Manager, this will be automatically applied when restarting the bot.")
