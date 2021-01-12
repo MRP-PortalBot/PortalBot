@@ -25,6 +25,8 @@ xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
 pip install discord-py-slash-command
 pip install --upgrade sentry-sdk
 pip install discord-sentry-reporting
+
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 '''
 
 #Filling botconfig incase the file is missing
@@ -95,12 +97,12 @@ async def mainModeCheck(ctx):
             p = subprocess.run("git describe --always", shell=True, text=True, capture_output=True, check=True)
             output = p.stdout
             embed = discord.Embed(title = "⚠️ Maintenance Mode is Currently Active!", description = f"Currently PortalBot is updating to the latest version! \n**GitHub Version:** `{output}`", color = 0xfce303)
-            embed.add_field(name = "Check Back Later!", value= "A developer is currently syncing changes with GitHub!")
+            embed.add_field(name = "Check Back Later!", value= "A developer is currently syncing changes with GitHub!\n\nCheck [PortalBots Status Page](https://space-turtle0.github.io/PortalBOT-Hosting/) for an update! ")
             await ctx.send(embed = embed)
             return False
         elif first_line == "OFF": #Mode OFF, so return TRUE
             return True
-        else: #Saftey, so return TRUE
+        else: #Safety, so return TRUE
             print("WARNING: commandcheck.txt has an unknown value, passing TRUE for now. ")
             return True
     else:
@@ -299,7 +301,8 @@ async def sentry(ctx):
 async def maintenance(ctx, choice = None):
     #0xfce303
     if choice == None:
-        await ctx.send("Locks every command to only Bot Manager, this will be automatically applied when restarting the bot.")
+        embed = discord.Embed(title = "About Maintenance Mode", description = "Upon activating this, every commands will be locked and Bot Managers will be the one ones who can invoke commands. This will be automatically enabled when attempting to reload a cog or when using gitpull!", color = 0xfce303)
+        await ctx.send(embed=embed )
     elif choice == "ON" or choice == "on" or choice == "On":
         with open("commandcheck.txt", "w") as f:
             f.write("ON")
