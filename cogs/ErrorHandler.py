@@ -43,9 +43,13 @@ class CommandErrorHandler(commands.Cog):
         exception_msg = ""
         for line in exception:
             exception_msg += line
+        
+        if isinstance(error, commands.CheckFailure) or isinstance(error, commands.CheckAnyFailure):
+            return
 
         if hasattr(ctx.command, 'on_error'):
             return
+
         elif isinstance(error, commands.CommandNotFound):
             config, _ = core.common.load_config()
             await ctx.send(f"No such command! Please contact a Bot Manager if you are having trouble! \nPlease also refer to the help command! `{config['prefix']}help`")

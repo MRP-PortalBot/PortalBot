@@ -84,6 +84,29 @@ def force_restart():  #Forces REPL to apply changes to everything
     subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
     sys.exit(0)
 
+@client.check()
+async def mainModeCheck(ctx):
+    dev_role = discord.utils.get(ctx.guild.roles, name='Bot Manager') #Role Check
+
+    if dev_role not in ctx.author.roles:
+        with open("commandcheck.txt", "r") as f:
+            first_line = f.readline()
+        if first_line == "ON": #Mode ON, so return False
+            p = subprocess.run("git describe --always --dirty", shell=True, text=True, capture_output=True, check=True)
+            output = p.stdout
+            embed = discord.Embed(title = "⚠️ Maintenance Mode is Currently Active!", description = f"Currently PortalBot is updating to the latest version! \n**GitHub Version:** `{output}`", color = 0xfce303)
+            embed.add_field(name = "Check Back Later!", value= "A developer is currently syncing changes with GitHub!")
+            await ctx.send(embed = embed)
+            return False
+        elif first_line == "OFF": #Mode OFF, so return TRUE
+            return True
+        else: #Saftey, so return TRUE
+            print("WARNING: commandcheck.txt has an unknown value, passing TRUE for now. ")
+            return True
+    else:
+        #Bot Managers don't need to go through the process, it lets them do commands regardless of the lock.
+        return True
+ 
 @client.event
 async def on_ready():
     print(discord.__version__)
@@ -99,6 +122,8 @@ async def on_ready():
     channel = client.get_channel(792485617954586634)
     embed = discord.Embed(title = f"{client.user.name} is back up!", description = "Time: " + now, color = 0x3df5a2)
     await channel.send(embed=embed)
+    with open("commandcheck.txt", "w") as f:
+        f.write("OFF")
 
 keep_alive.keep_alive()  # webserver setup, used w/ REPL
 
@@ -150,12 +175,16 @@ async def load(ctx, ext):
 @cogs.command(aliases=['restart'])
 @commands.has_role('Bot Manager')
 async def reload(ctx, ext):
+    with open("commandcheck.txt", "w") as f:
+        f.write("ON")
     if ext == "all":
         embed = discord.Embed(
             title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
         for extension in get_extensions():
             client.reload_extension(extension)
         await ctx.send(embed=embed)
+        with open("commandcheck.txt", "w") as f:
+            f.write("OFF")
         return
 
     if "cogs." not in ext:
@@ -166,10 +195,13 @@ async def reload(ctx, ext):
         embed = discord.Embed(
             title="Cogs - Reload", description=f"Reloaded cog: {ext}", color=0xd6b4e8)
         await ctx.send(embed=embed)
+
     else:
         embed = discord.Embed(
             title="Cogs - Reload", description=f"Cog '{ext}' not found.", color=0xd6b4e8)
         await ctx.send(embed=embed)
+    with open("commandcheck.txt", "w") as f:
+        f.write("OFF")
 
 
 @cogs.command()
@@ -208,6 +240,8 @@ async def remove(ctx, commandid, guildid = None):
 @client.command()
 @commands.has_role('Bot Manager')
 async def gitpull(ctx):
+    with open("commandcheck.txt", "w") as f:
+        f.write("ON")
     typebot = config['BotType']
     output = ''
     if typebot == "BETA":
@@ -219,6 +253,8 @@ async def gitpull(ctx):
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
+        with open("commandcheck.txt", "w") as f:
+            f.write("OFF")
         force_restart()
 
     elif typebot == "STABLE":
@@ -230,6 +266,8 @@ async def gitpull(ctx):
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
+        with open("commandcheck.txt", "w") as f:
+            f.write("OFF")
         force_restart()
 
 @client.command()
@@ -255,6 +293,20 @@ async def sentry(ctx):
     embed.set_thumbnail(url = "http://myovchev.github.io/sentry-slack/images/logo32.png")
     embed.add_field(name = "Sentry Project", value = "**BETA:** https://sentry.io/organizations/space-turtle0/issues/?project=5579376 \n**STABLE:** https://sentry.io/organizations/space-turtle0/issues/?project=5579425")
     await ctx.send(embed = embed)
+
+@client.command()
+@commands.has_role('Bot Manager')
+async def maintenance(ctx, choice : str):
+    if choice == None:
+        await ctx.send("Locks every command to only Bot Manager, this will be automatically applied when restarting the bot.")
+    elif choice == "ON" or choice == "on" or choice == "On":
+        with open("commandcheck.txt", "w") as f:
+            f.write("ON")
+    elif choice == "OFF" or choice == "off" or choice == "Off":
+        with open("commandcheck.txt", "w") as f:
+            f.write("OFF")
+    else:
+        await ctx.send("Sorry, I didn't understand you!\nChoices: ON/OFF")
 
 client.run(os.getenv("TOKEN"))
 
