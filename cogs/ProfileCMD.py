@@ -299,6 +299,53 @@ class ProfileCMD(commands.Cog):
             print("User Found!")
             await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
 
+    @profile.command()
+    async def remove(self, ctx):
+        channel = ctx.message.channel
+        username = ctx.message.author
+        aname = str(username.name)
+        alid = str(username.id)
+        cellclear = str("")        
+
+        def check(m):
+            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        
+        await channel.send("What would you like to remove")
+        
+        message = await channel.send("✅ - XBOX\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        reactions = ['✅', '❌']
+        for emoji in reactions:
+            await message.add_reaction(emoji)
+
+        def check2(reaction, user):
+            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+        
+        try:
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
+            if str(reaction.emoji) == "❌":
+                await channel.send("Okay, nothing will be removed!")
+                for emoji in reactions:
+                    await message.clear_reaction(emoji)
+                return
+            else:
+                try:
+                    usercell = gtsheet.find(alid, in_column=2)
+                except:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    await ctx.send("User has no profile")
+                else:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    userrow = usercell.row
+                    xbox = cellclear
+                    gtsheet.update_cell(userrow, xboxcol, str(xbox))
+                    print("User Found!")
+                    await channel.send("Success!, You have removed XBOX Gamertag from your profile!")
+
+        except asyncio.TimeoutError:
+            await channel.send("Looks like you didn't react in time, please try again later!")
+
 
 
 
