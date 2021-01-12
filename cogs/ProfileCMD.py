@@ -203,7 +203,11 @@ class ProfileCMD(commands.Cog):
             print(username)  
 
         aname = str(username.name)
-        anick = str(username.nick)
+        if username.nick == None:
+            anick = str(username.name)
+        else:
+            anick = str(username.nick)
+
         alid = str(username.id)        
         pfp = username.avatar_url
         profileembed = discord.Embed(
