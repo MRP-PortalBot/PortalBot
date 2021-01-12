@@ -296,7 +296,7 @@ async def sentry(ctx):
 
 @client.command
 @commands.has_role('Bot Manager')
-async def maintenance(ctx, choice : str):
+async def maintenance(ctx, choice : str = None):
     #0xfce303
     if choice == None:
         await ctx.send("Locks every command to only Bot Manager, this will be automatically applied when restarting the bot.")
