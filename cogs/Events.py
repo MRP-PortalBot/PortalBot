@@ -52,11 +52,23 @@ class Events(commands.Cog):
         else:
             print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
 
+# profile events ---------------------------------------
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        guild = self.bot.get_guild(448488274562908170)
-        channel = guild.get_channel(791066359013441546)
-        await channel.send("This Worked")
+        username = member
+        alid = str(username.id)        
+
+        try:
+            usercell = gtsheet.find(alid, in_column=2)
+        except:
+            print("User already exists in sheet!")
+        else:
+            discordname = str(username.name + "#" + username.discriminator)
+            longid = alid
+
+            row = [discordname, longid]
+            print(row)
+            gtsheet.insert_row(row, 3)
             
 
 

@@ -312,8 +312,8 @@ class ProfileCMD(commands.Cog):
         
         await channel.send("What would you like to remove")
         
-        message = await channel.send("✅ - XBOX\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
-        reactions = ['✅', '❌']
+        message = await channel.send("1️⃣ - XBOX\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        reactions = ['1️⃣', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
 
