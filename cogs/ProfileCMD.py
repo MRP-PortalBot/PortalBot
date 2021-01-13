@@ -20,7 +20,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 
 client = gspread.authorize(creds)
 
-gtsheet = client.open("Gamertag Data").sheet1
+gtsheet = client.open("PortalbotProfile").sheet1
 sheet = client.open("MRP Blacklist Data").sheet1
 # 3 Values to fill
 
@@ -33,6 +33,10 @@ print("Done.")
 gtcell = sheet.cell(3,1).value
 print(cell)
 '''
+# -----------------------------------------------------
+
+xboxcol = 3
+
 # -----------------------------------------------------
 
 '''
@@ -199,10 +203,15 @@ class ProfileCMD(commands.Cog):
             print(username)  
 
         aname = str(username.name)
+        if username.nick == None:
+            anick = str(username.name)
+        else:
+            anick = str(username.nick)
+
         alid = str(username.id)        
         pfp = username.avatar_url
         profileembed = discord.Embed(
-            title=aname + "'s Profile", description="=======================", color=0x18c927)
+            title=anick + "'s Profile", description="=======================", color=0x18c927)
         username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
 
         try:
@@ -218,15 +227,13 @@ class ProfileCMD(commands.Cog):
             userrow = usercell.row
             discordname = gtsheet.cell(userrow, 1).value
             longid = gtsheet.cell(userrow, 2).value
-            xbox = gtsheet.cell(userrow, 3).value
-            
-            if xbox == "":
-                xbox = "N/A"
+            xbox = gtsheet.cell(userrow, xboxcol).value
             
             profileembed.set_thumbnail(url=pfp)
             profileembed.add_field(name="Discord", value=discordname, inline=True)
             profileembed.add_field(name="LongID", value=longid, inline=True)
-            profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)     
+            if xbox != "":
+                profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)     
             profileembed.set_footer(text="Requested by " + author.name)
             if role in author.roles: 
                 try:
@@ -263,10 +270,6 @@ class ProfileCMD(commands.Cog):
         username = ctx.message.author
         aname = str(username.name)
         alid = str(username.id)        
-        pfp = username.avatar_url
-        profileembed = discord.Embed(
-            title=aname + "'s XBOX Gamertag", description="=======================", color=0x18c927)
-        username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
 
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
@@ -290,9 +293,56 @@ class ProfileCMD(commands.Cog):
         else:
             userrow = usercell.row
             xbox = xboxid
-            gtsheet.update_cell(userrow, 3, str(xbox))
+            gtsheet.update_cell(userrow, xboxcol, str(xbox))
             print("User Found!")
             await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
+
+    @profile.command()
+    async def remove(self, ctx):
+        channel = ctx.message.channel
+        username = ctx.message.author
+        aname = str(username.name)
+        alid = str(username.id)
+        cellclear = str("")        
+
+        def check(m):
+            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        
+        await channel.send("What would you like to remove")
+        
+        message = await channel.send("1️⃣ - XBOX\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        reactions = ['1️⃣', '❌']
+        for emoji in reactions:
+            await message.add_reaction(emoji)
+
+        def check2(reaction, user):
+            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+        
+        try:
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
+            if str(reaction.emoji) == "❌":
+                await channel.send("Okay, nothing will be removed!")
+                for emoji in reactions:
+                    await message.clear_reaction(emoji)
+                return
+            else:
+                try:
+                    usercell = gtsheet.find(alid, in_column=2)
+                except:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    await ctx.send("User has no profile")
+                else:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    userrow = usercell.row
+                    xbox = cellclear
+                    gtsheet.update_cell(userrow, xboxcol, str(xbox))
+                    print("User Found!")
+                    await channel.send("Success!, You have removed XBOX Gamertag from your profile!")
+
+        except asyncio.TimeoutError:
+            await channel.send("Looks like you didn't react in time, please try again later!")
 
 
 

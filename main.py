@@ -17,6 +17,7 @@ import time
 import sys
 import aiohttp
 import xbox
+import traceback
 
 xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
 
@@ -25,6 +26,8 @@ xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
 pip install discord-py-slash-command
 pip install --upgrade sentry-sdk
 pip install discord-sentry-reporting
+
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 '''
 
 #Filling botconfig incase the file is missing
@@ -84,6 +87,29 @@ def force_restart():  #Forces REPL to apply changes to everything
     subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
     sys.exit(0)
 
+@client.check
+async def mainModeCheck(ctx):
+    dev_role = discord.utils.get(ctx.guild.roles, name='Bot Manager') #Role Check
+
+    if dev_role not in ctx.author.roles:
+        with open("commandcheck.txt", "r") as f:
+            first_line = f.readline()
+        if first_line == "ON": #Mode ON, so return False
+            p = subprocess.run("git describe --always", shell=True, text=True, capture_output=True, check=True)
+            output = p.stdout
+            embed = discord.Embed(title = "⚠️ Maintenance Mode is Currently Active!", description = f"Currently PortalBot is updating to the latest version! \n**GitHub Version:** `{output}`", color = 0xfce303)
+            embed.add_field(name = "Check Back Later!", value= "A developer is currently syncing changes with GitHub!\n\nCheck [PortalBots Status Page](https://space-turtle0.github.io/PortalBOT-Hosting/) for an update! ")
+            await ctx.send(embed = embed)
+            return False
+        elif first_line == "OFF": #Mode OFF, so return TRUE
+            return True
+        else: #Safety, so return TRUE
+            print("WARNING: commandcheck.txt has an unknown value, passing TRUE for now. ")
+            return True
+    else:
+        #Bot Managers don't need to go through the process, it lets them do commands regardless of the lock.
+        return True
+ 
 @client.event
 async def on_ready():
     print(discord.__version__)
@@ -99,6 +125,8 @@ async def on_ready():
     channel = client.get_channel(792485617954586634)
     embed = discord.Embed(title = f"{client.user.name} is back up!", description = "Time: " + now, color = 0x3df5a2)
     await channel.send(embed=embed)
+    with open("commandcheck.txt", "w") as f:
+        f.write("OFF")
 
 keep_alive.keep_alive()  # webserver setup, used w/ REPL
 
@@ -150,12 +178,16 @@ async def load(ctx, ext):
 @cogs.command(aliases=['restart'])
 @commands.has_role('Bot Manager')
 async def reload(ctx, ext):
+    with open("commandcheck.txt", "w") as f:
+        f.write("ON")
     if ext == "all":
         embed = discord.Embed(
             title="Cogs - Reload", description="Reloaded all cogs", color=0xd6b4e8)
         for extension in get_extensions():
             client.reload_extension(extension)
         await ctx.send(embed=embed)
+        with open("commandcheck.txt", "w") as f:
+            f.write("OFF")
         return
 
     if "cogs." not in ext:
@@ -166,10 +198,13 @@ async def reload(ctx, ext):
         embed = discord.Embed(
             title="Cogs - Reload", description=f"Reloaded cog: {ext}", color=0xd6b4e8)
         await ctx.send(embed=embed)
+
     else:
         embed = discord.Embed(
             title="Cogs - Reload", description=f"Cog '{ext}' not found.", color=0xd6b4e8)
         await ctx.send(embed=embed)
+    with open("commandcheck.txt", "w") as f:
+        f.write("OFF")
 
 
 @cogs.command()
@@ -208,6 +243,8 @@ async def remove(ctx, commandid, guildid = None):
 @client.command()
 @commands.has_role('Bot Manager')
 async def gitpull(ctx):
+    with open("commandcheck.txt", "w") as f:
+        f.write("ON")
     typebot = config['BotType']
     output = ''
     if typebot == "BETA":
@@ -219,6 +256,8 @@ async def gitpull(ctx):
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
+        with open("commandcheck.txt", "w") as f:
+            f.write("OFF")
         force_restart()
 
     elif typebot == "STABLE":
@@ -230,6 +269,8 @@ async def gitpull(ctx):
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
+        with open("commandcheck.txt", "w") as f:
+            f.write("OFF")
         force_restart()
 
 @client.command()
@@ -239,14 +280,30 @@ async def shell(ctx, * , command):
     author = ctx.message.author
     guild = ctx.message.guild
     output = ""
-    p = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
-    output += p.stdout
-    embed = discord.Embed(title = "Shell Process", description = f"Shell Process started by {author.mention}", color = 0x4c594b)
-    num_of_fields = len(output)//1014 + 1
-    for i in range(num_of_fields):
-        embed.add_field(name="Output" if i == 0 else "\u200b",  value="```bash\n" + output[i*1014:i+1*1014] + "\n```")
-    embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-    await ctx.send(embed = embed)
+    try:
+        p = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
+        output += p.stdout
+        embed = discord.Embed(title = "Shell Process", description = f"Shell Process started by {author.mention}", color = 0x4c594b)
+        num_of_fields = len(output)//1014 + 1
+        for i in range(num_of_fields):
+            embed.add_field(name="Output" if i == 0 else "\u200b",  value="```bash\n" + output[i*1014:i+1*1014] + "\n```")
+        embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
+        await ctx.send(embed = embed)
+    except Exception as error:
+        tb = error.__traceback__
+        etype = type(error)
+        exception = traceback.format_exception(etype, error, tb, chain=True)
+        exception_msg = ""
+        for line in exception:
+            exception_msg += line
+        embed = discord.Embed(title = "Shell Process", description = f"Shell Process started by {author.mention}", color = 0x4c594b)
+        num_of_fields = len(output)//1014 + 1
+        for i in range(num_of_fields):
+            embed.add_field(name="Output" if i == 0 else "\u200b",  value="```bash\n" + exception_msg[i*1014:i+1*1014] + "\n```")
+        embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
+        await ctx.send(embed = embed)
+
+
     
 @client.command()
 @commands.has_role('Bot Manager')
@@ -255,6 +312,26 @@ async def sentry(ctx):
     embed.set_thumbnail(url = "http://myovchev.github.io/sentry-slack/images/logo32.png")
     embed.add_field(name = "Sentry Project", value = "**BETA:** https://sentry.io/organizations/space-turtle0/issues/?project=5579376 \n**STABLE:** https://sentry.io/organizations/space-turtle0/issues/?project=5579425")
     await ctx.send(embed = embed)
+
+@client.command()
+@commands.has_role('Bot Manager')
+async def maintenance(ctx, choice = None):
+    #0xfce303
+    if choice == None:
+        embed = discord.Embed(title = "About Maintenance Mode", description = "Upon activating this, every commands will be locked and Bot Managers will be the one ones who can invoke commands. This will be automatically enabled when attempting to reload a cog or when using gitpull!", color = 0xfce303)
+        await ctx.send(embed=embed )
+    elif choice == "ON" or choice == "on" or choice == "On":
+        with open("commandcheck.txt", "w") as f:
+            f.write("ON")
+        embed = discord.Embed(title = "⚠️ Activated Maintenance Mode!", description = "Maintenance Mode has been turned **ON** and all commands will be locked to Bot Manager **ONLY**", color = 0xfce303)
+        await ctx.send(embed = embed)
+    elif choice == "OFF" or choice == "off" or choice == "Off":
+        with open("commandcheck.txt", "w") as f:
+            f.write("OFF")
+        embed = discord.Embed(title = "⚠️ Removed Maintenance Mode!", description = "Maintenance Mode has been turned **OFF** and commands will be available to everyone again.", color = 0xfce303)
+        await ctx.send(embed = embed)
+    else:
+        await ctx.send("Sorry, I didn't understand you!\nChoices: ON/OFF")
 
 client.run(os.getenv("TOKEN"))
 

@@ -43,13 +43,17 @@ class CommandErrorHandler(commands.Cog):
         exception_msg = ""
         for line in exception:
             exception_msg += line
+        
+        if isinstance(error, commands.CheckFailure) or isinstance(error, commands.CheckAnyFailure):
+            return
 
         if hasattr(ctx.command, 'on_error'):
             return
+
         elif isinstance(error, commands.CommandNotFound):
             config, _ = core.common.load_config()
             await ctx.send(f"No such command! Please contact a Bot Manager if you are having trouble! \nPlease also refer to the help command! `{config['prefix']}help`")
-            print("ingored error: " + str(ctx.command))
+            print("Ignored error: " + str(ctx.command))
         else:
             if len(exception_msg)+160 > 1024:
                 error_file = Path("error.txt")
@@ -66,7 +70,7 @@ class CommandErrorHandler(commands.Cog):
                     print(f"Request URL: {url}")                    
                     headers={'Authorization':'token %s'%API_TOKEN}
                     params={'scope':'gist'}
-                    payload={"description":"GIST created by python code","public":True,"files":{"error":{"content": f"{data}"}}}
+                    payload={"description":"PortalBot encountered a Traceback!","public":True,"files":{"error":{"content": f"{data}"}}}
                     res=requests.post(url,headers=headers,params=params,data=json.dumps(payload))
                     j=json.loads(res.text)
                     ID = j['id']
@@ -85,7 +89,7 @@ class CommandErrorHandler(commands.Cog):
                         await channel.send(embed = embed2)
     
                     else:
-                        await ctx.send(f"**Hey guys look!** *A developer broke something big!* They should probably get to fixing that.\nThe traceback might be helpful though, good thing it's attached: \n> **https://gist.github.com/{ID}**")
+                        await ctx.send(f"**Beep Boop** \n🚨 *I've ran into an issue!* 🚨\nThe Developers should get back to fixing that!\n> **https://gist.github.com/{ID}**")
                     error_file.unlink()
             else:
                 if dev_role not in ctx.author.roles:
@@ -100,7 +104,7 @@ class CommandErrorHandler(commands.Cog):
                     embed2.add_field(name = "Traceback", value = f"```\n{exception_msg}\n```")
                     await channel.send(embed = embed2)
                 else:
-                    await ctx.send(f"**Hey guys look!** *A developer broke something!* They should probably get to fixing that.\nThe traceback could be useful: ```\n{exception_msg}\n```")
+                    await ctx.send(f"**Beep Boop** \n🚨 *I've ran into an issue!* 🚨\nThe Developers should get back to fixing that!\nThe traceback could be useful: ```\n{exception_msg}\n```")
             print(error)
         raise error
 
@@ -122,3 +126,4 @@ class CommandErrorHandler(commands.Cog):
 
 def setup(bot):
     bot.add_cog(CommandErrorHandler(bot))
+
