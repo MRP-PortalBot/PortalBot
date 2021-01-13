@@ -58,32 +58,19 @@ class Events(commands.Cog):
     async def on_member_join(self, member):
         username = member
         alid = str(username.id)
-        alidsheet = str(gtsheet.find(alid, in_column=2))
 
-        if alid == alidsheet:
-            print("User already exists in sheet!")
-        elif alid != alidsheet:
-            discordname = str(username.name + "#" + username.discriminator)
-            longid = alid
-
-            row = [discordname, longid]
-            print(row)
-            gtsheet.insert_row(row, 3)
-
-
-'''
         try:
-            usercell = gtsheet.find(alid, in_column=2)
+            gtsheet.find(alid, in_column=2)
         except:
-            print("User already exists in sheet!")
-        else:
             discordname = str(username.name + "#" + username.discriminator)
             longid = alid
 
             row = [discordname, longid]
             print(row)
             gtsheet.insert_row(row, 3)
-'''           
+        else:
+            print("User already exists in sheet!")
+           
 
 
 def setup(bot):
