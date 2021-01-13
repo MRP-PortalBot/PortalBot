@@ -313,9 +313,9 @@ async def sentry(ctx):
     embed.add_field(name = "Sentry Project", value = "**BETA:** https://sentry.io/organizations/space-turtle0/issues/?project=5579376 \n**STABLE:** https://sentry.io/organizations/space-turtle0/issues/?project=5579425")
     await ctx.send(embed = embed)
 
-@client.command()
+@client.command(aliases=['m','maintenance'])
 @commands.has_role('Bot Manager')
-async def maintenance(ctx, choice = None):
+async def _maintenance(ctx, choice = None):
     #0xfce303
     if choice == None:
         embed = discord.Embed(title = "About Maintenance Mode", description = "Upon activating this, every commands will be locked and Bot Managers will be the one ones who can invoke commands. This will be automatically enabled when attempting to reload a cog or when using gitpull!", color = 0xfce303)
