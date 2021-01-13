@@ -35,7 +35,13 @@ print(cell)
 '''
 # -----------------------------------------------------
 
+discordcol = 1
+longidcol = 2
 xboxcol = 3
+playstationcol = 4
+switchcol = 5
+pokemongocol = 6
+chesscol = 7
 
 # -----------------------------------------------------
 
