@@ -79,7 +79,7 @@ class CommandErrorHandler(commands.Cog):
 
                     if dev_role not in ctx.author.roles:
                         embed = discord.Embed(title = "Traceback Detected!", description = f"**Hey you!** *Mr. Turtle here has found an error, and boy is it a big one! I'll let the {dev_role.mention}'s know!*\nYou might also want to doublecheck what you sent and/or check out the help command!", color = 0xfc3d03)
-                        embed.add_field(name = "Bug Reporting", value = f"Have any extra information that could help resolve this issue? Feel free to use the **{config['prefix']}bug** command! \nUsage: `{config['prefix']}bug (extra valuable information here!)` \n\nExamples of helpful information! \n\n- Any arguments you provided with the command\n- What the actual problem was (What went wrong?)\n- Any other information that could help!")
+                        embed.add_field(name = "Bug Reporting", value = f"Have any extra information that could help resolve this issue? Feel free to use the **{config['prefix']}bug** command! \nUsage: `{config['prefix']}bug (extra valuable information here!)` \n\n**⚠️ Tracebacks get automatically reported! Feel free to add in a bug report though!** \n\nExamples of helpful information! \n\n- Any arguments you provided with the command\n- What the actual problem was (What went wrong?)\n- Any other information that could help!")
                         embed.set_footer(text = f"Error: {str(error)}")
                         await ctx.send(embed = embed)
                         guild = self.bot.get_guild(448488274562908170)
@@ -95,7 +95,7 @@ class CommandErrorHandler(commands.Cog):
                 if dev_role not in ctx.author.roles:
                     config, _ = core.common.load_config()
                     embed = discord.Embed(title = "Traceback Detected!", description = f"**Hey you!** *Mr. Turtle here has found an error! I'll let the {dev_role.mention}'s know!*\nYou might also want to doublecheck what you sent and/or check out the help command!", color = 0xfc3d03)
-                    embed.add_field(name = "Bug Reporting", value = f"Have any extra information that could help resolve this issue? Feel free to use the **>bug** command! \nUsage: `{config['prefix']}bug (extra valuable information here!)` \n\nExamples of helpful information! \n\n- Any arguments you provided with the command\n- What the actual problem was (What went wrong?)\n- Any other information that could help!")
+                    embed.add_field(name = "Bug Reporting", value = f"Have any extra information that could help resolve this issue? Feel free to use the **{config['prefix']}bug** command! \nUsage: `{config['prefix']}bug (extra valuable information here!)` \n\n**⚠️ Tracebacks get automatically reported! Feel free to add in a bug report though!** \n\nExamples of helpful information! \n\n- Any arguments you provided with the command\n- What the actual problem was (What went wrong?)\n- Any other information that could help!")
                     embed.set_footer(text = f"Error: {str(error)}")
                     await ctx.send(embed = embed)
                     guild = self.bot.get_guild(448488274562908170)
