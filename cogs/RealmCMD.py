@@ -262,8 +262,10 @@ class RealmCMD(commands.Cog):
         else:
             if str(reaction.emoji) == "✅":
                 await ctx.send("Standby...")
+                await message.delete()
             else:
                 await ctx.send("Ended Application...")
+                await message.delete()
                 return
 
         submittime = str(timestamp.strftime(r"%x"))
@@ -399,10 +401,10 @@ class RealmCMD(commands.Cog):
         else:
             if str(reaction.emoji) == "✅":
                 await ctx.send("Standby...")
-                message.delete()
+                await message.delete()
             else:
                 await ctx.send("Ended Application...")
-                message.delete()
+                await message.delete()
                 return
 
         submittime = str(timestamp.strftime(r"%x"))
