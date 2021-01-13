@@ -399,16 +399,17 @@ class RealmCMD(commands.Cog):
         else:
             if str(reaction.emoji) == "✅":
                 await ctx.send("Standby...")
+                message.delete()
             else:
                 await ctx.send("Ended Application...")
+                message.delete()
                 return
 
         submittime = str(timestamp.strftime(r"%x"))
 
         # Spreadsheet Data
-        row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content,
-               answer6.content, answer7.content, answer8.content, answer9.content, submittime]
-        sheet.insert_row(row, 3)
+        #row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content,answer6.content, answer7.content, answer8.content, answer9.content, submittime]
+        #sheet.insert_row(row, 3)
 
         # Actual Embed with Responses
         embed = discord.Embed(title="New MRPCR Application!", description="Response turned in by: " +
@@ -420,7 +421,7 @@ class RealmCMD(commands.Cog):
         embed.add_field(name="__**Age:**__", value=str(answer3.content), inline=False)
         embed.add_field(name="__**Tell us about yourself and what you love about Minecraft.**__", value=str(answer4.content), inline=False)
         embed.add_field(name = "__**Timestamp:**__", value = str(timestamp.strftime(r"%x")))
-        
+
         embed.add_field(name="__**Reaction Codes**__",value="Please react with the following codes to show your thoughts on this applicant.", inline=False)
         embed.add_field(name="----💚----", value="Approved", inline=True)
         embed.add_field(name="----💛----",value="More Time in Server", inline=True)
