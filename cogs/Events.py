@@ -37,11 +37,12 @@ print(cell)
 
 discordcol = 1
 longidcol = 2
-xboxcol = 3
-playstationcol = 4
-switchcol = 5
-pokemongocol = 6
-chesscol = 7
+tzonecol = 3
+xboxcol = 4
+playstationcol = 5
+switchcol = 6
+pokemongocol = 7
+chesscol = 8
 
 # -----------------------------------------------------
 

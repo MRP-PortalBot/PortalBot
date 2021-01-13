@@ -37,11 +37,12 @@ print(cell)
 
 discordcol = 1
 longidcol = 2
-xboxcol = 3
-psnidcol = 4
-nnidcol = 5
-pokemongocol = 6
-chesscol = 7
+tzonecol = 3
+xboxcol = 4
+playstationcol = 5
+switchcol = 6
+pokemongocol = 7
+chesscol = 8
 
 # -----------------------------------------------------
 
@@ -141,8 +142,9 @@ class ProfileCMD(commands.Cog):
     async def add(self, ctx):
         channel = ctx.message.channel
         username = ctx.message.author
-        discordname = str(username.name)
+        discordname = str(username.name + "#" + username.discriminator)
         longid = str(username.id)
+        tzone = str("")
         xbox = str("")
         psnid = str("")
         nnid = str("")
@@ -154,13 +156,13 @@ class ProfileCMD(commands.Cog):
         
         await channel.send("What would you like to add?")
         
-        message = await channel.send("1️⃣ - XBOX\n2️⃣ - Playstation ID\n3️⃣ - Nintendo Network ID\n4️⃣ - Pokemon GO ID\n5️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
-        reactions = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣', '❌']
+        message = await channel.send("1️⃣ - Timezone\n2️⃣ - XBOX\n3️⃣ - Playstation ID\n4️⃣ - Nintendo Network ID\n5️⃣ - Pokemon GO ID\n6️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        reactions = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
 
         def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣' or str(reaction.emoji) == '3️⃣' or str(reaction.emoji) == '4️⃣' or str(reaction.emoji) == '5️⃣' or str(reaction.emoji) == '❌')
+            return user == ctx.author and (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣' or str(reaction.emoji) == '3️⃣' or str(reaction.emoji) == '4️⃣' or str(reaction.emoji) == '5️⃣' or str(reaction.emoji) == '6️⃣' or str(reaction.emoji) == '❌')
 
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
@@ -170,6 +172,39 @@ class ProfileCMD(commands.Cog):
                     await message.clear_reaction(emoji)
                 return
             elif str(reaction.emoji) == "1️⃣":
+                def check3(m):
+                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+
+                await ctx.send("What is your Timezone?")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                addedid = messagecontent.content
+
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    discordname = str(username.name + "#" + username.discriminator)
+                    longid = longid
+                    tzone = addedid
+
+                    row = [discordname, longid, tzone, xbox, psnid, nnid, pokemongo, chessdotcom]
+                    print(row)
+                    profilesheet.insert_row(row, 3)
+
+                    await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    return
+                else:
+                    userrow = usercell.row
+                    tzone = addedid
+                    profilesheet.update_cell(userrow, tzonecol, str(tzone))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await channel.send("Success!, You have added your Timezone to to your profile!")
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    return
+            elif str(reaction.emoji) == "2️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
@@ -196,12 +231,13 @@ class ProfileCMD(commands.Cog):
                     userrow = usercell.row
                     xbox = addedid
                     profilesheet.update_cell(userrow, xboxcol, str(xbox))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
                     await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
                     return
-            elif str(reaction.emoji) == "2️⃣":
+            elif str(reaction.emoji) == "3️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
@@ -228,12 +264,13 @@ class ProfileCMD(commands.Cog):
                     userrow = usercell.row
                     psnid = addedid
                     profilesheet.update_cell(userrow, psnidcol, str(psnid))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
                     await channel.send("Success!, You have added your PSN ID to to your profile!")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
                     return
-            elif str(reaction.emoji) == "3️⃣":
+            elif str(reaction.emoji) == "4️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
@@ -260,12 +297,13 @@ class ProfileCMD(commands.Cog):
                     userrow = usercell.row
                     nnid = addedid
                     profilesheet.update_cell(userrow, nnidcol, str(nnid))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
                     await channel.send("Success!, You have added your Nintendo Network ID to to your profile!")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
                     return
-            elif str(reaction.emoji) == "4️⃣":
+            elif str(reaction.emoji) == "5️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
@@ -292,12 +330,13 @@ class ProfileCMD(commands.Cog):
                     userrow = usercell.row
                     pokemongo = addedid
                     profilesheet.update_cell(userrow, pokemongocol, str(pokemongo))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
                     await channel.send("Success!, You have added your Pokemon Go ID? to to your profile!")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
                     return
-            elif str(reaction.emoji) == "5️⃣":
+            elif str(reaction.emoji) == "6️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
@@ -324,6 +363,7 @@ class ProfileCMD(commands.Cog):
                     userrow = usercell.row
                     chessdotcom = addedid
                     profilesheet.update_cell(userrow, chesscol, str(chessdotcom))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
                     await channel.send("Success!, You have added your Chess.com ID to to your profile!")
                     for emoji in reactions:
