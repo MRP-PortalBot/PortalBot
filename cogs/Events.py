@@ -58,8 +58,19 @@ class Events(commands.Cog):
     async def on_member_join(self, member):
         username = member
         alid = str(username.id)
-        print(alid)        
 
+        if alid == gtsheet.find(alid, in_column=2):
+            print("User already exists in sheet!")
+        else:
+            discordname = str(username.name + "#" + username.discriminator)
+            longid = alid
+
+            row = [discordname, longid]
+            print(row)
+            gtsheet.insert_row(row, 3)
+
+
+'''
         try:
             usercell = gtsheet.find(alid, in_column=2)
         except:
@@ -71,7 +82,7 @@ class Events(commands.Cog):
             row = [discordname, longid]
             print(row)
             gtsheet.insert_row(row, 3)
-           
+'''           
 
 
 def setup(bot):
