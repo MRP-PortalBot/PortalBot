@@ -23,6 +23,7 @@ client = gspread.authorize(creds)
 sheet = client.open(
     "Minecraft Realm Portal Channel Application (Responses)").sheet1
 
+sheet2 = client.open("MRPCommunityRealmApp").sheet1
 # -------------------------------------------------------
 
 def check_MRP():
@@ -411,7 +412,7 @@ class RealmCMD(commands.Cog):
 
         # Spreadsheet Data
         row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content,submittime]
-        sheet.insert_row(row, 2)
+        sheet2.insert_row(row, 2)
 
         # Actual Embed with Responses
         embed = discord.Embed(title="New MRPCR Application!", description="Response turned in by: " +
