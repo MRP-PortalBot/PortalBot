@@ -374,15 +374,16 @@ class RealmCMD(commands.Cog):
         time.sleep(5)
 
         answer1 = str(author.name) + "#" + str(author.discriminator)
+        answer2 = str(author.id)
 
         await channel.send("Gamertag:")
-        answer2 = await self.bot.wait_for('message', check=check)
-
-        await channel.send("Age:")
         answer3 = await self.bot.wait_for('message', check=check)
 
+        await channel.send("Age:")
+        answer4= await self.bot.wait_for('message', check=check)
+
         await channel.send("Tell us about yourself and what you love about Minecraft.")
-        answer4 = await self.bot.wait_for('message', check=check)
+        answer5 = await self.bot.wait_for('message', check=check)
 
         message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automatically cancel.* ")
         reactions = ['✅', '❌']
@@ -409,7 +410,7 @@ class RealmCMD(commands.Cog):
         submittime = str(timestamp.strftime(r"%x"))
 
         # Spreadsheet Data
-        row = [answer1.content, answer2.content, answer3.content, answer4.content, submittime]
+        row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content,submittime]
         sheet.insert_row(row, 2)
 
         # Actual Embed with Responses
