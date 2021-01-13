@@ -57,7 +57,8 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         username = member
-        alid = str(username.id)        
+        alid = str(username.id)
+        print(alid)        
 
         try:
             usercell = gtsheet.find(alid, in_column=2)

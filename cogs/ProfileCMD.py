@@ -229,13 +229,11 @@ class ProfileCMD(commands.Cog):
             longid = gtsheet.cell(userrow, 2).value
             xbox = gtsheet.cell(userrow, xboxcol).value
             
-            if xbox == "":
-                xbox = "N/A"
-            
             profileembed.set_thumbnail(url=pfp)
             profileembed.add_field(name="Discord", value=discordname, inline=True)
             profileembed.add_field(name="LongID", value=longid, inline=True)
-            profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)     
+            if xbox != "":
+                profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)     
             profileembed.set_footer(text="Requested by " + author.name)
             if role in author.roles: 
                 try:
