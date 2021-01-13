@@ -290,6 +290,7 @@ async def shell(ctx, * , command):
         embed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
         await ctx.send(embed = embed)
     except Exception as error:
+        tb = error.__traceback__
         etype = type(error)
         exception = traceback.format_exception(etype, error, tb, chain=True)
         exception_msg = ""
