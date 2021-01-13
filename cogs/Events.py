@@ -39,8 +39,8 @@ discordcol = 1
 longidcol = 2
 tzonecol = 3
 xboxcol = 4
-playstationcol = 5
-switchcol = 6
+psnidcol = 5
+nnidcol = 6
 pokemongocol = 7
 chesscol = 8
 

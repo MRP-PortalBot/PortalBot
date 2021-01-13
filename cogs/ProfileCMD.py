@@ -39,8 +39,8 @@ discordcol = 1
 longidcol = 2
 tzonecol = 3
 xboxcol = 4
-playstationcol = 5
-switchcol = 6
+psnidcol = 5
+nnidcol = 6
 pokemongocol = 7
 chesscol = 8
 
@@ -89,6 +89,7 @@ class ProfileCMD(commands.Cog):
             userrow = usercell.row
             discordname = profilesheet.cell(userrow, discordcol).value
             longid = profilesheet.cell(userrow, longidcol).value
+            tzone = profilesheet.cell(userrow, tzonecol).value
             xbox = profilesheet.cell(userrow, xboxcol).value
             psnid = profilesheet.cell(userrow, psnidcol).value
             nnid = profilesheet.cell(userrow, nnidcol).value
@@ -98,6 +99,8 @@ class ProfileCMD(commands.Cog):
             profileembed.set_thumbnail(url=pfp)
             profileembed.add_field(name="Discord", value=discordname, inline=True)
             profileembed.add_field(name="LongID", value=longid, inline=True)
+            if tzone != "":
+                profileembed.add_field(name="Timezone", value=tzone, inline=True)
             if xbox != "":
                 profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
             if psnid != "":
