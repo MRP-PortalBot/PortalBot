@@ -154,13 +154,13 @@ class ProfileCMD(commands.Cog):
         
         await channel.send("What would you like to add?")
         
-        message = await channel.send("1️⃣ - XBOX\n1️2️⃣ - XBOX\n3️⃣ - XBOX\n4️⃣ - XBOX\n5️⃣ - XBOX\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        message = await channel.send("1️⃣ - XBOX\n2️⃣ - Playstation ID\n3️⃣ - Nintendo Network ID\n4️⃣ - Pokemon GO ID\n5️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
 
         def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+            return user == ctx.author and (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣' or str(reaction.emoji) == '3️⃣' or str(reaction.emoji) == '4️⃣' or str(reaction.emoji) == '5️⃣' or str(reaction.emoji) == '❌')
 
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
