@@ -246,7 +246,7 @@ class RealmCMD(commands.Cog):
         await channel.send("List the members of your OP team. (Owner first)")
         answer9 = await self.bot.wait_for('message', check=check)
 
-        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel. ")
+        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automatically cancel. ")
         reactions = ['✅', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
@@ -373,8 +373,7 @@ class RealmCMD(commands.Cog):
         await channel.send(embed=intro)
         time.sleep(5)
 
-        await channel.send("Discord Name:")
-        answer1 = await self.bot.wait_for('message', check=check)
+        answer1 = str(author.name) + "#" + str(author.discriminator)
 
         await channel.send("Gamertag:")
         answer2 = await self.bot.wait_for('message', check=check)
@@ -385,7 +384,7 @@ class RealmCMD(commands.Cog):
         await channel.send("Tell us about yourself and what you love about Minecraft.")
         answer4 = await self.bot.wait_for('message', check=check)
 
-        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel. ")
+        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automatically cancel.* ")
         reactions = ['✅', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
@@ -410,8 +409,8 @@ class RealmCMD(commands.Cog):
         submittime = str(timestamp.strftime(r"%x"))
 
         # Spreadsheet Data
-        #row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content,answer6.content, answer7.content, answer8.content, answer9.content, submittime]
-        #sheet.insert_row(row, 3)
+        row = [answer1.content, answer2.content, answer3.content, answer4.content, submittime]
+        sheet.insert_row(row, 2)
 
         # Actual Embed with Responses
         embed = discord.Embed(title="New MRPCR Application!", description="Response turned in by: " +
