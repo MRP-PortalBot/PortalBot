@@ -58,8 +58,9 @@ class Events(commands.Cog):
     async def on_member_join(self, member):
         username = member
         alid = str(username.id)
+        alidsheet = gtsheet.find(alid, in_column=2)
 
-        if alid == gtsheet.find(alid, in_column=2):
+        if alid == alidsheet:
             print("User already exists in sheet!")
         else:
             discordname = str(username.name + "#" + username.discriminator)
