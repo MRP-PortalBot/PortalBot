@@ -17,6 +17,7 @@ import time
 import sys
 import aiohttp
 import xbox
+import traceback
 
 xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
 
