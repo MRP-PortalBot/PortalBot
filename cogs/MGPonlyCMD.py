@@ -51,20 +51,20 @@ class MGPonlyCMD(commands.Cog):
     @commands.command()
     @check_MGP()
     @commands.cooldown(1, 3600, commands.BucketType.channel)
-    async def summon(self, ctx):
+    async def gametime(self, ctx):
         author = ctx.message.author
         channel = ctx.message.channel
         authorname = author.name
         gamename = channel.name
         embed = discord.Embed(
-            title="Player's are being Summoned by", description=author.mention, color=0xFFCE41)
-        embed.add_field(name=authorname + "wants to play" + gamename, value="Is anyone @here that would like to join?", inline=True)
+            title="Player's are being called by", description=author.mention, color=0xFFCE41)
+        embed.add_field(name=authorname + "wants to play" + gamename, value="Is there anyone @here that would like to join?", inline=True)
         embed.add_footer(text="This command cannot be used again for 1 hour!")
 
         await ctx.send(embed=embed)
 
-    @summon.error
-    async def summon_error(self, ctx, error):
+    @gametime.error
+    async def gametime_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send("This command cannot be used again for 1 hour!")
 
