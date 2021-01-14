@@ -49,7 +49,9 @@ class Suggestions(commands.Cog):
             await channel.send("Suggestion/Feedback")
             suggestion = await self.bot.wait_for('message', check=check)
 
-            message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 100 seconds to react, otherwise the application will cancel.* ")
+            embed = discord.Embed(title = "Ready to Submit?", description = "Before you submit!\nPlease make sure that the following response is **not** a BUG REPORT! Bug Reports should be filled using the `bug` command! *(Use the bug tag for more information!)* ", color = 0x4c594b)
+            embed.add_field(name = "Submit Feedback", value = "✅ - SUBMIT\n❌ - CANCEL")
+            message = await ctx.send(embed = embed)
             reactions = ['✅', '❌']
             for emoji in reactions:
                 await message.add_reaction(emoji)
@@ -72,7 +74,9 @@ class Suggestions(commands.Cog):
             except asyncio.TimeoutError:
                 await channel.send("Looks like you didn't react in time, please try again later!")
         else:
-            message = await channel.send("**Are you sure you want to submit?** \n✅ - SUBMIT\n❌ - CANCEL\n*You have 100 seconds to react, otherwise the application will cancel.* ")
+            embed = discord.Embed(title = "Ready to Submit?", description = "Before you submit!\nPlease make sure that the following response is **not** a BUG REPORT! Bug Reports should be filled using the `bug` command! *(Use the bug tag for more information!)* ", color = 0x4c594b)
+            embed.add_field(name = "Submit Feedback", value = "✅ - SUBMIT\n❌ - CANCEL")
+            message = await ctx.send(embed = embed)
             reactions = ['✅', '❌']
             for emoji in reactions:
                 await message.add_reaction(emoji)
