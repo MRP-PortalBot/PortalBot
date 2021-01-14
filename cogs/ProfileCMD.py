@@ -40,7 +40,7 @@ longidcol = 2
 tzonecol = 3
 xboxcol = 4
 psnidcol = 5
-nnidcol = 6
+switchcol = 6
 pokemongocol = 7
 chesscol = 8
 
@@ -92,7 +92,7 @@ class ProfileCMD(commands.Cog):
             tzone = profilesheet.cell(userrow, tzonecol).value
             xbox = profilesheet.cell(userrow, xboxcol).value
             psnid = profilesheet.cell(userrow, psnidcol).value
-            nnid = profilesheet.cell(userrow, nnidcol).value
+            switch = profilesheet.cell(userrow, switchcol).value
             pokemongo = profilesheet.cell(userrow, pokemongocol).value
             chessdotcom = profilesheet.cell(userrow, chesscol).value
             
@@ -105,8 +105,8 @@ class ProfileCMD(commands.Cog):
                 profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
             if psnid != "":
                 profileembed.add_field(name="Playstation ID", value=psnid, inline=False) 
-            if nnid != "":
-                profileembed.add_field(name="Nintendo Network ID", value=nnid, inline=False) 
+            if switch != "":
+                profileembed.add_field(name="Switch Friend Code", value=switch, inline=False) 
             if pokemongo != "":
                 profileembed.add_field(name="Pokemon Go ID", value=pokemongo, inline=False) 
             if chessdotcom != "":
@@ -145,7 +145,7 @@ class ProfileCMD(commands.Cog):
             raise error          
 
     @profile.command()
-    async def add(self, ctx):
+    async def edit(self, ctx):
         channel = ctx.message.channel
         username = ctx.message.author
         discordname = str(username.name + "#" + username.discriminator)
@@ -153,16 +153,16 @@ class ProfileCMD(commands.Cog):
         tzone = str("")
         xbox = str("")
         psnid = str("")
-        nnid = str("")
+        switch = str("")
         pokemongo = str("")
         chessdotcom = str("")        
 
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
         
-        await channel.send("What would you like to add?")
+        await channel.send("What would you like to edit?")
         
-        message = await channel.send("1️⃣ - Timezone\n2️⃣ - XBOX\n3️⃣ - Playstation ID\n4️⃣ - Nintendo Network ID\n5️⃣ - Pokemon GO ID\n6️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        message = await channel.send("1️⃣ - Timezone\n2️⃣ - XBOX\n3️⃣ - Playstation ID\n4️⃣ - Switch Friend Code\n5️⃣ - Pokemon GO ID\n6️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
@@ -192,11 +192,11 @@ class ProfileCMD(commands.Cog):
                     longid = longid
                     tzone = addedid
 
-                    row = [discordname, longid, tzone, xbox, psnid, nnid, pokemongo, chessdotcom]
+                    row = [discordname, longid, tzone, xbox, psnid, switch, pokemongo, chessdotcom]
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
+                    await channel.send("Success!, You have added your Timezone to to your profile!")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
                     return
@@ -225,7 +225,7 @@ class ProfileCMD(commands.Cog):
                     longid = longid
                     xbox = addedid
 
-                    row = [discordname, longid, xbox, psnid, nnid, pokemongo, chessdotcom]
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
                     print(row)
                     profilesheet.insert_row(row, 3)
 
@@ -258,7 +258,7 @@ class ProfileCMD(commands.Cog):
                     longid = longid
                     psnid = addedid
 
-                    row = [discordname, longid, xbox, psnid, nnid, pokemongo, chessdotcom]
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
                     print(row)
                     profilesheet.insert_row(row, 3)
 
@@ -289,23 +289,23 @@ class ProfileCMD(commands.Cog):
                 except:
                     discordname = str(username.name + "#" + username.discriminator)
                     longid = longid
-                    nnid = addedid
+                    switch = addedid
 
-                    row = [discordname, longid, xbox, psnid, nnid, pokemongo, chessdotcom]
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await channel.send("Success!, You have added your Nintendo Network ID to to your profile!")
+                    await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
                     return
                 else:
                     userrow = usercell.row
-                    nnid = addedid
-                    profilesheet.update_cell(userrow, nnidcol, str(nnid))
+                    switch = addedid
+                    profilesheet.update_cell(userrow, switchcol, str(switch))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await channel.send("Success!, You have added your Nintendo Network ID to to your profile!")
+                    await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
                     return
@@ -324,7 +324,7 @@ class ProfileCMD(commands.Cog):
                     longid = longid
                     pokemongo = addedid
 
-                    row = [discordname, longid, xbox, psnid, nnid, pokemongo, chessdotcom]
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
                     print(row)
                     profilesheet.insert_row(row, 3)
 
@@ -357,7 +357,7 @@ class ProfileCMD(commands.Cog):
                     longid = longid
                     chessdotcom = addedid
 
-                    row = [discordname, longid, xbox, psnid, nnid, pokemongo, chessdotcom]
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
                     print(row)
                     profilesheet.insert_row(row, 3)
 
@@ -383,23 +383,23 @@ class ProfileCMD(commands.Cog):
     async def remove(self, ctx):
         channel = ctx.message.channel
         username = ctx.message.author
-        aname = str(username.name)
+        discordname = str(username.name + "#" + username.discriminator)
         longid = str(username.id)
-        cellclear = str("")        
+        cellclear = str("")         
 
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
         
-        await channel.send("What would you like to remove")
+        await channel.send("What would you like to remove?")
         
-        message = await channel.send("1️⃣ - XBOX\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
-        reactions = ['1️⃣', '❌']
+        message = await channel.send("1️⃣ - Timezone\n2️⃣ - XBOX\n3️⃣ - Playstation ID\n4️⃣ - Nintendo Network ID\n5️⃣ - Pokemon GO ID\n6️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        reactions = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
 
         def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
-        
+            return user == ctx.author and (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣' or str(reaction.emoji) == '3️⃣' or str(reaction.emoji) == '4️⃣' or str(reaction.emoji) == '5️⃣' or str(reaction.emoji) == '6️⃣' or str(reaction.emoji) == '❌')
+
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
             if str(reaction.emoji) == "❌":
@@ -407,7 +407,7 @@ class ProfileCMD(commands.Cog):
                 for emoji in reactions:
                     await message.clear_reaction(emoji)
                 return
-            else:
+            elif str(reaction.emoji) == "1️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
@@ -418,25 +418,89 @@ class ProfileCMD(commands.Cog):
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
                     userrow = usercell.row
-                    xbox = cellclear
-                    profilesheet.update_cell(userrow, xboxcol, str(xbox))
+                    profilesheet.update_cell(userrow, tzonecol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await channel.send("Success!, You have removed XBOX Gamertag from your profile!")
+                    await channel.send("Success!, You have removed your timezone from your profile!")
+            elif str(reaction.emoji) == "2️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    await ctx.send("User has no profile")
+                else:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, xboxcol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await channel.send("Success!, You have removed your XBOX Gamertag from your profile!")
+            elif str(reaction.emoji) == "3️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    await ctx.send("User has no profile")
+                else:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, psnidcol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await channel.send("Success!, You have removed your Playstation ID from your profile!")
+            elif str(reaction.emoji) == "4️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    await ctx.send("User has no profile")
+                else:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, switchcol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await channel.send("Success!, You have removed your Switch Friend Code from your profile!")
+            elif str(reaction.emoji) == "5️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    await ctx.send("User has no profile")
+                else:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, pokemongocol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await channel.send("Success!, You have removed your Pokemon GO ID from your profile!")
+            elif str(reaction.emoji) == "6️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    await ctx.send("User has no profile")
+                else:
+                    for emoji in reactions:
+                        await message.clear_reaction(emoji)
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, chesscol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await channel.send("Success!, You have removed Chess.com ID from your profile!")
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
 
-
-
-
-    @commands.command()
-    async def getprofile(self, ctx, user: discord.User = None):
-
-        if user is None:
-            user = ctx.author
-        accounts = discord.user.Profile.connected_accounts
-        print(accounts)
-        await ctx.send(accounts)
 
 def setup(bot):
     bot.add_cog(ProfileCMD(bot))
