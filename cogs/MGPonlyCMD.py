@@ -54,6 +54,10 @@ class MGPonlyCMD(commands.Cog):
     async def gametime(self, ctx):
         author = ctx.message.author
         channel = ctx.message.channel
+        if author.nick == None:
+            authorname = author.name
+        else:
+            authorname = author.nick
         authorname = author.nick
         gamename = channel.name
         print("works")
