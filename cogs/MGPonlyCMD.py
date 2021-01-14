@@ -81,6 +81,9 @@ class MGPonlyCMD(commands.Cog):
                 .format(round(h), round(m), round(s))
             await ctx.send(msg)
 
+        elif isinstance(error, commands.CommandInvokeError):
+            await ctx.send("This command is not designed for this channel!")
+
         else:
             raise error
 
