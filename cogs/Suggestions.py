@@ -43,8 +43,6 @@ class Suggestions(commands.Cog):
         ID = ctx.message.author.id
         server = ctx.message.guild.name
         channel = ctx.message.channel
-        label = repo.get_label("enchancement")
-        label2 = repo.get_label("Awaiting Review")
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user and m.author == author
         if suggestion == None:
