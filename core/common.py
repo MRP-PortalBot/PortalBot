@@ -68,7 +68,7 @@ def query(authorname, ID, server, channel, suggestion, trellotype):
         'idList': '5fff8cd40de14a1cdc6fd79a',
         'pos': 'top',
         'name': f'[{trellotype}] by {authorname}',
-        'desc': f'Author ID: {ID}\nGuild: {server}\nChannel: {channel}\n\nSuggestion: {suggestion}'
+        'desc': f'Author ID: {ID}\nGuild: {server}\nChannel: {channel}\n\nSuggestion/Bug: {suggestion}'
     }
     response = requests.request(
         "POST",
