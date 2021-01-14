@@ -150,10 +150,10 @@ class CommandErrorHandler(commands.Cog):
                         query(author.name, author.id, responseguild, channel.name, suggestion.content, "BUG")
                         guild = self.bot.get_guild(448488274562908170)
                         channel = guild.get_channel(797193549992165456)
-                        embed = discord.Embed(title = "User Suggestion!!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
+                        embed = discord.Embed(title = "User Bug Report!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
                         embed.add_field(name = "Feedback", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
                         await channel.send(embed = embed)
-                        embed = discord.Embed(title = "I have sent in your suggestion!", description = f"You can view your suggestion's progress here! [Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)", color = 0x4c594b)
+                        embed = discord.Embed(title = "I have sent in your bug report!", description = f"You can view your report's progress here! [Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)", color = 0x4c594b)
                         await ctx.send(embed = embed)
 
                 except asyncio.TimeoutError:
@@ -171,7 +171,7 @@ class CommandErrorHandler(commands.Cog):
                 await channel.send("Suggestion/Feedback")
                 suggestion = await self.bot.wait_for('message', check=check)
 
-                embed = discord.Embed(title = "Ready to Submit?", description = "Before you submit!\nPlease make sure that the following response is **not** a BUG REPORT! Bug Reports should be filled using the `bug` command! *(Use the bug tag for more information!)* ", color = 0x4c594b)
+                embed = discord.Embed(title = "Ready to Submit?", description = "Before you submit!\nPlease make sure that the following response is **not** a BUG REPORT!", color = 0x4c594b)
                 embed.add_field(name = "Submit Feedback", value = "✅ - SUBMIT\n❌ - CANCEL")
                 message = await ctx.send(embed = embed)
                 reactions = ['✅', '❌']
@@ -200,7 +200,7 @@ class CommandErrorHandler(commands.Cog):
 
     @commands.command()
     async def bug(self, ctx):
-        await ctx.send("This command has moved to `>report (feedback/bug report)`")
+        await ctx.send("This command has moved to `>report` *No arguments*")
 
 def setup(bot):
     bot.add_cog(CommandErrorHandler(bot))
