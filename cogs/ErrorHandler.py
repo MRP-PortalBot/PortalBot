@@ -126,7 +126,7 @@ class CommandErrorHandler(commands.Cog):
                 author = ctx.message.author
                 channel = ctx.message.channel
                 responseguild = ctx.message.guild
-                await channel.send("Bug Report!")
+                await channel.send("Bug Report:")
                 suggestion = await self.bot.wait_for('message', check=check)
 
                 embed = discord.Embed(title = "Ready to Submit?", description = "Make sure the follwing response is an actual bug report!", color = 0x4c594b)
@@ -192,6 +192,11 @@ class CommandErrorHandler(commands.Cog):
                         query(authorname, ID, server, channel.name, suggestion.content, "Suggestion")
                         embed = discord.Embed(title = "I have sent in your suggestion!", description = f"You can view your suggestion's progress here! [Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)", color = 0x4c594b)
                         await ctx.send(embed = embed)
+                        guild = self.bot.get_guild(448488274562908170)
+                        channel = guild.get_channel(797193549992165456)
+                        embed = discord.Embed(title = "User Suggestion!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
+                        embed.add_field(name = "Feedback", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
+                        await channel.send(embed = embed)
 
                 except asyncio.TimeoutError:
                     await channel.send("Looks like you didn't react in time, please try again later!")
