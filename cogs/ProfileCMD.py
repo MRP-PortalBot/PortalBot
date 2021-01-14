@@ -196,22 +196,16 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=3)
+                    await ctx.channel.purge(limit=4)
                     await channel.send("Success!, You have added your Timezone to to your profile!")
-                    for emoji in reactions:
-                        await message.clear_reaction(emoji)
-                    return
                 else:
                     userrow = usercell.row
                     tzone = addedid
                     profilesheet.update_cell(userrow, tzonecol, str(tzone))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=3)
+                    await ctx.channel.purge(limit=4)
                     await channel.send("Success!, You have added your Timezone to to your profile!")
-                    for emoji in reactions:
-                        await message.clear_reaction(emoji)
-                    return
             elif str(reaction.emoji) == "2️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author is not self.bot.user
