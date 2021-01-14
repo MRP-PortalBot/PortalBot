@@ -69,7 +69,10 @@ class MGPonlyCMD(commands.Cog):
     @gametime.error
     async def gametime_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
-            msg = 'This command can be used again in {:f}:{:02f}:{:02f}'.format(error.retry_after)
+            m, s = divmod(error.retry_after, 60)
+            h, m = divmod(m, 60)
+            msg = "Try again in {} hours {} minutes and {} seconds" \
+                .format(round(h), round(m), round(s))
             await ctx.send(msg)
 
         else:
