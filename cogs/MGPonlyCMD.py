@@ -25,7 +25,6 @@ sheet = client.open(
 
 sheet2 = client.open("MRPCommunityRealmApp").sheet1
 # -------------------------------------------------------
-
 def check_MRP():
     def predicate(ctx):
         return ctx.message.guild.id == 587495640502763521 or ctx.message.guild.id == 448488274562908170
