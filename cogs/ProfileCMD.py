@@ -112,9 +112,9 @@ class ProfileCMD(commands.Cog):
             if chessdotcom != "":
                 profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
             if username == ctx.message.author:
-                profileembed.set_footer("If you want to edit your profile, use the command >profile edit")
+                profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
             else:
-                profileembed.set_footer("Requested by " + author.name)
+                profileembed.set_footer(text="Requested by " + author.name)
             if role in author.roles: 
                 try:
                     longid = sheet.find(longid, in_column=2)
