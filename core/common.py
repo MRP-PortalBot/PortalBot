@@ -3,7 +3,8 @@ from typing import Tuple
 import asyncio
 import discord
 import json
-
+import os
+import requests
 
 def load_config() -> Tuple[dict, Path]:
     """Load data from the botconfig.json.\n
@@ -58,3 +59,21 @@ async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, populat
         except asyncio.TimeoutError:
             await message.clear_reactions()
             break
+
+def query(authorname, ID, server, channel, suggestion, trellotype):
+    url = "https://api.trello.com/1/cards"
+    query = {
+        'key': os.getenv("TRELLOKEY"),
+        'token': os.getenv("TRELLOTOKEN"),
+        'idList': '5fff8cd40de14a1cdc6fd79a',
+        'pos': 'top',
+        'name': f'[{trellotype}] by {authorname}',
+        'desc': f'Author ID: {ID}\nGuild: {server}\nChannel: {channel}\n\nSuggestion: {suggestion}'
+    }
+    response = requests.request(
+        "POST",
+        url,
+        params=query
+    )
+    return response.text
+
