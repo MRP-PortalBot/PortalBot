@@ -93,7 +93,7 @@ class Suggestions(commands.Cog):
                 else:
                     await message.delete()
                     query(authorname, ID, server, channel.name, suggestion)
-                    embed = discord.Embed(title = "I have sent in your suggestion!", description = f"You can view your suggestion's progress here! [Trellp URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)", color = 0x4c594b)
+                    embed = discord.Embed(title = "I have sent in your suggestion!", description = f"You can view your suggestion's progress here! [Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)", color = 0x4c594b)
                     await ctx.send(embed = embed)
 
             except asyncio.TimeoutError:

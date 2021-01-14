@@ -10,6 +10,24 @@ import yarl
 import os
 import json
 
+url = "https://api.trello.com/1/cards"
+
+def query(authorname, ID, server, channel, suggestion):
+    query = {
+        'key': os.getenv("TRELLOKEY"),
+        'token': os.getenv("TRELLOTOKEN"),
+        'idList': '5fff8cd40de14a1cdc6fd79a',
+        'pos': 'top',
+        'name': f'[BUG] by {authorname}',
+        'desc': f'Author ID: {ID}\nGuild: {server}\nChannel: {channel}\n\nSuggestion: {suggestion}'
+    }
+    response = requests.request(
+        "POST",
+        url,
+        params=query
+    )
+    return response.text
+
 
 class GithubError(commands.CommandError):
     pass
@@ -113,13 +131,15 @@ class CommandErrorHandler(commands.Cog):
         author = ctx.message.author
         channel = ctx.message.channel
         responseguild = ctx.message.guild
+
+        query(author.name, author.id, responseguild, channel.name, bug)
         guild = self.bot.get_guild(448488274562908170)
         channel = guild.get_channel(797193549992165456)
         embed = discord.Embed(title = "User Bug Report!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
-        embed.add_field(name = "Feedback", value = bug)
+        embed.add_field(name = "Feedback", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
         await channel.send(embed = embed)
-        resp = discord.Embed(title = "Thank You For Submitting A Bug Report!", description = "I have sucessfully sent in your bug report!", color= 0xfc8003)
-        resp.add_field(name = "Feedback Sent:", value = bug)
+        resp = discord.Embed(title = "Thank You For Submitting A Bug Report!", description = "I have successfully sent in your bug report!", color= 0xfc8003)
+        resp.add_field(name = "Feedback Sent:", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
         await ctx.send(embed=resp)
 
 
