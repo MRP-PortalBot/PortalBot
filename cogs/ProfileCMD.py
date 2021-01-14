@@ -196,6 +196,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
+                    await ctx.channel.purge(limit=3)
                     await channel.send("Success!, You have added your Timezone to to your profile!")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
@@ -206,6 +207,7 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, tzonecol, str(tzone))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
+                    await ctx.channel.purge(limit=3)
                     await channel.send("Success!, You have added your Timezone to to your profile!")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
@@ -392,7 +394,7 @@ class ProfileCMD(commands.Cog):
         
         await channel.send("What would you like to remove?")
         
-        message = await channel.send("1️⃣ - Timezone\n2️⃣ - XBOX\n3️⃣ - Playstation ID\n4️⃣ - Nintendo Network ID\n5️⃣ - Pokemon GO ID\n6️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        message = await channel.send("1️⃣ - Timezone\n2️⃣ - XBOX\n3️⃣ - Playstation ID\n4️⃣ - Switch Friend Code\n5️⃣ - Pokemon GO ID\n6️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
