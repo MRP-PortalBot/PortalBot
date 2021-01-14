@@ -54,13 +54,13 @@ class MGPonlyCMD(commands.Cog):
     async def gametime(self, ctx):
         author = ctx.message.author
         channel = ctx.message.channel
-        authorname = author.name
+        authorname = author.nick
         gamename = channel.name
         print("works")
         callembed = discord.Embed(
-            title="Player's are being called by", description=author.mention, color=0xFFCE41)
+            title="Players are being called by", description=author.mention, color=0xFFCE41)
 
-        callembed.add_field(name=authorname + "wants to play" + gamename, value="Is there anyone here that would like to join?", inline=True)
+        callembed.add_field(name=authorname + " wants to play " + gamename, value="Is there anyone here that would like to join?", inline=True)
         callembed.set_footer(text="This command cannot be used again for 1 hour!")
 
         await channel.send("@here")
