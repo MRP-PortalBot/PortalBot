@@ -71,7 +71,7 @@ class MGPonlyCMD(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             m, s = divmod(error.retry_after, 60)
             h, m = divmod(m, 60)
-            msg = "Try again in {} hours {} minutes and {} seconds" \
+            msg = "This command cannot be used again for {} hours {} minutes and {} seconds" \
                 .format(round(h), round(m), round(s))
             await ctx.send(msg)
 
