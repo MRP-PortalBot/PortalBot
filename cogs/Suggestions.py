@@ -4,15 +4,33 @@ from discord.ext import commands
 import json
 import datetime
 from datetime import timedelta, datetime
-from github import Github #(pip install PyGithub)
 import os
 import asyncio
 
-#Bot Suggestions! (Using GitHub Issues!)
+import requests
 
-#GitHub Auth 
-g = Github(os.getenv("GITHUB"))
-repo = g.get_repo("MRP-PortalBot/PortalBot")
+url = "https://api.trello.com/1/cards"
+
+def query(authorname, ID, server, channel, suggestion):
+    query = {
+        'key': os.getenv("TRELLOKEY"),
+        'token': os.getenv("TRELLOTOKEN"),
+        'idList': '5fff8cd40de14a1cdc6fd79a',
+        'pos': 'top',
+        'name': f'[Suggestion] by {authorname}',
+        'desc': f'Author ID: {ID}\nGuild: {server}\nChannel: {channel}\n\nSuggestion: {suggestion}'
+    }
+    response = requests.request(
+        "POST",
+        url,
+        params=query
+    )
+    return response.text
+
+
+
+#Bot Suggestions! (Using Trello !)
+
 
 class Suggestions(commands.Cog):
     def __init__(self, bot):
@@ -31,7 +49,7 @@ class Suggestions(commands.Cog):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user and m.author == author
         if suggestion == None:
             await channel.send("Suggestion/Feedback")
-            answer = await self.bot.wait_for('message', check=check)
+            suggestion = await self.bot.wait_for('message', check=check)
 
             message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 100 seconds to react, otherwise the application will cancel.* ")
             reactions = ['✅', '❌']
@@ -49,8 +67,8 @@ class Suggestions(commands.Cog):
                     return
                 else:
                     await message.delete()
-                    Issue = repo.create_issue(title=f"[SUGGESTION] by {authorname}", body = answer.content, labels = [label, label2])
-                    embed = discord.Embed(title = "I have sent in your suggestion!", value = f"You can view your suggestion's progress here! [GitHub URL](https://github.com/MRP-PortalBot/PortalBot/issues/{Issue.number})")
+                    query(authorname, ID, server, channel.name, suggestion.content)
+                    embed = discord.Embed(title = "I have sent in your suggestion!", description = f"You can view your suggestion's progress here! [Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
                     await ctx.send(embed = embed)
 
             except asyncio.TimeoutError:
@@ -72,8 +90,8 @@ class Suggestions(commands.Cog):
                     return
                 else:
                     await message.delete()
-                    Issue = repo.create_issue(title=f"[SUGGESTION] by {authorname}", body = suggestion, labels = [label, label2])
-                    embed = discord.Embed(title = "I have sent in your suggestion!", value = f"You can view your suggestion's progress here! [GitHub URL](https://github.com/MRP-PortalBot/PortalBot/issues/{Issue.number})")
+                    query(authorname, ID, server, channel.name, suggestion)
+                    embed = discord.Embed(title = "I have sent in your suggestion!", value = f"You can view your suggestion's progress here! [Trellp URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
                     await ctx.send(embed = embed)
 
             except asyncio.TimeoutError:
