@@ -71,5 +71,8 @@ class MGPonlyCMD(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send("This command cannot be used again for 1 hour!")
 
+        else:
+            raise error
+
 def setup(bot):
     bot.add_cog(MGPonlyCMD(bot))
