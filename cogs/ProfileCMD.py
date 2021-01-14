@@ -20,14 +20,14 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 
 client = gspread.authorize(creds)
 
-gtsheet = client.open("PortalbotProfile").sheet1
+profilesheet = client.open("PortalbotProfile").sheet1
 sheet = client.open("MRP Blacklist Data").sheet1
 # 3 Values to fill
 
 # Template on modfying spreadsheet
 '''
 gtrow = ["1", "2", "3"]
-gtsheet.insert_row(row, 3)
+profilesheet.insert_row(row, 3)
 print("Done.")
 
 gtcell = sheet.cell(3,1).value
@@ -35,155 +35,17 @@ print(cell)
 '''
 # -----------------------------------------------------
 
-xboxcol = 3
+discordcol = 1
+longidcol = 2
+tzonecol = 3
+xboxcol = 4
+psnidcol = 5
+switchcol = 6
+pokemongocol = 7
+chesscol = 8
 
 # -----------------------------------------------------
 
-'''
-class GamertagCMD(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
-    # new gamertags command
-    @commands.command()
-    @commands.has_role("Realm OP")
-    async def gtsearch(self, ctx):
-        checkcheck = "FALSE"
-        author = ctx.message.author
-        channel = ctx.message.channel
-        guild = ctx.message.guild
-        SearchResults = discord.Embed(
-            title="Gamertag Search", description="Requested by Operator " + author.mention, color=0x18c927)
-
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
-
-        await ctx.send("How do you want to search?\n**Discord**\n**LongID**\n**Gamertag**")
-        message1 = await self.bot.wait_for('message', check=check)
-
-        message1c = message1.content
-        if 'Discord' in message1c:
-            await ctx.send("Please enter the Discord Username")
-            messageopt1 = await self.bot.wait_for('message', check=check)
-            messageopt1c = messageopt1.content
-            gtvalues_re = re.compile(r'(?i)' + '(?:' + messageopt1c + ')')
-            print(gtvalues_re)
-            gtvalues = gtsheet.findall(gtvalues_re, in_column=1)
-            print(gtvalues)
-            gtselect = 'False'
-        elif 'LongID' in message1c:
-            await ctx.send("Please enter the Discord LongID")
-            messageopt1 = await self.bot.wait_for('message', check=check)
-            messageopt1c = messageopt1.content
-            gtvalues_re = re.compile(r'(?i)' + '(?:' + messageopt1c + ')')
-            print(gtvalues_re)
-            gtvalues = gtsheet.findall(gtvalues_re, in_column=2)
-            print(gtvalues)
-            gtselect = 'False'
-        elif 'Gamertag' in message1c:
-            await ctx.send("Please enter the Gamertag")
-            messageopt1 = await self.bot.wait_for('message', check=check)
-            messageopt1c = messageopt1.content
-            gtvalues_re = re.compile(r'(?i)' + '(?:' + messageopt1c + ')')
-            print(gtvalues_re)
-            gtvalues = gtsheet.findall(gtvalues_re, in_column=3)
-            print(gtvalues)
-            gtselect = "True"
-        else:
-            gtvalues = "specialerror"
-        try:
-            checkempty = ', '.join(gtsheet.row_values(
-                gtsheet.find(gtvalues_re).row))
-            print(checkempty)
-        except:
-            checkcheck = "TRUE"
-        print(checkcheck)
-        if checkcheck == "FALSE":
-            for r in gtvalues:
-                output = ', '.join(gtsheet.row_values(r.row))
-                print(output)
-                A1, A2, A3 = output.split(", ")
-                SearchResults.add_field(name="Results: \n", value="```autohotkey\n" + "Discord Username: " + str(
-                    A1) + "\nDiscord ID: " + str(A2) + "\nGamertag: " + str(A3) + "\n```", inline=False)
-                newI = A3
-                SearchResults.add_field(name="Gamertag Search links", value="**Xbox Gamertag:** " + "**" + newI + "**" +
-                                        "\n**Xbox Profile:** https://account.xbox.com/en-us/profile?gamertag=" + newI + "\n**Xbox Lookup:** https://xboxgamertag.com/search/" + newI)
-            await ctx.channel.purge(limit=5)
-            await ctx.send(embed=SearchResults)
-        elif gtvalues == "specialerror":
-            await ctx.channel.purge(limit=5)
-            await ctx.send("Please try again using a valid search type.")
-        elif gtselect == "True":
-            SearchResults.add_field(
-                name="No Results", value="I'm sorry, but it looks like the [spreadsheet](https://docs.google.com/spreadsheets/d/10IwbwXo_ifPXYngSrO2lHVr6N2fXOKadZNR6MWqihzc/edit?usp=sharing) doesn't have any results for the query you have sent! \n\n**Tips:**\n- Don't include the user's tag number! (Ex: #1879)\n- Try other ways of spelling out the username such as putting everything as lowercase! \n- Try checking the orginal spreadsheet for the value and try searching any term in the row here!")
-            newI = messageopt1c
-            SearchResults.add_field(name="Gamertag Search links", value="**Xbox Gamertag:** " + "**" + newI + "**" +
-                                    "\n**Xbox Profile:** https://account.xbox.com/en-us/profile?gamertag=" + newI + "\n**Xbox Lookup:** https://xboxgamertag.com/search/" + newI)
-            await ctx.channel.purge(limit=5)
-            await ctx.send(embed=SearchResults)
-        else:
-            SearchResults.add_field(
-                name="No Results", value="I'm sorry, but it looks like the [spreadsheet](https://docs.google.com/spreadsheets/d/10IwbwXo_ifPXYngSrO2lHVr6N2fXOKadZNR6MWqihzc/edit?usp=sharing) doesn't have any results for the query you have sent! \n\n**Tips:**\n- Don't include the user's tag number! (Ex: #1879)\n- Try other ways of spelling out the username such as putting everything as lowercase! \n- Try checking the orginal spreadsheet for the value and try searching any term in the row here!")
-            await ctx.channel.purge(limit=5)
-            await ctx.send(embed=SearchResults)
-
-    @gtsearch.error
-    async def gtsearch_error(self, ctx, error):
-        if isinstance(error, commands.MissingRole):
-            await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
-
-    # Add's a gamertag to the database.
-    @commands.command()
-    async def gtadd(self, ctx, *, gamertag):
-        author = ctx.message.author
-        channel = ctx.message.channel
-        alid = str(author.id)
-        aname = str(author.name + '#' + author.discriminator)
-
-        # Spreadsheet Data
-        row = [aname, alid, gamertag]
-        print(row)
-        gtsheet.insert_row(row, 3)
-        #GamerTag = open("Gamertags.txt", "a")
-        #GamerTag.write(gamertag + " " + str(author.id) + "\n")
-
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
-        await channel.send("Success! \nWould you like to change your nickname to your gamertag? (If so, you may have to add your emojis to your nickname again!)")
-        
-
-        message = await channel.send("✅ - CHANGE NICKNAME\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
-        reactions = ['✅', '❌']
-        for emoji in reactions:
-            await message.add_reaction(emoji)
-
-        def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
-        try:
-            reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
-            if str(reaction.emoji) == "❌":
-                await channel.send("Okay, won't change your nickname!")
-                for emoji in reactions:
-                    await message.clear_reaction(emoji)
-                return
-            else:
-                for emoji in reactions:
-                    await message.clear_reaction(emoji)
-                await author.edit(nick=gamertag)
-                await ctx.send("Success!")
-
-        except asyncio.TimeoutError:
-            await channel.send("Looks like you didn't react in time, please try again later!")
-
-
-            
-
-    @gtadd.error
-    async def gtadd_error(self, ctx, error):
-        if isinstance(error, commands.BadArgument):
-            await ctx.send("Uh oh, you didn't include all the arguments! ")
-
-'''
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -208,14 +70,14 @@ class ProfileCMD(commands.Cog):
         else:
             anick = str(username.nick)
 
-        alid = str(username.id)        
+        longid = str(username.id)        
         pfp = username.avatar_url
         profileembed = discord.Embed(
             title=anick + "'s Profile", description="=======================", color=0x18c927)
         username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
 
         try:
-            usercell = gtsheet.find(username_re, in_column=1)
+            usercell = profilesheet.find(username_re, in_column=1)
         except:
             print("User Not Found")
             noprofileembed = discord.Embed(
@@ -225,16 +87,34 @@ class ProfileCMD(commands.Cog):
             print("User Found!")
 
             userrow = usercell.row
-            discordname = gtsheet.cell(userrow, 1).value
-            longid = gtsheet.cell(userrow, 2).value
-            xbox = gtsheet.cell(userrow, xboxcol).value
+            discordname = profilesheet.cell(userrow, discordcol).value
+            longid = profilesheet.cell(userrow, longidcol).value
+            tzone = profilesheet.cell(userrow, tzonecol).value
+            xbox = profilesheet.cell(userrow, xboxcol).value
+            psnid = profilesheet.cell(userrow, psnidcol).value
+            switch = profilesheet.cell(userrow, switchcol).value
+            pokemongo = profilesheet.cell(userrow, pokemongocol).value
+            chessdotcom = profilesheet.cell(userrow, chesscol).value
             
             profileembed.set_thumbnail(url=pfp)
             profileembed.add_field(name="Discord", value=discordname, inline=True)
             profileembed.add_field(name="LongID", value=longid, inline=True)
+            if tzone != "":
+                profileembed.add_field(name="Timezone", value=tzone, inline=True)
             if xbox != "":
-                profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)     
-            profileembed.set_footer(text="Requested by " + author.name)
+                profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
+            if psnid != "":
+                profileembed.add_field(name="Playstation ID", value=psnid, inline=False) 
+            if switch != "":
+                profileembed.add_field(name="Switch Friend Code", value=switch, inline=False) 
+            if pokemongo != "":
+                profileembed.add_field(name="Pokemon Go ID", value=pokemongo, inline=False) 
+            if chessdotcom != "":
+                profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
+            if username == ctx.message.author:
+                profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
+            else:
+                profileembed.set_footer(text="Requested by " + author.name)
             if role in author.roles: 
                 try:
                     longid = sheet.find(longid, in_column=2)
@@ -265,96 +145,322 @@ class ProfileCMD(commands.Cog):
             raise error          
 
     @profile.command()
-    async def xbox(self, ctx):
+    async def edit(self, ctx):
         channel = ctx.message.channel
         username = ctx.message.author
-        aname = str(username.name)
-        alid = str(username.id)        
+        discordname = str(username.name + "#" + username.discriminator)
+        longid = str(username.id)
+        tzone = str("")
+        xbox = str("")
+        psnid = str("")
+        switch = str("")
+        pokemongo = str("")
+        chessdotcom = str("")        
 
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        
+        await channel.send("What would you like to edit?")
+        
+        message = await channel.send("1️⃣ - Timezone\n2️⃣ - XBOX\n3️⃣ - Playstation ID\n4️⃣ - Switch Friend Code\n5️⃣ - Pokemon GO ID\n6️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        reactions = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣', '❌']
+        for emoji in reactions:
+            await message.add_reaction(emoji)
 
-        await ctx.send("What is your Gamertag")
-        messagecontent = await self.bot.wait_for('message', check=check)
-        xboxid = messagecontent.content
+        def check2(reaction, user):
+            return user == ctx.author and (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣' or str(reaction.emoji) == '3️⃣' or str(reaction.emoji) == '4️⃣' or str(reaction.emoji) == '5️⃣' or str(reaction.emoji) == '6️⃣' or str(reaction.emoji) == '❌')
 
         try:
-            usercell = gtsheet.find(alid, in_column=2)
-        except:
-            discordname = str(username.name + "#" + username.discriminator)
-            longid = alid
-            xbox = xboxid
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
+            if str(reaction.emoji) == "❌":
+                await ctx.channel.purge(limit=2)
+                await channel.send("Okay, nothing will be edited!")
+            elif str(reaction.emoji) == "1️⃣":
+                def check3(m):
+                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
-            row = [discordname, longid, xbox]
-            print(row)
-            gtsheet.insert_row(row, 3)
+                await ctx.send("What is your Timezone?")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                addedid = messagecontent.content
 
-            await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
-        else:
-            userrow = usercell.row
-            xbox = xboxid
-            gtsheet.update_cell(userrow, xboxcol, str(xbox))
-            print("User Found!")
-            await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    discordname = str(username.name + "#" + username.discriminator)
+                    longid = longid
+                    tzone = addedid
+
+                    row = [discordname, longid, tzone, xbox, psnid, switch, pokemongo, chessdotcom]
+                    print(row)
+                    profilesheet.insert_row(row, 3)
+
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your Timezone to to your profile!")
+                else:
+                    userrow = usercell.row
+                    tzone = addedid
+                    profilesheet.update_cell(userrow, tzonecol, str(tzone))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your Timezone to to your profile!")
+            elif str(reaction.emoji) == "2️⃣":
+                def check3(m):
+                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+
+                await ctx.send("What is your XBOX Gamertag?")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                addedid = messagecontent.content
+
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    discordname = str(username.name + "#" + username.discriminator)
+                    longid = longid
+                    xbox = addedid
+
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
+                    print(row)
+                    profilesheet.insert_row(row, 3)
+
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
+                else:
+                    userrow = usercell.row
+                    xbox = addedid
+                    profilesheet.update_cell(userrow, xboxcol, str(xbox))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
+            elif str(reaction.emoji) == "3️⃣":
+                def check3(m):
+                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+
+                await ctx.send("What is your PSN ID?")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                addedid = messagecontent.content
+
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    discordname = str(username.name + "#" + username.discriminator)
+                    longid = longid
+                    psnid = addedid
+
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
+                    print(row)
+                    profilesheet.insert_row(row, 3)
+
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your PSN ID to to your profile!")
+                else:
+                    userrow = usercell.row
+                    psnid = addedid
+                    profilesheet.update_cell(userrow, psnidcol, str(psnid))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=4)                    
+                    await channel.send("Success!, You have added your PSN ID to to your profile!")
+            elif str(reaction.emoji) == "4️⃣":
+                def check3(m):
+                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+
+                await ctx.send("What is your Nintendo Network ID?")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                addedid = messagecontent.content
+
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    discordname = str(username.name + "#" + username.discriminator)
+                    longid = longid
+                    switch = addedid
+
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
+                    print(row)
+                    profilesheet.insert_row(row, 3)
+
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
+                else:
+                    userrow = usercell.row
+                    switch = addedid
+                    profilesheet.update_cell(userrow, switchcol, str(switch))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
+            elif str(reaction.emoji) == "5️⃣":
+                def check3(m):
+                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+
+                await ctx.send("What is your Pokemon GO ID?")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                addedid = messagecontent.content
+
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    discordname = str(username.name + "#" + username.discriminator)
+                    longid = longid
+                    pokemongo = addedid
+
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
+                    print(row)
+                    profilesheet.insert_row(row, 3)
+
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your Pokemon Go ID to to your profile!")
+                else:
+                    userrow = usercell.row
+                    pokemongo = addedid
+                    profilesheet.update_cell(userrow, pokemongocol, str(pokemongo))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your Pokemon Go ID? to to your profile!")
+            elif str(reaction.emoji) == "6️⃣":
+                def check3(m):
+                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+
+                await ctx.send("What is your Chess.com ID?")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                addedid = messagecontent.content
+
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    discordname = str(username.name + "#" + username.discriminator)
+                    longid = longid
+                    chessdotcom = addedid
+
+                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
+                    print(row)
+                    profilesheet.insert_row(row, 3)
+
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+                else:
+                    userrow = usercell.row
+                    chessdotcom = addedid
+                    profilesheet.update_cell(userrow, chesscol, str(chessdotcom))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=4)
+                    await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+
+        except asyncio.TimeoutError:
+            await channel.send("Looks like you didn't react in time, please try again later!")
 
     @profile.command()
     async def remove(self, ctx):
         channel = ctx.message.channel
         username = ctx.message.author
-        aname = str(username.name)
-        alid = str(username.id)
-        cellclear = str("")        
+        discordname = str(username.name + "#" + username.discriminator)
+        longid = str(username.id)
+        cellclear = str("")         
 
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
         
-        await channel.send("What would you like to remove")
+        await channel.send("What would you like to remove?")
         
-        message = await channel.send("1️⃣ - XBOX\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
-        reactions = ['1️⃣', '❌']
+        message = await channel.send("1️⃣ - Timezone\n2️⃣ - XBOX\n3️⃣ - Playstation ID\n4️⃣ - Switch Friend Code\n5️⃣ - Pokemon GO ID\n6️⃣ - Chess.com ID\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+        reactions = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
 
         def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
-        
+            return user == ctx.author and (str(reaction.emoji) == '1️⃣' or str(reaction.emoji) == '2️⃣' or str(reaction.emoji) == '3️⃣' or str(reaction.emoji) == '4️⃣' or str(reaction.emoji) == '5️⃣' or str(reaction.emoji) == '6️⃣' or str(reaction.emoji) == '❌')
+
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
             if str(reaction.emoji) == "❌":
+                await ctx.channel.purge(limit=2)
                 await channel.send("Okay, nothing will be removed!")
-                for emoji in reactions:
-                    await message.clear_reaction(emoji)
-                return
-            else:
+            elif str(reaction.emoji) == "1️⃣":
                 try:
-                    usercell = gtsheet.find(alid, in_column=2)
+                    usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    for emoji in reactions:
-                        await message.clear_reaction(emoji)
+                    await ctx.channel.purge(limit=2)
                     await ctx.send("User has no profile")
                 else:
-                    for emoji in reactions:
-                        await message.clear_reaction(emoji)
                     userrow = usercell.row
-                    xbox = cellclear
-                    gtsheet.update_cell(userrow, xboxcol, str(xbox))
+                    profilesheet.update_cell(userrow, tzonecol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await channel.send("Success!, You have removed XBOX Gamertag from your profile!")
+                    await ctx.channel.purge(limit=2)
+                    await channel.send("Success!, You have removed your Timezone from your profile!")
+            elif str(reaction.emoji) == "2️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    await ctx.channel.purge(limit=2)
+                    await ctx.send("User has no profile")
+                else:
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, xboxcol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=2)
+                    await channel.send("Success!, You have removed your XBOX Gamertag from your profile!")
+            elif str(reaction.emoji) == "3️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    await ctx.channel.purge(limit=2)
+                    await ctx.send("User has no profile")
+                else:
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, psnidcol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=2)
+                    await channel.send("Success!, You have removed your Playstation ID from your profile!")
+            elif str(reaction.emoji) == "4️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    await ctx.channel.purge(limit=2)
+                    await ctx.send("User has no profile")
+                else:
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, switchcol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=2)
+                    await channel.send("Success!, You have removed your Switch Friend Code from your profile!")
+            elif str(reaction.emoji) == "5️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    await ctx.channel.purge(limit=2)
+                    await ctx.send("User has no profile")
+                else:
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, pokemongocol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=2)
+                    await channel.send("Success!, You have removed your Pokemon GO ID from your profile!")
+            elif str(reaction.emoji) == "6️⃣":
+                try:
+                    usercell = profilesheet.find(longid, in_column=2)
+                except:
+                    await ctx.channel.purge(limit=2)
+                    await ctx.send("User has no profile")
+                else:
+                    userrow = usercell.row
+                    profilesheet.update_cell(userrow, chesscol, str(cellclear))
+                    profilesheet.update_cell(userrow, discordcol, str(discordname))
+                    print("User Found!")
+                    await ctx.channel.purge(limit=2)
+                    await channel.send("Success!, You have removed Chess.com ID from your profile!")
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
 
-
-
-
-    @commands.command()
-    async def getprofile(self, ctx, user: discord.User = None):
-
-        if user is None:
-            user = ctx.author
-        accounts = discord.user.Profile.connected_accounts
-        print(accounts)
-        await ctx.send(accounts)
 
 def setup(bot):
     bot.add_cog(ProfileCMD(bot))

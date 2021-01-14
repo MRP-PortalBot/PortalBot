@@ -23,6 +23,7 @@ client = gspread.authorize(creds)
 sheet = client.open(
     "Minecraft Realm Portal Channel Application (Responses)").sheet1
 
+sheet2 = client.open("MRPCommunityRealmApp").sheet1
 # -------------------------------------------------------
 
 def check_MRP():
@@ -246,7 +247,7 @@ class RealmCMD(commands.Cog):
         await channel.send("List the members of your OP team. (Owner first)")
         answer9 = await self.bot.wait_for('message', check=check)
 
-        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automaically cancel. ")
+        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automatically cancel. ")
         reactions = ['✅', '❌']
         for emoji in reactions:
             await message.add_reaction(emoji)
@@ -262,8 +263,10 @@ class RealmCMD(commands.Cog):
         else:
             if str(reaction.emoji) == "✅":
                 await ctx.send("Standby...")
+                await message.delete()
             else:
                 await ctx.send("Ended Application...")
+                await message.delete()
                 return
 
         submittime = str(timestamp.strftime(r"%x"))
@@ -326,6 +329,120 @@ class RealmCMD(commands.Cog):
 
         if isinstance(error, commands.CheckFailure):
             await ctx.send("This Command was not designed for this server!")
+    
+    @commands.command()
+    @check_MRP()
+    async def applymrpcr(self ,ctx):
+        timestamp = datetime.now()
+        channel2 = ctx.message.channel
+        author = ctx.message.author
+        channel = await ctx.author.create_dm()
+        guild = ctx.message.guild
+        responseChannel = self.bot.get_channel(config['realmApplyResponse'])
+
+        # Elgibilty Checks
+        '''
+    Channel Check
+    '''
+        if channel2.name != "bot-spam":
+            await ctx.channel.purge(limit=1)
+            noGoAway = discord.Embed(title="Woah Woah Woah, Slow Down There Buddy!",
+                                     description="Please switch to #bot-spam! This command is not allowed to be used here.", color=0xfc0b03)
+            await ctx.send(embed=noGoAway, delete_after=6)
+            return
+
+        '''
+    Level Check
+    '''
+        JustSpawnedCheck = discord.utils.get(
+            ctx.guild.roles, name="Just Spawned")
+        SpiderSniperCheck = discord.utils.get(
+            ctx.guild.roles, name="Spider Sniper")
+        if JustSpawnedCheck in author.roles or SpiderSniperCheck in author.roles:
+            noGoAway = discord.Embed(title="Woah Woah Woah, Slow Down There Buddy!",
+                                     description="I appreciate you trying to apply towards MRPCR here but you must have the `Zombie Slayer` role or have surpassed this role! \n*Please try again when you have reached this role.*", color=0xfc0b03)
+            await ctx.send(embed=noGoAway)
+            return
+
+        await ctx.send("Please check your DMs!")
+
+        # Answer Check
+        def check(m):
+            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        
+        intro = discord.Embed(title="MRPCR Realm Application", description="Hello! Please make sure you fill every question with a good amount of detail and if at any point you feel like you made a mistake, you will see a cancel reaction at the end. Then you can come back and re-answer your questions! \n**Questions will start in 5 seconds.**", color=0x42f5f5)
+        await channel.send(embed=intro)
+        time.sleep(5)
+
+        answer1 = str(author.name) + "#" + str(author.discriminator)
+        answer2 = str(author.id)
+
+        await channel.send("Gamertag:")
+        answer3 = await self.bot.wait_for('message', check=check)
+
+        await channel.send("Age:")
+        answer4= await self.bot.wait_for('message', check=check)
+
+        await channel.send("Tell us about yourself and what you love about Minecraft.")
+        answer5 = await self.bot.wait_for('message', check=check)
+
+        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automatically cancel.* ")
+        reactions = ['✅', '❌']
+        for emoji in reactions:
+            await message.add_reaction(emoji)
+
+        def check2(reaction, user):
+            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+        try:
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=300.0, check=check2)
+
+        except asyncio.TimeoutError:
+            await channel.send("Looks like you didn't react in time, please try again later!")
+
+        else:
+            if str(reaction.emoji) == "✅":
+                await ctx.send("Standby...")
+                await message.delete()
+            else:
+                await ctx.send("Ended Application...")
+                await message.delete()
+                return
+
+        submittime = str(timestamp.strftime(r"%x"))
+
+        # Spreadsheet Data
+        row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content,submittime]
+        sheet2.insert_row(row, 2)
+
+        # Actual Embed with Responses
+        embed = discord.Embed(title="New MRPCR Application!", description="Response turned in by: " +
+                              author.mention, color=0x03fc28)
+        embed.set_thumbnail(
+            url="https://cdn.discordapp.com/attachments/588034623993413662/588413853667426315/Portal_Design.png")
+        embed.add_field(name="__**Discord Name:**__",value=str(answer1.content), inline=True)
+        embed.add_field(name="__**Gamertag:**__",value=str(answer2.content), inline=True)
+        embed.add_field(name="__**Age:**__", value=str(answer3.content), inline=False)
+        embed.add_field(name="__**Tell us about yourself and what you love about Minecraft.**__", value=str(answer4.content), inline=False)
+        embed.add_field(name = "__**Timestamp:**__", value = str(timestamp.strftime(r"%x")))
+
+        embed.add_field(name="__**Reaction Codes**__",value="Please react with the following codes to show your thoughts on this applicant.", inline=False)
+        embed.add_field(name="----💚----", value="Approved", inline=True)
+        embed.add_field(name="----💛----",value="More Time in Server", inline=True)
+        embed.add_field(name="----❤️----", value="Rejected", inline=True)
+        embed.set_footer(text="Realm Application | " + submittime)
+        msg = await responseChannel.send(embed=embed)
+
+        # Reaction Appending
+        reactions = ['💚', '💛', '❤️']
+        for emoji in reactions:
+            await msg.add_reaction(emoji)
+
+        # Confirmation
+        response = discord.Embed(
+            title="Success!", description="I have sent in your application, you will hear back if you have passed!", color=0x03fc28)
+        await channel.send(embed=response)
+
+
 
 
 def setup(bot):

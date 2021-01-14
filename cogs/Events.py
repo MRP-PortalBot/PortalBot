@@ -35,9 +35,22 @@ print(cell)
 '''
 # -----------------------------------------------------
 
+discordcol = 1
+longidcol = 2
+tzonecol = 3
+xboxcol = 4
+psnidcol = 5
+nnidcol = 6
+pokemongocol = 7
+chesscol = 8
+
+# -----------------------------------------------------
+
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+#  Join Messages-----------------------------------------------------
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -49,6 +62,14 @@ class Events(commands.Cog):
             embed.set_thumbnail(url=member.avatar_url)
             embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
             await channel.send(embed=embed)
+        elif member.guild.id == 192052103017922567:
+            guild = self.bot.get_guild(192052103017922567)
+            channel = guild.get_channel(796115065622626326)
+            count = int(member.guild.member_count) + 1
+            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xFFCE41)
+            embed.set_thumbnail(url=member.avatar_url)
+            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
+            await channel.send(embed=embed)    
         else:
             print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
 
@@ -57,19 +78,19 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member):
         username = member
-        alid = str(username.id)
-
+        longid = str(username.id)
+        discordname = str(username.name + "#" + username.discriminator)
+        
         try:
-            gtsheet.find(alid, in_column=2)
+            usercell = gtsheet.find(longid, in_column=2)
         except:
-            discordname = str(username.name + "#" + username.discriminator)
-            longid = alid
-
             row = [discordname, longid]
             print(row)
             gtsheet.insert_row(row, 3)
         else:
-            print("User already exists in sheet!")
+            userrow = usercell.row
+            gtsheet.update_cell(userrow, discordcol, str(discordname))
+            gtsheet.update_cell(userrow, longidcol, str(longid))
            
 
 
