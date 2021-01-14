@@ -60,10 +60,10 @@ class MGPonlyCMD(commands.Cog):
         callembed = discord.Embed(
             title="Player's are being called by", description=author.mention, color=0xFFCE41)
 
-        callembed.add_field(name=authorname + "wants to play" + gamename, value="Is there anyone @here that would like to join?", inline=True)
+        callembed.add_field(name=authorname + "wants to play" + gamename, value="Is there anyone here that would like to join?", inline=True)
         callembed.set_footer(text="This command cannot be used again for 1 hour!")
 
-        await channel.send("success")
+        await channel.send("@here")
         await channel.send(embed=callembed)
 
     @gametime.error
