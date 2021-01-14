@@ -391,7 +391,7 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
                     await ctx.channel.purge(limit=2)
-                    await channel.send("Success!, You have removed your timezone from your profile!")
+                    await channel.send("Success!, You have removed your Timezone from your profile!")
             elif str(reaction.emoji) == "2️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
