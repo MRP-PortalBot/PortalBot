@@ -58,7 +58,6 @@ class MGPonlyCMD(commands.Cog):
             authorname = author.name
         else:
             authorname = author.nick
-        authorname = author.nick
         gamename = channel.name
         print("works")
         callembed = discord.Embed(
