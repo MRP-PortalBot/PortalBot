@@ -50,7 +50,7 @@ class MGPonlyCMD(commands.Cog):
 
     @commands.command()
     @check_MGP()
-    @commands.cooldown(1, 30, commands.BucketType.channel)
+    @commands.cooldown(1, 3600, commands.BucketType.channel)
     async def gametime(self, ctx):
         author = ctx.message.author
         channel = ctx.message.channel
