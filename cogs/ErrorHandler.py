@@ -110,58 +110,70 @@ class CommandErrorHandler(commands.Cog):
         raise error
 
     @commands.command()
-    async def report(self, ctx, typer, *, feedback : str):
+    async def report(self, ctx, *, feedback : str):
+        msg = await ctx.send("Select What Type of Feedback to Send!\n🐞 - Bug Report\n📇 - Suggestion/Feedback")
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user and m.author == author
         def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
-        if typer == "bug" or typer == "Bug" or typer == "BUG":
-            author = ctx.message.author
-            channel = ctx.message.channel
-            responseguild = ctx.message.guild
+            return user == ctx.author and (str(reaction.emoji) == '🐞' or str(reaction.emoji) == '📇')
+        reactions = ['🐞', '📇']
+        for emoji in reactions:
+            await msg.add_reaction(emoji)
+        try:
+            reaction, user = await self.bot.wait_for('reaction_add', timeout=150.0, check=check2)
+            if str(reaction.emoji) == '🐞':
+                await msg.delete()
+                author = ctx.message.author
+                channel = ctx.message.channel
+                responseguild = ctx.message.guild
 
-            query(author.name, author.id, responseguild, channel.name, feedback, "BUG")
-            guild = self.bot.get_guild(448488274562908170)
-            channel = guild.get_channel(797193549992165456)
-            embed = discord.Embed(title = "User Bug Report!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
-            embed.add_field(name = "Feedback", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
-            await channel.send(embed = embed)
-            resp = discord.Embed(title = "Thank You For Submitting A Bug Report!", description = "I have successfully sent in your bug report!", color= 0xfc8003)
-            resp.add_field(name = "Feedback Sent:", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
-            await ctx.send(embed=resp)
-        elif typer == "suggestion" or typer == "Suggestion" or typer == "SUGGESTION":
-            author = ctx.message.author
-            authorname = ctx.message.author.display_name
-            ID = ctx.message.author.id
-            server = ctx.message.guild.name
-            channel = ctx.message.channel
-            await channel.send("Suggestion/Feedback")
-            suggestion = await self.bot.wait_for('message', check=check)
+                query(author.name, author.id, responseguild, channel.name, feedback, "BUG")
+                guild = self.bot.get_guild(448488274562908170)
+                channel = guild.get_channel(797193549992165456)
+                embed = discord.Embed(title = "User Bug Report!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
+                embed.add_field(name = "Feedback", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
+                await channel.send(embed = embed)
+                resp = discord.Embed(title = "Thank You For Submitting A Bug Report!", description = "I have successfully sent in your bug report!", color= 0xfc8003)
+                resp.add_field(name = "Feedback Sent:", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
+                await ctx.send(embed=resp)
+            else: 
+                await msg.delete()
+                author = ctx.message.author
+                authorname = ctx.message.author.display_name
+                ID = ctx.message.author.id
+                server = ctx.message.guild.name
+                channel = ctx.message.channel
+                await channel.send("Suggestion/Feedback")
+                suggestion = await self.bot.wait_for('message', check=check)
 
-            embed = discord.Embed(title = "Ready to Submit?", description = "Before you submit!\nPlease make sure that the following response is **not** a BUG REPORT! Bug Reports should be filled using the `bug` command! *(Use the bug tag for more information!)* ", color = 0x4c594b)
-            embed.add_field(name = "Submit Feedback", value = "✅ - SUBMIT\n❌ - CANCEL")
-            message = await ctx.send(embed = embed)
-            reactions = ['✅', '❌']
-            for emoji in reactions:
-                await message.add_reaction(emoji)
+                embed = discord.Embed(title = "Ready to Submit?", description = "Before you submit!\nPlease make sure that the following response is **not** a BUG REPORT! Bug Reports should be filled using the `bug` command! *(Use the bug tag for more information!)* ", color = 0x4c594b)
+                embed.add_field(name = "Submit Feedback", value = "✅ - SUBMIT\n❌ - CANCEL")
+                message = await ctx.send(embed = embed)
+                reactions = ['✅', '❌']
+                for emoji in reactions:
+                    await message.add_reaction(emoji)
 
-            def check2(reaction, user):
-                return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+                def check2(reaction, user):
+                    return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
 
-            try:
-                reaction, user = await self.bot.wait_for('reaction_add', timeout=100.0, check=check2)
-                if str(reaction.emoji) == "❌":
-                    await channel.send("Ended Task")
-                    await message.delete()
-                    return
-                else:
-                    await message.delete()
-                    query(authorname, ID, server, channel.name, suggestion.content, "Suggestion")
-                    embed = discord.Embed(title = "I have sent in your suggestion!", description = f"You can view your suggestion's progress here! [Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)", color = 0x4c594b)
-                    await ctx.send(embed = embed)
+                try:
+                    reaction, user = await self.bot.wait_for('reaction_add', timeout=100.0, check=check2)
+                    if str(reaction.emoji) == "❌":
+                        await channel.send("Ended Task")
+                        await message.delete()
+                        return
+                    else:
+                        await message.delete()
+                        query(authorname, ID, server, channel.name, suggestion.content, "Suggestion")
+                        embed = discord.Embed(title = "I have sent in your suggestion!", description = f"You can view your suggestion's progress here! [Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)", color = 0x4c594b)
+                        await ctx.send(embed = embed)
 
-            except asyncio.TimeoutError:
-                await channel.send("Looks like you didn't react in time, please try again later!")
+                except asyncio.TimeoutError:
+                    await channel.send("Looks like you didn't react in time, please try again later!")
+        except asyncio.TimeoutError:
+            await ctx.send("Looks like you didn't react in time, please try again later!")
+
+
 
 def setup(bot):
     bot.add_cog(CommandErrorHandler(bot))
