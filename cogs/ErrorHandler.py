@@ -110,7 +110,10 @@ class CommandErrorHandler(commands.Cog):
         raise error
 
     @commands.command()
-    async def report(self, ctx, *, feedback : str):
+    async def report(self, ctx, *, feedback = None):
+        if feedback == None:
+            await ctx.send("Please enter something to send to the Trello!\n>report (feedback here)")
+            return
         msg = await ctx.send("Select What Type of Feedback to Send!\n🐞 - Bug Report\n📇 - Suggestion/Feedback")
         def check(m):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user and m.author == author
@@ -173,7 +176,9 @@ class CommandErrorHandler(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send("Looks like you didn't react in time, please try again later!")
 
-
+    @commands.command()
+    async def bug(self, ctx):
+        await ctx.send("This command has moved to `>report (feedback/bug report)`")
 
 def setup(bot):
     bot.add_cog(CommandErrorHandler(bot))
