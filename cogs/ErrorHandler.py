@@ -147,7 +147,7 @@ class CommandErrorHandler(commands.Cog):
                         return
                     else:
                         await message.delete()
-                        query(author.name, author.id, responseguild, channel.name, feedback, "BUG")
+                        query(author.name, author.id, responseguild, channel.name, suggestion.content, "BUG")
                         guild = self.bot.get_guild(448488274562908170)
                         channel = guild.get_channel(797193549992165456)
                         embed = discord.Embed(title = "User Suggestion!!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
