@@ -44,6 +44,7 @@ nnidcol = 6
 pokemongocol = 7
 chesscol = 8
 
+IPlinks = ["google.com", "g2.com", "turtle.xyz"]
 # -----------------------------------------------------
 
 class Events(commands.Cog):
@@ -91,7 +92,20 @@ class Events(commands.Cog):
             userrow = usercell.row
             gtsheet.update_cell(userrow, discordcol, str(discordname))
             gtsheet.update_cell(userrow, longidcol, str(longid))
-           
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author.id == self.bot.id:
+            return
+        message_content = message.content.strip().lower()
+        for link in IPlinks:
+            link = link.lower()
+            if link in message_content:
+                await message.channel.send("Found something!")
+
+
+        #await self.bot.process_commands(message)
+
 
 
 def setup(bot):
