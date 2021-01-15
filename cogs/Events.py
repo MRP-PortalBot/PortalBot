@@ -6,7 +6,8 @@ import re
 import asyncio
 from discord import Embed
 import requests
-
+from core.common import load_config
+config, _ = load_config()
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -95,13 +96,20 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author.id == self.bot.id:
+        if message.author == self.bot or message.guild.id == 192052103017922567:
             return
+        msg = message.content
         message_content = message.content.strip().lower()
         for link in IPlinks:
             link = link.lower()
             if link in message_content:
-                await message.channel.send("Found something!")
+                await message.delete()
+                embed = discord.Embed(title = "⚠️ Warning!", description = "Suspicious Link Detected!", color = 0xf05c07)
+                embed.add_field(name = f"{message.author.mention}:", description = "Please DO NOT Send IP Grabbers!")
+                await message.channel.send(embed = embed)
+                channel = self.bot.get_channel(config["ModReport"])
+                embed2 = discord.Embed(title = "Suspicious Link Detected", description = f"Information:\nAuthor: {message.author.mention}\nChannel: {message.channel.mention}\nLink: {msg}" ,color =0xf05c07)
+                await channel.send(embed =embed2)
 
 
         #await self.bot.process_commands(message)
