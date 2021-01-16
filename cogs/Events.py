@@ -45,7 +45,7 @@ nnidcol = 6
 pokemongocol = 7
 chesscol = 8
 
-IPlinks = ["google.com", "g2.com", "turtle.xyz"]
+IPlinks = ["turtletest.com","grabify.link", "lovebird.gutu", "dateing.club", 'otherhalf.life','shrekis.life','headshot.monster','gaming-at-my.best','progaming.monster','yourmy.monster','screenshare.host','imageshare.best','screenshot.best','gamingfun.me','catsnthing.com','mypic.icu','catsnthings.fun','curiouscat.club','joinmy.site','fortnitechat.site','fortnight.space','freegiftcards.co','stopify.co','leancoding.co','bit.ly','shorte.st','adf.lv','bc.vc','bit.do','soo.gd','7.ly','5.gp','tiny.cc','ouo.io','zzb.bz','adfoc.us','my.su','goo.gl']
 # -----------------------------------------------------
 
 class Events(commands.Cog):
