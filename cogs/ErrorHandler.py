@@ -194,6 +194,7 @@ class CommandErrorHandler(commands.Cog):
                         await ctx.send(embed = embed)
                         guild = self.bot.get_guild(448488274562908170)
                         channel = guild.get_channel(797193549992165456)
+                        responseguild = ctx.message.guild.name
                         embed = discord.Embed(title = "User Suggestion!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
                         embed.add_field(name = "Feedback", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
                         await channel.send(embed = embed)
