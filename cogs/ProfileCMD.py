@@ -12,6 +12,11 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 import urllib.request
 
+#---------------------------------------------------
+
+background_image = Image.open('/home/runner/PortalBot-Beta/images/profilebackground2.png')
+background_image = background_image.convert('RGBA')
+
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -474,7 +479,7 @@ class ProfileCMD(commands.Cog):
 
         # --- duplicate image ----
 
-        image = Image.open('/home/runner/PortalBot-Beta/images/profilebackground2.png')
+        image = background_image.copy()
 
         image_width, image_height = image.size
 
