@@ -483,17 +483,17 @@ class ProfileCMD(commands.Cog):
         # --- load image from local file ---
 
         # or load existing image
-        #image = Image.open('/home/furas/Obrazy/images/lenna.png')
+        image = Image.open('/images/Portal_Design.png')
 
         # --- load image from url ---
 
-        import urllib.request    
+        #import urllib.request    
 
-        url = 'https://media.discordapp.net/attachments/788873229136560140/801180249748406272/Portal_Design.png'
+        #url = 'https://media.discordapp.net/attachments/788873229136560140/801180249748406272/Portal_Design.png?download'
 
-        response = urllib.request.urlopen(url)
-        image = Image.open(response)  # it doesn't need `io.Bytes` because it `response` has method `read()`
-        print('size:', image.size)
+        #response = urllib.request.urlopen(url)
+        #image = Image.open(response)  # it doesn't need `io.Bytes` because it `response` has method `read()`
+        #print('size:', image.size)
 
         #IMAGE_WIDTH, IMAGE_HEIGHT = image.size
         IMAGE_WIDTH = image.size[0] 
