@@ -483,7 +483,7 @@ class ProfileCMD(commands.Cog):
         # --- load image from local file ---
 
         # or load existing image
-        image = Image.open('/home/runner/PortalBot-Beta/images/profilebackground.png')
+        image = Image.open('/home/runner/PortalBot-Beta/images/profilebackground2.png')
 
         # --- load image from url ---
 
