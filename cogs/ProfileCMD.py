@@ -488,7 +488,7 @@ class ProfileCMD(commands.Cog):
         # draw text in center
         text = f'Hello {author.name}'
 
-        font = ImageFont.truetype('Arial.ttf', 30)
+        font = ImageFont.load_default()
 
         text_width, text_height = draw.textsize(text, font=font)
         x = (IMAGE_WIDTH - text_width)//2
