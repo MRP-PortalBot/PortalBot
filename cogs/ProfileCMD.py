@@ -483,7 +483,7 @@ class ProfileCMD(commands.Cog):
         # --- load image from local file ---
 
         # or load existing image
-        image = Image.open('/home/runner/PortalBot-Beta/images/Portal_Design.png')
+        image = Image.open('/home/runner/PortalBot-Beta/images/profilebackground.png')
 
         # --- load image from url ---
 
@@ -515,7 +515,7 @@ class ProfileCMD(commands.Cog):
         x = (IMAGE_WIDTH - text_width)//2
         y = (IMAGE_HEIGHT - text_height)//2
 
-        draw.text( (x, y), text, fill=(0,0,255), font=font)
+        draw.text( (x, 10), text, fill=(0,0,255), font=font)
 
         # --- avatar ---
 
