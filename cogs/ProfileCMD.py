@@ -518,7 +518,7 @@ class ProfileCMD(commands.Cog):
 
         text = f'Hello {author.name}'
 
-        font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/gameria.ttf', 30)
+        font = ImageFont.truetype(r'/home/runner/PortalBot-Beta/fonts/gameria.ttf', 30)
 
         text_width, text_height = draw.textsize(text, font=font)
         x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
