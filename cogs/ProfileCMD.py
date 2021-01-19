@@ -482,7 +482,7 @@ class ProfileCMD(commands.Cog):
 
         # create object for drawing
 
-        draw = ImageDraw.Draw(image)
+        #draw = ImageDraw.Draw(image)
 
         # draw red rectangle with alpha channel on new image (with the same size as original image)
 
