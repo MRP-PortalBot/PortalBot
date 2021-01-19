@@ -6,6 +6,10 @@ import re
 import asyncio
 from discord import Embed
 import requests
+from discord import File
+
+from PIL import Image, ImageDraw, ImageFont
+import io
 
 # --------------------------------------------------
 # pip3 install gspread oauth2client
