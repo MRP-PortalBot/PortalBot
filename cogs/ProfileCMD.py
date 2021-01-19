@@ -468,6 +468,7 @@ class ProfileCMD(commands.Cog):
 
     @profile.command()
     async def canvas(ctx, text=None):
+        author = ctx.message.author
 
         IMAGE_WIDTH = 600
         IMAGE_HEIGHT = 300
@@ -485,7 +486,7 @@ class ProfileCMD(commands.Cog):
         draw.rectangle([50, 50, IMAGE_WIDTH-50, IMAGE_HEIGHT-50], fill=(255,0,0), outline=(0,255,0))
 
         # draw text in center
-        text = f'Hello {ctx.author.name}'
+        text = f'Hello {author.name}'
 
         font = ImageFont.truetype('Arial.ttf', 30)
 
