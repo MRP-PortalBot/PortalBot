@@ -518,8 +518,7 @@ class ProfileCMD(commands.Cog):
 
         text = f'Hello {author.name}'
 
-        truetype_url = 'https://github.com/googlefonts/roboto/blob/master/src/hinted/Roboto-Regular.ttf'
-        font = ImageFont.truetype(urlopen(truetype_url), size=30)
+        font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/GAMERIA.ttf', 30)
 
         text_width, text_height = draw.textsize(text, font=font)
         x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
