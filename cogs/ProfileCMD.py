@@ -495,7 +495,7 @@ class ProfileCMD(commands.Cog):
         #image = Image.open(response)  # it doesn't need `io.Bytes` because it `response` has method `read()`
         #print('size:', image.size)
 
-        #IMAGE_WIDTH, IMAGE_HEIGHT = image.size
+        IMAGE_WIDTH, IMAGE_HEIGHT = image.size
         IMAGE_WIDTH = image.size[0] 
 
         # --- draw on image ---
