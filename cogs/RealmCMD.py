@@ -91,6 +91,7 @@ class RealmCMD(commands.Cog):
             await channelrr.send(role.mention + "\n **Please agree to the rules to gain access to the Realm Owner Chats!**")
             perms12 = channelrr.overwrites_for(role)
             perms12.read_messages = True
+            await channel.set_permissions(role, overwrite=perms12, reason="Created New Realm!")
         ChannelPermissions = "DONE"
         await channel.set_permissions(Muted, overwrite=permsM)
         DMStatus = "FAILED"

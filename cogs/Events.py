@@ -6,7 +6,8 @@ import re
 import asyncio
 from discord import Embed
 import requests
-
+from core.common import load_config
+config, _ = load_config()
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -44,6 +45,7 @@ nnidcol = 6
 pokemongocol = 7
 chesscol = 8
 
+IPlinks = ["turtletest.com","grabify.link", "lovebird.gutu", "dateing.club", 'otherhalf.life','shrekis.life','headshot.monster','gaming-at-my.best','progaming.monster','yourmy.monster','screenshare.host','imageshare.best','screenshot.best','gamingfun.me','catsnthing.com','mypic.icu','catsnthings.fun','curiouscat.club','joinmy.site','fortnitechat.site','fortnight.space','freegiftcards.co','stopify.co','leancoding.co','bit.ly','shorte.st','adf.lv','bc.vc','bit.do','soo.gd','7.ly','5.gp','tiny.cc','ouo.io','zzb.bz','adfoc.us','my.su','goo.gl']
 # -----------------------------------------------------
 
 class Events(commands.Cog):
@@ -91,7 +93,27 @@ class Events(commands.Cog):
             userrow = usercell.row
             gtsheet.update_cell(userrow, discordcol, str(discordname))
             gtsheet.update_cell(userrow, longidcol, str(longid))
-           
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.author == self.bot or message.guild.id == 192052103017922567:
+            return
+        msg = message.content
+        message_content = message.content.strip().lower()
+        for link in IPlinks:
+            link = link.lower()
+            if link in message_content:
+                await message.delete()
+                embed = discord.Embed(title = "⚠️ Warning!", description = "Suspicious Link Detected!", color = 0xf05c07)
+                embed.add_field(name = f"WARNING:", value = f"{message.author.mention}: \nPlease DO NOT Send IP Grabbers!")
+                await message.channel.send(embed = embed)
+                channel = self.bot.get_channel(config["ModReport"])
+                embed2 = discord.Embed(title = "Suspicious Link Detected", description = f"Information:\nAuthor: {message.author.mention}\nChannel: {message.channel.mention}\nLink: {msg}" ,color =0xf05c07)
+                await channel.send(embed =embed2)
+
+
+        #await self.bot.process_commands(message)
+
 
 
 def setup(bot):

@@ -126,7 +126,7 @@ class CommandErrorHandler(commands.Cog):
                 author = ctx.message.author
                 channel = ctx.message.channel
                 responseguild = ctx.message.guild
-                await channel.send("Bug Report:")
+                await channel.send("Enter you're bug report here!:")
                 suggestion = await self.bot.wait_for('message', check=check)
 
                 embed = discord.Embed(title = "Ready to Submit?", description = "Make sure the follwing response is an actual bug report!", color = 0x4c594b)
@@ -168,7 +168,7 @@ class CommandErrorHandler(commands.Cog):
                 ID = ctx.message.author.id
                 server = ctx.message.guild.name
                 channel = ctx.message.channel
-                await channel.send("Suggestion/Feedback")
+                await channel.send("Enter you're Suggestion/Feedback here!:")
                 suggestion = await self.bot.wait_for('message', check=check)
 
                 embed = discord.Embed(title = "Ready to Submit?", description = "Before you submit!\nPlease make sure that the following response is **not** a BUG REPORT!", color = 0x4c594b)
@@ -194,6 +194,7 @@ class CommandErrorHandler(commands.Cog):
                         await ctx.send(embed = embed)
                         guild = self.bot.get_guild(448488274562908170)
                         channel = guild.get_channel(797193549992165456)
+                        responseguild = ctx.message.guild.name
                         embed = discord.Embed(title = "User Suggestion!", description = f"Author: {author.mention}\nChannel: {channel.name}\nServer: {responseguild.name}", color=0xfc8003)
                         embed.add_field(name = "Feedback", value = "[Trello URL](https://trello.com/b/kSjptEEb/portalbot-dev-trello)")
                         await channel.send(embed = embed)
