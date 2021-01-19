@@ -10,6 +10,7 @@ from discord import File
 
 from PIL import Image, ImageDraw, ImageFont
 import io
+import urllib.request
 
 # --------------------------------------------------
 # pip3 install gspread oauth2client
@@ -469,61 +470,61 @@ class ProfileCMD(commands.Cog):
     @profile.command()
     async def canvas(self, ctx):
         author = ctx.message.author
-        #print('\n'.join(dir(ctx)))
-        #print('\n'.join(dir(ctx.author)))
+        AVATAR_SIZE = 128
 
-        # --- create empty image ---
+        # --- duplicate image ----
 
-        #IMAGE_WIDTH = 600
-        #IMAGE_HEIGHT = 300
-
-        # create empty image 600x300 
-        #image = Image.new('RGB', (IMAGE_WIDTH, IMAGE_HEIGHT)) # RGB, RGBA (with alpha), L (grayscale), 1 (black & white)
-
-        # --- load image from local file ---
-
-        # or load existing image
         image = Image.open('/home/runner/PortalBot-Beta/images/profilebackground2.png')
 
-        # --- load image from url ---
-
-        #import urllib.request    
-
-        #url = 'https://media.discordapp.net/attachments/788873229136560140/801180249748406272/Portal_Design.png?download'
-
-        #response = urllib.request.urlopen(url)
-        #image = Image.open(response)  # it doesn't need `io.Bytes` because it `response` has method `read()`
-        #print('size:', image.size)
-
-        IMAGE_WIDTH, IMAGE_HEIGHT = image.size
-        IMAGE_WIDTH = image.size[0] 
+        image_width, image_height = image.size
 
         # --- draw on image ---
 
         # create object for drawing
+
         draw = ImageDraw.Draw(image)
 
-        # draw red rectangle with green outline from point (50,50) to point (550,250) #(600-50, 300-50)
-        #draw.rectangle([0, 0, IMAGE_WIDTH-50, 50], fill=(255,0,0, 128), outline=(0,255,0))
+        # draw red rectangle with alpha channel on new image (with the same size as original image)
+
+        rect_x0 = 20  # left marign
+        rect_y0 = 20  # top marign
+
+        rect_x1 = image_width - 20  # right margin
+        rect_y1 = 20 + AVATAR_SIZE - 1  # top margin + size of avatar
+
+        rect_width  = rect_x1 - rect_x0
+        rect_height = rect_y1 - rect_y0
+
+        rectangle_image = Image.new('RGBA', (image_width, image_height))
+        rectangle_draw = ImageDraw.Draw(rectangle_image)
+
+        rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(255,0,0, 128))
+
+        # put rectangle on original image
+
+        image = Image.alpha_composite(image, rectangle_image)
+
+        # create object for drawing
+
+        draw = ImageDraw.Draw(image) # create new object for drawing after changing original `image`
 
         # draw text in center
+
         text = f'Hello {author.name}'
 
-        font = ImageFont.load_default()
+        font = ImageFont.truetype('Arial.ttf', 30)
+
 
         text_width, text_height = draw.textsize(text, font=font)
-        x = (IMAGE_WIDTH - text_width)//2
-        y = (IMAGE_HEIGHT - text_height)//2
+        x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
+        y = (rect_height - text_height)//2
 
-        draw.text( (x, 10), text, fill=(0,0,255), font=font)
+        x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
+        y += rect_y0
+
+        draw.text((x, y), text, fill=(0,0,255,255), font=font)
 
         # --- avatar ---
-
-        #print('avatar:', ctx.author.avatar_url)
-        #print('avatar:', ctx.author.avatar_url_as(format='jpg'))
-        #print('avatar:', ctx.author.avatar_url_as(format='png'))
-
-        AVATAR_SIZE = 128
 
         # get URL to avatar
         # sometimes `size=` doesn't gives me image in expected size so later I use `resize()`
@@ -534,15 +535,13 @@ class ProfileCMD(commands.Cog):
         await avatar_asset.save(buffer_avatar)
         buffer_avatar.seek(0)
 
-        # read JPG from buffer to Image 
+        # read JPG from buffer to Image
         avatar_image = Image.open(buffer_avatar)
 
-        # resize it 
-        avatar_image = avatar_image.resize((AVATAR_SIZE, AVATAR_SIZE)) # 
+        # resize it
+        avatar_image = avatar_image.resize((AVATAR_SIZE, AVATAR_SIZE)) #
 
-        x = 0
-        y = 0
-        image.paste(avatar_image, (x, y))
+        image.paste(avatar_image, (rect_x0, rect_y0))
 
         # --- sending image ---
 
@@ -550,10 +549,10 @@ class ProfileCMD(commands.Cog):
         buffer_output = io.BytesIO()
 
         # save PNG in buffer
-        image.save(buffer_output, format='PNG')    
+        image.save(buffer_output, format='PNG')
 
         # move to beginning of buffer so `send()` it will read from beginning
-        buffer_output.seek(0) 
+        buffer_output.seek(0)
 
         # send image
         await ctx.send(file=File(buffer_output, 'myimage.png'))
