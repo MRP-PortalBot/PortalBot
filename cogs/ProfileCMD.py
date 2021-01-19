@@ -504,7 +504,7 @@ class ProfileCMD(commands.Cog):
         draw = ImageDraw.Draw(image)
 
         # draw red rectangle with green outline from point (50,50) to point (550,250) #(600-50, 300-50)
-        draw.rectangle([50, 50, IMAGE_WIDTH-50, IMAGE_HEIGHT-50], fill=(255,0,0, 128), outline=(0,255,0))
+        draw.rectangle([0, 0, IMAGE_WIDTH-50, 50], fill=(255,0,0, 128), outline=(0,255,0))
 
         # draw text in center
         text = f'Hello {author.name}'
