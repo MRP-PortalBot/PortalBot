@@ -16,7 +16,7 @@ import urllib.request
 
 background_image = Image.open('/home/runner/PortalBot-Beta/images/profilebackground2.png')
 background_image = background_image.convert('RGBA')
-fontfile = '/home/runner/PortalBot-Beta/fonts/arcade.ttf'
+#fontfile = '/home/runner/PortalBot-Beta/fonts/gameria.ttf'
 
 # --------------------------------------------------
 # pip3 install gspread oauth2client
@@ -518,7 +518,7 @@ class ProfileCMD(commands.Cog):
 
         text = f'Hello {author.name}'
 
-        font = ImageFont.truetype(fontfile, 30)
+        font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/gameria.ttf', 30)
 
         text_width, text_height = draw.textsize(text, font=font)
         x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
