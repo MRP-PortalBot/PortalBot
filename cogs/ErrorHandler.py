@@ -126,7 +126,7 @@ class CommandErrorHandler(commands.Cog):
                 author = ctx.message.author
                 channel = ctx.message.channel
                 responseguild = ctx.message.guild
-                await channel.send("Bug Report:")
+                await channel.send("Enter you're bug report here!:")
                 suggestion = await self.bot.wait_for('message', check=check)
 
                 embed = discord.Embed(title = "Ready to Submit?", description = "Make sure the follwing response is an actual bug report!", color = 0x4c594b)
@@ -168,7 +168,7 @@ class CommandErrorHandler(commands.Cog):
                 ID = ctx.message.author.id
                 server = ctx.message.guild.name
                 channel = ctx.message.channel
-                await channel.send("Suggestion/Feedback")
+                await channel.send("Enter you're Suggestion/Feedback here!:")
                 suggestion = await self.bot.wait_for('message', check=check)
 
                 embed = discord.Embed(title = "Ready to Submit?", description = "Before you submit!\nPlease make sure that the following response is **not** a BUG REPORT!", color = 0x4c594b)
