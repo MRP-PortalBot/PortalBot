@@ -467,7 +467,7 @@ class ProfileCMD(commands.Cog):
 
 
     @profile.command()
-    async def canvas(ctx, text=None):
+    async def canvas(self, ctx):
         author = ctx.message.author
 
         IMAGE_WIDTH = 600
