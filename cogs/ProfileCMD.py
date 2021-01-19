@@ -10,7 +10,7 @@ from discord import File
 
 from PIL import Image, ImageDraw, ImageFont
 import io
-import urllib.request
+from urllib.request import urlopen
 
 #---------------------------------------------------
 
@@ -518,7 +518,8 @@ class ProfileCMD(commands.Cog):
 
         text = f'Hello {author.name}'
 
-        font = ImageFont.truetype(r'/home/runner/PortalBot-Beta/fonts/gameria.ttf', 30)
+        truetype_url = 'https://github.com/googlefonts/roboto/blob/master/src/hinted/Roboto-Regular.ttf'
+        font = ImageFont.truetype(urlopen(truetype_url), size=30)
 
         text_width, text_height = draw.textsize(text, font=font)
         x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
