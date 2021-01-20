@@ -573,10 +573,10 @@ class ProfileCMD(commands.Cog):
                 nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
                 text_width, text_height = draw.textsize(nicktext, font=nickfont)
             
-            x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
+            x = (rect_width - text_width - (AVATAR_SIZE-28))//2     # skip avatar when center text
             y = (AVATAR_SIZE - text_height)//2
 
-            x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
+            x += rect_x0 + (AVATAR_SIZE-28)     # skip avatar when center text
             #y += rect_y0
 
             draw.text((x, y), nicktext, font=nickfont, fill=(255,255,255,255), stroke_width=1, stroke_fill=(0,0,0,255))
@@ -613,16 +613,16 @@ class ProfileCMD(commands.Cog):
 
             discordtext = discordname
 
-            discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 25)
+            discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
             text_width, text_height = draw.textsize(discordtext, font=discordfont)
 
-            if text_width > rect_width//2:
-                discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
-                text_width, text_height = draw.textsize(discordtext, font=discordfont)
+            #if text_width > rect_width//2:
+            #    discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+            #    text_width, text_height = draw.textsize(discordtext, font=discordfont)
 
-            if text_width > rect_width//2:
-                discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 15)
-                text_width, text_height = draw.textsize(discordtext, font=discordfont)
+            #if text_width > rect_width//2:
+            #    discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 15)
+            #    text_width, text_height = draw.textsize(discordtext, font=discordfont)
             
             x = rect_x0     # skip avatar when center text
             y = rect_y0 + AVATAR_SIZE
@@ -630,7 +630,7 @@ class ProfileCMD(commands.Cog):
             #x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
             #y += rect_y0
 
-            draw.text((x, y), "Discord Name\n" + discordtext, font=discordfont, fill=(255,255,255,255), stroke_width=1, stroke_fill=(0,0,0,255))
+            draw.text((x, y), "Discord Info\n" + discordtext + "\n" + longid, font=discordfont, fill=(255,255,255,255), stroke_width=1, stroke_fill=(0,0,0,255))
 
             # --- sending image ---
 
