@@ -613,15 +613,15 @@ class ProfileCMD(commands.Cog):
 
             discordtext = discordname
 
-            discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 40)
+            discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 25)
             text_width, text_height = draw.textsize(discordtext, font=discordfont)
 
             if text_width > rect_width//2:
-                discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 30)
+                discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
                 text_width, text_height = draw.textsize(discordtext, font=discordfont)
 
             if text_width > rect_width//2:
-                discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+                discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 15)
                 text_width, text_height = draw.textsize(discordtext, font=discordfont)
             
             x = rect_x0     # skip avatar when center text
