@@ -288,7 +288,9 @@ class DailyCMD(commands.Cog):
     @commands.command(aliases=['q'])
     async def _q(self, ctx):
         """Activate a tag"""
-        Rnum = random.randint(0 ,int(database.Question.select().count()))
+        limit = int(database.Question.select().count())
+        limit = limit - 1
+        Rnum = random.randint(0 , limit)
         try:
             database.db.connect(reuse_if_open=True)
             try:
