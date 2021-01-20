@@ -28,6 +28,11 @@ class Tag(BaseModel):
     embed_title = TextField()
     text = TextField()
 
-tables = {"tag": Tag}
 
+class Question(BaseModel):
+    """Stores Questions for DailyQ here"""
+    id = AutoField()
+    question = TextField()
+
+tables = {"tag": Tag, "questions": Question}
 iter_table(tables)
