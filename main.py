@@ -73,7 +73,9 @@ handler = logging.FileHandler(
 handler.setFormatter(logging.Formatter(
     '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
+now = datetime.now().strftime("%H:%M:%S")
 
+logger.info(f"PortalBot has started! {now}")
 
 def get_extensions():  # Gets extension list dynamically
     extensions = []
@@ -83,8 +85,11 @@ def get_extensions():  # Gets extension list dynamically
         extensions.append(str(file).replace("/", ".").replace(".py", ""))
     return extensions
 
-def force_restart():  #Forces REPL to apply changes to everything
-    subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
+async def force_restart(ctx):  #Forces REPL to apply changes to everything
+    try:
+        subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
+    except Exception as e:
+        await ctx.send(f"❌ Something went wrong while trying to restart the bot!\nThere might have been a bug which could have caused this!\n**Error:**\n{e}")
     sys.exit(0)
 
 @client.check
@@ -119,7 +124,6 @@ async def on_ready():
     print(f"{bcolors.OKGREEN}BOT TYPE: {bcolors.ENDC}" + config['BotType'])
     print(f"{bcolors.WARNING}ID: {client.user.id}{bcolors.ENDC}")
     print(f"{bcolors.WARNING}URL: https://discord.com/oauth2/authorize?client_id={client.user.id}&scope=bot&permissions=8{bcolors.ENDC}")
-    now = datetime.now().strftime("%H:%M:%S")
     print("Current Time =", now)
     await client.change_presence(status=discord.Status.idle, activity=discord.Activity(type=discord.ActivityType.watching, name=f"over the Portal! | {config['prefix']}help"))
     channel = client.get_channel(792485617954586634)
@@ -133,8 +137,6 @@ keep_alive.keep_alive()  # webserver setup, used w/ REPL
 if __name__ == '__main__':
     for ext in get_extensions():
         client.load_extension(ext)
-
-
 
 
 @client.group(aliases=['cog'])
@@ -248,30 +250,48 @@ async def gitpull(ctx):
     typebot = config['BotType']
     output = ''
     if typebot == "BETA":
-        p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
-        output += p.stdout
-        p = subprocess.run("git reset --hard origin/TestingInstance", shell=True, text=True, capture_output=True, check=True)
-        output += p.stdout
+        try:
+            p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
+            output += p.stdout
+        except Exception as e:
+            await ctx.send("⛔️ Unable to fetch the Current Repo Header!")
+            await ctx.send(f"**Error:**\n{e}")
+        try:
+            p = subprocess.run("git reset --hard origin/TestingInstance", shell=True, text=True, capture_output=True, check=True)
+            output += p.stdout
+        except Exception as e:
+            await ctx.send("⛔️ Unable to apply changes!")
+            await ctx.send(f"**Error:**\n{e}")
+
         embed = discord.Embed(title = "GitHub Local Reset", description = "Local Files changed to match PortalBot/TestingInstance", color = 0x3af250)
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
         with open("commandcheck.txt", "w") as f:
             f.write("OFF")
-        force_restart()
+        force_restart(ctx)
 
     elif typebot == "STABLE":
-        p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
-        output += p.stdout
-        p = subprocess.run("git reset --hard origin/main", shell=True, text=True, capture_output=True, check=True)
-        output += p.stdout
+        try:
+            p = subprocess.run("git fetch --all", shell=True, text=True, capture_output=True, check=True)
+            output += p.stdout
+        except Exception as e:
+            await ctx.send("⛔️ Unable to fetch the Current Repo Header!")
+            await ctx.send(f"**Error:**\n{e}")
+        try:
+            p = subprocess.run("git reset --hard origin/main", shell=True, text=True, capture_output=True, check=True)
+            output += p.stdout
+        except Exception as e:
+            await ctx.send("⛔️ Unable to apply changes!")
+            await ctx.send(f"**Error:**\n{e}")
         embed = discord.Embed(title = "GitHub Local Reset", description = "Local Files changed to match PortalBot/Main", color = 0x3af250)
         embed.add_field(name = "Shell Output", value = f"```shell\n$ {output}\n```")
         embed.set_footer(text = "Attempting to restart the bot...")
         msg = await ctx.send(embed=embed)
         with open("commandcheck.txt", "w") as f:
             f.write("OFF")
-        force_restart()
+        force_restart(ctx)
+
 
 @client.command()
 @commands.has_role('Bot Manager')
