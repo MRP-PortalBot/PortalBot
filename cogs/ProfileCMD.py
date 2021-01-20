@@ -562,7 +562,7 @@ class ProfileCMD(commands.Cog):
 
             text = anick + "'s Profile"
 
-            font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/Symbola.ttf', 20)
+            font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/Noto.ttf', 20)
 
             text_width, text_height = draw.textsize(text, font=font)
             x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
@@ -571,7 +571,7 @@ class ProfileCMD(commands.Cog):
             x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
             #y += rect_y0
 
-            draw.text((x, y), text, fill=(255,255,255,255), font=font)
+            draw.text((x, y), text, fill=(255,255,255,255), font=font, embedded_color=True)
 
             # --- avatar ---
 
