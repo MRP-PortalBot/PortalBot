@@ -292,7 +292,7 @@ class DailyCMD(commands.Cog):
         try:
             database.db.connect(reuse_if_open=True)
             try:
-                q = self.get_by_index(Rnum)
+                q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
                 embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
                 await ctx.send(embed=embed)
             except database.DoesNotExist:
@@ -326,16 +326,12 @@ class DailyCMD(commands.Cog):
 
     @commands.command(aliases=['delq', 'dq'])
     @commands.has_any_role("Bot Manager", "Moderator")
-    async def deleteq(self, ctx, question):
+    async def deleteq(self, ctx, id):
         """Delete a tag"""
         try:
             database.db.connect(reuse_if_open=True)
-            try:
-                name = int(question)
-                q = self.get_by_index(name)
-            except ValueError:
-                q: database.Question = database.Question.select().where(
-                    database.Question.question == question).get()
+            q: database.Question = database.Question.select().where(
+                database.Question.id == id).get()
             q.delete_instance()
             await ctx.send(f"{q.question} has been deleted.")
         except database.DoesNotExist:
