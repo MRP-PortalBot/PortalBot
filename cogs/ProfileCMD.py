@@ -574,7 +574,7 @@ class ProfileCMD(commands.Cog):
                 text_width, text_height = draw.textsize(nicktext, font=nickfont)
             
             x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
-            y = (rect_height - text_height)//2
+            y = (text_height + AVATAR_SIZE)//2
 
             x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
             y += rect_y0
@@ -616,11 +616,11 @@ class ProfileCMD(commands.Cog):
             discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 40)
             text_width, text_height = draw.textsize(discordtext, font=discordfont)
 
-            if text_width > (rect_width - AVATAR_SIZE):
+            if text_width > rect_width//2:
                 discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 30)
                 text_width, text_height = draw.textsize(discordtext, font=discordfont)
 
-            if text_width > (rect_width - AVATAR_SIZE):
+            if text_width > rect_width//2:
                 discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
                 text_width, text_height = draw.textsize(discordtext, font=discordfont)
             
