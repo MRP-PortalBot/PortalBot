@@ -27,7 +27,7 @@ class DailyCMD(commands.Cog):
         self.bot = bot
 
     def get_by_index(self, index):
-        for i, t in enumerate(database.Tag.select()):
+        for i, t in enumerate(database.Question.select()):
             if i+1 == index:
                 return t
 
@@ -311,7 +311,7 @@ class DailyCMD(commands.Cog):
                 database.Question.question == question).get()
             q.question = question
             q.save()
-            await ctx.send(f"{q.tag_name} has been modified successfully.")
+            await ctx.send(f"{q.question} has been modified successfully.")
         except database.DoesNotExist:
             try:
                 database.db.connect(reuse_if_open=True)
