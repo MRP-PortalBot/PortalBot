@@ -505,7 +505,7 @@ class ProfileCMD(commands.Cog):
         rectangle_image = Image.new('RGBA', (image_width, image_height))
         rectangle_draw = ImageDraw.Draw(rectangle_image)
 
-        rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(174,125,170, 128))
+        rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(177,13,159, 128))
 
         # put rectangle on original image
 
@@ -523,10 +523,10 @@ class ProfileCMD(commands.Cog):
 
         text_width, text_height = draw.textsize(text, font=font)
         x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
-        y = (rect_height - text_height)//2
+        y = 25
 
         x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
-        y += rect_y0
+        #y += rect_y0
 
         draw.text((x, y), text, fill=(255,255,255,255), font=font)
 
