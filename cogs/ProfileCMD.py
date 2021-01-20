@@ -574,12 +574,12 @@ class ProfileCMD(commands.Cog):
                 text_width, text_height = draw.textsize(nicktext, font=nickfont)
             
             x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
-            y = (text_height - AVATAR_SIZE)//2
+            y = (text_height + AVATAR_SIZE)//2
 
             x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
-            y += rect_y0
+            #y += rect_y0
 
-            draw.text((x, y), nicktext, fill=(255,255,255,255), font=nickfont)
+            draw.text((x, y), nicktext, font=nickfont, fill=(255,255,255,255), stroke_width=1, stroke_fill=(0,0,0,255))
 
             # --- avatar ---
 
@@ -630,7 +630,7 @@ class ProfileCMD(commands.Cog):
             #x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
             #y += rect_y0
 
-            draw.text((x, y), "Discord Name\n" + discordtext, fill=(255,255,255,255), font=discordfont)
+            draw.text((x, y), "Discord Name\n" + discordtext, font=discordfont, fill=(255,255,255,255), stroke_width=1, stroke_fill=(0,0,0,255))
 
             # --- sending image ---
 
