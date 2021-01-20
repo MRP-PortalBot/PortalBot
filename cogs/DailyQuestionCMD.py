@@ -286,14 +286,14 @@ class DailyCMD(commands.Cog):
     
 
     @commands.command(aliases=['q'])
-    async def _q(self, ctx, q_id):
+    async def _q(self, ctx):
         """Activate a tag"""
         Rnum = random.randint(0 ,int(database.Question.select().count()))
         try:
             database.db.connect(reuse_if_open=True)
             try:
                 q = self.get_by_index(Rnum)
-                embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.text}**", color = 0xb10d9f)
+                embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
                 await ctx.send(embed=embed)
             except database.DoesNotExist:
                 await ctx.send("Tag not found, please try again.")
@@ -348,19 +348,19 @@ class DailyCMD(commands.Cog):
         """List all tags in the database"""
         def get_end(page_size: int):
             database.db.connect(reuse_if_open=True)
-            tags: int = database.Tag.select().count()
-            return math.ceil(tags/10)
+            q: int = database.Question.select().count()
+            return math.ceil(q/10)
 
         async def populate_embed(embed: discord.Embed, page: int):
             """Used to populate the embed in listtag command"""
-            tag_list = ""
+            q_list = ""
             embed.clear_fields()
             database.db.connect(reuse_if_open=True)
             if database.Question.select().count() == 0:
-                tag_list = "No tags found"
-            for i, tag in enumerate(database.Question.select().paginate(page, 10)):
-                tag_list += f"{i+1+(10*(page-1))}. {tag.tag_name}\n"
-            embed.add_field(name=f"Page {page}", value=tag_list)
+                q_list = "No questions found"
+            for i, q in enumerate(database.Question.select().paginate(page, 10)):
+                q_list += f"{i+1+(10*(page-1))}. {q.question}\n"
+            embed.add_field(name=f"Page {page}", value=q_list)
             database.db.close()
             return embed
 
