@@ -574,7 +574,7 @@ class ProfileCMD(commands.Cog):
                 text_width, text_height = draw.textsize(nicktext, font=nickfont)
             
             x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
-            y = (text_height + AVATAR_SIZE)//2
+            y = (AVATAR_SIZE)//2
 
             x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
             #y += rect_y0
