@@ -528,7 +528,7 @@ class ProfileCMD(commands.Cog):
         x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
         y += rect_y0
 
-        draw.text((x, y), text, fill=(0,0,0,255), font=font)
+        draw.text((x, y), text, fill=(255,255,255,255), font=font)
 
         # --- avatar ---
 
