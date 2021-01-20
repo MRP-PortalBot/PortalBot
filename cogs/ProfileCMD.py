@@ -548,7 +548,7 @@ class ProfileCMD(commands.Cog):
             rectangle_image = Image.new('RGBA', (image_width, image_height))
             rectangle_draw = ImageDraw.Draw(rectangle_image)
 
-            rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(0,0,0, 50))
+            rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(0,0,0, 80))
 
             # put rectangle on original image
 
@@ -562,16 +562,19 @@ class ProfileCMD(commands.Cog):
 
             text = anick
 
-            font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 25)
+            font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 40)
 
             text_width, text_height = draw.textsize(text, font=font)
             x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
             y = 25
 
+            if text_width > (rect_width - AVATAR_SIZE):
+                font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+
             x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
             #y += rect_y0
 
-            draw.text((x, y), text, fill=(255,255,255,255), font=font, embedded_color=True)
+            draw.text((x, y), text, fill=(255,255,255,255), font=font)
 
             # --- avatar ---
 
