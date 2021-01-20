@@ -519,7 +519,7 @@ class ProfileCMD(commands.Cog):
             pokemongo = profilesheet.cell(userrow, pokemongocol).value
             chessdotcom = profilesheet.cell(userrow, chesscol).value
 
-            AVATAR_SIZE = 128
+            AVATAR_SIZE = 100
 
             # --- duplicate image ----
 
@@ -560,7 +560,7 @@ class ProfileCMD(commands.Cog):
 
             # draw text in center
 
-            text = anick + "'s Profile"
+            text = anick
 
             font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 25)
 
@@ -580,9 +580,11 @@ class ProfileCMD(commands.Cog):
             avatar_asset = author.avatar_url_as(format='jpg', size=AVATAR_SIZE)
 
             # read JPG from server to buffer (file-like object)
-            buffer_avatar = io.BytesIO()
-            await avatar_asset.save(buffer_avatar)
-            buffer_avatar.seek(0)
+            buffer_avatar = io.BytesIO(await avatar_asset.read())
+
+            #    buffer_avatar = io.BytesIO()
+            #    await avatar_asset.save(buffer_avatar)
+            #    buffer_avatar.seek(0)
 
             # read JPG from buffer to Image
             avatar_image = Image.open(buffer_avatar)
@@ -590,7 +592,13 @@ class ProfileCMD(commands.Cog):
             # resize it
             avatar_image = avatar_image.resize((AVATAR_SIZE, AVATAR_SIZE)) #
 
-            image.paste(avatar_image, (rect_x0, rect_y0))
+            circle_image = Image.new('L', (AVATAR_SIZE, AVATAR_SIZE))
+            circle_draw = ImageDraw.Draw(circle_image)
+            circle_draw.ellipse((0, 0, AVATAR_SIZE, AVATAR_SIZE), fill=255)
+            #avatar_image.putalpha(circle_image)
+            #avatar_image.show()
+
+            image.paste(avatar_image, (rect_x0, rect_y0), circle_image)
 
             # --- sending image ---
 
