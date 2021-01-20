@@ -496,7 +496,8 @@ class ProfileCMD(commands.Cog):
         rect_y0 = 20  # top marign
 
         rect_x1 = image_width - 20  # right margin
-        rect_y1 = 20 + AVATAR_SIZE - 1  # top margin + size of avatar
+        #rect_y1 = 20 + AVATAR_SIZE - 1  # top margin + size of avatar
+        rect_y1 = image_height - 20
 
         rect_width  = rect_x1 - rect_x0
         rect_height = rect_y1 - rect_y0
@@ -504,7 +505,7 @@ class ProfileCMD(commands.Cog):
         rectangle_image = Image.new('RGBA', (image_width, image_height))
         rectangle_draw = ImageDraw.Draw(rectangle_image)
 
-        rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(255,0,0, 128))
+        rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(174,125,170, 128))
 
         # put rectangle on original image
 
