@@ -285,7 +285,7 @@ class DailyCMD(commands.Cog):
     
 
     @commands.command(aliases=['q'])
-    async def dailyq(self, ctx, q_id):
+    async def _q(self, ctx, q_id):
         """Activate a tag"""
         Rnum = random.randint(0 ,int(database.Question.select().count()))
         try:
@@ -303,7 +303,7 @@ class DailyCMD(commands.Cog):
     @commands.command(aliases=['newq', 'nq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
     # don't let this recognize tag number, name is a required field for new tags. - Fire
-    async def modtag(self, ctx, name, title, *, text):
+    async def modq(self, ctx, name, title, *, text):
         """Modify a tag, or create a new one if it doesn't exist."""
         try:
             database.db.connect(reuse_if_open=True)
@@ -325,9 +325,9 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    @commands.command(aliases=['deltag', 'dtag'])
+    @commands.command(aliases=['delq', 'dq'])
     @commands.has_any_role("Bot Manager", "Moderator")
-    async def deletetag(self, ctx, name):
+    async def deleteq(self, ctx, name):
         """Delete a tag"""
         try:
             database.db.connect(reuse_if_open=True)
@@ -344,8 +344,8 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    @commands.command(aliases=['ltag'])
-    async def listtag(self, ctx, page=1):
+    @commands.command(aliases=['lq'])
+    async def listq(self, ctx, page=1):
         """List all tags in the database"""
         def get_end(page_size: int):
             database.db.connect(reuse_if_open=True)
