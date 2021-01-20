@@ -563,13 +563,22 @@ class ProfileCMD(commands.Cog):
             text = anick
 
             font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 40)
-
             text_width, text_height = draw.textsize(text, font=font)
+
+            if text_width > (rect_width - AVATAR_SIZE):
+                font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 30)
+                text_width, text_height = draw.textsize(text, font=font)
+
+            if text_width > (rect_width - AVATAR_SIZE):
+                font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+                text_width, text_height = draw.textsize(text, font=font)
+            
             x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
             y = 25
 
             if text_width > (rect_width - AVATAR_SIZE):
                 font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+                text_width, text_height = draw.textsize(text, font=font)
 
             x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
             #y += rect_y0
