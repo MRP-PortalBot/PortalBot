@@ -519,7 +519,7 @@ class ProfileCMD(commands.Cog):
             pokemongo = profilesheet.cell(userrow, pokemongocol).value
             chessdotcom = profilesheet.cell(userrow, chesscol).value
 
-            AVATAR_SIZE = 100
+            AVATAR_SIZE = 128
 
             # --- duplicate image ----
 
@@ -590,11 +590,12 @@ class ProfileCMD(commands.Cog):
             avatar_image = Image.open(buffer_avatar)
 
             # resize it
-            avatar_image = avatar_image.resize((AVATAR_SIZE, AVATAR_SIZE)) #
+            AVATAR_SIZE_NEW = AVATAR_SIZE - 28
+            avatar_image = avatar_image.resize((AVATAR_SIZE_NEW, AVATAR_SIZE_NEW)) #
 
-            circle_image = Image.new('L', (AVATAR_SIZE, AVATAR_SIZE))
+            circle_image = Image.new('L', (AVATAR_SIZE_NEW, AVATAR_SIZE_NEW))
             circle_draw = ImageDraw.Draw(circle_image)
-            circle_draw.ellipse((0, 0, AVATAR_SIZE, AVATAR_SIZE), fill=255)
+            circle_draw.ellipse((0, 0, AVATAR_SIZE_NEW, AVATAR_SIZE_NEW), fill=255)
             #avatar_image.putalpha(circle_image)
             #avatar_image.show()
 
