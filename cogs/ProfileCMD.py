@@ -474,94 +474,137 @@ class ProfileCMD(commands.Cog):
 
 
     @profile.command()
-    async def canvas(self, ctx):
+    async def canvas(self, ctx, *, profile: discord.Member = None):
+        print(profile)
         author = ctx.message.author
-        AVATAR_SIZE = 128
+        role = discord.utils.get(ctx.guild.roles, name="Realm OP")
+        channel = ctx.message.channel
 
-        # --- duplicate image ----
+        if profile == None:
+            username = ctx.message.author
+            print(username)
+        else:
+            username = profile
+            print(username)  
 
-        image = background_image.copy()
+        aname = str(username.name)
+        if username.nick == None:
+            anick = str(username.name)
+        else:
+            anick = str(username.nick)
 
-        image_width, image_height = image.size
+        longid = str(username.id)        
+        pfp = username.avatar_url
+        profileembed = discord.Embed(
+            title=anick + "'s Profile", description="=======================", color=0x18c927)
+        username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
 
-        # --- draw on image ---
+        try:
+            usercell = profilesheet.find(username_re, in_column=1)
+        except:
+            print("User Not Found")
+            noprofileembed = discord.Embed(
+            title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
+            await ctx.send(embed=noprofileembed) 
+        else:
+            print("User Found!")
 
-        # create object for drawing
+            userrow = usercell.row
+            discordname = profilesheet.cell(userrow, discordcol).value
+            longid = profilesheet.cell(userrow, longidcol).value
+            tzone = profilesheet.cell(userrow, tzonecol).value
+            xbox = profilesheet.cell(userrow, xboxcol).value
+            psnid = profilesheet.cell(userrow, psnidcol).value
+            switch = profilesheet.cell(userrow, switchcol).value
+            pokemongo = profilesheet.cell(userrow, pokemongocol).value
+            chessdotcom = profilesheet.cell(userrow, chesscol).value
 
-        #draw = ImageDraw.Draw(image)
+            AVATAR_SIZE = 128
 
-        # draw red rectangle with alpha channel on new image (with the same size as original image)
+            # --- duplicate image ----
 
-        rect_x0 = 20  # left marign
-        rect_y0 = 20  # top marign
+            image = background_image.copy()
 
-        rect_x1 = image_width - 20  # right margin
-        #rect_y1 = 20 + AVATAR_SIZE - 1  # top margin + size of avatar
-        rect_y1 = image_height - 20
+            image_width, image_height = image.size
 
-        rect_width  = rect_x1 - rect_x0
-        rect_height = rect_y1 - rect_y0
+            # --- draw on image ---
 
-        rectangle_image = Image.new('RGBA', (image_width, image_height))
-        rectangle_draw = ImageDraw.Draw(rectangle_image)
+            # create object for drawing
 
-        rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(177,13,159, 128))
+            #draw = ImageDraw.Draw(image)
 
-        # put rectangle on original image
+            # draw red rectangle with alpha channel on new image (with the same size as original image)
 
-        image = Image.alpha_composite(image, rectangle_image)
+            rect_x0 = 20  # left marign
+            rect_y0 = 20  # top marign
 
-        # create object for drawing
+            rect_x1 = image_width - 20  # right margin
+            #rect_y1 = 20 + AVATAR_SIZE - 1  # top margin + size of avatar
+            rect_y1 = image_height - 20
 
-        draw = ImageDraw.Draw(image) # create new object for drawing after changing original `image`
+            rect_width  = rect_x1 - rect_x0
+            rect_height = rect_y1 - rect_y0
 
-        # draw text in center
+            rectangle_image = Image.new('RGBA', (image_width, image_height))
+            rectangle_draw = ImageDraw.Draw(rectangle_image)
 
-        text = f'Hello {author.name}'
+            rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(0,0,0, 50))
 
-        font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/GAMERIA.ttf', 30)
+            # put rectangle on original image
 
-        text_width, text_height = draw.textsize(text, font=font)
-        x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
-        y = 25
+            image = Image.alpha_composite(image, rectangle_image)
 
-        x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
-        #y += rect_y0
+            # create object for drawing
 
-        draw.text((x, y), text, fill=(255,255,255,255), font=font)
+            draw = ImageDraw.Draw(image) # create new object for drawing after changing original `image`
 
-        # --- avatar ---
+            # draw text in center
 
-        # get URL to avatar
-        # sometimes `size=` doesn't gives me image in expected size so later I use `resize()`
-        avatar_asset = author.avatar_url_as(format='jpg', size=AVATAR_SIZE)
+            text = anick + "'s Profile"
 
-        # read JPG from server to buffer (file-like object)
-        buffer_avatar = io.BytesIO()
-        await avatar_asset.save(buffer_avatar)
-        buffer_avatar.seek(0)
+            font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/GAMERIA.ttf', 30)
 
-        # read JPG from buffer to Image
-        avatar_image = Image.open(buffer_avatar)
+            text_width, text_height = draw.textsize(text, font=font)
+            x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
+            y = 25
 
-        # resize it
-        avatar_image = avatar_image.resize((AVATAR_SIZE, AVATAR_SIZE)) #
+            x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
+            #y += rect_y0
 
-        image.paste(avatar_image, (rect_x0, rect_y0))
+            draw.text((x, y), text, fill=(255,255,255,255), font=font)
 
-        # --- sending image ---
+            # --- avatar ---
 
-        # create buffer
-        buffer_output = io.BytesIO()
+            # get URL to avatar
+            # sometimes `size=` doesn't gives me image in expected size so later I use `resize()`
+            avatar_asset = author.avatar_url_as(format='jpg', size=AVATAR_SIZE)
 
-        # save PNG in buffer
-        image.save(buffer_output, format='PNG')
+            # read JPG from server to buffer (file-like object)
+            buffer_avatar = io.BytesIO()
+            await avatar_asset.save(buffer_avatar)
+            buffer_avatar.seek(0)
 
-        # move to beginning of buffer so `send()` it will read from beginning
-        buffer_output.seek(0)
+            # read JPG from buffer to Image
+            avatar_image = Image.open(buffer_avatar)
 
-        # send image
-        await ctx.send(file=File(buffer_output, 'myimage.png'))
+            # resize it
+            avatar_image = avatar_image.resize((AVATAR_SIZE, AVATAR_SIZE)) #
+
+            image.paste(avatar_image, (rect_x0, rect_y0))
+
+            # --- sending image ---
+
+            # create buffer
+            buffer_output = io.BytesIO()
+
+            # save PNG in buffer
+            image.save(buffer_output, format='PNG')
+
+            # move to beginning of buffer so `send()` it will read from beginning
+            buffer_output.seek(0)
+
+            # send image
+            await ctx.send(file=File(buffer_output, 'myimage.png'))
 
 
 def setup(bot):
