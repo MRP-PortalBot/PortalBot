@@ -28,7 +28,6 @@ class Tag(BaseModel):
     embed_title = TextField()
     text = TextField()
 
-
 class Question(BaseModel):
     """Stores Questions for DailyQ here"""
     id = AutoField()

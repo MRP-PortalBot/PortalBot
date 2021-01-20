@@ -7,6 +7,7 @@ import asyncio
 from core import database, common
 from core.common import load_config
 config, _ = load_config()
+import math
 # Counts current lines in a file.
 
 
@@ -291,8 +292,7 @@ class DailyCMD(commands.Cog):
         try:
             database.db.connect(reuse_if_open=True)
             try:
-                q_id = int(Rnum)
-                q = self.get_by_index(q_id)
+                q = self.get_by_index(Rnum)
             embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.text}**", color = 0xb10d9f)
             await ctx.send(embed=embed)
         except database.DoesNotExist:
