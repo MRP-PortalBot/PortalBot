@@ -558,32 +558,28 @@ class ProfileCMD(commands.Cog):
 
             draw = ImageDraw.Draw(image) # create new object for drawing after changing original `image`
 
-            # draw text in center
+            # ------PROFILE HEADING-------
 
-            text = anick
+            nicktext = anick
 
-            font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 40)
-            text_width, text_height = draw.textsize(text, font=font)
-
-            if text_width > (rect_width - AVATAR_SIZE):
-                font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 30)
-                text_width, text_height = draw.textsize(text, font=font)
+            nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 40)
+            text_width, text_height = draw.textsize(nicktext, font=nickfont)
 
             if text_width > (rect_width - AVATAR_SIZE):
-                font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
-                text_width, text_height = draw.textsize(text, font=font)
+                nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 30)
+                text_width, text_height = draw.textsize(nicktext, font=nickfont)
+
+            if text_width > (rect_width - AVATAR_SIZE):
+                nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+                text_width, text_height = draw.textsize(nicktext, font=nickfont)
             
             x = (rect_width - text_width - AVATAR_SIZE)//2     # skip avatar when center text
-            y = 25
-
-            if text_width > (rect_width - AVATAR_SIZE):
-                font = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
-                text_width, text_height = draw.textsize(text, font=font)
+            y = (rect_height - text_height)//2
 
             x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
-            #y += rect_y0
+            y += rect_y0
 
-            draw.text((x, y), text, fill=(255,255,255,255), font=font)
+            draw.text((x, y), nicktext, fill=(255,255,255,255), font=nickfont)
 
             # --- avatar ---
 
@@ -612,6 +608,29 @@ class ProfileCMD(commands.Cog):
             #avatar_image.show()
 
             image.paste(avatar_image, (rect_x0, rect_y0), circle_image)
+
+            # ------PROFILE Components-------
+
+            discordtext = discordname
+
+            discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 40)
+            text_width, text_height = draw.textsize(discordtext, font=discordfont)
+
+            if text_width > (rect_width - AVATAR_SIZE):
+                discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 30)
+                text_width, text_height = draw.textsize(discordtext, font=discordfont)
+
+            if text_width > (rect_width - AVATAR_SIZE):
+                discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+                text_width, text_height = draw.textsize(discordtext, font=discordfont)
+            
+            x = rect_x0     # skip avatar when center text
+            y = rect_y0 + AVATAR_SIZE
+
+            #x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
+            #y += rect_y0
+
+            draw.text((x, y), "Discord Name\n" + discordtext, fill=(255,255,255,255), font=discordfont)
 
             # --- sending image ---
 
