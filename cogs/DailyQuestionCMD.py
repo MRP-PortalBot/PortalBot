@@ -293,54 +293,53 @@ class DailyCMD(commands.Cog):
             database.db.connect(reuse_if_open=True)
             try:
                 q = self.get_by_index(Rnum)
-            embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.text}**", color = 0xb10d9f)
-            await ctx.send(embed=embed)
-        except database.DoesNotExist:
-            await ctx.send("Tag not found, please try again.")
+                embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.text}**", color = 0xb10d9f)
+                await ctx.send(embed=embed)
+            except database.DoesNotExist:
+                await ctx.send("Tag not found, please try again.")
         finally:
             database.db.close()
 
     @commands.command(aliases=['newq', 'nq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
     # don't let this recognize tag number, name is a required field for new tags. - Fire
-    async def modq(self, ctx, name, title, *, text):
+    async def modq(self, ctx, question):
         """Modify a tag, or create a new one if it doesn't exist."""
         try:
             database.db.connect(reuse_if_open=True)
-            tag: database.Tag = database.Tag.select().where(
-                database.Tag.tag_name == name).get()
-            tag.text = text
-            tag.embed_title = title
-            tag.save()
-            await ctx.send(f"Tag {tag.tag_name} has been modified successfully.")
+            q: database.Question = database.Question.select().where(
+                database.Question.question == question).get()
+            q.question = question
+            q.save()
+            await ctx.send(f"{q.tag_name} has been modified successfully.")
         except database.DoesNotExist:
             try:
                 database.db.connect(reuse_if_open=True)
-                tag: database.Tag = database.Tag.create(
-                    tag_name=name, embed_title=title, text=text)
-                tag.save()
-                await ctx.send(f"Tag {tag.tag_name} has been created successfully.")
+                q: database.Question = database.Question.create(
+                    question=question)
+                q.save()
+                await ctx.send(f"{q.question} has been added successfully.")
             except database.IntegrityError:
-                await ctx.send("That tag name is already taken!")
+                await ctx.send("That question is already taken!")
         finally:
             database.db.close()
 
     @commands.command(aliases=['delq', 'dq'])
     @commands.has_any_role("Bot Manager", "Moderator")
-    async def deleteq(self, ctx, name):
+    async def deleteq(self, ctx, question):
         """Delete a tag"""
         try:
             database.db.connect(reuse_if_open=True)
             try:
-                name = int(name)
-                tag = self.get_by_index(name)
+                name = int(question)
+                q = self.get_by_index(name)
             except ValueError:
-                tag: database.Tag = database.Tag.select().where(
-                    database.Tag.tag_name == name).get()
-            tag.delete_instance()
-            await ctx.send(f"{tag.tag_name} has been deleted.")
+                q: database.Question = database.Question.select().where(
+                    database.Question.question == question).get()
+            q.delete_instance()
+            await ctx.send(f"{q.question} has been deleted.")
         except database.DoesNotExist:
-            await ctx.send("Tag not found, please try again.")
+            await ctx.send("Question not found, please try again.")
         finally:
             database.db.close()
 
@@ -357,9 +356,9 @@ class DailyCMD(commands.Cog):
             tag_list = ""
             embed.clear_fields()
             database.db.connect(reuse_if_open=True)
-            if database.Tag.select().count() == 0:
+            if database.Question.select().count() == 0:
                 tag_list = "No tags found"
-            for i, tag in enumerate(database.Tag.select().paginate(page, 10)):
+            for i, tag in enumerate(database.Question.select().paginate(page, 10)):
                 tag_list += f"{i+1+(10*(page-1))}. {tag.tag_name}\n"
             embed.add_field(name=f"Page {page}", value=tag_list)
             database.db.close()
