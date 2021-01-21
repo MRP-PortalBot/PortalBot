@@ -11,6 +11,8 @@ from discord import File
 from PIL import Image, ImageDraw, ImageFont
 import io
 from urllib.request import urlopen
+import logging
+logger = logging.getLogger(__name__)
 
 #---------------------------------------------------
 
@@ -60,6 +62,7 @@ chesscol = 8
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("ProfileCMD: Cog Loaded!")
 
     @commands.group(invoke_without_command=True)
     async def profile(self, ctx, *, profile: discord.Member = None):

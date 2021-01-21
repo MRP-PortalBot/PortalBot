@@ -6,10 +6,13 @@ from contextlib import redirect_stdout
 import os
 import aiohttp
 from discord.ext import commands
+import logging
 
+logger = logging.getLogger(__name__)
 class Eval(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("EvalCMD: Cog Loaded!")
 
     @commands.command(name='eval')
     @commands.has_role("Bot Manager")

@@ -8,6 +8,9 @@ from discord import Embed
 import requests
 from core.common import load_config
 config, _ = load_config()
+import logging
+
+logger = logging.getLogger(__name__)
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -51,6 +54,7 @@ IPlinks = ["turtletest.com","grabify.link", "lovebird.gutu", "dateing.club", 'ot
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("Events: Cog Loaded!")
 
 #  Join Messages-----------------------------------------------------
 

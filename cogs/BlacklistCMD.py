@@ -9,6 +9,9 @@ import asyncio
 from discord import Embed
 from core.common import load_config, paginate_embed
 config, _ = load_config()
+import logging
+
+logger = logging.getLogger(__name__)
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -65,6 +68,7 @@ a_list = []
 class BlacklistCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("BlacklistCMD: Cog Loaded!")
 
     # Starts the blacklist process.
     @commands.command()

@@ -11,6 +11,9 @@ config, _ = load_config()
 i = 1
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 
+import logging
+
+logger = logging.getLogger(__name__)
 # -------------------------------------------------------
 
 scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
@@ -46,6 +49,7 @@ def convert(time):
 class MGPonlyCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("MGPonlyCMD.py: Cog Loaded!")
 
     @commands.command()
     @check_MGP()

@@ -10,7 +10,9 @@ config, _ = load_config()
 import math
 # Counts current lines in a file.
 
+import logging
 
+logger = logging.getLogger(__name__)
 def LineCount():
     file = open("DailyQuestions.txt", "r")
     line_count = 0
@@ -25,6 +27,7 @@ def LineCount():
 class DailyCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("DailyQuestionsCMD: Cog Loaded!")
 
     def get_by_index(self, index):
         for i, t in enumerate(database.Question.select()):
@@ -285,7 +288,7 @@ class DailyCMD(commands.Cog):
 
     
 
-    @commands.command(aliases=['q'])
+    @commands.command(aliases=['q', 'dailyq'])
     async def _q(self, ctx):
         """Activate a tag"""
         limit = int(database.Question.select().count())
@@ -304,7 +307,6 @@ class DailyCMD(commands.Cog):
 
     @commands.command(aliases=['newq', 'nq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
-    # don't let this recognize tag number, name is a required field for new tags. - Fire
     async def modq(self, ctx, question):
         """Modify a tag, or create a new one if it doesn't exist."""
         try:
@@ -313,7 +315,7 @@ class DailyCMD(commands.Cog):
                 database.Question.question == question).get()
             q.question = question
             q.save()
-            await ctx.send(f"{q.question} has been modified successfully.")
+            await ctx.send(f"{q.question} has been modified successfully.\nQuestion ID: {question.id}")
         except database.DoesNotExist:
             try:
                 database.db.connect(reuse_if_open=True)

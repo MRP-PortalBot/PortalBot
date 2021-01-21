@@ -25,6 +25,10 @@ sentry_sdk.init(
 )
 '''
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def get_quote():
     response = requests.get("https://zenquotes.io/api/random")
@@ -56,6 +60,7 @@ class MiscCMD(commands.Cog):
             bot.slash = SlashCommand(bot, override_type=True)
         self.bot = bot
         self.bot.slash.get_cog_commands(self)
+        logger.info("MiscCMD: Cog Loaded!")
 
     # DM Command
 

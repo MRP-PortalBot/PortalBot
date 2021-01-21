@@ -2,7 +2,8 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 from discord import CategoryChannel
-
+import logging
+logger = logging.getLogger(__name__)
 
 def solve(s):
     a = s.split(' ')
@@ -14,6 +15,7 @@ def solve(s):
 class OperatorCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("OperatorCMD: Cog Loaded!")
 
     @commands.command(aliases=['addop', 'addOP', 'Addop', 'AddOP'])
     @commands.has_role("Realm OP")
