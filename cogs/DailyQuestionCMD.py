@@ -228,14 +228,14 @@ class DailyCMD(commands.Cog):
                 database.Question.id == id).get()
             q.question = question
             q.save()
-            await ctx.send(f"{q.question} has been modified successfully.\nQuestion ID: {question.id}")
+            await ctx.send(f"{q.question} has been modified successfully.")
         except database.DoesNotExist:
             try:
                 database.db.connect(reuse_if_open=True)
                 q: database.Question = database.Question.create(
                     question=question)
                 q.save()
-                await ctx.send(f"{q.question} has been added successfully.\nQuestion ID: {question.id}")
+                await ctx.send(f"{q.question} has been added successfully.")
             except database.IntegrityError:
                 await ctx.send("That question is already taken!")
         finally:
