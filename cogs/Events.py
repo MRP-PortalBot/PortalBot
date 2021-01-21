@@ -92,6 +92,8 @@ class Events(commands.Cog):
             embed.set_thumbnail(url=member.avatar_url)
             embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
             await channel.send(embed=embed)    
+        elif member.guild.id == 448488274562908170:
+            print("here!")
         else:
             print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
 
