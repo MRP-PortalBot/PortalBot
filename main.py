@@ -19,7 +19,6 @@ import aiohttp
 import xbox
 import traceback
 
-xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
 
 '''
 - Incase REPL has problems finding packages: (Manual PIP Install)
@@ -77,6 +76,11 @@ now = datetime.now().strftime("%H:%M:%S")
 
 logger.info(f"PortalBot has started! {now}")
 
+try:
+    xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
+except:
+    logger.critical("ERROR: Unable to authenticate with XBOX!")
+
 def get_extensions():  # Gets extension list dynamically
     extensions = []
     for file in Path("cogs").glob("**/*.py"):
@@ -90,7 +94,8 @@ async def force_restart(ctx):  #Forces REPL to apply changes to everything
         subprocess.run("python main.py", shell=True, text=True, capture_output=True, check=True)
     except Exception as e:
         await ctx.send(f"❌ Something went wrong while trying to restart the bot!\nThere might have been a bug which could have caused this!\n**Error:**\n{e}")
-    sys.exit(0)
+    finally:
+        sys.exit(0)
 
 @client.check
 async def mainModeCheck(ctx):
