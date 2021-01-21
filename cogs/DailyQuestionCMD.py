@@ -45,23 +45,20 @@ class DailyCMD(commands.Cog):
                 contentval = embed.fields[2].value
                 linec, question = contentval.split(" | ")
                 if str(payload.emoji) == "✅":
-                    file = open("DailyQuestions.txt", "r")
-                    line_count = 0
-                    for line in file:
-                        if line != "\n":
-                            line_count += 1
-                    file.close()
-                    lc = line_count + 1
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        q: database.Question = database.Question.create(question=question)
+                        q.save()
+                    except database.IntegrityError:
+                        await channel.send("ERROR: That question is already taken!")
+                    finally:
+                        database.db.close()
 
                     embed = discord.Embed(title="Suggestion Approved", description="<@" + str(
                         payload.user_id) + "> has approved a suggestion! ", color=0x31f505)
                     embed.add_field(name="Question Approved",
                                     value="Question: " + str(question))
                     await channel.send(embed=embed)
-
-                    f = open("DailyQuestions.txt", "a")
-                    f.write(str(lc) + " - " + question + "\n")
-                    f.close()
                     reactions = ['✅', '❌']
                     for emoji in reactions:
                         await msg.clear_reaction(emoji)
