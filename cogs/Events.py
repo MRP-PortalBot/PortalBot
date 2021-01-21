@@ -60,51 +60,6 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        if member.guild.id == 587495640502763521:
-            guild = self.bot.get_guild(587495640502763521)
-            channel = guild.get_channel(588813558486269956)
-            count = int(member.guild.member_count) + 1
-            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
-            embed.set_thumbnail(url=member.avatar_url)
-            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
-            await channel.send(embed=embed)
-        elif member.guild.id == 192052103017922567:
-            guild = self.bot.get_guild(192052103017922567)
-            channel = guild.get_channel(796115065622626326)
-            count = int(member.guild.member_count) + 1
-            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xFFCE41)
-            embed.set_thumbnail(url=member.avatar_url)
-            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
-            await channel.send(embed=embed)    
-        else:
-            print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
-
-    @commands.command()
-    async def on_member_join(self, ctx):
-        member = ctx.message.author
-        if member.guild.id == 587495640502763521:
-            guild = self.bot.get_guild(587495640502763521)
-            channel = guild.get_channel(588813558486269956)
-            count = int(member.guild.member_count) + 1
-            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
-            embed.set_thumbnail(url=member.avatar_url)
-            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
-            await channel.send(embed=embed)
-        elif member.guild.id == 192052103017922567:
-            guild = self.bot.get_guild(192052103017922567)
-            channel = guild.get_channel(796115065622626326)
-            count = int(member.guild.member_count) + 1
-            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xFFCE41)
-            embed.set_thumbnail(url=member.avatar_url)
-            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
-            await channel.send(embed=embed)    
-        else:
-            print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
-
-# profile events ---------------------------------------
-
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
         username = member
         longid = str(username.id)
         discordname = str(username.name + "#" + username.discriminator)
@@ -119,6 +74,28 @@ class Events(commands.Cog):
             userrow = usercell.row
             gtsheet.update_cell(userrow, discordcol, str(discordname))
             gtsheet.update_cell(userrow, longidcol, str(longid))
+
+        #Welcome Message:
+        if member.guild.id == 587495640502763521:
+            guild = self.bot.get_guild(587495640502763521)
+            channel = guild.get_channel(588813558486269956)
+            count = int(member.guild.member_count) + 1
+            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
+            embed.set_thumbnail(url=member.avatar_url)
+            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
+            await channel.send(embed=embed)
+        elif member.guild.id == 192052103017922567:
+            guild = self.bot.get_guild(192052103017922567)
+            channel = guild.get_channel(796115065622626326)
+            count = int(member.guild.member_count) + 1
+            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xFFCE41)
+            embed.set_thumbnail(url=member.avatar_url)
+            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
+            await channel.send(embed=embed)    
+        else:
+            print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
+
+
 
     @commands.Cog.listener()
     async def on_message(self, message):
