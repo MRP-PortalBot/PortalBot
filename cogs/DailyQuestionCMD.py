@@ -8,6 +8,7 @@ from core import database, common
 from core.common import load_config
 config, _ = load_config()
 import math
+from discord.ext import tasks
 # Counts current lines in a file.
 
 import logging
@@ -33,6 +34,29 @@ class DailyCMD(commands.Cog):
         for i, t in enumerate(database.Question.select()):
             if i+1 == index:
                 return t
+
+    @tasks.loop(hours = 1.0)
+    async def dailyq_loop(self):
+        d = datetime.datetime.utcnow()
+        print (d.hour)
+        if d.hour == 17:
+            guild = self.bot.get_guild(448488274562908170)
+            channel = guild.get_channel(777987716008509490)
+            limit = int(database.Question.select().count())
+            print(limit)
+            Rnum = random.randint(1 , limit)
+            try:
+                database.db.connect(reuse_if_open=True)
+                try:
+                    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+                    embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+                    await channel.send(embed=embed)
+                except database.DoesNotExist:
+                    await channel.send("Tag not found, please try again.")
+            finally:
+                database.db.close()
+            
+
 
     # Waits for either the approval or denial on a question suggestion
     @commands.Cog.listener()
