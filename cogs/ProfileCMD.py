@@ -171,8 +171,8 @@ class ProfileCMD(commands.Cog):
         pokemongo = str("")
         chessdotcom = str("")        
 
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        def purgecheck(m):
+            return m.author == username or m.author == self.bot.user
         
         await channel.send("What would you like to edit?")
         
@@ -187,11 +187,11 @@ class ProfileCMD(commands.Cog):
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
             if str(reaction.emoji) == "❌":
-                await ctx.channel.purge(limit=2)
+                await ctx.channel.purge(limit=2, check = purgecheck)
                 await channel.send("Okay, nothing will be edited!")
             elif str(reaction.emoji) == "1️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Timezone?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -208,7 +208,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Timezone to to your profile!")
                 else:
                     userrow = usercell.row
@@ -216,11 +216,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, tzonecol, str(tzone))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Timezone to to your profile!")
             elif str(reaction.emoji) == "2️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your XBOX Gamertag?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -237,7 +237,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
                 else:
                     userrow = usercell.row
@@ -245,11 +245,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, xboxcol, str(xbox))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
             elif str(reaction.emoji) == "3️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your PSN ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -266,7 +266,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your PSN ID to to your profile!")
                 else:
                     userrow = usercell.row
@@ -274,11 +274,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, psnidcol, str(psnid))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)                    
+                    await ctx.channel.purge(limit=4, check = purgecheck)                    
                     await channel.send("Success!, You have added your PSN ID to to your profile!")
             elif str(reaction.emoji) == "4️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Nintendo Network ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -295,7 +295,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
                 else:
                     userrow = usercell.row
@@ -303,11 +303,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, switchcol, str(switch))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
             elif str(reaction.emoji) == "5️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Pokemon GO ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -324,7 +324,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Pokemon Go ID to to your profile!")
                 else:
                     userrow = usercell.row
@@ -332,11 +332,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, pokemongocol, str(pokemongo))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Pokemon Go ID? to to your profile!")
             elif str(reaction.emoji) == "6️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Chess.com ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -353,7 +353,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Chess.com ID to to your profile!")
                 else:
                     userrow = usercell.row
@@ -361,7 +361,7 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, chesscol, str(chessdotcom))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Chess.com ID to to your profile!")
 
         except asyncio.TimeoutError:
@@ -375,8 +375,8 @@ class ProfileCMD(commands.Cog):
         longid = str(username.id)
         cellclear = str("")         
 
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        def purgecheck(m):
+            return m.author == username or m.author == self.bot.user
         
         await channel.send("What would you like to remove?")
         
@@ -397,7 +397,7 @@ class ProfileCMD(commands.Cog):
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
@@ -410,66 +410,66 @@ class ProfileCMD(commands.Cog):
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, xboxcol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed your XBOX Gamertag from your profile!")
             elif str(reaction.emoji) == "3️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, psnidcol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed your Playstation ID from your profile!")
             elif str(reaction.emoji) == "4️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, switchcol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed your Switch Friend Code from your profile!")
             elif str(reaction.emoji) == "5️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, pokemongocol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed your Pokemon GO ID from your profile!")
             elif str(reaction.emoji) == "6️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, chesscol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed Chess.com ID from your profile!")
 
         except asyncio.TimeoutError:
