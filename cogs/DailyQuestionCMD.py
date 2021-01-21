@@ -220,7 +220,7 @@ class DailyCMD(commands.Cog):
 
     @commands.command(aliases=['newq', 'nq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
-    async def modq(self, ctx, id,question):
+    async def modq(self, ctx, id, *, question):
         """Modify a tag, or create a new one if it doesn't exist."""
         try:
             database.db.connect(reuse_if_open=True)
