@@ -220,15 +220,25 @@ class DailyCMD(commands.Cog):
 
     @commands.command(aliases=['newq', 'nq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
-    async def modq(self, ctx, id, *, question):
-        """Modify a tag, or create a new one if it doesn't exist."""
+    async def modq(self, ctx, id = None):
+        """Modifys a question!"""
+        channel = ctx.message.channel
+        author = ctx.message.author
+        def check(m):
+            return m.content is not None and m.channel == channel and m.author is not self.bot.user and m.author == author
+        await ctx.send("Question to create/modify:")
+        question = await self.bot.wait_for('message', check=check)
+        question = question.content
+
+
         try:
-            database.db.connect(reuse_if_open=True)
-            q: database.Question = database.Question.select().where(
-                database.Question.id == id).get()
-            q.question = question
-            q.save()
-            await ctx.send(f"{q.question} has been modified successfully.")
+            if id != None:
+                database.db.connect(reuse_if_open=True)
+                q: database.Question = database.Question.select().where(
+                    database.Question.id == id).get()
+                q.question = question
+                q.save()
+                await ctx.send(f"{q.question} has been modified successfully.")
         except database.DoesNotExist:
             try:
                 database.db.connect(reuse_if_open=True)
