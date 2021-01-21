@@ -188,7 +188,7 @@ class ProfileCMD(commands.Cog):
                 await channel.send("Okay, nothing will be edited!")
             elif str(reaction.emoji) == "1️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Timezone?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -217,7 +217,7 @@ class ProfileCMD(commands.Cog):
                     await channel.send("Success!, You have added your Timezone to to your profile!")
             elif str(reaction.emoji) == "2️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your XBOX Gamertag?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -246,7 +246,7 @@ class ProfileCMD(commands.Cog):
                     await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
             elif str(reaction.emoji) == "3️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your PSN ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -275,7 +275,7 @@ class ProfileCMD(commands.Cog):
                     await channel.send("Success!, You have added your PSN ID to to your profile!")
             elif str(reaction.emoji) == "4️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Nintendo Network ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -304,7 +304,7 @@ class ProfileCMD(commands.Cog):
                     await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
             elif str(reaction.emoji) == "5️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Pokemon GO ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -333,7 +333,7 @@ class ProfileCMD(commands.Cog):
                     await channel.send("Success!, You have added your Pokemon Go ID? to to your profile!")
             elif str(reaction.emoji) == "6️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Chess.com ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
