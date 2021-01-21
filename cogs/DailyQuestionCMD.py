@@ -98,7 +98,7 @@ class DailyCMD(commands.Cog):
 
     # Sends a random question.
     @commands.command()
-    async def dailyq(self, ctx):
+    async def olddailyq(self, ctx):
         await ctx.channel.purge(limit=1)
         author = ctx.message.author
         file = open("DailyQuestions.txt", "r")
