@@ -168,8 +168,8 @@ class ProfileCMD(commands.Cog):
         pokemongo = str("")
         chessdotcom = str("")        
 
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        def purgecheck(m):
+            return m.author == username or m.author == self.bot.user
         
         await channel.send("What would you like to edit?")
         
@@ -184,7 +184,7 @@ class ProfileCMD(commands.Cog):
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
             if str(reaction.emoji) == "❌":
-                await ctx.channel.purge(limit=2)
+                await ctx.channel.purge(limit=2, check = purgecheck)
                 await channel.send("Okay, nothing will be edited!")
             elif str(reaction.emoji) == "1️⃣":
                 def check3(m):
