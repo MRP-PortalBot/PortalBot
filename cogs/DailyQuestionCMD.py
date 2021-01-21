@@ -218,19 +218,11 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    @commands.command(aliases=['newq', 'nq'])
+    @commands.command(aliases=['mq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
-    async def modq(self, ctx, id = None):
-        """Modifys a question!"""
-        channel = ctx.message.channel
-        author = ctx.message.author
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user and m.author == author
-        await ctx.send("Question to create/modify:")
-        question = await self.bot.wait_for('message', check=check)
-        question = question.content
-
-
+    async def modq(self, ctx, id, *, question):
+        """Modify a question!"""
+ 
         try:
             if id != None:
                 database.db.connect(reuse_if_open=True)
@@ -240,26 +232,26 @@ class DailyCMD(commands.Cog):
                 q.save()
                 await ctx.send(f"{q.question} has been modified successfully.")
         except database.DoesNotExist:
-            try:
-                database.db.connect(reuse_if_open=True)
-                q: database.Question = database.Question.create(
-                    question=question)
-                q.save()
-                await ctx.send(f"{q.question} has been added successfully.")
-            except database.IntegrityError:
-                await ctx.send("That question is already taken!")
+            await ctx.send("ERROR: This question does not exist!")
         finally:
             database.db.close()
 
-        if id == None:
-            try:
-                database.db.connect(reuse_if_open=True)
-                q: database.Question = database.Question.create(
-                    question=question)
-                q.save()
-                await ctx.send(f"{q.question} has been added successfully.")
-            except database.IntegrityError:
-                await ctx.send("That question is already taken!")
+    
+    @commands.command(aliases=['nq', 'newquestion'])
+    @commands.has_any_role('Bot Manager', 'Moderator')
+    async def newq(self, ctx, *, question):
+        """Add a question!"""
+        try:
+            database.db.connect(reuse_if_open=True)
+            q: database.Question = database.Question.create(
+                question=question)
+            q.save()
+            await ctx.send(f"{q.question} has been added successfully.")
+        except database.IntegrityError:
+            await ctx.send("That question is already taken!")
+        finally:
+            database.db.close()
+
 
     @commands.command(aliases=['delq', 'dq'])
     @commands.has_any_role("Bot Manager", "Moderator")
