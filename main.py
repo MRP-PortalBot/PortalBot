@@ -274,7 +274,7 @@ async def gitpull(ctx):
         msg = await ctx.send(embed=embed)
         with open("commandcheck.txt", "w") as f:
             f.write("OFF")
-        force_restart(ctx)
+        await force_restart(ctx)
 
     elif typebot == "STABLE":
         try:
@@ -295,7 +295,7 @@ async def gitpull(ctx):
         msg = await ctx.send(embed=embed)
         with open("commandcheck.txt", "w") as f:
             f.write("OFF")
-        force_restart(ctx)
+        await force_restart(ctx)
 
 
 @client.command()
