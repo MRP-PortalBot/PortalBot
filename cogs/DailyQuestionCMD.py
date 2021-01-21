@@ -251,6 +251,16 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
+        if id == None:
+            try:
+                database.db.connect(reuse_if_open=True)
+                q: database.Question = database.Question.create(
+                    question=question)
+                q.save()
+                await ctx.send(f"{q.question} has been added successfully.")
+            except database.IntegrityError:
+                await ctx.send("That question is already taken!")
+
     @commands.command(aliases=['delq', 'dq'])
     @commands.has_any_role("Bot Manager", "Moderator")
     async def deleteq(self, ctx, id):
