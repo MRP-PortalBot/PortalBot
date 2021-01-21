@@ -131,93 +131,6 @@ class DailyCMD(commands.Cog):
             text="Got a question? Use the suggest command! \n*Usage:* >suggestq (Your Question Here)")
         await ctx.send(embed=Dailyq)
 
-    # Add's a question to the database
-
-    @commands.command()
-    async def addq(self, ctx, *, reason):
-        file = open("DailyQuestions.txt", "r")
-        line_count = 0
-        for line in file:
-            if line != "\n":
-                line_count += 1
-        LC = line_count + 1
-        file.close()
-        file = open("DailyQuestions.txt", "a")
-        file.write(str(LC) + " - " + reason + "\n")
-        file.close()
-        file = open("DailyQuestionsC.txt", "r")
-        line_count = 0
-        for line in file:
-            if line != "\n":
-                line_count += 1
-        LC = line_count + 1
-        file.close()
-        file = open("DailyQuestionsC.txt", "a")
-        file.write(str(LC) + " - " + reason + "\n")
-        file.close()
-        await ctx.send("Question added to the list! \n**Added:** " + reason + "\n**Line Number:** " + str(LC))
-
-    @addq.error
-    async def addq_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("You didn't include a question!")
-
-    # Removes a question from the database. [BROKEN]
-    @commands.command()
-    async def removeq(self, ctx, *, reason):
-        question = None
-        file = open("DailyQuestions.txt", "r")
-        for line in file:
-            Num, Q = line.split(" - ")
-            if reason == Num:
-                question = line
-            file.close()
-        with open("DailyQuestions.txt", "r") as f:
-            lines = f.readlines()
-        with open("DailyQuestions.txt", "w") as f:
-            for line in lines:
-                if line.strip("\n") != question:
-                    f.write(line)
-
-        file = open("DailyQuestionsC.txt", "r")
-        for line in file:
-            Num, Q = line.split(" - ")
-            if reason == Num:
-                question = line
-            file.close()
-        with open("DailyQuestionsC.txt", "r") as f:
-            lines = f.readlines()
-        with open("DailyQuestionsC.txt", "w") as f:
-            for line in lines:
-                if line.strip("\n") != question:
-                    f.write(line)
-                    await ctx.send("**REMOVED:** " + line)
-
-    @removeq.error
-    async def removeq_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("You didn't include a number! Please refer to `>listq` for a question number!")
-
-    # Forces a certain question.
-    @commands.command()
-    async def forceq(self, ctx, *, reason):
-        Q = None
-        await ctx.channel.purge(limit=1)
-        author = ctx.message.author
-        file = open("DailyQuestions.txt", "r")
-        for line in file:
-            Num, Q = line.split(" - ")
-            if reason == Num:
-                question = line
-        file.close()
-        Dailyq = discord.Embed(
-            title="❓ QUESTION OF THE DAY ❓", description="**" + Q + "**", color=0xb10d9f)
-        await ctx.send(embed=Dailyq)
-
-    @forceq.error
-    async def forceq_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("You didn't include a number! Please refer to `>listq` for a question number!")
 
     # Suggests a question and sends it to the moderators.
     @commands.command()
@@ -307,12 +220,12 @@ class DailyCMD(commands.Cog):
 
     @commands.command(aliases=['newq', 'nq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
-    async def modq(self, ctx, question):
+    async def modq(self, ctx, id,question):
         """Modify a tag, or create a new one if it doesn't exist."""
         try:
             database.db.connect(reuse_if_open=True)
             q: database.Question = database.Question.select().where(
-                database.Question.question == question).get()
+                database.Question.id == id).get()
             q.question = question
             q.save()
             await ctx.send(f"{q.question} has been modified successfully.\nQuestion ID: {question.id}")
@@ -322,7 +235,7 @@ class DailyCMD(commands.Cog):
                 q: database.Question = database.Question.create(
                     question=question)
                 q.save()
-                await ctx.send(f"{q.question} has been added successfully.")
+                await ctx.send(f"{q.question} has been added successfully.\nQuestion ID: {question.id}")
             except database.IntegrityError:
                 await ctx.send("That question is already taken!")
         finally:
