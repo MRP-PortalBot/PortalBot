@@ -245,9 +245,42 @@ class BlacklistCMD(commands.Cog):
         database.db.connect(reuse_if_open=True)
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
         try:
-            q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string or database.MRP_Blacklist_Data.DiscID == string or database.MRP_Blacklist_Data.Gamertag == string or database.MRP_Blacklist_Data.BannedFrom == string or database.MRP_Blacklist_Data.KnownAlts == string or database.MRP_Blacklist_Data.ReasonforBan == string or database.MRP_Blacklist_Data.DateofIncident == string or database.MRP_Blacklist_Data.TypeofBan == string or database.MRP_Blacklist_Data.DatetheBanEnds == string).get()
-        except database.DoesNotExist:
-            await ctx.send("No data")
+            database.db.connect(reuse_if_open=True)
+            try:
+                q: database.Question = database.Question.select().where(database.Question.discordUsername == string).get()
+            except database.DoesNotExist:
+                try:
+                    q: database.Question = database.Question.select().where(database.Question.discordID == string).get()
+                except database.DoesNotExist:
+                    try:
+                        q: database.Question = database.Question.select().where(database.Question.Gamertag == string).get()
+                    except database.DoesNotExist:
+                        try:
+                            q: database.Question = database.Question.select().where(database.Question.BannedRealm == string).get()
+                        except database.DoesNotExist:
+                            try:
+                                q: database.Question = database.Question.select().where(database.Question.Alts == string).get()
+                            except database.DoesNotExist:
+                                try:
+                                    q: database.Question = database.Question.select().where(database.Question.BanReason == string).get()
+                                except database.DoesNotExist:
+                                    try:
+                                        q: database.Question = database.Question.select().where(database.Question.IncidentDate == string).get()
+                                    except database.DoesNotExist:
+                                        try:
+                                            q: database.Question = database.Question.select().where(database.Question.BanType == string).get()
+                                        except database.DoesNotExist:
+                                            try:
+                                                q: database.Question = database.Question.select().where(database.Question.ExpireBan == string).get()
+                                            except database.DoesNotExist:
+                                                await ctx.send("Data not found!")
+                                                return
+
+  
+        finally:
+            database.db.close()    
+        
+        
 
         try:
             await ctx.send(f"{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.BanReason}\n{q.IncidentDate}\n{q.BanType}\n{q.ExpireBan}")
