@@ -62,9 +62,5 @@ class Profile(BaseModel):
 
 
 
-
-
-
-
 tables = {"tag": Tag, "questions": Question, "blacklist": Blacklist, "profile": Profile}
 iter_table(tables)

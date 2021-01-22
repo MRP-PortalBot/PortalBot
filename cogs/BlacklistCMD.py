@@ -10,6 +10,7 @@ from discord import Embed
 from core.common import load_config, paginate_embed
 config, _ = load_config()
 import logging
+from core import database
 
 logger = logging.getLogger(__name__)
 # --------------------------------------------------
@@ -120,6 +121,17 @@ class BlacklistCMD(commands.Cog):
         row = [answer1.content, answer2.content, answer3.content, answer4.content,
                answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
         sheet.insert_row(row, 3)
+
+        # Add to DB
+        try:
+            database.db.connect(reuse_if_open=True)
+            q: database.Blacklist = database.Blacklist.create(
+                discordUsername=answer1.content, discordID = answer2.content, Gamertag = answer3.content, BannedRealm = answer4.content, Alts = answer5.content , BanReason = answer6.content, IncidentDate = answer7.content, BanType = answer8.content, ExpireBan = answer9.content)
+            q.save()
+            await ctx.send(f"{q.question} has been added successfully.")
+        finally:
+            database.db.close()
+
 
         message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 150 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['✅', '❌']
