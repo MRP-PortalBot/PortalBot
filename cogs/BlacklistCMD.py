@@ -122,11 +122,7 @@ class BlacklistCMD(commands.Cog):
 
 
         # Add to DB
-        database.db.connect(reuse_if_open=True)
-        q: database.Blacklist = database.Blacklist.create(discordUsername=answer1.content, discordID = answer2.content, Gamertag = answer3.content, BannedRealm = answer4.content, Alts = answer5.content , BanReason = answer6.content, IncidentDate = answer7.content, BanType = answer8.content, ExpireBan = answer9.content)
-        q.save()
-        await ctx.send(f"{q.discordUsername} has been added successfully.")
-        database.db.close()
+        
 
 
 
@@ -148,6 +144,11 @@ class BlacklistCMD(commands.Cog):
                 answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
                 sheet.insert_row(row, 3)
 
+                database.db.connect(reuse_if_open=True)
+                q: database.Blacklist = database.Blacklist.create(discordUsername=answer1.content, discordID = answer2.content, Gamertag = answer3.content, BannedRealm = answer4.content, Alts = answer5.content , BanReason = answer6.content, IncidentDate = answer7.content, BanType = answer8.content, ExpireBan = answer9.content)
+                q.save()
+                await ctx.send(f"{q.discordUsername} has been added successfully.")
+                database.db.close()
 
                 await message.delete()
                 await channel.send("Sending your responses!")
