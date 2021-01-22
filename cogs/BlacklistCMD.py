@@ -7,6 +7,7 @@ import time
 import re
 import asyncio
 from discord import Embed
+from six import python_2_unicode_compatible
 from core.common import load_config, paginate_embed
 config, _ = load_config()
 import logging
@@ -128,7 +129,7 @@ class BlacklistCMD(commands.Cog):
             q: database.Blacklist = database.Blacklist.create(
                 discordUsername=answer1.content, discordID = answer2.content, Gamertag = answer3.content, BannedRealm = answer4.content, Alts = answer5.content , BanReason = answer6.content, IncidentDate = answer7.content, BanType = answer8.content, ExpireBan = answer9.content)
             q.save()
-            await ctx.send(f"{q.question} has been added successfully.")
+            await ctx.send(f"{q.discordUsername} has been added successfully.")
         finally:
             database.db.close()
 
@@ -238,7 +239,75 @@ class BlacklistCMD(commands.Cog):
         embed = discord.Embed(title="MRP Blacklist Data", description=
             f"Requested by Operator {author.mention}")
         await paginate_embed(self.bot, ctx, embed, populate_embed, sheet.row_count, page=page, begin=3)
+    
+    @commands.command()
+    async def DBget(self, ctx, *, string: str):
+        i = 0
+        try:
+            database.db.connect(reuse_if_open=True)
+        databaseData = [database.Blacklist.discordUsername, database.Blacklist.discordID, database.Blacklist.Gamertag, database.Blacklist.BannedRealm, database.Blacklist.Alts, database.Blacklist.BanReason, database.Blacklist.IncidentDate, database.Blacklist.BanType, database.Blacklist.ExpireBan]
+        for data in databaseData:
+            if i == 9:
+                await ctx.send("No data found!")
+                return
+            try:
+                q: database.Blacklist = database.Blacklist.select().where(data == string).get()
+            except:
+                i+=1
+                continue
+            else:
+                break
 
+        try:
+            await ctx.send(f"{q.discordUsername}\n{q.discordID}\n{q.Gamertag}\n{q.BannedRealm}\n{q.BanReason}\n{q.IncidentDate}\n{q.BanType}\n{q.ExpireBan}")
+        except Exception as e:
+            await ctx.send(f"ERROR!\n{e}")
+
+        
+
+        
+        
+
+
+
+                
+            
+          
 
 def setup(bot):
     bot.add_cog(BlacklistCMD(bot))
+
+'''
+ try:
+            database.db.connect(reuse_if_open=True)
+            try:
+                q: database.Question = database.Question.select().where(database.Question.discordUsername == string).get()
+            except database.DoesNotExist:
+                try:
+                    q: database.Question = database.Question.select().where(database.Question.discordID == string).get()
+                except database.DoesNotExist:
+                    try:
+                        q: database.Question = database.Question.select().where(database.Question.Gamertag == string).get()
+                    except database.DoesNotExist:
+                        try:
+                            q: database.Question = database.Question.select().where(database.Question.BannedRealm == string).get()
+                        except database.DoesNotExist:
+                            try:
+                                q: database.Question = database.Question.select().where(database.Question.Alts == string).get()
+                            except database.DoesNotExist:
+                                try:
+                                    q: database.Question = database.Question.select().where(database.Question.BanReason == string).get()
+                                except database.DoesNotExist:
+                                    try:
+                                        q: database.Question = database.Question.select().where(database.Question.IncidentDate == string).get()
+                                    except database.DoesNotExist:
+                                        try:
+                                            q: database.Question = database.Question.select().where(database.Question.BanType == string).get()
+                                        except database.DoesNotExist:
+                                            try:
+                                                q: database.Question = database.Question.select().where(database.Question.ExpireBan == string).get()
+                                            except database.DoesNotExist:
+                                                await ctx.send("Data not found!")
+        finally:
+            database.db.close()    
+'''

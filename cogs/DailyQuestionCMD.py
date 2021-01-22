@@ -243,7 +243,6 @@ class DailyCMD(commands.Cog):
     @commands.has_any_role('Bot Manager', 'Moderator')
     async def modq(self, ctx, id, *, question):
         """Modify a question!"""
- 
         try:
             if id != None:
                 database.db.connect(reuse_if_open=True)
