@@ -247,31 +247,31 @@ class BlacklistCMD(commands.Cog):
         try:
             database.db.connect(reuse_if_open=True)
             try:
-                q: database.Question = database.Question.select().where(database.Question.discordUsername == string).get()
+                q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string).get()
             except database.DoesNotExist:
                 try:
-                    q: database.Question = database.Question.select().where(database.Question.discordID == string).get()
+                    q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID == string).get()
                 except database.DoesNotExist:
                     try:
-                        q: database.Question = database.Question.select().where(database.Question.Gamertag == string).get()
+                        q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.Gamertag == string).get()
                     except database.DoesNotExist:
                         try:
-                            q: database.Question = database.Question.select().where(database.Question.BannedRealm == string).get()
+                            q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.BannedFrom == string).get()
                         except database.DoesNotExist:
                             try:
-                                q: database.Question = database.Question.select().where(database.Question.Alts == string).get()
+                                q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.KnownAlts == string).get()
                             except database.DoesNotExist:
                                 try:
-                                    q: database.Question = database.Question.select().where(database.Question.BanReason == string).get()
+                                    q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.ReasonforBan == string).get()
                                 except database.DoesNotExist:
                                     try:
-                                        q: database.Question = database.Question.select().where(database.Question.IncidentDate == string).get()
+                                        q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DateofIncident == string).get()
                                     except database.DoesNotExist:
                                         try:
-                                            q: database.Question = database.Question.select().where(database.Question.BanType == string).get()
+                                            q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.TypeofBan == string).get()
                                         except database.DoesNotExist:
                                             try:
-                                                q: database.Question = database.Question.select().where(database.Question.ExpireBan == string).get()
+                                                q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DatetheBanEnds == string).get()
                                             except database.DoesNotExist:
                                                 await ctx.send("Data not found!")
                                                 return
@@ -280,12 +280,13 @@ class BlacklistCMD(commands.Cog):
         finally:
             database.db.close()    
         
-        
+
 
         try:
             await ctx.send(f"{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.BanReason}\n{q.IncidentDate}\n{q.BanType}\n{q.ExpireBan}")
         except Exception as e:
             await ctx.send(f"ERROR!\n{e}")
+            
 
         
 
