@@ -35,32 +35,32 @@ class Question(BaseModel):
     id = AutoField()
     question = TextField()
 
-class Blacklist(BaseModel):
+class MRP_Blacklist_Data(BaseModel):
     """Stores Questions for DailyQ here"""
     entryid = AutoField()
-    discordUsername = TextField()
-    discordID = TextField()
+    DiscUsername = TextField()
+    DiscID = TextField()
     Gamertag = TextField()
-    BannedRealm = TextField()
-    Alts = TextField()
-    BanReason = TextField()
-    IncidentDate = TextField()
-    BanType = TextField()
-    ExpireBan = TextField()
+    BannedFrom = TextField()
+    KnownAlts = TextField()
+    ReasonforBan = TextField()
+    DateofIncident = TextField()
+    TypeofBan = TextField()
+    DatetheBanEnds = TextField()
 
-class Profile(BaseModel):
+class PortalbotProfile(BaseModel):
     """Stores Questions for DailyQ here"""
     entryid = AutoField()
-    discordName = TextField()
-    discordID = TextField()
-    timezone = TextField()
-    xboxID = TextField()
-    playstationID = TextField()
-    switchID = TextField()
-    pokemonGOID = TextField()
-    chessID = TextField()
+    DiscordName = TextField()
+    DiscordLongID = TextField()
+    Timezone = TextField()
+    XBOX = TextField()
+    Playstation = TextField()
+    Switch = TextField()
+    PokemonGo = TextField()
+    Chess = TextField()
 
 
 
-tables = {"tag": Tag, "questions": Question, "blacklist": Blacklist, "profile": Profile}
+tables = {"tag": Tag, "questions": Question, "blacklist": MRP_Blacklist_Data, "profile": PortalbotProfile}
 iter_table(tables)

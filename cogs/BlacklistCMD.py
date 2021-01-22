@@ -122,8 +122,6 @@ class BlacklistCMD(commands.Cog):
 
 
         # Add to DB
-        
-
 
 
         message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 150 seconds to react, otherwise the application will automaically cancel.* ")
@@ -145,9 +143,9 @@ class BlacklistCMD(commands.Cog):
                 sheet.insert_row(row, 3)
 
                 database.db.connect(reuse_if_open=True)
-                q: database.Blacklist = database.Blacklist.create(discordUsername=answer1.content, discordID = answer2.content, Gamertag = answer3.content, BannedRealm = answer4.content, Alts = answer5.content , BanReason = answer6.content, IncidentDate = answer7.content, BanType = answer8.content, ExpireBan = answer9.content)
+                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content)
                 q.save()
-                await ctx.send(f"{q.discordUsername} has been added successfully.")
+                await ctx.send(f"{q.DiscUsername} has been added successfully.")
                 database.db.close()
 
                 await message.delete()
@@ -246,13 +244,13 @@ class BlacklistCMD(commands.Cog):
     async def DBget(self, ctx, *, string: str):
         i = 0
         database.db.connect(reuse_if_open=True)
-        databaseData = [database.Blacklist.discordUsername, database.Blacklist.discordID, database.Blacklist.Gamertag, database.Blacklist.BannedRealm, database.Blacklist.Alts, database.Blacklist.BanReason, database.Blacklist.IncidentDate, database.Blacklist.BanType, database.Blacklist.ExpireBan]
+        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
         for data in databaseData:
             if i == 9:
                 await ctx.send("No data found!")
                 return
             try:
-                q: database.Blacklist = database.Blacklist.select().where(data == string).get()
+                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
             except:
                 i+=1
                 continue
@@ -260,13 +258,10 @@ class BlacklistCMD(commands.Cog):
                 break
 
         try:
-            await ctx.send(f"{q.discordUsername}\n{q.discordID}\n{q.Gamertag}\n{q.BannedRealm}\n{q.BanReason}\n{q.IncidentDate}\n{q.BanType}\n{q.ExpireBan}")
+            await ctx.send(f"{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.BanReason}\n{q.IncidentDate}\n{q.BanType}\n{q.ExpireBan}")
         except Exception as e:
             await ctx.send(f"ERROR!\n{e}")
 
-        
-
-        
         
 
 
