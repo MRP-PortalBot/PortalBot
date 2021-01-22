@@ -244,8 +244,7 @@ class BlacklistCMD(commands.Cog):
     @commands.command()
     async def DBget(self, ctx, *, string: str):
         i = 0
-        try:
-            database.db.connect(reuse_if_open=True)
+        database.db.connect(reuse_if_open=True)
         databaseData = [database.Blacklist.discordUsername, database.Blacklist.discordID, database.Blacklist.Gamertag, database.Blacklist.BannedRealm, database.Blacklist.Alts, database.Blacklist.BanReason, database.Blacklist.IncidentDate, database.Blacklist.BanType, database.Blacklist.ExpireBan]
         for data in databaseData:
             if i == 9:
