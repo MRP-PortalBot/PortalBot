@@ -249,7 +249,6 @@ class BlacklistCMD(commands.Cog):
             try:
                 q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
             except:
-                i+=1
                 continue
             else:
                 break
