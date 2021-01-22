@@ -8,6 +8,6 @@ pip install xbox
 pip install discord-py-slash-command
 pip install --upgrade sentry-sdk
 
-echo -e "\n\e[33mPackages have been downlaoded, returning to file!"
+echo -e "\n\e[33mPackages have been downlaoded, returning to file!\n"
 
 python3 main.py
