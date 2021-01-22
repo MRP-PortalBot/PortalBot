@@ -242,17 +242,13 @@ class BlacklistCMD(commands.Cog):
     
     @commands.command()
     async def DBget(self, ctx, *, string: str):
-        i = 0
         database.db.connect(reuse_if_open=True)
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
-        for data in databaseData:
-            try:
-                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
-            except:
-                continue
-            else:
-                break
-
+        try:
+            q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string or database.MRP_Blacklist_Data.DiscID == string or database.MRP_Blacklist_Data.Gamertag == string or database.MRP_Blacklist_Data.BannedFrom == string or database.MRP_Blacklist_Data.KnownAlts == string or database.MRP_Blacklist_Data.ReasonforBan == string or database.MRP_Blacklist_Data.DateofIncident == string or database.MRP_Blacklist_Data.TypeofBan == string or database.MRP_Blacklist_Data.DatetheBanEnds == string).get()
+        except database.DoesNotExist:
+            await ctx.send("No data")
+            
         try:
             await ctx.send(f"{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.BanReason}\n{q.IncidentDate}\n{q.BanType}\n{q.ExpireBan}")
         except Exception as e:

@@ -14,20 +14,7 @@ time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 import logging
 
 logger = logging.getLogger(__name__)
-# -------------------------------------------------------
 
-scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
-         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
-
-creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
-
-client = gspread.authorize(creds)
-
-sheet = client.open(
-    "Minecraft Realm Portal Channel Application (Responses)").sheet1
-
-sheet2 = client.open("MRPCommunityRealmApp").sheet1
-# -------------------------------------------------------
 def check_MRP():
     def predicate(ctx):
         return ctx.message.guild.id == 587495640502763521 or ctx.message.guild.id == 448488274562908170
