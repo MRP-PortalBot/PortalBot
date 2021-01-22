@@ -247,31 +247,31 @@ class BlacklistCMD(commands.Cog):
         try:
             database.db.connect(reuse_if_open=True)
             try:
-                q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string).get()
+                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string).get()
             except database.DoesNotExist:
                 try:
-                    q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID == string).get()
+                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID == string).get()
                 except database.DoesNotExist:
                     try:
-                        q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.Gamertag == string).get()
+                        q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.Gamertag == string).get()
                     except database.DoesNotExist:
                         try:
-                            q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.BannedFrom == string).get()
+                            q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.BannedFrom == string).get()
                         except database.DoesNotExist:
                             try:
-                                q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.KnownAlts == string).get()
+                                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.KnownAlts == string).get()
                             except database.DoesNotExist:
                                 try:
-                                    q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.ReasonforBan == string).get()
+                                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.ReasonforBan == string).get()
                                 except database.DoesNotExist:
                                     try:
-                                        q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DateofIncident == string).get()
+                                        q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DateofIncident == string).get()
                                     except database.DoesNotExist:
                                         try:
-                                            q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.TypeofBan == string).get()
+                                            q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.TypeofBan == string).get()
                                         except database.DoesNotExist:
                                             try:
-                                                q: database.Question = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DatetheBanEnds == string).get()
+                                                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DatetheBanEnds == string).get()
                                             except database.DoesNotExist:
                                                 await ctx.send("Data not found!")
                                                 return
