@@ -1,4 +1,6 @@
 import logging
+
+from discord.enums import ExpireBehavior
 from peewee import AutoField, ForeignKeyField, Model, IntegerField, PrimaryKeyField, TextField, SqliteDatabase, DoesNotExist, DateTimeField, UUIDField, IntegrityError
 from playhouse.shortcuts import model_to_dict, dict_to_model  # these can be used to convert an item to or from json http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#model_to_dict
 from playhouse.sqlite_ext import RowIDField
@@ -33,5 +35,36 @@ class Question(BaseModel):
     id = AutoField()
     question = TextField()
 
-tables = {"tag": Tag, "questions": Question}
+class Blacklist(BaseModel):
+    """Stores Questions for DailyQ here"""
+    entryid = AutoField()
+    discordUsername = TextField()
+    discordID = TextField()
+    Gamertag = TextField()
+    BannedRealm = TextField()
+    Alts = TextField()
+    BanReason = TextField()
+    IncidentDate = TextField()
+    BanType = TextField()
+    ExpireBan = TextField()
+
+class Profile(BaseModel):
+    """Stores Questions for DailyQ here"""
+    entryid = AutoField()
+    discordName = TextField()
+    discordID = TextField()
+    timezone = TextField()
+    xboxID = TextField()
+    playstationID = TextField()
+    switchID = TextField()
+    pokemonGOID = TextField()
+    chessID = TextField()
+
+
+
+
+
+
+
+tables = {"tag": Tag, "questions": Question, "blacklist": Blacklist, "profile": Profile}
 iter_table(tables)
