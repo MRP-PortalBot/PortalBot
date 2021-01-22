@@ -248,7 +248,7 @@ class BlacklistCMD(commands.Cog):
             q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string or database.MRP_Blacklist_Data.DiscID == string or database.MRP_Blacklist_Data.Gamertag == string or database.MRP_Blacklist_Data.BannedFrom == string or database.MRP_Blacklist_Data.KnownAlts == string or database.MRP_Blacklist_Data.ReasonforBan == string or database.MRP_Blacklist_Data.DateofIncident == string or database.MRP_Blacklist_Data.TypeofBan == string or database.MRP_Blacklist_Data.DatetheBanEnds == string).get()
         except database.DoesNotExist:
             await ctx.send("No data")
-            
+
         try:
             await ctx.send(f"{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.BanReason}\n{q.IncidentDate}\n{q.BanType}\n{q.ExpireBan}")
         except Exception as e:
