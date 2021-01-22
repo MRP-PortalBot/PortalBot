@@ -246,9 +246,6 @@ class BlacklistCMD(commands.Cog):
         database.db.connect(reuse_if_open=True)
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
         for data in databaseData:
-            if i == 9:
-                await ctx.send("No data found!")
-                return
             try:
                 q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
             except:
