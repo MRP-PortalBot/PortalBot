@@ -52,6 +52,11 @@ print(cell)
 '''
 # -----------------------------------------------------
 
+def solve(s):
+    a = s.split(' ')
+    for i in range(len(a)):
+        a[i] = a[i].capitalize()
+    return ' '.join(a)
 
 Q1 = "User's Discord: "
 Q2 = "User's Discord Long ID: "
@@ -243,6 +248,8 @@ class BlacklistCMD(commands.Cog):
     @commands.command()
     async def DBget(self, ctx, *, string: str):
         database.db.connect(reuse_if_open=True)
+        string = string.lower()
+        dataFound = False
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
         for data in databaseData:
             try:
@@ -250,15 +257,29 @@ class BlacklistCMD(commands.Cog):
             except:
                 continue
             else:
+                dataFound = True
                 break
         
-        
+        string = solve(string)
+        if dataFound == False:
+            databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
+            for data in databaseData:
+                try:
+                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
+                except:
+                    continue
+                else:
+                    dataFound = True
+                    break
+
+
         database.db.close()    
         
 
-
-        await ctx.send(f"\n{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.ReasonforBan}\n{q.DateofIncident}\n{q.TypeofBan}\n{q.DatetheBanEnds}")
-        await ctx.send(f"ERROR!")
+        try:
+            await ctx.send(f"\n{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.ReasonforBan}\n{q.DateofIncident}\n{q.TypeofBan}\n{q.DatetheBanEnds}")
+        except UnboundLocalError:
+            await ctx.send("NO RESULTS")
             
 
         

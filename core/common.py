@@ -77,3 +77,8 @@ def query(authorname, ID, server, channel, suggestion, trellotype):
     )
     return response.text
 
+def solve(s):
+    a = s.split(' ')
+    for i in range(len(a)):
+        a[i] = a[i].capitalize()
+    return ' '.join(a)
