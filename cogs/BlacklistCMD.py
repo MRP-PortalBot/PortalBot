@@ -243,12 +243,13 @@ class BlacklistCMD(commands.Cog):
     @commands.command()
     async def DBget(self, ctx, *, string: str):
         database.db.connect(reuse_if_open=True)
-        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
+        #databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
         try:
             database.db.connect(reuse_if_open=True)
             try:
-                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string).get()
-            except database.DoesNotExist:
+                print(e)
+                #q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string).get()
+            except:
                 try:
                     q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID == string).get()
                 except database.DoesNotExist:
@@ -275,7 +276,7 @@ class BlacklistCMD(commands.Cog):
                                             except database.DoesNotExist:
                                                 await ctx.send("Data not found!")
                                                 return
-
+ 
   
         finally:
             database.db.close()    
@@ -283,7 +284,7 @@ class BlacklistCMD(commands.Cog):
 
 
         try:
-            await ctx.send(f"{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.BanReason}\n{q.IncidentDate}\n{q.BanType}\n{q.ExpireBan}")
+            await ctx.send(f"\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.ReasonforBan}\n{q.DateofIncident}\n{q.TypeofBan}\n{q.DatetheBanEnds}")
         except Exception as e:
             await ctx.send(f"ERROR!\n{e}")
             
