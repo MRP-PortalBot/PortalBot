@@ -257,10 +257,8 @@ class BlacklistCMD(commands.Cog):
         
 
 
-        try:
-            await ctx.send(f"\n{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.ReasonforBan}\n{q.DateofIncident}\n{q.TypeofBan}\n{q.DatetheBanEnds}")
-        except Exception as e:
-            await ctx.send(f"ERROR!\n{e}")
+        await ctx.send(f"\n{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.ReasonforBan}\n{q.DateofIncident}\n{q.TypeofBan}\n{q.DatetheBanEnds}")
+        await ctx.send(f"ERROR!")
             
 
         
