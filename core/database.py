@@ -38,6 +38,7 @@ class Question(BaseModel):
 class MRP_Blacklist_Data(BaseModel):
     """Stores Questions for DailyQ here"""
     entryid = AutoField()
+    BanReporter = TextField()
     DiscUsername = TextField()
     DiscID = TextField()
     Gamertag = TextField()

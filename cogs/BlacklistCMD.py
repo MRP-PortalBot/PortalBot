@@ -148,7 +148,7 @@ class BlacklistCMD(commands.Cog):
                 sheet.insert_row(row, 3)
 
                 database.db.connect(reuse_if_open=True)
-                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content)
+                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReason = author.name)
                 q.save()
                 await ctx.send(f"{q.DiscUsername} has been added successfully.")
                 database.db.close()
@@ -247,10 +247,15 @@ class BlacklistCMD(commands.Cog):
     
     @commands.command()
     async def DBget(self, ctx, *, string: str):
-        database.db.connect(reuse_if_open=True)
+        author = ctx.message.author
+        try:
+            database.db.connect(reuse_if_open=True)
+        except:
+            await ctx.send("ERROR: Error Code 1")
+            return
         string = string.lower()
         dataFound = False
-        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
+        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.BanReporter]
         for data in databaseData:
             try:
                 q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
@@ -262,7 +267,7 @@ class BlacklistCMD(commands.Cog):
         
         string = solve(string)
         if dataFound == False:
-            databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
+            databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.BanReporter]
             for data in databaseData:
                 try:
                     q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
@@ -275,11 +280,17 @@ class BlacklistCMD(commands.Cog):
 
         database.db.close()    
         
+        if dataFound == False:
+            await ctx.send("No results found!")
+            return
 
         try:
-            await ctx.send(f"\n{q.DiscUsername}\n{q.DiscID}\n{q.Gamertag}\n{q.BannedFrom}\n{q.ReasonforBan}\n{q.DateofIncident}\n{q.TypeofBan}\n{q.DatetheBanEnds}")
-        except UnboundLocalError:
-            await ctx.send("NO RESULTS")
+            embed = discord.Embed(title = "Blacklist Records", description = f"Requested by: {author.mention}")
+            embed.add_field(name = "Results:", value = f"Discord Username: {q.DiscUsername}\nDiscord ID: {q.DiscID}\nGamertag: {q.Gamertag}\nBanned from: {q.BannedFrom}\nReason for Ban: {q.ReasonforBan}\n Date of Ban: {q.DateofIncident}\nType of Ban: {q.TypeofBan}\nEnd Date of Ban: {q.DatetheBanEnds}")
+            embed.set_footer(text = f"Blacklist Report Recorded by: {q.BanReporter}")
+            await ctx.send(embed = embed)
+        except Exception as e:
+            await ctx.send(f"ERROR:\n{e}")
             
 
         
