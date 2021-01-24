@@ -293,7 +293,6 @@ class BlacklistCMD(commands.Cog):
         try:
             embed = discord.Embed(title = "Blacklist Records", description = f"Requested by: {author.mention}", color = random_rgb())
             embed.add_field(name = "Results:", value = f"Discord Username: {q.DiscUsername}\nDiscord ID: {q.DiscID}\nGamertag: {q.Gamertag}\nBanned from: {q.BannedFrom}\nReason for Ban: {q.ReasonforBan}\n Date of Ban: {q.DateofIncident}\nType of Ban: {q.TypeofBan}\nEnd Date of Ban: {q.DatetheBanEnds}")
-            embed.set_footer(text = f"Blacklist Report Recorded by: {q.BanReporter}")
             await ctx.send(embed = embed)
         except Exception as e:
             await ctx.send(f"ERROR:\n{e}")
