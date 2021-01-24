@@ -12,6 +12,7 @@ from core.common import load_config, paginate_embed
 config, _ = load_config()
 import logging
 from core import database
+import random
 
 logger = logging.getLogger(__name__)
 # --------------------------------------------------
@@ -57,6 +58,11 @@ def solve(s):
     for i in range(len(a)):
         a[i] = a[i].capitalize()
     return ' '.join(a)
+
+def random_rgb(seed=None):
+    if seed is not None:
+        random.seed(seed)
+    return discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
 
 Q1 = "User's Discord: "
 Q2 = "User's Discord Long ID: "
@@ -285,7 +291,7 @@ class BlacklistCMD(commands.Cog):
             return
 
         try:
-            embed = discord.Embed(title = "Blacklist Records", description = f"Requested by: {author.mention}")
+            embed = discord.Embed(title = "Blacklist Records", description = f"Requested by: {author.mention}", color = random_rgb())
             embed.add_field(name = "Results:", value = f"Discord Username: {q.DiscUsername}\nDiscord ID: {q.DiscID}\nGamertag: {q.Gamertag}\nBanned from: {q.BannedFrom}\nReason for Ban: {q.ReasonforBan}\n Date of Ban: {q.DateofIncident}\nType of Ban: {q.TypeofBan}\nEnd Date of Ban: {q.DatetheBanEnds}")
             embed.set_footer(text = f"Blacklist Report Recorded by: {q.BanReporter}")
             await ctx.send(embed = embed)
