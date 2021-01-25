@@ -120,7 +120,7 @@ class MGPonlyCMD(commands.Cog):
         }
         category = guild.create_category(name=game, overwrites=overwrites)
         CategoryCreate = "Done"
-        channel = await category.create_text_channel(name=game)
+        channel = await guild.create_text_channel(name=game, category=category)
         await channel.edit(topic=gamedesc)
         ChannelCreate = "DONE"
 
