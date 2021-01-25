@@ -272,6 +272,7 @@ class BlacklistCMD(commands.Cog):
                 break
         
         string = solve(string)
+        '''
         if dataFound == False:
             databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
             for data in databaseData:
@@ -282,6 +283,13 @@ class BlacklistCMD(commands.Cog):
                 else:
                     dataFound = True
                     break
+        '''
+
+        if dataFound == False:
+            for data in database.MRP_Blacklist_Data.select().join(databaseData).where(databaseData == string):
+                await ctx.send(data)
+
+    
 
 
         database.db.close()    

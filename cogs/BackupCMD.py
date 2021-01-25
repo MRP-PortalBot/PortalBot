@@ -11,6 +11,7 @@ import auth
 import logging
 
 logger = logging.getLogger(__name__)
+
 def getFileByteSize(filename):
     # Get file size in python
     from os import stat
