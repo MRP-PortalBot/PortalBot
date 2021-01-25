@@ -111,11 +111,11 @@ class MGPonlyCMD(commands.Cog):
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False,connect=False),
             Muted: discord.PermissionOverwrite(view_channel=False,send_messages=False,add_reactions=False,connect=False),
-            role: discord.PermissionOverwrite(view_channel=True,connect=False),
-            Admin: discord.PermissionOverwrite(view_channel=True,connect=False),
-            Moderator: discord.PermissionOverwrite(view_channel=True,connect=False),
-            Botmanager: discord.PermissionOverwrite(view_channel=True,connect=False),
-            Bots: discord.PermissionOverwrite(view_channel=True,connect=False)
+            role: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Admin: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Moderator: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Botmanager: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Bots: discord.PermissionOverwrite(view_channel=True,connect=True)
 
         }
         category = await guild.create_category(name=game, overwrites=overwrites)
