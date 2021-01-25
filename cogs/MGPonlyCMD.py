@@ -103,7 +103,7 @@ class MGPonlyCMD(commands.Cog):
         Moderator = discord.utils.get(ctx.guild.roles, name="Moderators")
         Botmanager = discord.utils.get(ctx.guild.roles, name="Bot Manager")
         Bots = discord.utils.get(ctx.guild.roles, name="Bots")
-        color = discord.Colour.from_rgb(random_rgb)
+        color = random_rgb
         role = await guild.create_role(name=game, color=color, mentionable=False)
         RoleCreate = "DONE"
         overwrites = {
