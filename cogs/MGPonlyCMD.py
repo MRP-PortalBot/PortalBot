@@ -118,7 +118,7 @@ class MGPonlyCMD(commands.Cog):
             Bots: discord.PermissionOverwrite(view_channel=True,connect=False)
 
         }
-        category = guild.create_category(name=game, overwrites=overwrites)
+        category = await guild.create_category(name=game, overwrites=overwrites)
         CategoryCreate = "Done"
         channel = await guild.create_text_channel(name=game, category=category)
         await channel.edit(topic=gamedesc)
