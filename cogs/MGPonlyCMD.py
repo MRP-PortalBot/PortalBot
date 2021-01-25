@@ -6,6 +6,7 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
+import random
 from core.common import load_config
 config, _ = load_config()
 i = 1
@@ -86,7 +87,7 @@ class MGPonlyCMD(commands.Cog):
     @commands.command()
     @check_MGP()
     @commands.has_permissions(manage_roles=True)
-    async def newgame(self, ctx, game, gamedesc):
+    async def newgame(self, ctx, *, game, gamedesc):
         # Status set to null
         RoleCreate = "FALSE"
         CategoryCreate = "FALSE"
@@ -138,6 +139,9 @@ class MGPonlyCMD(commands.Cog):
 
         if isinstance(error, commands.CheckFailure):
             await ctx.send("This Command was not designed for this server!")
+
+        else:
+            raise error 
 
 def setup(bot):
     bot.add_cog(MGPonlyCMD(bot))
