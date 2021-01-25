@@ -98,13 +98,15 @@ class MGPonlyCMD(commands.Cog):
         author = ctx.message.author
         guild = ctx.message.guild
         channel = ctx.message.channel
-        Muted = discord.utils.get(ctx.guild.roles, name="muted")
-        Admin = discord.utils.get(ctx.guild.roles, name="Admin")
-        Moderator = discord.utils.get(ctx.guild.roles, name="Moderators")
-        Botmanager = discord.utils.get(ctx.guild.roles, name="Bot Manager")
-        Bots = discord.utils.get(ctx.guild.roles, name="Bots")
-        color = random_rgb
-        role = await guild.create_role(name=game, color=color, mentionable=False)
+        try:    
+            Muted = discord.utils.get(ctx.guild.roles, name="muted")
+            Admin = discord.utils.get(ctx.guild.roles, name="Admin")
+            Moderator = discord.utils.get(ctx.guild.roles, name="Moderators")
+            Botmanager = discord.utils.get(ctx.guild.roles, name="Bot Manager")
+            Bots = discord.utils.get(ctx.guild.roles, name="Bots")
+        except Exception as e:
+            await ctx.send(f"**ERROR:**\nSomething happened when trying to fetch the required roles!\n{e}")
+        role = await guild.create_role(name=game, color=random_rgb(), mentionable=False)
         RoleCreate = "DONE"
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False,connect=False),
@@ -126,7 +128,7 @@ class MGPonlyCMD(commands.Cog):
         embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
         embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + ">\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Role Given:** " + RoleGiven + "\n**Channel Permissions:** " + ChannelPermissions + "\n**DMStatus:** " + DMStatus)
         embed.set_footer(text = "The command has finished all of its tasks")
-        embed.set_thumbnail(url = user.avatar_url)
+        embed.set_thumbnail(url = author.avatar_url)
         await ctx.send(embed=embed)
 
     @newgame.error
