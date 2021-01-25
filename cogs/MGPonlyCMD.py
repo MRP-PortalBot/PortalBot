@@ -122,7 +122,6 @@ class MGPonlyCMD(commands.Cog):
         CategoryCreate = "Done"
         channel = await category.create_text_channel(name=game)
         await channel.edit(topic=gamedesc)
-        await channel.set_permissions(Muted, overwrite=overwrites)
         ChannelCreate = "DONE"
 
         embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
