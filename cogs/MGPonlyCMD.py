@@ -87,7 +87,7 @@ class MGPonlyCMD(commands.Cog):
     @commands.command()
     @check_MGP()
     @commands.has_permissions(manage_roles=True)
-    async def newgame(self, ctx, *, game, gamedesc):
+    async def newgame(self, ctx, game, *, gamedesc):
         # Status set to null
         RoleCreate = "FALSE"
         CategoryCreate = "FALSE"
