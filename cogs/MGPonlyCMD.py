@@ -110,19 +110,18 @@ class MGPonlyCMD(commands.Cog):
         RoleCreate = "DONE"
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False,connect=False),
-            Muted.me: discord.PermissionOverwrite(view_channel=False,send_messages=False,add_reactions=False,connect=False),
-            role.me: discord.PermissionOverwrite(view_channel=True,connect=False),
-            Admin.me: discord.PermissionOverwrite(view_channel=True,connect=False),
-            Moderator.me: discord.PermissionOverwrite(view_channel=True,connect=False),
-            Botmanager.me: discord.PermissionOverwrite(view_channel=True,connect=False),
-            Bots.me: discord.PermissionOverwrite(view_channel=True,connect=False)
+            Muted: discord.PermissionOverwrite(view_channel=False,send_messages=False,add_reactions=False,connect=False),
+            role: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Admin: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Moderator: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Botmanager: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Bots: discord.PermissionOverwrite(view_channel=True,connect=True)
 
         }
-        category = guild.create_category(name=game, overwrites=overwrites)
+        category = await guild.create_category(name=game, overwrites=overwrites)
         CategoryCreate = "Done"
-        channel = await category.create_text_channel(name=game)
+        channel = await guild.create_text_channel(name=game, category=category)
         await channel.edit(topic=gamedesc)
-        await channel.set_permissions(Muted, overwrite=overwrites)
         ChannelCreate = "DONE"
 
         embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
