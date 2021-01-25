@@ -272,3 +272,22 @@ class MiscCMD(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MiscCMD(bot))
+
+import discord
+import random
+import datetime
+
+def random_rgb(seed=None):
+    if seed is not None:
+        random.seed(seed)
+    return discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
+
+    d = datetime.datetime.utcnow()
+    print (d)
+
+    d.hour
+    print (d.hour)
+
+    if d.hour == 17:
+        embed = discord.Embed(title="time stuff", description=d.hour, color=random_rgb())
+        await ctx.send(embed=embed)

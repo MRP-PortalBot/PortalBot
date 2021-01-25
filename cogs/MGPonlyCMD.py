@@ -32,6 +32,11 @@ def convert(time):
     except:
         return time
 
+def random_rgb(seed=None):
+    if seed is not None:
+        random.seed(seed)
+    return discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
+
 
 class MGPonlyCMD(commands.Cog):
     def __init__(self, bot):
@@ -77,6 +82,62 @@ class MGPonlyCMD(commands.Cog):
 
         else:
             raise error
+
+    @commands.command()
+    @check_MGP()
+    @commands.has_permissions(manage_roles=True)
+    async def newgame(self, ctx, game, gamedesc):
+        # Status set to null
+        RoleCreate = "FALSE"
+        CategoryCreate = "FALSE"
+        ChannelCreate = "FALSE"
+        RoleGiven = "FALSE"
+        ChannelPermissions = "FALSE"
+        DMStatus = "FALSE"
+        author = ctx.message.author
+        guild = ctx.message.guild
+        channel = ctx.message.channel
+        Muted = discord.utils.get(ctx.guild.roles, name="muted")
+        Admin = discord.utils.get(ctx.guild.roles, name="Admin")
+        Moderator = discord.utils.get(ctx.guild.roles, name="Moderators")
+        Botmanager = discord.utils.get(ctx.guild.roles, name="Bot Manager")
+        Bots = discord.utils.get(ctx.guild.roles, name="Bots")
+        color = discord.Colour.from_rgb(random_rgb)
+        role = await guild.create_role(name=game, color=color, mentionable=False)
+        RoleCreate = "DONE"
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False,connect=False),
+            Muted.me: discord.PermissionOverwrite(view_channel=False,send_messages=False,add_reactions=False,connect=False),
+            role.me: discord.PermissionOverwrite(view_channel=True,connect=False),
+            Admin.me: discord.PermissionOverwrite(view_channel=True,connect=False),
+            Moderator.me: discord.PermissionOverwrite(view_channel=True,connect=False),
+            Botmanager.me: discord.PermissionOverwrite(view_channel=True,connect=False),
+            Bots.me: discord.PermissionOverwrite(view_channel=True,connect=False)
+
+        }
+        category = guild.create_category(name=game, overwrites=overwrites)
+        CategoryCreate = "Done"
+        channel = await category.create_text_channel(name=game)
+        await channel.edit(topic=gamedesc)
+        await channel.set_permissions(Muted, overwrite=overwrites)
+        ChannelCreate = "DONE"
+
+        embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
+        embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + ">\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Role Given:** " + RoleGiven + "\n**Channel Permissions:** " + ChannelPermissions + "\n**DMStatus:** " + DMStatus)
+        embed.set_footer(text = "The command has finished all of its tasks")
+        embed.set_thumbnail(url = user.avatar_url)
+        await ctx.send(embed=embed)
+
+    @newgame.error
+    async def newgame_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("Uh oh, looks like I can't execute this command because you don't have permissions!")
+
+        if isinstance(error, commands.TooManyArguments):
+            await ctx.send("You sent too many arguments! Did you use quotes for game names over 2 words?")
+
+        if isinstance(error, commands.CheckFailure):
+            await ctx.send("This Command was not designed for this server!")
 
 def setup(bot):
     bot.add_cog(MGPonlyCMD(bot))
