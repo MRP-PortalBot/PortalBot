@@ -9,6 +9,7 @@ import random
 import json
 import requests
 import ast
+import random
 from datetime import datetime
 from discord_slash import cog_ext
 from discord_slash import SlashCommand
@@ -29,6 +30,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+async def random_rgb(ctx, seed=None):
+    if seed is not None:
+        random.seed(seed)
+
+    d = datetime.datetime.utcnow()
+    print (d)
+
+    d.hour
+    print (d.hour)
+
+    if d.hour == 17:
+        embed = discord.Embed(title="time stuff", description=d.hour, color=discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))())
+        await ctx.send(embed=embed)
 
 def get_quote():
     response = requests.get("https://zenquotes.io/api/random")
@@ -273,21 +287,5 @@ class MiscCMD(commands.Cog):
 def setup(bot):
     bot.add_cog(MiscCMD(bot))
 
-import discord
-import random
-import datetime
 
-def random_rgb(seed=None):
-    if seed is not None:
-        random.seed(seed)
-    return discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
 
-    d = datetime.datetime.utcnow()
-    print (d)
-
-    d.hour
-    print (d.hour)
-
-    if d.hour == 17:
-        embed = discord.Embed(title="time stuff", description=d.hour, color=random_rgb())
-        await ctx.send(embed=embed)
