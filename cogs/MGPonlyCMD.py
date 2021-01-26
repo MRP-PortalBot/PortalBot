@@ -47,7 +47,7 @@ class MGPonlyCMD(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
         if payload.user_id != self.bot.user.id:
-            if payload.channel_id == config['games-selection']:
+            if payload.channel_id == discord.utils.get(self.bot.guild.channels, name="games-selection"):
                 channel = self.bot.get_channel(payload.channel_id)
                 msg = await channel.fetch_message(payload.message_id)
                 embed = msg.embeds
@@ -61,7 +61,7 @@ class MGPonlyCMD(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
         if payload.user_id != self.bot.user.id:
-            if payload.channel_id == config['games-selection']:
+            if payload.channel_id == discord.utils.get(self.bot.guild.channels, name="games-selection"):
                 channel = self.bot.get_channel(payload.channel_id)
                 msg = await channel.fetch_message(payload.message_id)
                 embed = msg.embeds
