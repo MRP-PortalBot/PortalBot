@@ -259,10 +259,10 @@ class BlacklistCMD(commands.Cog):
         except:
             await ctx.send("ERROR: Error Code 1")
             return
-        string = string.lower()
+        
         dataFound = False
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
-        '''
+        
         for data in databaseData:
             try:
                 q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
@@ -271,7 +271,7 @@ class BlacklistCMD(commands.Cog):
             else:
                 dataFound = True
                 break
-        
+        string = string.lower()
         
         if dataFound == False:
             databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
@@ -283,14 +283,21 @@ class BlacklistCMD(commands.Cog):
                 else:
                     dataFound = True
                     break
-        '''
+        
         string = solve(string)
 
         if dataFound == False:
+            databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
             for data in databaseData:
-                query = database.MRP_Blacklist_Data.select().where(databaseData == string)
-                for d in query:
-                    await ctx.send(d.DiscUsername)
+                try:
+                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
+                except:
+                    continue
+                else:
+                    dataFound = True
+                    break
+
+
 
     
 
