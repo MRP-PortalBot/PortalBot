@@ -56,11 +56,10 @@ class MGPonlyCMD(commands.Cog):
                 embed = msg.embeds[0]
                 game = embed.title
                 emoji = msg.reactions[0]
-                author = self.bot.get_user(payload.user_id)
+                author = discord.utils.get(guild.members, id=payload.user_id)
                 if str(payload.emoji) == str(emoji):
                     role = discord.utils.get(guild.roles, name=game)
-                    await self.bot.add_roles(payload.message.author, role)
-                    #await author.add_roles(role)
+                    await author.add_roles(role)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
@@ -74,11 +73,10 @@ class MGPonlyCMD(commands.Cog):
                 embed = msg.embeds[0]
                 game = embed.title
                 emoji = msg.reactions[0]
-                author = self.bot.get_user(payload.user_id)
+                author = discord.utils.get(guild.members, id=payload.user_id)
                 if str(payload.emoji) == str(emoji):
                     role = discord.utils.get(guild.roles, name=game)
-                    await self.bot.remove_roles(payload.message.author, role)
-                    #await author.remove_roles(role)
+                    await author.remove_roles(role)
 
     @commands.command()
     @check_MGP()
