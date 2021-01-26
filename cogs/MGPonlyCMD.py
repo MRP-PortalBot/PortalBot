@@ -55,6 +55,7 @@ class MGPonlyCMD(commands.Cog):
                 msg = await channel.fetch_message(payload.message_id)
                 embed = msg.embeds[0]
                 game = embed.title
+                print(game)
                 emoji = msg.reactions[0]
                 author = discord.utils.get(guild.members, id=payload.user_id)
                 if str(payload.emoji) == str(emoji):
