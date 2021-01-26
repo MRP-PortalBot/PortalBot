@@ -16,9 +16,9 @@ logger = logging.getLogger(__name__)
 
 #---------------------------------------------------
 
-background_image = Image.open('/home/runner/PortalBot-Beta/images/profilebackground2.png')
+background_image = Image.open('/home/runner/PortalBot-Stable/images/profilebackground2.png')
 background_image = background_image.convert('RGBA')
-#fontfile = '/home/runner/PortalBot-Beta/fonts/gameria.ttf'
+#fontfile = '/home/runner/PortalBot-Stable/fonts/gameria.ttf'
 
 # --------------------------------------------------
 # pip3 install gspread oauth2client
@@ -565,15 +565,15 @@ class ProfileCMD(commands.Cog):
 
             nicktext = anick
 
-            nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 40)
+            nickfont = ImageFont.truetype('/home/runner/PortalBot-Stable/fonts/OpenSansEmoji.ttf', 40)
             text_width, text_height = draw.textsize(nicktext, font=nickfont)
 
             if text_width > (rect_width - AVATAR_SIZE):
-                nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 30)
+                nickfont = ImageFont.truetype('/home/runner/PortalBot-Stable/fonts/OpenSansEmoji.ttf', 30)
                 text_width, text_height = draw.textsize(nicktext, font=nickfont)
 
             if text_width > (rect_width - AVATAR_SIZE):
-                nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+                nickfont = ImageFont.truetype('/home/runner/PortalBot-Stable/fonts/OpenSansEmoji.ttf', 20)
                 text_width, text_height = draw.textsize(nicktext, font=nickfont)
             
             x = (rect_width - text_width - (AVATAR_SIZE-28))//2     # skip avatar when center text
@@ -616,15 +616,15 @@ class ProfileCMD(commands.Cog):
 
             discordtext = discordname
 
-            discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+            discordfont = ImageFont.truetype('/home/runner/PortalBot-Stable/fonts/OpenSansEmoji.ttf', 20)
             text_width, text_height = draw.textsize(discordtext, font=discordfont)
 
             #if text_width > rect_width//2:
-            #    discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+            #    discordfont = ImageFont.truetype('/home/runner/PortalBot-Stable/fonts/OpenSansEmoji.ttf', 20)
             #    text_width, text_height = draw.textsize(discordtext, font=discordfont)
 
             #if text_width > rect_width//2:
-            #    discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 15)
+            #    discordfont = ImageFont.truetype('/home/runner/PortalBot-Stable/fonts/OpenSansEmoji.ttf', 15)
             #    text_width, text_height = draw.textsize(discordtext, font=discordfont)
             
             x = rect_x0     # skip avatar when center text
