@@ -55,7 +55,7 @@ class MGPonlyCMD(commands.Cog):
                 msg = await channel.fetch_message(payload.message_id)
                 embed = msg.embeds[0]
                 game = embed.title
-                emoji = msg.reactions
+                emoji = msg.reactions[0]
                 author = self.bot.get_user(payload.user_id)
                 if str(payload.emoji) == str(emoji):
                     role = discord.utils.get(self.bot.guild.roles, name=game)
@@ -72,7 +72,7 @@ class MGPonlyCMD(commands.Cog):
                 msg = await channel.fetch_message(payload.message_id)
                 embed = msg.embeds[0]
                 game = embed.title
-                emoji = msg.reactions
+                emoji = msg.reactions[0]
                 author = self.bot.get_user(payload.user_id)
                 if str(payload.emoji) == str(emoji):
                     role = discord.utils.get(self.bot.guild.roles, name=game)
