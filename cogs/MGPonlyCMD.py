@@ -44,6 +44,28 @@ class MGPonlyCMD(commands.Cog):
         self.bot = bot
         logger.info("MGPonlyCMD.py: Cog Loaded!")
 
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        if payload.user_id != self.bot.user.id:
+            if payload.channel_id == config['GameSelection']:
+                channel = self.bot.get_channel(payload.channel_id)
+                msg = await channel.fetch_message(payload.message_id)
+                author = self.bot.get_user(payload.user_id)
+                if str(payload.emoji) == "✅":
+                    role = discord.utils.get(self.bot.guild.roles, name="Game Name Here")
+                    await author.add_role(role)
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+       if payload.user_id != self.bot.user.id:
+            if payload.channel_id == config['GameSelection']:
+                channel = self.bot.get_channel(payload.channel_id)
+                msg = await channel.fetch_message(payload.message_id)
+                author = self.bot.get_user(payload.user_id)
+                if str(payload.emoji) == "✅":
+                    role = discord.utils.get(self.bot.guild.roles, name="Game Name Here")
+                    await author.remove_role(role)
+
     @commands.command()
     @check_MGP()
     @commands.cooldown(1, 3600, commands.BucketType.channel)
