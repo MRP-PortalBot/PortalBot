@@ -87,13 +87,13 @@ class MGPonlyCMD(commands.Cog):
     @commands.command()
     @check_MGP()
     @commands.has_permissions(manage_roles=True)
-    async def newgame(self, ctx, game, *, gamedesc):
+    async def newgame(self, ctx, game, emoji, imageurl, *, gamedesc):
         # Status set to null
         RoleCreate = "FALSE"
         CategoryCreate = "FALSE"
         ChannelCreate = "FALSE"
-        RoleGiven = "FALSE"
-        ChannelPermissions = "FALSE"
+        EmbedPosted = "FALSE"
+        ReactionsAdded = "FALSE"
         DMStatus = "FALSE"
         author = ctx.message.author
         guild = ctx.message.guild
@@ -124,11 +124,24 @@ class MGPonlyCMD(commands.Cog):
         await channel.edit(topic=gamedesc)
         ChannelCreate = "DONE"
 
+        gschannel = discord.utils.get(ctx.guild.channels, name="games-selection")
+
+        gsembed = discord.Embed(title="__" + game + "__", description=gamedesc, color=0xFFCE41)
+        gsembed.set_image(url = imageurl)
+        gsmessage = await gschannel.send(embed=gsembed)
+        EmbedPosted = "DONE"
+
+        reactions = [str(emoji)]
+        for emoji in reactions:
+            await gsmessage.add_reaction(emoji)
+        ReactionsAdded = "DONE"
+
         embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
-        embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + ">\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Role Given:** " + RoleGiven + "\n**Channel Permissions:** " + ChannelPermissions + "\n**DMStatus:** " + DMStatus)
+        embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + "->\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Embed Posted:** " + EmbedPosted + "\n**Reaction Role Added:** " + ReactionsAdded)
         embed.set_footer(text = "The command has finished all of its tasks")
         embed.set_thumbnail(url = author.avatar_url)
         await ctx.send(embed=embed)
+        
 
     @newgame.error
     async def newgame_error(self, ctx, error):
