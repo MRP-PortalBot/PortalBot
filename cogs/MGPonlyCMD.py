@@ -55,6 +55,7 @@ class MGPonlyCMD(commands.Cog):
                 msg = await channel.fetch_message(payload.message_id)
                 embed = msg.embeds[0]
                 game = embed.title
+                game = game.replace("__","")
                 print(game)
                 emoji = msg.reactions[0]
                 author = discord.utils.get(guild.members, id=payload.user_id)
@@ -74,10 +75,13 @@ class MGPonlyCMD(commands.Cog):
                 msg = await channel.fetch_message(payload.message_id)
                 embed = msg.embeds[0]
                 game = embed.title
+                game = game.replace("__","")
+                print(game)
                 emoji = msg.reactions[0]
                 author = discord.utils.get(guild.members, id=payload.user_id)
                 if str(payload.emoji) == str(emoji):
-                    role = discord.utils.get(guild.roles, name=game)
+                    role = discord.utils.get(guild.roles, name=str(game))
+                    print(role)
                     await author.remove_roles(role)
 
     @commands.command()
