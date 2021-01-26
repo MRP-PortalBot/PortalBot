@@ -149,14 +149,17 @@ class MGPonlyCMD(commands.Cog):
             Bots = discord.utils.get(ctx.guild.roles, name="Bots")
         except Exception as e:
             await ctx.send(f"**ERROR:**\nSomething happened when trying to fetch the required roles!\n{e}")
-        try:
-            discord.utils.get(ctx.guild.roles, name=game)
-        except:
+        
+        roletest = discord.utils.get(ctx.guild.roles, name=game)
+        if game == str(roletest):
+            role = roletest
+            RoleCreate = "EXISTING"
+            print(role)
+        else:
             role = await guild.create_role(name=game, color=random_rgb(), mentionable=False)
             RoleCreate = "CREATED"
-        else:
-            role = discord.utils.get(ctx.guild.roles, name=game)
-            RoleCreate = "EXISTING"
+            print(role)
+        
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False,connect=False),
             Muted: discord.PermissionOverwrite(view_channel=False,send_messages=False,add_reactions=False,connect=False),
