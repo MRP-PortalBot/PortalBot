@@ -58,7 +58,8 @@ class MGPonlyCMD(commands.Cog):
                 emoji = msg.reactions[0]
                 author = discord.utils.get(guild.members, id=payload.user_id)
                 if str(payload.emoji) == str(emoji):
-                    role = discord.utils.get(guild.roles, name=game)
+                    role = discord.utils.get(guild.roles, name=str(game))
+                    print(role)
                     await author.add_roles(role)
 
     @commands.Cog.listener()
