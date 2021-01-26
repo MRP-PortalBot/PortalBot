@@ -287,7 +287,7 @@ class BlacklistCMD(commands.Cog):
         string = solve(string)
 
         if dataFound == False:
-            for data in database.MRP_Blacklist_Data.select().join(database.MRP_Blacklist_Data).where(databaseData == string):
+            for data in database.MRP_Blacklist_Data.select().where(databaseData == string):
                 await ctx.send(data)
 
     
