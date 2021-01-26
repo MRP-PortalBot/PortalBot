@@ -154,9 +154,11 @@ class MGPonlyCMD(commands.Cog):
         except:
             role = await guild.create_role(name=game, color=random_rgb(), mentionable=False)
             RoleCreate = "CREATED"
+            print(role)
         else:
             role = discord.utils.get(ctx.guild.roles, name=game)
             RoleCreate = "EXISTING"
+            print(role)
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False,connect=False),
             Muted: discord.PermissionOverwrite(view_channel=False,send_messages=False,add_reactions=False,connect=False),
