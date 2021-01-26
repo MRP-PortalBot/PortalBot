@@ -1,11 +1,13 @@
 from discord.ext import commands
 from datetime import datetime
-
+import logging
+logger = logging.getLogger(__name__)
 
 class CommandLogger(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        logger.info("OnCommandlog: Cog Loaded!")
 
     @commands.Cog.listener()
     async def on_command(self, ctx):

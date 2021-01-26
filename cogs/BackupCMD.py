@@ -8,6 +8,9 @@ from googleapiclient.http import MediaFileUpload
 from googleapiclient import discovery
 import httplib2
 import auth
+import logging
+
+logger = logging.getLogger(__name__)
 
 def getFileByteSize(filename):
     # Get file size in python
@@ -34,6 +37,7 @@ def upload_file(drive_service, filename, mimetype, upload_filename, resumable=Tr
 class SkeletonCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("Backup: Cog Loaded!")
 
     @commands.command()
     async def placeholder(self, ctx):

@@ -31,7 +31,7 @@ async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, populat
     emotes = ["◀️", "▶️"]
 
     async def check_reaction(reaction, user):
-        return user == ctx.author and str(reaction.emoji) in emotes
+         return await user == ctx.author and str(reaction.emoji) in emotes
 
     embed = await population_func(embed, page)
     if isinstance(embed, discord.Embed):
@@ -77,3 +77,8 @@ def query(authorname, ID, server, channel, suggestion, trellotype):
     )
     return response.text
 
+def solve(s):
+    a = s.split(' ')
+    for i in range(len(a)):
+        a[i] = a[i].capitalize()
+    return ' '.join(a)

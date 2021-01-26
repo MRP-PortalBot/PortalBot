@@ -10,7 +10,9 @@ import yarl
 import os
 import json
 from core.common import query
+import logging
 
+logger = logging.getLogger(__name__)
 
 class GithubError(commands.CommandError):
     pass
@@ -29,6 +31,7 @@ class CommandErrorHandler(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        logger.info("ErrorHandler: Cog Loaded!")
 
     @commands.command()
     async def error(self, ctx, times: int = 20, msg="error"):

@@ -2,11 +2,14 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 import core.common
+import logging
 
+logger = logging.getLogger(__name__)
 
 class HelpCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("HelpCMD: Cog Loaded!")
 
     # Help Command
     @commands.group(invoke_without_command=True)

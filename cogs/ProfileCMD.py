@@ -6,6 +6,19 @@ import re
 import asyncio
 from discord import Embed
 import requests
+from discord import File
+
+from PIL import Image, ImageDraw, ImageFont
+import io
+from urllib.request import urlopen
+import logging
+logger = logging.getLogger(__name__)
+
+#---------------------------------------------------
+
+background_image = Image.open('/home/runner/PortalBot-Beta/images/profilebackground2.png')
+background_image = background_image.convert('RGBA')
+#fontfile = '/home/runner/PortalBot-Beta/fonts/gameria.ttf'
 
 # --------------------------------------------------
 # pip3 install gspread oauth2client
@@ -49,6 +62,7 @@ chesscol = 8
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("ProfileCMD: Cog Loaded!")
 
     @commands.group(invoke_without_command=True)
     async def profile(self, ctx, *, profile: discord.Member = None):
@@ -157,8 +171,8 @@ class ProfileCMD(commands.Cog):
         pokemongo = str("")
         chessdotcom = str("")        
 
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        def purgecheck(m):
+            return m.author == username or m.author == self.bot.user
         
         await channel.send("What would you like to edit?")
         
@@ -173,11 +187,11 @@ class ProfileCMD(commands.Cog):
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
             if str(reaction.emoji) == "❌":
-                await ctx.channel.purge(limit=2)
+                await ctx.channel.purge(limit=2, check = purgecheck)
                 await channel.send("Okay, nothing will be edited!")
             elif str(reaction.emoji) == "1️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Timezone?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -194,7 +208,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Timezone to to your profile!")
                 else:
                     userrow = usercell.row
@@ -202,11 +216,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, tzonecol, str(tzone))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Timezone to to your profile!")
             elif str(reaction.emoji) == "2️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your XBOX Gamertag?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -223,7 +237,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
                 else:
                     userrow = usercell.row
@@ -231,11 +245,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, xboxcol, str(xbox))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
             elif str(reaction.emoji) == "3️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your PSN ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -252,7 +266,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your PSN ID to to your profile!")
                 else:
                     userrow = usercell.row
@@ -260,11 +274,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, psnidcol, str(psnid))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)                    
+                    await ctx.channel.purge(limit=4, check = purgecheck)                    
                     await channel.send("Success!, You have added your PSN ID to to your profile!")
             elif str(reaction.emoji) == "4️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Nintendo Network ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -281,7 +295,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
                 else:
                     userrow = usercell.row
@@ -289,11 +303,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, switchcol, str(switch))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
             elif str(reaction.emoji) == "5️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Pokemon GO ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -310,7 +324,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Pokemon Go ID to to your profile!")
                 else:
                     userrow = usercell.row
@@ -318,11 +332,11 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, pokemongocol, str(pokemongo))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Pokemon Go ID? to to your profile!")
             elif str(reaction.emoji) == "6️⃣":
                 def check3(m):
-                    return m.content is not None and m.channel == channel and m.author is not self.bot.user
+                    return m.content is not None and m.channel == channel and m.author == username
 
                 await ctx.send("What is your Chess.com ID?")
                 messagecontent = await self.bot.wait_for('message', check=check3)
@@ -339,7 +353,7 @@ class ProfileCMD(commands.Cog):
                     print(row)
                     profilesheet.insert_row(row, 3)
 
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Chess.com ID to to your profile!")
                 else:
                     userrow = usercell.row
@@ -347,7 +361,7 @@ class ProfileCMD(commands.Cog):
                     profilesheet.update_cell(userrow, chesscol, str(chessdotcom))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=4)
+                    await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Chess.com ID to to your profile!")
 
         except asyncio.TimeoutError:
@@ -361,8 +375,8 @@ class ProfileCMD(commands.Cog):
         longid = str(username.id)
         cellclear = str("")         
 
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+        def purgecheck(m):
+            return m.author == username or m.author == self.bot.user
         
         await channel.send("What would you like to remove?")
         
@@ -383,7 +397,7 @@ class ProfileCMD(commands.Cog):
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
@@ -396,70 +410,244 @@ class ProfileCMD(commands.Cog):
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, xboxcol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed your XBOX Gamertag from your profile!")
             elif str(reaction.emoji) == "3️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, psnidcol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed your Playstation ID from your profile!")
             elif str(reaction.emoji) == "4️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, switchcol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed your Switch Friend Code from your profile!")
             elif str(reaction.emoji) == "5️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, pokemongocol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed your Pokemon GO ID from your profile!")
             elif str(reaction.emoji) == "6️⃣":
                 try:
                     usercell = profilesheet.find(longid, in_column=2)
                 except:
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await ctx.send("User has no profile")
                 else:
                     userrow = usercell.row
                     profilesheet.update_cell(userrow, chesscol, str(cellclear))
                     profilesheet.update_cell(userrow, discordcol, str(discordname))
                     print("User Found!")
-                    await ctx.channel.purge(limit=2)
+                    await ctx.channel.purge(limit=2, check = purgecheck)
                     await channel.send("Success!, You have removed Chess.com ID from your profile!")
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
+
+
+    @profile.command()
+    async def canvas(self, ctx, *, profile: discord.Member = None):
+        print(profile)
+        author = ctx.message.author
+        role = discord.utils.get(ctx.guild.roles, name="Realm OP")
+        channel = ctx.message.channel
+
+        if profile == None:
+            username = ctx.message.author
+            print(username)
+        else:
+            username = profile
+            print(username)  
+
+        aname = str(username.name)
+        if username.nick == None:
+            anick = str(username.name)
+        else:
+            anick = str(username.nick)
+
+        longid = str(username.id)        
+        pfp = username.avatar_url
+        profileembed = discord.Embed(
+            title=anick + "'s Profile", description="=======================", color=0x18c927)
+        username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
+
+        try:
+            usercell = profilesheet.find(username_re, in_column=1)
+        except:
+            print("User Not Found")
+            noprofileembed = discord.Embed(
+            title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
+            await ctx.send(embed=noprofileembed) 
+        else:
+            print("User Found!")
+
+            userrow = usercell.row
+            discordname = profilesheet.cell(userrow, discordcol).value
+            longid = profilesheet.cell(userrow, longidcol).value
+            tzone = profilesheet.cell(userrow, tzonecol).value
+            xbox = profilesheet.cell(userrow, xboxcol).value
+            psnid = profilesheet.cell(userrow, psnidcol).value
+            switch = profilesheet.cell(userrow, switchcol).value
+            pokemongo = profilesheet.cell(userrow, pokemongocol).value
+            chessdotcom = profilesheet.cell(userrow, chesscol).value
+
+            AVATAR_SIZE = 128
+
+            # --- duplicate image ----
+
+            image = background_image.copy()
+
+            image_width, image_height = image.size
+
+            # --- draw on image ---
+
+            # create object for drawing
+
+            #draw = ImageDraw.Draw(image)
+
+            # draw red rectangle with alpha channel on new image (with the same size as original image)
+
+            rect_x0 = 20  # left marign
+            rect_y0 = 20  # top marign
+
+            rect_x1 = image_width - 20  # right margin
+            #rect_y1 = 20 + AVATAR_SIZE - 1  # top margin + size of avatar
+            rect_y1 = image_height - 20
+
+            rect_width  = rect_x1 - rect_x0
+            rect_height = rect_y1 - rect_y0
+
+            rectangle_image = Image.new('RGBA', (image_width, image_height))
+            rectangle_draw = ImageDraw.Draw(rectangle_image)
+
+            rectangle_draw.rectangle((rect_x0, rect_y0, rect_x1, rect_y1), fill=(0,0,0, 80))
+
+            # put rectangle on original image
+
+            image = Image.alpha_composite(image, rectangle_image)
+
+            # create object for drawing
+
+            draw = ImageDraw.Draw(image) # create new object for drawing after changing original `image`
+
+            # ------PROFILE HEADING-------
+
+            nicktext = anick
+
+            nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 40)
+            text_width, text_height = draw.textsize(nicktext, font=nickfont)
+
+            if text_width > (rect_width - AVATAR_SIZE):
+                nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 30)
+                text_width, text_height = draw.textsize(nicktext, font=nickfont)
+
+            if text_width > (rect_width - AVATAR_SIZE):
+                nickfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+                text_width, text_height = draw.textsize(nicktext, font=nickfont)
+            
+            x = (rect_width - text_width - (AVATAR_SIZE-28))//2     # skip avatar when center text
+            y = (AVATAR_SIZE - text_height)//2
+
+            x += rect_x0 + (AVATAR_SIZE-28)     # skip avatar when center text
+            #y += rect_y0
+
+            draw.text((x, y), nicktext, font=nickfont, fill=(255,255,255,255), stroke_width=1, stroke_fill=(0,0,0,255))
+
+            # --- avatar ---
+
+            # get URL to avatar
+            # sometimes `size=` doesn't gives me image in expected size so later I use `resize()`
+            avatar_asset = author.avatar_url_as(format='jpg', size=AVATAR_SIZE)
+
+            # read JPG from server to buffer (file-like object)
+            buffer_avatar = io.BytesIO(await avatar_asset.read())
+
+            #    buffer_avatar = io.BytesIO()
+            #    await avatar_asset.save(buffer_avatar)
+            #    buffer_avatar.seek(0)
+
+            # read JPG from buffer to Image
+            avatar_image = Image.open(buffer_avatar)
+
+            # resize it
+            AVATAR_SIZE_NEW = AVATAR_SIZE - 28
+            avatar_image = avatar_image.resize((AVATAR_SIZE_NEW, AVATAR_SIZE_NEW)) #
+
+            circle_image = Image.new('L', (AVATAR_SIZE_NEW, AVATAR_SIZE_NEW))
+            circle_draw = ImageDraw.Draw(circle_image)
+            circle_draw.ellipse((0, 0, AVATAR_SIZE_NEW, AVATAR_SIZE_NEW), fill=255)
+            #avatar_image.putalpha(circle_image)
+            #avatar_image.show()
+
+            image.paste(avatar_image, (rect_x0, rect_y0), circle_image)
+
+            # ------PROFILE Components-------
+
+            discordtext = discordname
+
+            discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+            text_width, text_height = draw.textsize(discordtext, font=discordfont)
+
+            #if text_width > rect_width//2:
+            #    discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 20)
+            #    text_width, text_height = draw.textsize(discordtext, font=discordfont)
+
+            #if text_width > rect_width//2:
+            #    discordfont = ImageFont.truetype('/home/runner/PortalBot-Beta/fonts/OpenSansEmoji.ttf', 15)
+            #    text_width, text_height = draw.textsize(discordtext, font=discordfont)
+            
+            x = rect_x0     # skip avatar when center text
+            y = rect_y0 + AVATAR_SIZE
+
+            #x += rect_x0 + AVATAR_SIZE     # skip avatar when center text
+            #y += rect_y0
+
+            draw.text((x, y), "Discord Info\n" + discordtext + "\n" + longid, font=discordfont, fill=(255,255,255,255), stroke_width=1, stroke_fill=(0,0,0,255))
+
+            # --- sending image ---
+
+            # create buffer
+            buffer_output = io.BytesIO()
+
+            # save PNG in buffer
+            image.save(buffer_output, format='PNG')
+
+            # move to beginning of buffer so `send()` it will read from beginning
+            buffer_output.seek(0)
+
+            # send image
+            await ctx.send(file=File(buffer_output, 'myimage.png'))
 
 
 def setup(bot):

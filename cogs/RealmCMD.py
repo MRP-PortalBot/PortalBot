@@ -10,6 +10,8 @@ from core.common import load_config
 config, _ = load_config()
 i = 1
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
+import logging
+logger = logging.getLogger(__name__)
 
 # -------------------------------------------------------
 
@@ -47,6 +49,7 @@ def convert(time):
 class RealmCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("RealmCMD: Cog Loaded!")
 
     @commands.command()
     @check_MRP()

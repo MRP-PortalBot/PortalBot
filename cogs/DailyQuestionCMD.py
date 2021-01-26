@@ -4,11 +4,16 @@ from datetime import datetime
 import random
 import threading
 import asyncio
+from core import database, common
 from core.common import load_config
 config, _ = load_config()
+import math
+from discord.ext import tasks
 # Counts current lines in a file.
 
+import logging
 
+logger = logging.getLogger(__name__)
 def LineCount():
     file = open("DailyQuestions.txt", "r")
     line_count = 0
@@ -19,9 +24,39 @@ def LineCount():
     print(line_count)
 
 
+
 class DailyCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("DailyQuestionsCMD: Cog Loaded!")
+
+    def get_by_index(self, index):
+        for i, t in enumerate(database.Question.select()):
+            if i+1 == index:
+                return t
+
+    @tasks.loop(hours = 1.0)
+    async def dailyq_loop(self):
+        d = datetime.datetime.utcnow()
+        print (d.hour)
+        if d.hour == 17:
+            guild = self.bot.get_guild(448488274562908170)
+            channel = guild.get_channel(777987716008509490)
+            limit = int(database.Question.select().count())
+            print(limit)
+            Rnum = random.randint(1 , limit)
+            try:
+                database.db.connect(reuse_if_open=True)
+                try:
+                    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+                    embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+                    await channel.send(embed=embed)
+                except database.DoesNotExist:
+                    await channel.send("Tag not found, please try again.")
+            finally:
+                database.db.close()
+            
+
 
     # Waits for either the approval or denial on a question suggestion
     @commands.Cog.listener()
@@ -34,23 +69,20 @@ class DailyCMD(commands.Cog):
                 contentval = embed.fields[2].value
                 linec, question = contentval.split(" | ")
                 if str(payload.emoji) == "✅":
-                    file = open("DailyQuestions.txt", "r")
-                    line_count = 0
-                    for line in file:
-                        if line != "\n":
-                            line_count += 1
-                    file.close()
-                    lc = line_count + 1
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        q: database.Question = database.Question.create(question=question)
+                        q.save()
+                    except database.IntegrityError:
+                        await channel.send("ERROR: That question is already taken!")
+                    finally:
+                        database.db.close()
 
                     embed = discord.Embed(title="Suggestion Approved", description="<@" + str(
                         payload.user_id) + "> has approved a suggestion! ", color=0x31f505)
                     embed.add_field(name="Question Approved",
                                     value="Question: " + str(question))
                     await channel.send(embed=embed)
-
-                    f = open("DailyQuestions.txt", "a")
-                    f.write(str(lc) + " - " + question + "\n")
-                    f.close()
                     reactions = ['✅', '❌']
                     for emoji in reactions:
                         await msg.clear_reaction(emoji)
@@ -87,7 +119,7 @@ class DailyCMD(commands.Cog):
 
     # Sends a random question.
     @commands.command()
-    async def dailyq(self, ctx):
+    async def olddailyq(self, ctx):
         await ctx.channel.purge(limit=1)
         author = ctx.message.author
         file = open("DailyQuestions.txt", "r")
@@ -120,93 +152,6 @@ class DailyCMD(commands.Cog):
             text="Got a question? Use the suggest command! \n*Usage:* >suggestq (Your Question Here)")
         await ctx.send(embed=Dailyq)
 
-    # Add's a question to the database
-
-    @commands.command()
-    async def addq(self, ctx, *, reason):
-        file = open("DailyQuestions.txt", "r")
-        line_count = 0
-        for line in file:
-            if line != "\n":
-                line_count += 1
-        LC = line_count + 1
-        file.close()
-        file = open("DailyQuestions.txt", "a")
-        file.write(str(LC) + " - " + reason + "\n")
-        file.close()
-        file = open("DailyQuestionsC.txt", "r")
-        line_count = 0
-        for line in file:
-            if line != "\n":
-                line_count += 1
-        LC = line_count + 1
-        file.close()
-        file = open("DailyQuestionsC.txt", "a")
-        file.write(str(LC) + " - " + reason + "\n")
-        file.close()
-        await ctx.send("Question added to the list! \n**Added:** " + reason + "\n**Line Number:** " + str(LC))
-
-    @addq.error
-    async def addq_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("You didn't include a question!")
-
-    # Removes a question from the database. [BROKEN]
-    @commands.command()
-    async def removeq(self, ctx, *, reason):
-        question = None
-        file = open("DailyQuestions.txt", "r")
-        for line in file:
-            Num, Q = line.split(" - ")
-            if reason == Num:
-                question = line
-            file.close()
-        with open("DailyQuestions.txt", "r") as f:
-            lines = f.readlines()
-        with open("DailyQuestions.txt", "w") as f:
-            for line in lines:
-                if line.strip("\n") != question:
-                    f.write(line)
-
-        file = open("DailyQuestionsC.txt", "r")
-        for line in file:
-            Num, Q = line.split(" - ")
-            if reason == Num:
-                question = line
-            file.close()
-        with open("DailyQuestionsC.txt", "r") as f:
-            lines = f.readlines()
-        with open("DailyQuestionsC.txt", "w") as f:
-            for line in lines:
-                if line.strip("\n") != question:
-                    f.write(line)
-                    await ctx.send("**REMOVED:** " + line)
-
-    @removeq.error
-    async def removeq_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("You didn't include a number! Please refer to `>listq` for a question number!")
-
-    # Forces a certain question.
-    @commands.command()
-    async def forceq(self, ctx, *, reason):
-        Q = None
-        await ctx.channel.purge(limit=1)
-        author = ctx.message.author
-        file = open("DailyQuestions.txt", "r")
-        for line in file:
-            Num, Q = line.split(" - ")
-            if reason == Num:
-                question = line
-        file.close()
-        Dailyq = discord.Embed(
-            title="❓ QUESTION OF THE DAY ❓", description="**" + Q + "**", color=0xb10d9f)
-        await ctx.send(embed=Dailyq)
-
-    @forceq.error
-    async def forceq_error(self, ctx, error):
-        if isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("You didn't include a number! Please refer to `>listq` for a question number!")
 
     # Suggests a question and sends it to the moderators.
     @commands.command()
@@ -273,6 +218,99 @@ class DailyCMD(commands.Cog):
             msg = await ctx.send(embed=embed, delete_after=6)
             await DMChannel.send("Here is your command! \nPlease send it in #bot-spam!")
             await DMChannel.send(">suggestq " + str(question))
+
+
+    
+
+    @commands.command(aliases=['q', 'dailyq'])
+    async def _q(self, ctx):
+        """Activate a tag"""
+        limit = int(database.Question.select().count())
+        print(limit)
+        Rnum = random.randint(1 , limit)
+        try:
+            database.db.connect(reuse_if_open=True)
+            try:
+                q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+                embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+                await ctx.send(embed=embed)
+            except database.DoesNotExist:
+                await ctx.send("Tag not found, please try again.")
+        finally:
+            database.db.close()
+
+    @commands.command(aliases=['mq'])
+    @commands.has_any_role('Bot Manager', 'Moderator')
+    async def modq(self, ctx, id, *, question):
+        """Modify a question!"""
+        try:
+            if id != None:
+                database.db.connect(reuse_if_open=True)
+                q: database.Question = database.Question.select().where(
+                    database.Question.id == id).get()
+                q.question = question
+                q.save()
+                await ctx.send(f"{q.question} has been modified successfully.")
+        except database.DoesNotExist:
+            await ctx.send("ERROR: This question does not exist!")
+        finally:
+            database.db.close()
+
+    
+    @commands.command(aliases=['nq', 'newquestion'])
+    @commands.has_any_role('Bot Manager', 'Moderator')
+    async def newq(self, ctx, *, question):
+        """Add a question!"""
+        try:
+            database.db.connect(reuse_if_open=True)
+            q: database.Question = database.Question.create(
+                question=question)
+            q.save()
+            await ctx.send(f"{q.question} has been added successfully.")
+        except database.IntegrityError:
+            await ctx.send("That question is already taken!")
+        finally:
+            database.db.close()
+
+
+    @commands.command(aliases=['delq', 'dq'])
+    @commands.has_any_role("Bot Manager", "Moderator")
+    async def deleteq(self, ctx, id):
+        """Delete a tag"""
+        try:
+            database.db.connect(reuse_if_open=True)
+            q: database.Question = database.Question.select().where(
+                database.Question.id == id).get()
+            q.delete_instance()
+            await ctx.send(f"{q.question} has been deleted.")
+        except database.DoesNotExist:
+            await ctx.send("Question not found, please try again.")
+        finally:
+            database.db.close()
+
+    @commands.command(aliases=['lq'])
+    async def listq(self, ctx, page=1):
+        """List all tags in the database"""
+        def get_end(page_size: int):
+            database.db.connect(reuse_if_open=True)
+            q: int = database.Question.select().count()
+            return math.ceil(q/10)
+
+        async def populate_embed(embed: discord.Embed, page: int):
+            """Used to populate the embed in listtag command"""
+            q_list = ""
+            embed.clear_fields()
+            database.db.connect(reuse_if_open=True)
+            if database.Question.select().count() == 0:
+                q_list = "No questions found"
+            for i, q in enumerate(database.Question.select().paginate(page, 10)):
+                q_list += f"{i+1+(10*(page-1))}. {q.question}\n"
+            embed.add_field(name=f"Page {page}", value=q_list)
+            database.db.close()
+            return embed
+
+        embed = discord.Embed(title="Tag List")
+        embed = await common.paginate_embed(self.bot, ctx, embed, populate_embed, get_end(10), page=page)
 
 
 def setup(bot):

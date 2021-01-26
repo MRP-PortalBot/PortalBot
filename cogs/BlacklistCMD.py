@@ -7,8 +7,14 @@ import time
 import re
 import asyncio
 from discord import Embed
+from six import python_2_unicode_compatible
 from core.common import load_config, paginate_embed
 config, _ = load_config()
+import logging
+from core import database
+import random
+
+logger = logging.getLogger(__name__)
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -47,6 +53,16 @@ print(cell)
 '''
 # -----------------------------------------------------
 
+def solve(s):
+    a = s.split(' ')
+    for i in range(len(a)):
+        a[i] = a[i].capitalize()
+    return ' '.join(a)
+
+def random_rgb(seed=None):
+    if seed is not None:
+        random.seed(seed)
+    return discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
 
 Q1 = "User's Discord: "
 Q2 = "User's Discord Long ID: "
@@ -65,6 +81,7 @@ a_list = []
 class BlacklistCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("BlacklistCMD: Cog Loaded!")
 
     # Starts the blacklist process.
     @commands.command()
@@ -112,10 +129,11 @@ class BlacklistCMD(commands.Cog):
 
         time.sleep(0.5)
 
-        # Spreadsheet Data
-        row = [answer1.content, answer2.content, answer3.content, answer4.content,
-               answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
-        sheet.insert_row(row, 3)
+
+
+
+        # Add to DB
+
 
         message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 150 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['✅', '❌']
@@ -131,6 +149,16 @@ class BlacklistCMD(commands.Cog):
                 await message.delete()
                 return
             else:
+                row = [answer1.content, answer2.content, answer3.content, answer4.content,
+                answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
+                sheet.insert_row(row, 3)
+
+                database.db.connect(reuse_if_open=True)
+                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReason = author.name)
+                q.save()
+                await ctx.send(f"{q.DiscUsername} has been added successfully.")
+                database.db.close()
+
                 await message.delete()
                 await channel.send("Sending your responses!")
                 blacklistembed = discord.Embed(
@@ -222,7 +250,129 @@ class BlacklistCMD(commands.Cog):
         embed = discord.Embed(title="MRP Blacklist Data", description=
             f"Requested by Operator {author.mention}")
         await paginate_embed(self.bot, ctx, embed, populate_embed, sheet.row_count, page=page, begin=3)
+    
+    @commands.command()
+    async def DBget(self, ctx, *, string: str):
+        author = ctx.message.author
+        try:
+            database.db.connect(reuse_if_open=True)
+        except:
+            await ctx.send("ERROR: Error Code 1")
+            return
+        
+        dataFound = False
+        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
+        
+        for data in databaseData:
+            try:
+                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
+            except:
+                continue
+            else:
+                dataFound = True
+                break
 
+
+        string = string.lower()
+        if dataFound == False:
+            databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
+            for data in databaseData:
+                try:
+                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
+                except:
+                    continue
+                else:
+                    dataFound = True
+                    break
+        
+
+        string = solve(string)
+        if dataFound == False:
+            databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
+            for data in databaseData:
+                try:
+                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
+                except:
+                    continue
+                else:
+                    dataFound = True
+                    break
+
+        database.db.close()    
+        
+        if dataFound == False:
+            await ctx.send("No results found!")
+            return
+
+        try:
+            embed = discord.Embed(title = "Blacklist Records", description = f"Requested by: {author.mention}", color = random_rgb())
+            embed.add_field(name = "Results:", value = f"Discord Username: {q.DiscUsername}\nDiscord ID: {q.DiscID}\nGamertag: {q.Gamertag}\nBanned from: {q.BannedFrom}\nReason for Ban: {q.ReasonforBan}\n Date of Ban: {q.DateofIncident}\nType of Ban: {q.TypeofBan}\nEnd Date of Ban: {q.DatetheBanEnds}")
+            await ctx.send(embed = embed)
+        except Exception as e:
+            await ctx.send(f"ERROR:\n{e}")
+            
+    @commands.command()
+    async def DBget2(self, ctx, *, string: str):
+        try:
+            database.db.connect(reuse_if_open=True)
+        except:
+            await ctx.send("ERROR: Error Code 1")
+            return
+        
+        dataFound = False
+        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
+        for data in databaseData: 
+            query = database.MRP_Blacklist_Data.select().where(data == string)
+            for person in query:
+                await ctx.send(person.DiscUsername)
+
+
+        
+
+
+
+                
+            
+          
 
 def setup(bot):
     bot.add_cog(BlacklistCMD(bot))
+
+'''
+try:
+            database.db.connect(reuse_if_open=True)
+            try:
+                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string).get()
+            except database.DoesNotExist:
+                try:
+                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID == string).get()
+                except database.DoesNotExist:
+                    try:
+                        q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.Gamertag == string).get()
+                    except database.DoesNotExist:
+                        try:
+                            q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.BannedFrom == string).get()
+                        except database.DoesNotExist:
+                            try:
+                                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.KnownAlts == string).get()
+                            except database.DoesNotExist:
+                                try:
+                                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.ReasonforBan == string).get()
+                                except database.DoesNotExist:
+                                    try:
+                                        q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DateofIncident == string).get()
+                                    except database.DoesNotExist:
+                                        try:
+                                            q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.TypeofBan == string).get()
+                                        except database.DoesNotExist:
+                                            try:
+                                                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DatetheBanEnds == string).get()
+                                            except database.DoesNotExist:
+                                                await ctx.send("Data not found!")
+                                                return
+ 
+  
+        finally:
+            database.db.close()    
+           
+'''

@@ -2,7 +2,9 @@
 import discord
 from discord.ext import commands
 import time
+import logging
 
+logger = logging.getLogger(__name__)
 # Used for solving text or capitalizing letters.
 
 
@@ -16,6 +18,7 @@ def solve(s):
 class BetaCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("Beta: Cog Loaded!")
 
     @commands.command()
     async def testinginfo(self, ctx):

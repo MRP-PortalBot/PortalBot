@@ -7,6 +7,9 @@ import asyncio
 from discord import Embed
 import requests
 import xbox
+import logging
+
+logger = logging.getLogger(__name__)
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -39,6 +42,7 @@ print(cell)
 class GamertagCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("GamertagCMD: Cog Loaded!")
 
     # new gamertags command
     @commands.command()

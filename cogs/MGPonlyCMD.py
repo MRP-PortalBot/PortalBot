@@ -6,25 +6,16 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
+import random
 from core.common import load_config
 config, _ = load_config()
 i = 1
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 
-# -------------------------------------------------------
+import logging
 
-scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
-         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+logger = logging.getLogger(__name__)
 
-creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
-
-client = gspread.authorize(creds)
-
-sheet = client.open(
-    "Minecraft Realm Portal Channel Application (Responses)").sheet1
-
-sheet2 = client.open("MRPCommunityRealmApp").sheet1
-# -------------------------------------------------------
 def check_MRP():
     def predicate(ctx):
         return ctx.message.guild.id == 587495640502763521 or ctx.message.guild.id == 448488274562908170
@@ -42,10 +33,60 @@ def convert(time):
     except:
         return time
 
+def random_rgb(seed=None):
+    if seed is not None:
+        random.seed(seed)
+    return discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
+
 
 class MGPonlyCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("MGPonlyCMD.py: Cog Loaded!")
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        if payload.guild_id == 587495640502763521:
+            return
+        guild = self.bot.get_guild(payload.guild_id)
+        channel = discord.utils.get(guild.channels, name="games-selection")
+        if payload.user_id != self.bot.user.id:
+            if payload.channel_id == channel.id:
+                print(channel.id)
+                channel = self.bot.get_channel(payload.channel_id)
+                msg = await channel.fetch_message(payload.message_id)
+                embed = msg.embeds[0]
+                game = embed.title
+                game = game.replace("__","")
+                print(game)
+                emoji = msg.reactions[0]
+                author = discord.utils.get(guild.members, id=payload.user_id)
+                if str(payload.emoji) == str(emoji):
+                    role = discord.utils.get(guild.roles, name=str(game))
+                    print(role)
+                    await author.add_roles(role)
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload):
+        if payload.guild_id == 587495640502763521:
+            return
+        guild = self.bot.get_guild(payload.guild_id)
+        channel = discord.utils.get(guild.channels, name="games-selection")
+        if payload.user_id != self.bot.user.id:
+            if payload.channel_id == channel.id:
+                print(channel.id)
+                channel = self.bot.get_channel(payload.channel_id)
+                msg = await channel.fetch_message(payload.message_id)
+                embed = msg.embeds[0]
+                game = embed.title
+                game = game.replace("__","")
+                print(game)
+                emoji = msg.reactions[0]
+                author = discord.utils.get(guild.members, id=payload.user_id)
+                if str(payload.emoji) == str(emoji):
+                    role = discord.utils.get(guild.roles, name=str(game))
+                    print(role)
+                    await author.remove_roles(role)
 
     @commands.command()
     @check_MGP()
@@ -86,6 +127,84 @@ class MGPonlyCMD(commands.Cog):
 
         else:
             raise error
+
+    @commands.command()
+    @check_MGP()
+    @commands.has_permissions(manage_roles=True)
+    async def newgame(self, ctx, game, emoji, imageurl, *, gamedesc):
+        # Status set to null
+        RoleCreate = "FALSE"
+        CategoryCreate = "FALSE"
+        ChannelCreate = "FALSE"
+        EmbedPosted = "FALSE"
+        ReactionsAdded = "FALSE"
+        author = ctx.message.author
+        guild = ctx.message.guild
+        channel = ctx.message.channel
+        try:    
+            Muted = discord.utils.get(ctx.guild.roles, name="muted")
+            Admin = discord.utils.get(ctx.guild.roles, name="Admin")
+            Moderator = discord.utils.get(ctx.guild.roles, name="Moderators")
+            Botmanager = discord.utils.get(ctx.guild.roles, name="Bot Manager")
+            Bots = discord.utils.get(ctx.guild.roles, name="Bots")
+        except Exception as e:
+            await ctx.send(f"**ERROR:**\nSomething happened when trying to fetch the required roles!\n{e}")
+        try:
+            discord.utils.get(ctx.guild.roles, name=game)
+        except:
+            role = await guild.create_role(name=game, color=random_rgb(), mentionable=False)
+            RoleCreate = "CREATED"
+        else:
+            role = discord.utils.get(ctx.guild.roles, name=game)
+            RoleCreate = "EXISTING"
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False,connect=False),
+            Muted: discord.PermissionOverwrite(view_channel=False,send_messages=False,add_reactions=False,connect=False),
+            role: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Admin: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Moderator: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Botmanager: discord.PermissionOverwrite(view_channel=True,connect=True),
+            Bots: discord.PermissionOverwrite(view_channel=True,connect=True)
+
+        }
+        category = await guild.create_category(name=game, overwrites=overwrites)
+        CategoryCreate = "Done"
+        channel = await guild.create_text_channel(name=game, category=category)
+        await channel.edit(topic=gamedesc)
+        ChannelCreate = "DONE"
+
+        gschannel = discord.utils.get(ctx.guild.channels, name="games-selection")
+
+        gsembed = discord.Embed(title="__" + game + "__", description=gamedesc, color=0xFFCE41)
+        gsembed.set_image(url = imageurl)
+        gsmessage = await gschannel.send(embed=gsembed)
+        EmbedPosted = "DONE"
+
+        reactions = [str(emoji)]
+        for emoji in reactions:
+            await gsmessage.add_reaction(emoji)
+        ReactionsAdded = "DONE"
+
+        embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
+        embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + "->\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Embed Posted:** " + EmbedPosted + "\n**Reaction Role Added:** " + ReactionsAdded)
+        embed.set_footer(text = "The command has finished all of its tasks")
+        embed.set_thumbnail(url = author.avatar_url)
+        await ctx.send(embed=embed)
+        
+
+    @newgame.error
+    async def newgame_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("Uh oh, looks like I can't execute this command because you don't have permissions!")
+
+        if isinstance(error, commands.TooManyArguments):
+            await ctx.send("You sent too many arguments! Did you use quotes for game names over 2 words?")
+
+        if isinstance(error, commands.CheckFailure):
+            await ctx.send("This Command was not designed for this server!")
+
+        else:
+            raise error 
 
 def setup(bot):
     bot.add_cog(MGPonlyCMD(bot))

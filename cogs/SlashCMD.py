@@ -6,9 +6,12 @@ from discord_slash import SlashCommand
 from discord_slash import SlashContext
 from discord_slash.utils import manage_commands
 import time
+import logging
+logger = logging.getLogger(__name__)
 
 class Slash(commands.Cog):
     def __init__(self, bot):
+        logger.info("SlashCMD: Cog Loaded!")
         if not hasattr(bot, "slash"):
             # Creates new SlashCommand instance to bot if bot doesn't have.
             bot.slash = SlashCommand(bot, override_type=True)

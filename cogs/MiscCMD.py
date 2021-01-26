@@ -9,6 +9,7 @@ import random
 import json
 import requests
 import ast
+import random
 from datetime import datetime
 from discord_slash import cog_ext
 from discord_slash import SlashCommand
@@ -25,6 +26,23 @@ sentry_sdk.init(
 )
 '''
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+async def random_rgb(ctx, seed=None):
+    if seed is not None:
+        random.seed(seed)
+
+    d = datetime.datetime.utcnow()
+    print (d)
+
+    d.hour
+    print (d.hour)
+
+    if d.hour == 17:
+        embed = discord.Embed(title="time stuff", description=d.hour, color=discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))())
+        await ctx.send(embed=embed)
 
 def get_quote():
     response = requests.get("https://zenquotes.io/api/random")
@@ -56,6 +74,7 @@ class MiscCMD(commands.Cog):
             bot.slash = SlashCommand(bot, override_type=True)
         self.bot = bot
         self.bot.slash.get_cog_commands(self)
+        logger.info("MiscCMD: Cog Loaded!")
 
     # DM Command
 
@@ -267,3 +286,6 @@ class MiscCMD(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MiscCMD(bot))
+
+
+

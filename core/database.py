@@ -1,4 +1,6 @@
 import logging
+
+from discord.enums import ExpireBehavior
 from peewee import AutoField, ForeignKeyField, Model, IntegerField, PrimaryKeyField, TextField, SqliteDatabase, DoesNotExist, DateTimeField, UUIDField, IntegrityError
 from playhouse.shortcuts import model_to_dict, dict_to_model  # these can be used to convert an item to or from json http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#model_to_dict
 from playhouse.sqlite_ext import RowIDField
@@ -28,6 +30,38 @@ class Tag(BaseModel):
     embed_title = TextField()
     text = TextField()
 
-tables = {"tag": Tag}
+class Question(BaseModel):
+    """Stores Questions for DailyQ here"""
+    id = AutoField()
+    question = TextField()
 
+class MRP_Blacklist_Data(BaseModel):
+    """Stores Questions for DailyQ here"""
+    entryid = AutoField()
+    BanReporter = TextField()
+    DiscUsername = TextField()
+    DiscID = TextField()
+    Gamertag = TextField()
+    BannedFrom = TextField()
+    KnownAlts = TextField()
+    ReasonforBan = TextField()
+    DateofIncident = TextField()
+    TypeofBan = TextField()
+    DatetheBanEnds = TextField()
+
+class PortalbotProfile(BaseModel):
+    """Stores Questions for DailyQ here"""
+    entryid = AutoField()
+    DiscordName = TextField()
+    DiscordLongID = TextField()
+    Timezone = TextField()
+    XBOX = TextField()
+    Playstation = TextField()
+    Switch = TextField()
+    PokemonGo = TextField()
+    Chess = TextField()
+
+
+
+tables = {"tag": Tag, "questions": Question, "blacklist": MRP_Blacklist_Data, "profile": PortalbotProfile}
 iter_table(tables)

@@ -8,6 +8,9 @@ from discord import Embed
 import requests
 from core.common import load_config
 config, _ = load_config()
+import logging
+
+logger = logging.getLogger(__name__)
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -51,31 +54,9 @@ IPlinks = ["turtletest.com","grabify.link", "lovebird.gutu", "dateing.club", 'ot
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        logger.info("Events: Cog Loaded!")
 
 #  Join Messages-----------------------------------------------------
-
-    @commands.Cog.listener()
-    async def on_member_join(self, member):
-        if member.guild.id == 587495640502763521:
-            guild = self.bot.get_guild(587495640502763521)
-            channel = guild.get_channel(588813558486269956)
-            count = int(member.guild.member_count) + 1
-            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
-            embed.set_thumbnail(url=member.avatar_url)
-            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
-            await channel.send(embed=embed)
-        elif member.guild.id == 192052103017922567:
-            guild = self.bot.get_guild(192052103017922567)
-            channel = guild.get_channel(796115065622626326)
-            count = int(member.guild.member_count) + 1
-            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xFFCE41)
-            embed.set_thumbnail(url=member.avatar_url)
-            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
-            await channel.send(embed=embed)    
-        else:
-            print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
-
-# profile events ---------------------------------------
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -94,9 +75,33 @@ class Events(commands.Cog):
             gtsheet.update_cell(userrow, discordcol, str(discordname))
             gtsheet.update_cell(userrow, longidcol, str(longid))
 
+        #Welcome Message:
+        if member.guild.id == 587495640502763521:
+            guild = self.bot.get_guild(587495640502763521)
+            channel = guild.get_channel(588813558486269956)
+            count = int(member.guild.member_count) + 1
+            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
+            embed.set_thumbnail(url=member.avatar_url)
+            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
+            await channel.send(embed=embed)
+        elif member.guild.id == 192052103017922567:
+            guild = self.bot.get_guild(192052103017922567)
+            channel = guild.get_channel(796115065622626326)
+            count = int(member.guild.member_count) + 1
+            embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xFFCE41)
+            embed.set_thumbnail(url=member.avatar_url)
+            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
+            await channel.send(embed=embed)    
+        elif member.guild.id == 448488274562908170:
+            print("here!")
+        else:
+            print(f"Unhandled Server: {member.display_name} | {member.guild.name}")
+
+
+
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author == self.bot or message.guild.id == 192052103017922567:
+        if message.author == self.bot or message.guild.id == 192052103017922567 or message.guild == None:
             return
         msg = message.content
         message_content = message.content.strip().lower()
