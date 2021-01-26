@@ -46,24 +46,36 @@ class MGPonlyCMD(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
+        guild = self.bot.get_guild(payload.guild_id)
+        channel = discord.utils.get(guild.channels, name="games-selection")
         if payload.user_id != self.bot.user.id:
-            if payload.channel_id == config['GameSelection']:
+            if payload.channel_id == channel.id:
+                print(channel.id)
                 channel = self.bot.get_channel(payload.channel_id)
                 msg = await channel.fetch_message(payload.message_id)
+                embed = msg.embeds
+                game = embed.title
+                emoji = msg.reactions
                 author = self.bot.get_user(payload.user_id)
-                if str(payload.emoji) == "✅":
-                    role = discord.utils.get(self.bot.guild.roles, name="Game Name Here")
+                if str(payload.emoji) == str(emoji):
+                    role = discord.utils.get(self.bot.guild.roles, name=game)
                     await author.add_role(role)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
-       if payload.user_id != self.bot.user.id:
-            if payload.channel_id == config['GameSelection']:
+        guild = self.bot.get_guild(payload.guild_id)
+        channel = discord.utils.get(guild.channels, name="games-selection")
+        if payload.user_id != self.bot.user.id:
+            if payload.channel_id == channel.id:
+                print(channel.id)
                 channel = self.bot.get_channel(payload.channel_id)
                 msg = await channel.fetch_message(payload.message_id)
+                embed = msg.embeds
+                game = embed.title
+                emoji = msg.reactions
                 author = self.bot.get_user(payload.user_id)
-                if str(payload.emoji) == "✅":
-                    role = discord.utils.get(self.bot.guild.roles, name="Game Name Here")
+                if str(payload.emoji) == str(emoji):
+                    role = discord.utils.get(self.bot.guild.roles, name=game)
                     await author.remove_role(role)
 
     @commands.command()
