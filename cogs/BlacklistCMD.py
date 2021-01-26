@@ -287,8 +287,10 @@ class BlacklistCMD(commands.Cog):
         string = solve(string)
 
         if dataFound == False:
-            for data in database.MRP_Blacklist_Data.select().where(databaseData == string):
-                await ctx.send(data)
+            for data in databaseData:
+                query = database.MRP_Blacklist_Data.select().where(databaseData == string)
+                for d in query:
+                    await ctx.send(d.DiscUsername)
 
     
 
