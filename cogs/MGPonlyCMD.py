@@ -134,7 +134,6 @@ class MGPonlyCMD(commands.Cog):
         ChannelCreate = "FALSE"
         EmbedPosted = "FALSE"
         ReactionsAdded = "FALSE"
-        DMStatus = "FALSE"
         author = ctx.message.author
         guild = ctx.message.guild
         channel = ctx.message.channel
@@ -146,7 +145,12 @@ class MGPonlyCMD(commands.Cog):
             Bots = discord.utils.get(ctx.guild.roles, name="Bots")
         except Exception as e:
             await ctx.send(f"**ERROR:**\nSomething happened when trying to fetch the required roles!\n{e}")
-        role = await guild.create_role(name=game, color=random_rgb(), mentionable=False)
+        try:
+            discord.utils.get(ctx.guild.roles, name=game)
+        except:
+            role = await guild.create_role(name=game, color=random_rgb(), mentionable=False)
+        else:
+            role = game
         RoleCreate = "DONE"
         overwrites = {
             guild.default_role: discord.PermissionOverwrite(view_channel=False,connect=False),
