@@ -53,7 +53,7 @@ class MGPonlyCMD(commands.Cog):
                 print(channel.id)
                 channel = self.bot.get_channel(payload.channel_id)
                 msg = await channel.fetch_message(payload.message_id)
-                embed = msg.embeds
+                embed = msg.embeds[0]
                 game = embed.title
                 emoji = msg.reactions
                 author = self.bot.get_user(payload.user_id)
@@ -70,7 +70,7 @@ class MGPonlyCMD(commands.Cog):
                 print(channel.id)
                 channel = self.bot.get_channel(payload.channel_id)
                 msg = await channel.fetch_message(payload.message_id)
-                embed = msg.embeds
+                embed = msg.embeds[0]
                 game = embed.title
                 emoji = msg.reactions
                 author = self.bot.get_user(payload.user_id)
