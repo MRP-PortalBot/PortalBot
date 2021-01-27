@@ -318,7 +318,7 @@ class BlacklistCMD(commands.Cog):
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data.startswith(req)))
             for person in query: 
-                await ctx.send(person.Gamertag, '->', person.DiscUsername)
+                await ctx.send(person.Gamertag +  '->' + person.DiscUsername)
  
           
 
