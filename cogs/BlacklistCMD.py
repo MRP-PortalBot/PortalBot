@@ -312,67 +312,16 @@ class BlacklistCMD(commands.Cog):
             await ctx.send(f"ERROR:\n{e}")
             
     @commands.command()
-    async def DBget2(self, ctx, *, string: str):
-        try:
-            database.db.connect(reuse_if_open=True)
-        except:
-            await ctx.send("ERROR: Error Code 1")
-            return
-        
-        dataFound = False
+    async def DBget2(self, ctx, *, req: str):
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
-        for data in databaseData: 
-            query = database.MRP_Blacklist_Data.select().where(data == string)
-            for person in query:
-                await ctx.send(person.DiscUsername)
 
-
-        
-
-
-
-                
-            
+        for data in databaseData:
+            query = (database.MRP_Blacklist_Data.select().where(data.startswith(req)))
+            for person in query: 
+                await ctx.send(person.Gamertag +  ' -> ' + person.DiscUsername)
+ 
           
 
 def setup(bot):
     bot.add_cog(BlacklistCMD(bot))
 
-'''
-try:
-            database.db.connect(reuse_if_open=True)
-            try:
-                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername == string).get()
-            except database.DoesNotExist:
-                try:
-                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID == string).get()
-                except database.DoesNotExist:
-                    try:
-                        q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.Gamertag == string).get()
-                    except database.DoesNotExist:
-                        try:
-                            q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.BannedFrom == string).get()
-                        except database.DoesNotExist:
-                            try:
-                                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.KnownAlts == string).get()
-                            except database.DoesNotExist:
-                                try:
-                                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.ReasonforBan == string).get()
-                                except database.DoesNotExist:
-                                    try:
-                                        q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DateofIncident == string).get()
-                                    except database.DoesNotExist:
-                                        try:
-                                            q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.TypeofBan == string).get()
-                                        except database.DoesNotExist:
-                                            try:
-                                                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DatetheBanEnds == string).get()
-                                            except database.DoesNotExist:
-                                                await ctx.send("Data not found!")
-                                                return
- 
-  
-        finally:
-            database.db.close()    
-           
-'''
