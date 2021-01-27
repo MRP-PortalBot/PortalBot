@@ -209,5 +209,39 @@ class MGPonlyCMD(commands.Cog):
         else:
             raise error 
 
+    @commands.command()
+    @check_MGP()
+    @commands.has_permissions(manage_roles=True)
+    async def gamelist(self, ctx):
+        author = ctx.message.author
+        guild = ctx.message.guild
+        channel = ctx.message.channel
+        gamechannel = discord.utils.get(guild.channels, name="games-selection")
+
+        embed_history = await gamechannel.history(limit=None, check = lambda m: m.embeds)
+        print (embed_history)
+        await ctx.send(str(embed_history))
+
+        #embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
+        #embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + "->\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Embed Posted:** " + EmbedPosted + "\n**Reaction Role Added:** " + ReactionsAdded)
+        #embed.set_footer(text = "The command has finished all of its tasks")
+        #embed.set_thumbnail(url = author.avatar_url)
+        
+
+
+    @gamelist.error
+    async def gamelist_error(self, ctx, error):
+        if isinstance(error, commands.MissingPermissions):
+            await ctx.send("Uh oh, looks like I can't execute this command because you don't have permissions!")
+
+        if isinstance(error, commands.TooManyArguments):
+            await ctx.send("You sent too many arguments! Did you use quotes for game names over 2 words?")
+
+        if isinstance(error, commands.CheckFailure):
+            await ctx.send("This Command was not designed for this server!")
+
+        else:
+            raise error 
+
 def setup(bot):
     bot.add_cog(MGPonlyCMD(bot))

@@ -9,6 +9,7 @@ import requests
 from core.common import load_config
 config, _ = load_config()
 import logging
+from core import database
 
 logger = logging.getLogger(__name__)
 # --------------------------------------------------
@@ -60,6 +61,21 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
+    #    username = member
+    #    longid = str(username.id)
+    #    discordname = str(username.name + "#" + username.discriminator)
+
+    #    database.db.connect(reuse_if_open=True)
+    #    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReason = author.name)
+     #   q.save()
+     #   database.db.close()
+        
+        
+        
+        
+        
+        
+        #----GSheets------------------------------------------------
         username = member
         longid = str(username.id)
         discordname = str(username.name + "#" + username.discriminator)
