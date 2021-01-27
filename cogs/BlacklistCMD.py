@@ -312,19 +312,20 @@ class BlacklistCMD(commands.Cog):
             await ctx.send(f"ERROR:\n{e}")
             
     @commands.command()
-    async def DBget2(self, ctx, *, string: str):
-        try:
-            database.db.connect(reuse_if_open=True)
-        except:
-            await ctx.send("ERROR: Error Code 1")
-            return
-        
-        dataFound = False
+    async def DBget2(self, ctx, *, req: str):
+        inputlist = []
+        inputlist.append(req)
+        solvedInput = solve(req)
+        inputlist.append(solvedInput)
+
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
-        for data in databaseData: 
-            query = database.MRP_Blacklist_Data.select().where(data == string)
-            for person in query:
-                await ctx.send(person.DiscUsername)
+        for input in inputlist:
+            for data in databaseData:
+                query = (database.MRP_Blacklist_Data.select().where(data == input))
+                for person in query: 
+                    print(person.Gamertag, '->', person.DiscUsername)
+
+
 
 
         
