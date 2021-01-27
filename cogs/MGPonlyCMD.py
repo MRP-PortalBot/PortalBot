@@ -213,7 +213,7 @@ class MGPonlyCMD(commands.Cog):
     @check_MGP()
     @commands.has_permissions(manage_roles=True)
     async def gamelist(self, ctx):
-        roles = (", ".join([str(r.name) for r in ctx.guild.roles]))
+        roles = ([str(r.name) for r in ctx.guild.roles])
         del roles[0]
         
         #author = ctx.message.author
