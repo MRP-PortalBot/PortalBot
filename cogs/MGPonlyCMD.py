@@ -216,6 +216,8 @@ class MGPonlyCMD(commands.Cog):
     async def gamelist(self, ctx):
         roles = ([str(r.name) for r in ctx.guild.roles])
         del roles[0]
+        roles.sort(key = lambda k : k.lower())
+        answer = roles[-1]
         roles = ", ".join(roles)
         
         #author = ctx.message.author
@@ -225,9 +227,9 @@ class MGPonlyCMD(commands.Cog):
 
         #embed_history = await gamechannel.history(limit=None).flatten
         #print (embed_history)
-        roles.sort(key = lambda k : k.lower())
+        
 
-        answer = roles[-1]
+        
         embed = discord.Embed(title = "Sorted Gamelist!", description = roles, color = random_rgb())
         await ctx.send(embed = embed)
 
