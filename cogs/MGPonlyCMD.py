@@ -222,6 +222,7 @@ class MGPonlyCMD(commands.Cog):
 
         #embed_history = await gamechannel.history(limit=None).flatten
         #print (embed_history)
+        await ctx.send(type(roles))
         await ctx.send(str(roles))
 
         #embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
