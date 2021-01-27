@@ -320,7 +320,7 @@ class BlacklistCMD(commands.Cog):
             for p in query: 
                 embed = discord.Embed(title = "Blacklist Search", description = f"Requested by: {author.mention}", color = random_rgb())
                 embed.add_field(name = "Data", value = f"**Discord Username:** {p.DiscUsername}\n**Discord ID:** {p.DiscID}\n**Gamertag:** {p.Gamertag}\n**Banned From:** {p.BannedFrom}\n**Known Alts:** {p.KnownAlts}\n**Ban Reason:** {p.ReasonforBan}\n**Date of Incident:** {p.DateofIncident}\n**Type of Ban:** {p.TypeofBan}\n**Date the Ban Ends:** {p.DatetheBanEnds}")
-                embed.set_footer(text = f"Entry ID:{str(p.entryid)}")
+                embed.set_footer(text = f"Entry ID: {str(p.entryid)}")
                 await ctx.send(embed = embed)
  
 '''
