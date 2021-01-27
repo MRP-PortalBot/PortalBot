@@ -8,6 +8,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
 import random
 from core.common import load_config
+from string import capwords
 config, _ = load_config()
 i = 1
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
@@ -215,6 +216,7 @@ class MGPonlyCMD(commands.Cog):
     async def gamelist(self, ctx):
         roles = ([str(r.name) for r in ctx.guild.roles])
         del roles[0]
+        roles = ", ".join(roles)
         
         #author = ctx.message.author
         #guild = ctx.message.guild
@@ -223,8 +225,11 @@ class MGPonlyCMD(commands.Cog):
 
         #embed_history = await gamechannel.history(limit=None).flatten
         #print (embed_history)
-        await ctx.send(type(roles))
-        await ctx.send(str(roles))
+        roles.sort(key = lambda k : k.lower())
+
+        answer = roles[-1]
+        embed = discord.Embed(title = "Sorted Gamelist!", description = roles, color = random_rgb())
+        await ctx.send(embed = embed)
 
         #embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
         #embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + "->\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Embed Posted:** " + EmbedPosted + "\n**Reaction Role Added:** " + ReactionsAdded)
