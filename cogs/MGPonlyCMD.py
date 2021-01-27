@@ -214,7 +214,6 @@ class MGPonlyCMD(commands.Cog):
     @commands.has_permissions(manage_roles=True)
     async def gamelist(self, ctx):
         roles = (", ".join([str(r.id) for r in ctx.guild.roles]))
-        print(roles)
         
         #author = ctx.message.author
         #guild = ctx.message.guild
@@ -223,7 +222,7 @@ class MGPonlyCMD(commands.Cog):
 
         #embed_history = await gamechannel.history(limit=None).flatten
         #print (embed_history)
-        await ctx.send(str(roles))
+        await ctx.send(str(roles.name))
 
         #embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
         #embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + "->\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Embed Posted:** " + EmbedPosted + "\n**Reaction Role Added:** " + ReactionsAdded)
