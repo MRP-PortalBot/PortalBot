@@ -218,7 +218,7 @@ class MGPonlyCMD(commands.Cog):
         channel = ctx.message.channel
         gamechannel = discord.utils.get(guild.channels, name="games-selection")
 
-        embed_history = await gamechannel.history(limit=None, check = lambda m: m.embeds)
+        embed_history = await gamechannel.history(limit=None).flatten
         print (embed_history)
         await ctx.send(str(embed_history))
 
