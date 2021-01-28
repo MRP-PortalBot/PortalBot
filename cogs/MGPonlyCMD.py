@@ -220,7 +220,7 @@ class MGPonlyCMD(commands.Cog):
         answer = roles[-1]
         roles = ", ".join(roles)
         games = []
-        async for embed_history in channel.history(limit=None, check = lambda m: m.embeds):
+        async for embed_history in channel.history().filter(lambda m: m.embeds):
             channel = self.bot.get_channel(803345523758727179)
             msg = embed_history
             embed = msg.embeds[0]
