@@ -225,7 +225,7 @@ class MGPonlyCMD(commands.Cog):
             msg = embed_history
             embed = msg.embeds[0]
             game = embed.title
-            game = game.replace("__","")
+            #game = game.replace("__","")
             games.append(game)
         
         games.sort(key = lambda k : k.lower())
