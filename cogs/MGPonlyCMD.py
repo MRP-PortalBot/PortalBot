@@ -213,7 +213,7 @@ class MGPonlyCMD(commands.Cog):
     @commands.command()
     @check_MGP()
     @commands.has_permissions(manage_roles=True)
-    async def gamelist(self, ctx, channel):
+    async def gamelist(self, ctx, channel: discord.TextChannel):
         roles = ([str(r.name) for r in ctx.guild.roles])
         del roles[0]
         roles.sort(key = lambda k : k.lower())
