@@ -224,8 +224,8 @@ class MGPonlyCMD(commands.Cog):
             channel = self.bot.get_channel(803345523758727179)
             msg = embed_history
             embed = msg.embeds[0]
-            game = embed.title
-            #game = game.replace("__","")
+            game = str(embed.title)
+            game = game.replace("__","")
             games.append(game)
         
         games.sort(key = lambda k : k.lower())
