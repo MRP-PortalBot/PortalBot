@@ -213,12 +213,26 @@ class MGPonlyCMD(commands.Cog):
     @commands.command()
     @check_MGP()
     @commands.has_permissions(manage_roles=True)
-    async def gamelist(self, ctx):
+    async def gamelist(self, ctx, channel):
         roles = ([str(r.name) for r in ctx.guild.roles])
         del roles[0]
         roles.sort(key = lambda k : k.lower())
         answer = roles[-1]
         roles = ", ".join(roles)
+        games = []
+        async for embed_history in channel.history(limit=None, check = lambda m: m.embeds):
+            channel = self.bot.get_channel(803345523758727179)
+            msg = embed_history
+            embed = msg.embeds[0]
+            game = embed.title
+            game = game.replace("__","")
+            games.append(game)
+        
+        games.sort(key = lambda k : k.lower())
+        answer = games[-1]
+        games = ", ".join(games)
+
+
         
         #author = ctx.message.author
         #guild = ctx.message.guild
@@ -231,6 +245,7 @@ class MGPonlyCMD(commands.Cog):
 
         
         embed = discord.Embed(title = "Sorted Gamelist!", description = roles, color = random_rgb())
+        embed.add_field(name = "List 2", value = games)
         await ctx.send(embed = embed)
 
         #embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
