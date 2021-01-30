@@ -25,7 +25,7 @@ def stackoverflow(q):
     q = str(q)
     baseUrl = "https://stackoverflow.com/search?q="
     error = q.replace(" ","+")
-    error = q.replace(".","")
+    error = error.replace(".","")
     stackURL = baseUrl + error 
     return stackURL
 
