@@ -11,8 +11,22 @@ import os
 import json
 from core.common import query
 import logging
+import random
 
 logger = logging.getLogger(__name__)
+
+def random_rgb(seed=None):
+    if seed is not None:
+        random.seed(seed)
+    return discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
+
+
+def stackoverflow(q):
+    q = str(q)
+    baseUrl = "https://stackoverflow.com/search?q="
+    error = q.replace(" ","+")
+    stackURL = baseUrl + error 
+    return stackURL
 
 class GithubError(commands.CommandError):
     pass
@@ -45,6 +59,7 @@ class CommandErrorHandler(commands.Cog):
         etype = type(error)
         exception = traceback.format_exception(etype, error, tb, chain=True)
         exception_msg = ""
+        sturl = stackoverflow(error)
         for line in exception:
             exception_msg += line
         
@@ -93,9 +108,26 @@ class CommandErrorHandler(commands.Cog):
                         await channel.send(embed = embed2)
     
                     else:
-                        await ctx.send(f"**Beep Boop** \n🚨 *I've ran into an issue!* 🚨\nThe Developers should get back to fixing that!\n> **https://gist.github.com/{ID}**")
+                        embed = discord.Embed(title = "Beep Boop", description = "🚨 *I've ran into an issue!* 🚨\nThe Developers should get back to fixing that!", color = random_rgb())
+                        embed.add_field(name = "Gist URL", value = f"**https://gist.github.com/{ID}**")
+                        embed.add_field(name = "Stack Overflow", value = f"**{sturl}**")
+                        embed.set_footer(text = str(error))
+                        await ctx.send(embed = embed)
                     error_file.unlink()
             else:
+                GITHUB_API="https://api.github.com"
+                API_TOKEN=os.getenv("GIST")
+                url=GITHUB_API+"/gists"
+                print(f"Request URL: {url}")                    
+                headers={'Authorization':'token %s'%API_TOKEN}
+                params={'scope':'gist'}
+                payload={"description":"PortalBot encountered a Traceback!","public":True,"files":{"error":{"content": f"{data}"}}}
+                res=requests.post(url,headers=headers,params=params,data=json.dumps(payload))
+                j=json.loads(res.text)
+                ID = j['id']
+                gisturl = f"https://gist.github.com/{ID}"
+                print(gisturl)
+
                 if dev_role not in ctx.author.roles:
                     config, _ = core.common.load_config()
                     embed = discord.Embed(title = "Traceback Detected!", description = f"**Hey you!** *Mr. Turtle here has found an error! I'll let the {dev_role.mention}'s know!*\nYou might also want to doublecheck what you sent and/or check out the help command!", color = 0xfc3d03)
@@ -108,7 +140,11 @@ class CommandErrorHandler(commands.Cog):
                     embed2.add_field(name = "Traceback", value = f"```\n{exception_msg}\n```")
                     await channel.send(embed = embed2)
                 else:
-                    await ctx.send(f"**Beep Boop** \n🚨 *I've ran into an issue!* 🚨\nThe Developers should get back to fixing that!\nThe traceback could be useful: ```\n{exception_msg}\n```")
+                    embed = discord.Embed(title = "Beep Boop", description = "🚨 *I've ran into an issue!* 🚨\nThe Developers should get back to fixing that!", color = random_rgb())
+                    embed.add_field(name = "Gist URL", value = f"**https://gist.github.com/{ID}**")
+                    embed.add_field(name = "Stack Overflow", value = f"**{sturl}**")
+                    embed.set_footer(text = str(error))
+                    await ctx.send(embed = embed)
             print(error)
         raise error
 
