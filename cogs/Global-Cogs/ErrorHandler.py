@@ -112,7 +112,7 @@ class CommandErrorHandler(commands.Cog):
                         embed = discord.Embed(title = "Beep Boop", description = "🚨 *I've ran into an issue!* 🚨\nThe Developers should get back to fixing that!", color = random_rgb())
                         embed.add_field(name = "Gist URL", value = f"**https://gist.github.com/{ID}**")
                         embed.add_field(name = "Stack Overflow", value = f"**{sturl}**", inline = False)
-                        embed.set_footer(text = str(error))
+                        embed.set_footer(text = f"Error: {str(error)}")
                         await ctx.send(embed = embed)
                     error_file.unlink()
             else:
@@ -144,7 +144,7 @@ class CommandErrorHandler(commands.Cog):
                     embed = discord.Embed(title = "Beep Boop", description = "🚨 *I've ran into an issue!* 🚨\nThe Developers should get back to fixing that!", color = random_rgb())
                     embed.add_field(name = "Gist URL", value = f"**https://gist.github.com/{ID}**")
                     embed.add_field(name = "Stack Overflow", value = f"**{sturl}**", inline = False)
-                    embed.set_footer(text = str(error))
+                    embed.set_footer(text = f"Error: {str(error)}")
                     await ctx.send(embed = embed)
             print(error)
         raise error
