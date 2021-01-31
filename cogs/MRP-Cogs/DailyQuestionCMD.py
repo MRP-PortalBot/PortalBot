@@ -247,6 +247,10 @@ class DailyCMD(commands.Cog):
     @commands.command(aliases=['q', 'dailyq'])
     async def _q(self, ctx):
         """Activate a question"""
+        limit = int(database.Question.select().count())
+        q: database.Question = database.Question.select().where(database.Question.usage == True).count()
+        print(f"{str(limit)}: limit\n{str(q)}: true count")
+
         x = False
         while x == False:
             x = await getQuestion(ctx)
