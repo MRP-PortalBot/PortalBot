@@ -249,7 +249,7 @@ class DailyCMD(commands.Cog):
         """Activate a question"""
         x = False
         while x == False:
-            x == await getQuestion(ctx)
+            x = await getQuestion(ctx)
 
     @commands.command(aliases=['mq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
