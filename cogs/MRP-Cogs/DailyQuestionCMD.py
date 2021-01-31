@@ -250,7 +250,11 @@ class DailyCMD(commands.Cog):
         limit = int(database.Question.select().count())
         q: database.Question = database.Question.select().where(database.Question.usage == True).count()
         print(f"{str(limit)}: limit\n{str(q)}: true count")
-
+        if limit == q:
+            query = database.Question.select().where(database.Question.usage == "True")
+            for question in query:
+                question.usage = "False"
+                question.save()
         x = False
         while x == False:
             x = await getQuestion(ctx)
