@@ -331,20 +331,6 @@ class BlacklistCMD(commands.Cog):
                 embed.set_footer(text = f"Entry ID: {str(p.entryid)}")
                 await ctx.send(embed = embed)
             
- 
-'''
-entryid = AutoField()
-    BanReporter = TextField()
-    DiscUsername = TextField()
-    DiscID = TextField()
-    Gamertag = TextField()
-    BannedFrom = TextField()
-    KnownAlts = TextField()
-    ReasonforBan = TextField()
-    DateofIncident = TextField()
-    TypeofBan = TextField()
-    DatetheBanEnds = TextField()
-'''
 
 def setup(bot):
     bot.add_cog(BlacklistCMD(bot))
