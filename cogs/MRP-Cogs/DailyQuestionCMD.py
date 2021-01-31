@@ -23,6 +23,28 @@ def LineCount():
     file.close()
     print(line_count)
 
+async def getQuestion(ctx):
+    limit = int(database.Question.select().count())
+    print(limit)
+    Rnum = random.randint(1 , limit)
+    try:
+        database.db.connect(reuse_if_open=True)
+        try:
+            q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+            if q.usage == "False":
+                q.usage = "True"
+                q.save()
+                embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+                await ctx.send(embed=embed)
+                return True
+            else:
+                return False
+
+        except database.DoesNotExist:
+            await ctx.send("Tag not found, please try again.")
+    finally:
+        database.db.close()
+
 
 
 class DailyCMD(commands.Cog):
@@ -224,20 +246,10 @@ class DailyCMD(commands.Cog):
 
     @commands.command(aliases=['q', 'dailyq'])
     async def _q(self, ctx):
-        """Activate a tag"""
-        limit = int(database.Question.select().count())
-        print(limit)
-        Rnum = random.randint(1 , limit)
-        try:
-            database.db.connect(reuse_if_open=True)
-            try:
-                q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
-                embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-                await ctx.send(embed=embed)
-            except database.DoesNotExist:
-                await ctx.send("Tag not found, please try again.")
-        finally:
-            database.db.close()
+        """Activate a question"""
+        x = False
+        while x == False:
+            x == await getQuestion()
 
     @commands.command(aliases=['mq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
