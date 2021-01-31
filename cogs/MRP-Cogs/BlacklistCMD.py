@@ -313,15 +313,24 @@ class BlacklistCMD(commands.Cog):
             
     @commands.command()
     async def DBget2(self, ctx, *, req: str):
+        try:
+            database.db.connect(reuse_if_open=True)
+        except:
+            await ctx.send("ERROR: Error Code 1")
+            return
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
         author = ctx.message.author
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data.startswith(req)))
+            if query == "":
+                await ctx.send("error")
+                return
             for p in query: 
                 embed = discord.Embed(title = "Blacklist Search", description = f"Requested by: {author.mention}", color = random_rgb())
                 embed.add_field(name = "Data", value = f"**Discord Username:** {p.DiscUsername}\n**Discord ID:** {p.DiscID}\n**Gamertag:** {p.Gamertag}\n**Banned From:** {p.BannedFrom}\n**Known Alts:** {p.KnownAlts}\n**Ban Reason:** {p.ReasonforBan}\n**Date of Incident:** {p.DateofIncident}\n**Type of Ban:** {p.TypeofBan}\n**Date the Ban Ends:** {p.DatetheBanEnds}")
                 embed.set_footer(text = f"Entry ID: {str(p.entryid)}")
                 await ctx.send(embed = embed)
+            
  
 '''
 entryid = AutoField()
