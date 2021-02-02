@@ -228,8 +228,9 @@ class GamertagCMD(commands.Cog):
                 await ctx.send("Please enter the XUID")
                 messageopt2 = await self.bot.wait_for('message', check=check)
                 messageopt1c = messageopt2.content
+                
                 try:
-                    messageopt1c.isdigit()
+                    str.isdigit(messageopt1c)
                 except:
                     messageopt1c = int(messageopt1c, 16)
 
