@@ -9,6 +9,7 @@ import requests
 import xbox
 import logging
 
+
 logger = logging.getLogger(__name__)
 # --------------------------------------------------
 # pip3 install gspread oauth2client
@@ -230,7 +231,7 @@ class GamertagCMD(commands.Cog):
                 messageopt1c = messageopt2.content
                 
                 try:
-                    str.isdigit(messageopt1c)
+                    str.isdigit(messageopt1c) = True
                 except:
                     messageopt1c = int(messageopt1c, 16)
 
