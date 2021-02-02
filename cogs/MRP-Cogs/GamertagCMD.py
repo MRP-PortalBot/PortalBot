@@ -231,9 +231,11 @@ class GamertagCMD(commands.Cog):
                 messageopt1c = messageopt2.content
                 
                 try:
-                    str.isdigit(messageopt1c) = True
+                    messageopt1c = int(messageopt1c)
                 except:
                     messageopt1c = int(messageopt1c, 16)
+                else:
+                    messageopt1c = messageopt2.content
 
                 try:
                     profile = xbox.GamerProfile.from_xuid(messageopt1c)
