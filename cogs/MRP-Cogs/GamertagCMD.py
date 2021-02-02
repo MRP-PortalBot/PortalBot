@@ -229,7 +229,12 @@ class GamertagCMD(commands.Cog):
                 messageopt2 = await self.bot.wait_for('message', check=check)
                 messageopt1c = messageopt2.content
                 try:
-                    profile = xbox.GamerProfile.from_xuid(int(messageopt1c, 16))
+                    messageopt1c.isdigit()
+                except:
+                    messageopt1c = int(messageopt1c, 16)
+
+                try:
+                    profile = xbox.GamerProfile.from_xuid(messageopt1c)
                     gamertagvalue = profile.gamertag
                     GT = gamertagvalue.replace(" ", "-")
                 except xbox.exceptions.GamertagNotFound:
