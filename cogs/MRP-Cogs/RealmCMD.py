@@ -282,7 +282,8 @@ class RealmCMD(commands.Cog):
                 return
 
         submittime = timestamp.strftime("%m/%d/%Y %H:%M:%S")
-        entryID = (sheet.acell('A3').value+1)
+        entryID = (int(sheet.acell('A3').value)+1)
+        print(entryID)
         owner = (author.name + '#' + author.discriminator)
         #
 
