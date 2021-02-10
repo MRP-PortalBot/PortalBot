@@ -351,6 +351,9 @@ class RealmCMD(commands.Cog):
 
         if isinstance(error, commands.CheckFailure):
             await ctx.send("This Command was not designed for this server!")
+
+        else:
+            raise error 
     
     @commands.command()
     @check_MRP()
