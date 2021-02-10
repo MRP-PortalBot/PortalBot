@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 import re
 import asyncio
@@ -9,6 +9,7 @@ import requests
 from core.common import load_config
 config, _ = load_config()
 import logging
+from core import database, common
 
 logger = logging.getLogger(__name__)
 # --------------------------------------------------
@@ -60,10 +61,43 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
+    #    username = member
+    #    longid = str(username.id)
+    #    discordname = str(username.name + "#" + username.discriminator)
+
+    #    database.db.connect(reuse_if_open=True)
+    #    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReason = author.name)
+     #   q.save()
+     #   database.db.close()
+        guild = member.guild
+        channel = discord.utils.get(guild.channels, name="member-log")
         username = member
         longid = str(username.id)
-        discordname = str(username.name + "#" + username.discriminator)
+        discordname = str(username.name + "#" + username.discriminator)     
         
+        #----Database------------------------------------------------
+
+        try:
+            database.db.connect(reuse_if_open=True)
+            profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                database.PortalbotProfile.DiscordLongID == longid).get()
+            profile.DiscordName = discordname
+            profile.save()
+            await channel.send(f"{profile.DiscordName}'s Profile has been modified successfully.")
+        except database.DoesNotExist:
+            try:
+                database.db.connect(reuse_if_open=True)
+                profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                    DiscordName=discordname, DiscordLongID=longid)
+                profile.save()
+                await channel.send(f"{profile.DiscordName}'s Profile has been created successfully.")
+            except database.IntegrityError:
+                await channel.send("That profile name is already taken!")
+        finally:
+            database.db.close()
+        
+        #----GSheets------------------------------------------------
+       
         try:
             usercell = gtsheet.find(longid, in_column=2)
         except:
@@ -75,7 +109,7 @@ class Events(commands.Cog):
             gtsheet.update_cell(userrow, discordcol, str(discordname))
             gtsheet.update_cell(userrow, longidcol, str(longid))
 
-        #Welcome Message:
+        #------Welcome Message:---------
         if member.guild.id == 587495640502763521:
             guild = self.bot.get_guild(587495640502763521)
             channel = guild.get_channel(588813558486269956)

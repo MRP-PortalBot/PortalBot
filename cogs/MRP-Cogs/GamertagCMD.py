@@ -9,6 +9,7 @@ import requests
 import xbox
 import logging
 
+
 logger = logging.getLogger(__name__)
 # --------------------------------------------------
 # pip3 install gspread oauth2client
@@ -228,6 +229,14 @@ class GamertagCMD(commands.Cog):
                 await ctx.send("Please enter the XUID")
                 messageopt2 = await self.bot.wait_for('message', check=check)
                 messageopt1c = messageopt2.content
+                
+                try:
+                    messageopt1c = int(messageopt1c)
+                except:
+                    messageopt1c = int(messageopt1c, 16)
+                else:
+                    messageopt1c = messageopt2.content
+
                 try:
                     profile = xbox.GamerProfile.from_xuid(messageopt1c)
                     gamertagvalue = profile.gamertag

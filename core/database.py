@@ -34,6 +34,7 @@ class Question(BaseModel):
     """Stores Questions for DailyQ here"""
     id = AutoField()
     question = TextField()
+    usage = TextField()
 
 class MRP_Blacklist_Data(BaseModel):
     """Stores Questions for DailyQ here"""
@@ -59,7 +60,7 @@ class PortalbotProfile(BaseModel):
     Playstation = TextField()
     Switch = TextField()
     PokemonGo = TextField()
-    Chess = TextField()
+    Chessdotcom = TextField()
 
 
 
