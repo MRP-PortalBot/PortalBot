@@ -83,14 +83,14 @@ class Events(commands.Cog):
                 database.PortalbotProfile.DiscordLongID == longid).get()
             profile.DiscordName = discordname
             profile.save()
-            await channel.send(f"{profile.Discordname}'s Profile has been modified successfully.")
+            await channel.send(f"{profile.DiscordName}'s Profile has been modified successfully.")
         except database.DoesNotExist:
             try:
                 database.db.connect(reuse_if_open=True)
                 profile: database.PortalbotProfile = database.PortalbotProfile.create(
                     DiscordName=discordname, DiscordLongID=longid)
                 profile.save()
-                await channel.send(f"{profile.Discordname}'s Profile has been created successfully.")
+                await channel.send(f"{profile.DiscordName}'s Profile has been created successfully.")
             except database.IntegrityError:
                 await channel.send("That profile name is already taken!")
         finally:
