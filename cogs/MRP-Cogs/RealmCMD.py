@@ -273,7 +273,7 @@ class RealmCMD(commands.Cog):
                 await message.delete()
                 return
 
-        submittime = timestamp.strftime("%Y-%m-%d %H:%M:%S.%f")
+        submittime = timestamp.strftime("%d-%m-%Y %H:%M:%S")
         #
 
         # Spreadsheet Data
