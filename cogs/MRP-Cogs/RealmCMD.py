@@ -283,8 +283,7 @@ class RealmCMD(commands.Cog):
 
         submittime = timestamp.strftime("%m/%d/%Y %H:%M:%S")
         entryID = (sheet.acell('A3').value+1)
-        owner = author.mention
-        #(author.name + '#' + author.discriminator)
+        owner = (author.name + '#' + author.discriminator)
         #
 
         # Spreadsheet Data
@@ -302,7 +301,7 @@ class RealmCMD(commands.Cog):
         embed.add_field(name="__**Emoji**__",
                         value=str(answer2.content), inline=True)
         embed.add_field(name="__**Owner**__",
-                        value=owner, inline=True)
+                        value=author.mention, inline=True)
         embed.add_field(name="__**Short Description**__",
                         value=str(answer3.content), inline=False)
         embed.add_field(name="__**Long Description**__",
