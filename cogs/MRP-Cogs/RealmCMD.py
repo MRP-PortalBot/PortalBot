@@ -189,6 +189,8 @@ class RealmCMD(commands.Cog):
         channel = await ctx.author.create_dm()
         guild = ctx.message.guild
         responseChannel = self.bot.get_channel(config['realmChannelResponse'])
+        admin = discord.utils.get(
+            ctx.guild.roles, name="Admin")
 
         # Elgibilty Checks
         '''
@@ -224,32 +226,38 @@ class RealmCMD(commands.Cog):
         introem = discord.Embed(title="Realm Channel Application", description="Hello! Please make sure you fill every question with a good amount of detail and if at any point you feel like you made a mistake, you will see a cancel reaction at the end. Then you can come back and re-answer your questions! \n**Questions will start in 5 seconds.**", color=0x42f5f5)
         await channel.send(embed=introem)
         time.sleep(5)
-        await channel.send("Your Realm Name?")
+        await channel.send("Your Realm name?")
         answer1 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("Emoji you Want to Use?")
+        await channel.send("Emoji you want to use?")
         answer2 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("Short Description for the Realm List?")
+        await channel.send("Short description for the Realm list?")
         answer3 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("Long description for your Channel Description?")
+        await channel.send("Long description for your channel description?")
         answer4 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("What is your Application Proccess Towards your Realm?")
+        await channel.send("What is your application proccess towards your Realm?")
         answer5 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("How Many Members Does your Realm Have?")
+        await channel.send("How many members does your Realm have?")
         answer6 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("How Long has your Realm Been Active?")
+        await channel.send("How long has your community been active?")
         answer7 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("Will your Realm have the ability to continue for the foreseeable future?")
+        await channel.send("How long has your current Realm been active?")
         answer8 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("List the members of your OP team. (Owner first)")
+        await channel.send("How ofton do you reset your Realm?")
         answer9 = await self.bot.wait_for('message', check=check)
+
+        await channel.send("Will your Realm have the ability to continue for the foreseeable future?")
+        answer10 = await self.bot.wait_for('message', check=check)
+
+        await channel.send("List the members of your OP team, and how long each has been an OP.")
+        answer11 = await self.bot.wait_for('message', check=check)
 
         message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 300 seconds to react, otherwise the application will automatically cancel. ")
         reactions = ['✅', '❌']
@@ -274,11 +282,14 @@ class RealmCMD(commands.Cog):
                 return
 
         submittime = timestamp.strftime("%m/%d/%Y %H:%M:%S")
+        entryID = (sheet.acell('A3').value+1)
+        owner = author.mention
+        #(author.name + '#' + author.discriminator)
         #
 
         # Spreadsheet Data
-        row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content,
-               answer6.content, answer7.content, answer8.content, answer9.content, submittime]
+        row = [entryID, answer1.content, answer2.content, str(owner), answer3.content, answer4.content,
+               answer5.content, answer6.content, answer7.content, answer8.content, answer9.content, answer10.content, answer11.content, submittime]
         sheet.insert_row(row, 3, value_input_option='USER_ENTERED')
 
         # Actual Embed with Responses
@@ -290,6 +301,8 @@ class RealmCMD(commands.Cog):
                         value=str(answer1.content), inline=True)
         embed.add_field(name="__**Emoji**__",
                         value=str(answer2.content), inline=True)
+        embed.add_field(name="__**Owner**__",
+                        value=owner, inline=True)
         embed.add_field(name="__**Short Description**__",
                         value=str(answer3.content), inline=False)
         embed.add_field(name="__**Long Description**__",
@@ -298,19 +311,24 @@ class RealmCMD(commands.Cog):
                         value=str(answer5.content), inline=False)
         embed.add_field(name="__**Current Member Count**__",
                         value=str(answer6.content), inline=True)
-        embed.add_field(name="__**Age of Realm/Server**__",
+        embed.add_field(name="__**Age of Community**__",
                         value=str(answer7.content), inline=True)
+        embed.add_field(name="__**Age of Current Realm**__",
+                        value=str(answer8.content), inline=True)
+        embed.add_field(name="__**How ofton do you reset**__",
+                        value=str(answer9.content), inline=True)
         embed.add_field(name="__**Will your Realm have the ability to continue for the foreseeable future?**__",
-                        value=str(answer8.content), inline=False)
-        embed.add_field(name="__**Members of the OP Team (Owner First)**__",
-                        value=str(answer9.content), inline=False)
+                        value=str(answer10.content), inline=True)
+        embed.add_field(name="__**Members of the OP Team, and How long they have been an OP**__",
+                        value=str(answer11.content), inline=False)
         embed.add_field(name="__**Reaction Codes**__",
                         value="Please react with the following codes to show your thoughts on this applicant.", inline=False)
         embed.add_field(name="----💚----", value="Approved", inline=True)
         embed.add_field(name="----💛----",
                         value="More Time in Server", inline=True)
         embed.add_field(name="----❤️----", value="Rejected", inline=True)
-        embed.set_footer(text="Realm Application | " + submittime)
+        embed.set_footer(text="Realm Application #" + entryID + " | " + submittime)
+        await responseChannel.send(admin.mention)
         msg = await responseChannel.send(embed=embed)
 
         # Reaction Appending
