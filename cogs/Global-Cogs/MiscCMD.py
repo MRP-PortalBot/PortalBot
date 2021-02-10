@@ -84,7 +84,7 @@ class MiscCMD(commands.Cog):
         message = message or "This Message is sent via DM"
         author = ctx.message.author
         await user.send(message)
-        await user.send("Sent by: " + author.name)
+        #await user.send("Sent by: " + author.name)
 
     @DM.error
     async def DM_error(self, ctx, error):
