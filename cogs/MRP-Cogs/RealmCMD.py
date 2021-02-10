@@ -273,12 +273,12 @@ class RealmCMD(commands.Cog):
                 await message.delete()
                 return
 
-        submittime = timestamp.strftime("%d-%m-%Y %H:%M:%S")
+        submittime = timestamp.strftime("%m/%d/%Y %H:%M:%S")
         #
 
         # Spreadsheet Data
         row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content,
-               answer6.content, answer7.content, answer8.content, answer9.content, submittime, ]
+               answer6.content, answer7.content, answer8.content, answer9.content, submittime]
         sheet.insert_row(row, 3, value_input_option='USER_ENTERED')
 
         # Actual Embed with Responses
