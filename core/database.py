@@ -60,7 +60,7 @@ class PortalbotProfile(BaseModel):
     Playstation = TextField()
     Switch = TextField()
     PokemonGo = TextField()
-    Chess = TextField()
+    Chessdotcom = TextField()
 
 
 
