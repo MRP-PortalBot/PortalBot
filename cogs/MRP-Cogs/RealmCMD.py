@@ -327,7 +327,7 @@ class RealmCMD(commands.Cog):
         embed.add_field(name="----💛----",
                         value="More Time in Server", inline=True)
         embed.add_field(name="----❤️----", value="Rejected", inline=True)
-        embed.set_footer(text="Realm Application #" + entryID + " | " + submittime)
+        embed.set_footer(text="Realm Application #" + str(entryID) + " | " + submittime)
         await responseChannel.send(admin.mention)
         msg = await responseChannel.send(embed=embed)
 
