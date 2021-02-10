@@ -321,7 +321,7 @@ class BlacklistCMD(commands.Cog):
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
         author = ctx.message.author
         for data in databaseData:
-            query = (database.MRP_Blacklist_Data.select().where(data.startswith(req)))
+            query = (database.MRP_Blacklist_Data.select().where(data.iregexp(req)))
             if query == "":
                 await ctx.send("error")
                 return
