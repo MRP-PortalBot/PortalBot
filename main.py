@@ -249,7 +249,7 @@ async def remove(ctx, commandid, guildid = None):
 
 @client.command()
 @commands.has_role('Bot Manager')
-async def gitpull(ctx):
+async def gitpull(ctx, mode = "-a"):
     with open("commandcheck.txt", "w") as f:
         f.write("ON")
     typebot = config['BotType']
@@ -274,7 +274,10 @@ async def gitpull(ctx):
         msg = await ctx.send(embed=embed)
         with open("commandcheck.txt", "w") as f:
             f.write("OFF")
-        await force_restart(ctx)
+        if mode == "-a":
+            await force_restart(ctx)
+        elif mode == "-c":
+            await ctx.invoke(client.get_command('cogs reload'), ext='all') 
 
     elif typebot == "STABLE":
         try:
@@ -295,7 +298,10 @@ async def gitpull(ctx):
         msg = await ctx.send(embed=embed)
         with open("commandcheck.txt", "w") as f:
             f.write("OFF")
-        await force_restart(ctx)
+        if mode == "-a":
+            await force_restart(ctx)
+        elif mode == "-c":
+            await ctx.invoke(client.get_command('cogs reload'), ext='all') 
 
 
 @client.command()
