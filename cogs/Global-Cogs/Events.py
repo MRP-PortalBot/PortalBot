@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 import re
 import asyncio
@@ -73,7 +73,7 @@ class Events(commands.Cog):
         channel = discord.utils.get(guild.channels, name="member-log")
         username = member
         longid = str(username.id)
-        discordname = str(username.name + "#" + username.discriminator)        
+        discordname = str(username.name + "#" + username.discriminator)     
         
         #----Database------------------------------------------------
 
