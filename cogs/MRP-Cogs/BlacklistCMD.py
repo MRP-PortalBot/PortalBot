@@ -378,6 +378,7 @@ class BlacklistCMD(commands.Cog):
                 msg = await ctx.send(embed = e)
                 try:
                     trys = await ctx.fetch_message(msg.id)
+                    await ctx.send(trys)
                 except:
                     await ctx.send("No results!")
                 else:
