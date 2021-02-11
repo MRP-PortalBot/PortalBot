@@ -274,7 +274,9 @@ class BlacklistCMD(commands.Cog):
                     ResultsGiven = True
             
         if ResultsGiven == False:
-            await ctx.send("No results")
+            e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}", color = 0x18c927)
+            e.add_field(name = "No Results!", value = f"`{req}`'s query did not bring back any results!")
+            await ctx.send(embed = e)
                 
     
     @Bsearch.error
