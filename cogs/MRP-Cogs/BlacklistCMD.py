@@ -341,7 +341,7 @@ class BlacklistCMD(commands.Cog):
                     await ctx.send("Search Run 1 Failed")
                 else:
                     dataFound = True
-                    await ctx.send(person.Gamertag, '->', person.DiscUsername)
+                    await ctx.send(f"{person.Gamertag} -> {person.DiscUsername}")
         
         req = solve(req)
         for data in databaseData:
@@ -352,7 +352,7 @@ class BlacklistCMD(commands.Cog):
                     await ctx.send("Search Run 2 Failed")
                 else:
                     dataFound = True
-                    await ctx.send(person.Gamertag, '->', person.DiscUsername)
+                    await ctx.send(f"{person.Gamertag} -> {person.DiscUsername}")
 
         req = req.lower()
         for data in databaseData:
@@ -363,7 +363,7 @@ class BlacklistCMD(commands.Cog):
                     await ctx.send("Search Run 3 Failed")
                 else:
                     dataFound = True
-                    await ctx.send(person.Gamertag, '->', person.DiscUsername)
+                    await ctx.send(f"{person.Gamertag} -> {person.DiscUsername}")
 
             
 
