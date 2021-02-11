@@ -273,9 +273,9 @@ class BlacklistCMD(commands.Cog):
                     await ctx.send(embed = e)
                     ResultsGiven = True
             
-            else:
-                if ResultsGiven == False:
-                    await ctx.send("No results")
+        if ResultsGiven == False:
+            await ctx.send("No results")
+                
     
     @Bsearch.error
     async def Bsearch_error(self, ctx, error):
