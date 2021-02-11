@@ -377,7 +377,7 @@ class BlacklistCMD(commands.Cog):
                 await ctx.send(embed = e)
             else:
                 NoResults +=1
-                if NoResults == 9:
+                if NoResults == 9 or NoResults == "9":
                     await ctx.send(NoResults)
                     await ctx.send("No results")
 
