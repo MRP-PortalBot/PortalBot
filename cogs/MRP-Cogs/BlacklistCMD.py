@@ -376,12 +376,11 @@ class BlacklistCMD(commands.Cog):
                 e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n```", inline=False)
                 await ctx.send(embed = e)
             else:
-                await ctx.send(NoResults)
                 NoResults +=1
+                if NoResults == 9:
+                    await ctx.send(NoResults)
+                    await ctx.send("No results")
 
-        if NoResults == 9:
-            await ctx.send(NoResults)
-            await ctx.send("No results")
 
             
                 
