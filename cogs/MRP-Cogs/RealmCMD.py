@@ -125,6 +125,12 @@ class RealmCMD(commands.Cog):
         if isinstance(error, commands.CheckFailure):
             await ctx.send("This Command was not designed for this server!")
 
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send("You didn't include all of the arguments!")
+        
+        else:
+            raise error
+
     @commands.command()
     @check_MRP()
     async def checkin2(self, ctx):

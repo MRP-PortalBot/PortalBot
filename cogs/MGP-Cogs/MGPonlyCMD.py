@@ -207,6 +207,9 @@ class MGPonlyCMD(commands.Cog):
         if isinstance(error, commands.CheckFailure):
             await ctx.send("This Command was not designed for this server!")
 
+        if isinstance(error, commands.BadArgument):
+            await ctx.send("You didn't include all of the arguments!")
+
         else:
             raise error 
 

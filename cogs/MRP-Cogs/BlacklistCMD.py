@@ -130,8 +130,6 @@ class BlacklistCMD(commands.Cog):
         time.sleep(0.5)
 
 
-
-
         # Add to DB
 
 
@@ -188,7 +186,7 @@ class BlacklistCMD(commands.Cog):
 
     @commands.command()
     @commands.has_role("Realm OP")
-    async def bsearch(self, ctx, *, username):
+    async def oldsearch(self, ctx, *, username):
         checkcheck = "FALSE"
         author = ctx.message.author
         em = discord.Embed(title="Google Sheets Search",
@@ -219,14 +217,15 @@ class BlacklistCMD(commands.Cog):
             em.add_field(name="No Results", value="I'm sorry, but it looks like the [spreadsheet](https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit?usp=sharing) doesn't have any results for the query you have sent! \n\n**Tips:**\n- Don't include the user's tag number! (Ex: #1879)\n- Try other ways of spelling out the username such as putting everything as lowercase! \n- Try checking the orginal spreadsheet for the value and try searching any term in the row here!")
             await ctx.send(embed=em)
 
-    @bsearch.error
-    async def bsearch_error(self, ctx, error):
+    @oldsearch.error
+    async def oldsearch_error(self, ctx, error):
         if isinstance(error, commands.MissingRole):
             await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
         elif isinstance(error, commands.CommandInvokeError):
             await ctx.send("Your search returned to many results. Please narrow your search, or try a different search term.")
 
     @commands.command(aliases=['blogsnew'])
+    @commands.has_role("Realm OP")
     async def blogs(self, ctx, page: int = 3):
         async def populate_embed(embed: discord.Embed, page: int):
             """Used to populate the embed for the 'blogs' command."""
@@ -245,129 +244,22 @@ class BlacklistCMD(commands.Cog):
             embed.add_field(name="Date the Ban ends",
                             value=values[8], inline=False)
             return embed
+    
 
         author = ctx.message.author
         embed = discord.Embed(title="MRP Blacklist Data", description=
             f"Requested by Operator {author.mention}")
         await paginate_embed(self.bot, ctx, embed, populate_embed, sheet.row_count, page=page, begin=3)
-    
-    @commands.command()
-    async def DBget(self, ctx, *, string: str):
-        author = ctx.message.author
-        try:
-            database.db.connect(reuse_if_open=True)
-        except:
-            await ctx.send("ERROR: Error Code 1")
-            return
-        
-        dataFound = False
-        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
-        
-        for data in databaseData:
-            try:
-                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
-            except:
-                continue
-            else:
-                dataFound = True
-                break
 
-
-        string = string.lower()
-        if dataFound == False:
-            databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
-            for data in databaseData:
-                try:
-                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
-                except:
-                    continue
-                else:
-                    dataFound = True
-                    break
-        
-
-        string = solve(string)
-        if dataFound == False:
-            databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
-            for data in databaseData:
-                try:
-                    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(data == string).get()
-                except:
-                    continue
-                else:
-                    dataFound = True
-                    break
-
-        database.db.close()    
-        
-        if dataFound == False:
-            await ctx.send("No results found!")
-            return
-
-        try:
-            embed = discord.Embed(title = "Blacklist Records", description = f"Requested by: {author.mention}", color = random_rgb())
-            embed.add_field(name = "Results:", value = f"Discord Username: {q.DiscUsername}\nDiscord ID: {q.DiscID}\nGamertag: {q.Gamertag}\nBanned from: {q.BannedFrom}\nReason for Ban: {q.ReasonforBan}\n Date of Ban: {q.DateofIncident}\nType of Ban: {q.TypeofBan}\nEnd Date of Ban: {q.DatetheBanEnds}")
-            await ctx.send(embed = embed)
-        except Exception as e:
-            await ctx.send(f"ERROR:\n{e}")
-            
-    @commands.command()
-    async def DBget2(self, ctx, *, req: str):
-        try:
-            database.db.connect(reuse_if_open=True)
-        except:
-            await ctx.send("ERROR: Error Code 1")
-            return
-        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds]
-        author = ctx.message.author
-        for data in databaseData:
-            query = (database.MRP_Blacklist_Data.select().where(data.iregexp(data == req))).get()
-            for p in query: 
-                embed = discord.Embed(title = "Blacklist Search", description = f"Requested by: {author.mention}", color = random_rgb())
-                embed.add_field(name = "Data", value = f"**Discord Username:** {p.DiscUsername}\n**Discord ID:** {p.DiscID}\n**Gamertag:** {p.Gamertag}\n**Banned From:** {p.BannedFrom}\n**Known Alts:** {p.KnownAlts}\n**Ban Reason:** {p.ReasonforBan}\n**Date of Incident:** {p.DateofIncident}\n**Type of Ban:** {p.TypeofBan}\n**Date the Ban Ends:** {p.DatetheBanEnds}")
-                embed.set_footer(text = f"Entry ID: {str(p.entryid)}")
-                await ctx.send(embed = embed)
+    @blogs.error
+    async def blogs_error(self, ctx, error):
+        if isinstance(error, commands.MissingRole):
+            await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
+ 
 
     @commands.command()
-    async def DBget3(self, ctx, *, req: str):
-        dataFound = False
-        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid]
-
-        for data in databaseData:
-            query = (database.MRP_Blacklist_Data.select().where(data == req)) 
-            for person in query: 
-                if not person.DiscUsername:
-                    dataFound = False
-                    await ctx.send("Search Run 1 Failed")
-                else:
-                    dataFound = True
-                    await ctx.send(f"{person.Gamertag} -> {person.DiscUsername}")
-        
-        req = solve(req)
-        for data in databaseData:
-            query = (database.MRP_Blacklist_Data.select().where(data == req)) 
-            for person in query: 
-                if not person.DiscUsername:
-                    dataFound = False
-                    await ctx.send("Search Run 2 Failed")
-                else:
-                    dataFound = True
-                    await ctx.send(f"{person.Gamertag} -> {person.DiscUsername}")
-
-        req = req.lower()
-        for data in databaseData:
-            query = (database.MRP_Blacklist_Data.select().where(data == req)) 
-            for person in query: 
-                if not person:
-                    dataFound = False
-                    await ctx.send("Search Run 3 Failed")
-                else:
-                    dataFound = True
-                    await ctx.send(f"{person.Gamertag} -> {person.DiscUsername}")
-
-    @commands.command()
-    async def DBget4(self, ctx, *, req : str):
-        NoResults = 0
+    @commands.has_role("Realm OP")
+    async def Bsearch(self, ctx, *, req : str):
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid]
         ResultsGiven = False
 
@@ -375,15 +267,20 @@ class BlacklistCMD(commands.Cog):
             query = (database.MRP_Blacklist_Data.select().where(data.contains(req)))
             if query.exists():
                 for p in query:
-                    e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}")
+                    e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}", color = 0x18c927)
                     e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n```", inline=False)
+                    e.set_footer(text = "Querying from MRP_Blacklist_Data")
                     await ctx.send(embed = e)
                     ResultsGiven = True
             
             else:
-                NoResults +=1
-                if NoResults == 9 and ResultsGiven == False:
+                if ResultsGiven == False:
                     await ctx.send("No results")
+    
+    @Bsearch.error
+    async def Bsearch_error(self, ctx, error):
+        if isinstance(error, commands.MissingRole):
+            await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
 
     @commands.command()
     async def DBget5(self, ctx, *, req:str):
