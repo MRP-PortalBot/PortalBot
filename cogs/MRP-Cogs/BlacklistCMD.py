@@ -366,10 +366,11 @@ class BlacklistCMD(commands.Cog):
                     await ctx.send(f"{person.Gamertag} -> {person.DiscUsername}")
 
     @commands.command()
-    async def DBget4(self, ctx, req : str):
+    async def DBget4(self, ctx, *, req : str):
         NoResults = 0
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid]
-
+        ResultsGiven = False
+        
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data.contains(req)))
             if query.exists():
@@ -377,17 +378,16 @@ class BlacklistCMD(commands.Cog):
                     e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}")
                     e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n```", inline=False)
                     await ctx.send(embed = e)
+                    ResultsGiven = True
             
             else:
                 NoResults +=1
-                if NoResults == 9:
+                if NoResults == 9 and ResultsGiven == True:
                     await ctx.send("No results")
 
     @commands.command()
-    async def DBget5(self, ctx, req : str):
-        NoResults = 0
+    async def DBget5(self, ctx, *, req:str):
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid]
-
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data.contains(req)))
             try:
@@ -396,10 +396,9 @@ class BlacklistCMD(commands.Cog):
                 await ctx.send("No results")
             else:
                 for p in query:
-                        e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}")
-                        e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n```", inline=False)
-                        await ctx.send(embed = e) 
-
+                    e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}")
+                    e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n```", inline=False)
+                    await ctx.send(embed = e)
         
                
 
