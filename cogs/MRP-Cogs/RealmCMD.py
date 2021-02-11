@@ -238,22 +238,22 @@ class RealmCMD(commands.Cog):
         await channel.send("Long description for your channel description?")
         answer4 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("What is your application proccess towards your Realm?")
+        await channel.send("What is your application proccess for your community?")
         answer5 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("How many members does your Realm have?")
+        await channel.send("How many members does your community have?")
         answer6 = await self.bot.wait_for('message', check=check)
 
         await channel.send("How long has your community been active?")
         answer7 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("How long has your current Realm been active?")
+        await channel.send("How long has your current Minecraft World been active?")
         answer8 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("How ofton do you reset your Realm?")
+        await channel.send("How often do you reset your World?")
         answer9 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("Will your Realm have the ability to continue for the foreseeable future?")
+        await channel.send("Will your Realm/Server have the ability to continue for the foreseeable future?")
         answer10 = await self.bot.wait_for('message', check=check)
 
         await channel.send("List the members of your OP team, and how long each has been an OP.")
@@ -313,11 +313,11 @@ class RealmCMD(commands.Cog):
                         value=str(answer6.content), inline=True)
         embed.add_field(name="__**Age of Community**__",
                         value=str(answer7.content), inline=True)
-        embed.add_field(name="__**Age of Current Realm**__",
+        embed.add_field(name="__**Age of Current World**__",
                         value=str(answer8.content), inline=True)
-        embed.add_field(name="__**How ofton do you reset**__",
+        embed.add_field(name="__**How often do you reset**__",
                         value=str(answer9.content), inline=True)
-        embed.add_field(name="__**Will your Realm have the ability to continue for the foreseeable future?**__",
+        embed.add_field(name="__**Will your Realm/Server have the ability to continue for the foreseeable future?**__",
                         value=str(answer10.content), inline=True)
         embed.add_field(name="__**Members of the OP Team, and How long they have been an OP**__",
                         value=str(answer11.content), inline=False)
