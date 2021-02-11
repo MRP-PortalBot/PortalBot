@@ -336,7 +336,7 @@ class BlacklistCMD(commands.Cog):
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data == req)) 
             for person in query: 
-                if person.DiscUsername == "":
+                if not person.DiscUsername:
                     dataFound = False
                     await ctx.send("Search Run 1 Failed")
                 else:
@@ -347,7 +347,7 @@ class BlacklistCMD(commands.Cog):
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data == req)) 
             for person in query: 
-                if person.DiscUsername == "":
+                if not person.DiscUsername:
                     dataFound = False
                     await ctx.send("Search Run 2 Failed")
                 else:
@@ -358,7 +358,7 @@ class BlacklistCMD(commands.Cog):
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data == req)) 
             for person in query: 
-                if person.DiscUsername == "":
+                if not person.DiscUsername:
                     dataFound = False
                     await ctx.send("Search Run 3 Failed")
                 else:
