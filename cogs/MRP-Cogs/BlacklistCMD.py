@@ -332,6 +332,7 @@ class BlacklistCMD(commands.Cog):
     async def DBget3(self, ctx, *, req: str):
         dataFound = False
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid]
+
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data == req)) 
             for person in query: 
@@ -340,7 +341,7 @@ class BlacklistCMD(commands.Cog):
                     await ctx.send("Search Run 1 Failed")
                 else:
                     dataFound = True
-                    print(person.Gamertag, '->', person.DiscUsername)
+                    await ctx.send(person.Gamertag, '->', person.DiscUsername)
         
         req = solve(req)
         for data in databaseData:
@@ -351,7 +352,7 @@ class BlacklistCMD(commands.Cog):
                     await ctx.send("Search Run 2 Failed")
                 else:
                     dataFound = True
-                    print(person.Gamertag, '->', person.DiscUsername)
+                    await ctx.send(person.Gamertag, '->', person.DiscUsername)
 
         req = req.lower()
         for data in databaseData:
@@ -362,7 +363,7 @@ class BlacklistCMD(commands.Cog):
                     await ctx.send("Search Run 3 Failed")
                 else:
                     dataFound = True
-                    print(person.Gamertag, '->', person.DiscUsername)
+                    await ctx.send(person.Gamertag, '->', person.DiscUsername)
 
             
 
