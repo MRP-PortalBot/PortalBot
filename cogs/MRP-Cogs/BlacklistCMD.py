@@ -370,7 +370,7 @@ class BlacklistCMD(commands.Cog):
         NoResults = 0
         databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid]
         ResultsGiven = False
-        
+
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data.contains(req)))
             if query.exists():
@@ -382,7 +382,7 @@ class BlacklistCMD(commands.Cog):
             
             else:
                 NoResults +=1
-                if NoResults == 9 and ResultsGiven == True:
+                if NoResults == 9 and ResultsGiven == False:
                     await ctx.send("No results")
 
     @commands.command()
