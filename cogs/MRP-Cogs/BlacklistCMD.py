@@ -373,7 +373,7 @@ class BlacklistCMD(commands.Cog):
             query = (database.MRP_Blacklist_Data.select().where(data.contains(req)))
             for p in query:
                 e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}")
-                e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BanedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n```", inline=False)
+                e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n```", inline=False)
                 await ctx.send(embed = e)
             else:
                 NoResults +=1
