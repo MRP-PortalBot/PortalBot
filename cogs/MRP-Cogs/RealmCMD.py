@@ -250,7 +250,7 @@ class RealmCMD(commands.Cog):
         await channel.send("How long has your current Minecraft World been active?")
         answer8 = await self.bot.wait_for('message', check=check)
 
-        await channel.send("How ofton do you reset your World?")
+        await channel.send("How often do you reset your World?")
         answer9 = await self.bot.wait_for('message', check=check)
 
         await channel.send("Will your Realm/Server have the ability to continue for the foreseeable future?")
@@ -315,7 +315,7 @@ class RealmCMD(commands.Cog):
                         value=str(answer7.content), inline=True)
         embed.add_field(name="__**Age of Current World**__",
                         value=str(answer8.content), inline=True)
-        embed.add_field(name="__**How ofton do you reset**__",
+        embed.add_field(name="__**How often do you reset**__",
                         value=str(answer9.content), inline=True)
         embed.add_field(name="__**Will your Realm/Server have the ability to continue for the foreseeable future?**__",
                         value=str(answer10.content), inline=True)
