@@ -297,7 +297,7 @@ class RealmCMD(commands.Cog):
 
         # Actual Embed with Responses
         embed = discord.Embed(title="Realm Application", description="__**Realm Owner:**__\n" +
-                              author.mention + "\n==================================================", color=0xb10d9f)
+                              author.mention + "\n============================================", color=0xb10d9f)
         embed.set_thumbnail(
             url="https://cdn.discordapp.com/attachments/588034623993413662/588413853667426315/Portal_Design.png")
         embed.add_field(name="__**Realm Name**__",
