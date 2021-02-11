@@ -358,12 +358,22 @@ class BlacklistCMD(commands.Cog):
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(data == req)) 
             for person in query: 
-                if not person.DiscUsername:
+                if not person:
                     dataFound = False
                     await ctx.send("Search Run 3 Failed")
                 else:
                     dataFound = True
                     await ctx.send(f"{person.Gamertag} -> {person.DiscUsername}")
+
+    @commands.command()
+    async def DBget4(self, ctx, req : str):
+        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid]
+        for data in databaseData:
+            query = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.data.contains(req)))
+            for p in query:
+                await ctx.send(p.Gamertag)
+
+
 
             
 
