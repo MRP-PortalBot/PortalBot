@@ -327,6 +327,43 @@ class BlacklistCMD(commands.Cog):
                 embed.add_field(name = "Data", value = f"**Discord Username:** {p.DiscUsername}\n**Discord ID:** {p.DiscID}\n**Gamertag:** {p.Gamertag}\n**Banned From:** {p.BannedFrom}\n**Known Alts:** {p.KnownAlts}\n**Ban Reason:** {p.ReasonforBan}\n**Date of Incident:** {p.DateofIncident}\n**Type of Ban:** {p.TypeofBan}\n**Date the Ban Ends:** {p.DatetheBanEnds}")
                 embed.set_footer(text = f"Entry ID: {str(p.entryid)}")
                 await ctx.send(embed = embed)
+
+    @commands.command()
+    async def DBget3(self, ctx, *, req: str):
+        dataFound = False
+        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid]
+        for data in databaseData:
+            query = (database.MRP_Blacklist_Data.select().where(data == req)) 
+            for person in query: 
+                if person.DiscUsername == "":
+                    dataFound = False
+                    await ctx.send("Search Run 1 Failed")
+                else:
+                    dataFound = True
+                    print(person.Gamertag, '->', person.DiscUsername)
+        
+        req = solve(req)
+        for data in databaseData:
+            query = (database.MRP_Blacklist_Data.select().where(data == req)) 
+            for person in query: 
+                if person.DiscUsername == "":
+                    dataFound = False
+                    await ctx.send("Search Run 2 Failed")
+                else:
+                    dataFound = True
+                    print(person.Gamertag, '->', person.DiscUsername)
+
+        req = req.lower()
+        for data in databaseData:
+            query = (database.MRP_Blacklist_Data.select().where(data == req)) 
+            for person in query: 
+                if person.DiscUsername == "":
+                    dataFound = False
+                    await ctx.send("Search Run 3 Failed")
+                else:
+                    dataFound = True
+                    print(person.Gamertag, '->', person.DiscUsername)
+
             
 
 def setup(bot):
