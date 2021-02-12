@@ -297,6 +297,8 @@ class BlacklistCMD(commands.Cog):
         embed = discord.Embed(title = "Record Manager", description = "Options:\n1️⃣ - **BanReporter**\n2️⃣ - **Discord Username**\n3️⃣ - **Discord ID**\n4️⃣ - **Gamertag**\n5️⃣ - **Realm Banned from**\n6️⃣ - **Known Alts**\n7️⃣ - **Ban Reason**\n8️⃣ - **Date of Incident**\n9️⃣ - **Type of Ban**\n🔟 - **Date the Ban Ends**", color = 0x34ebbd)
         reactions = ['1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟']
         msg = await ctx.send(embed = embed)
+        for emoji in reactions:
+            await msg.add_reaction(emoji)
         def check2(reaction, user):
             return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
 
