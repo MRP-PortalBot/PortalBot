@@ -37,7 +37,7 @@ class Question(BaseModel):
     usage = TextField()
 
 class MRP_Blacklist_Data(BaseModel):
-    """Stores Questions for DailyQ here"""
+    """Stores Blacklist Data here"""
     entryid = AutoField()
     BanReporter = TextField()
     DiscUsername = TextField()
@@ -51,7 +51,7 @@ class MRP_Blacklist_Data(BaseModel):
     DatetheBanEnds = TextField()
 
 class PortalbotProfile(BaseModel):
-    """Stores Questions for DailyQ here"""
+    """Stores Profile Data here"""
     entryid = AutoField()
     DiscordName = TextField()
     DiscordLongID = TextField()
