@@ -300,7 +300,7 @@ class BlacklistCMD(commands.Cog):
         for emoji in reactions:
             await msg.add_reaction(emoji)
         def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+            return user == ctx.author and (str(reaction.emoji) in reactions)
 
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=150.0, check=check2)
