@@ -394,11 +394,9 @@ class BlacklistCMD(commands.Cog):
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             else:
                 await ctx.send("Wha, what emoji did you react with?")
+        except:
+            await ctx.send("You didn't react to anything! (Timed out)")
             
-
-
-            
-
 
     @commands.command()
     async def DBget5(self, ctx, *, req:str):
