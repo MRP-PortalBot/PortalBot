@@ -286,7 +286,9 @@ class BlacklistCMD(commands.Cog):
 
 
     @commands.command()
-    async def Bmodify(self, ctx, entryID: str, *, newData : str):
+    async def Bmodify(self, ctx, entryID: str):
+        channel = ctx.message.channel
+        username = ctx.message.author
         try:
             database.db.connect(reuse_if_open=True)
         except:
@@ -301,10 +303,17 @@ class BlacklistCMD(commands.Cog):
             await msg.add_reaction(emoji)
         def check2(reaction, user):
             return user == ctx.author and (str(reaction.emoji) in reactions)
+        def check3(m):
+            return m.content is not None and m.channel == channel and m.author == username
 
         try:
             reaction, user = await self.bot.wait_for('reaction_add', timeout=150.0, check=check2)
             if str(reaction.emoji) == "1️⃣":
+
+                await ctx.send("New content to modify:\n*Currently modifying* `Ban Reporter`")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.BanReporter
@@ -314,6 +323,10 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "2️⃣":
+                await ctx.send("New content to modify:\n*Currently modifying* `Discord Username`")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.DiscUsername
@@ -323,6 +336,10 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "3️⃣":
+                await ctx.send("New content to modify:\n*Currently modifying* `Discord ID`")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.DiscID
@@ -332,6 +349,10 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "4️⃣":
+                await ctx.send("New content to modify:\n*Currently modifying* `Gamertag")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.Gamertag
@@ -341,6 +362,10 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "5️⃣":
+                await ctx.send("New content to modify:\n*Currently modifying* `Banned From (Realm)`")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.BannedFrom
@@ -350,6 +375,10 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "6️⃣":
+                await ctx.send("New content to modify:\n*Currently modifying* `Known Alts`")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.KnownAlts
@@ -359,6 +388,10 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "7️⃣":
+                await ctx.send("New content to modify:\n*Currently modifying* `Ban Reason")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.ReasonforBan
@@ -368,6 +401,10 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "8️⃣":
+                await ctx.send("New content to modify:\n*Currently modifying* `Date of Incident`")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.DateofIncident
@@ -377,6 +414,10 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "9️⃣":
+                await ctx.send("New content to modify:\n*Currently modifying* `Type of Ban`")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.TypeofBan
@@ -386,6 +427,10 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "🔟":
+                await ctx.send("New content to modify:\n*Currently modifying* `Date the Ban Ends`")
+                messagecontent = await self.bot.wait_for('message', check=check3)
+                newData = messagecontent.content
+
                 try:
                     b: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.entryid == entryID).get()
                     oldData = b.DatetheBanEnds
@@ -399,8 +444,6 @@ class BlacklistCMD(commands.Cog):
         except asyncio.TimeoutError:
             await ctx.send("You didn't react to anything! (Timed out)")
         
-        except Exception as e:
-            raise e
             
 
     @commands.command()
