@@ -398,6 +398,9 @@ class BlacklistCMD(commands.Cog):
                 await ctx.send("Wha, what emoji did you react with?")
         except asyncio.TimeoutError:
             await ctx.send("You didn't react to anything! (Timed out)")
+        
+        except Exception as e:
+            raise e
             
 
     @commands.command()
