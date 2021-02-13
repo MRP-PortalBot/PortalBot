@@ -52,7 +52,7 @@ intents.presences = True
 
 #Defining client and SlashCommands
 client = commands.Bot(command_prefix=config['prefix'], intents=intents)
-client.slash = SlashCommand(client, auto_register=True)  #TODO: Fix Slash Commands
+client.slash = SlashCommand(client, sync_commands=True)  #TODO: Fix Slash Commands
 client.remove_command("help")
 
 #Sentry Panel Stuff - 
