@@ -65,6 +65,7 @@ async def mainTask(self):
 
         finally:
             database.db.close()
+    asyncio.sleep(3600)
 
 
 
