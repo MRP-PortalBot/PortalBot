@@ -63,6 +63,9 @@ async def mainTask(self):
             finally:
                 database.db.close()
 
+        finally:
+            database.db.close()
+
 
 
 class DailyCMD(commands.Cog):
