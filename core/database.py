@@ -34,7 +34,7 @@ class Question(BaseModel):
     """Stores Questions for DailyQ here"""
     id = AutoField()
     question = TextField()
-    usage = TextField()
+    usage = TextField(default= False)
 
 class MRP_Blacklist_Data(BaseModel):
     """Stores Blacklist Data here"""
