@@ -59,8 +59,9 @@ async def mainTask(self):
                 q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
                 embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
                 await channel.send(embed=embed)
-        finally:
-            database.db.close()
+        
+            finally:
+                database.db.close()
 
 
 
