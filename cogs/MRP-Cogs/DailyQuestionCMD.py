@@ -46,7 +46,7 @@ async def getQuestion(ctx):
         database.db.close()
 
 async def mainTask(self):
-    d = datetime.datetime.utcnow()
+    d = datetime.utcnow()
     if d.hour == 17 or d.hour == "17":
         guild = self.bot.get_guild(config['ServerID'])
         channel = guild.get_channel(config['GeneralChannel'])
