@@ -7,6 +7,7 @@ import asyncio
 from discord import Embed
 import requests
 from discord import File
+from core import database, common
 
 from PIL import Image, ImageDraw, ImageFont
 import io
@@ -59,13 +60,13 @@ chesscol = 8
 
 # -----------------------------------------------------
 
-class ProfileCMD(commands.Cog):
+class OldProfileCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         logger.info("ProfileCMD: Cog Loaded!")
 
     @commands.group(invoke_without_command=True)
-    async def profile(self, ctx, *, profile: discord.Member = None):
+    async def oldprofile(self, ctx, *, profile: discord.Member = None):
         print(profile)
         author = ctx.message.author
         role = discord.utils.get(ctx.guild.roles, name="Realm OP")
@@ -147,8 +148,8 @@ class ProfileCMD(commands.Cog):
                 await ctx.send(embed=profileembed)
 
 
-    @profile.error
-    async def profile_error(self, ctx, error):
+    @oldprofile.error
+    async def oldprofile_error(self, ctx, error):
         author = ctx.message.author
         if isinstance(error, commands.UserNotFound):
             noprofileembed = discord.Embed(
@@ -158,7 +159,7 @@ class ProfileCMD(commands.Cog):
         else:
             raise error          
 
-    @profile.command()
+    @oldprofile.command()
     async def edit(self, ctx):
         channel = ctx.message.channel
         username = ctx.message.author
@@ -367,7 +368,7 @@ class ProfileCMD(commands.Cog):
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
 
-    @profile.command()
+    @oldprofile.command()
     async def remove(self, ctx):
         channel = ctx.message.channel
         username = ctx.message.author
@@ -476,7 +477,7 @@ class ProfileCMD(commands.Cog):
             await channel.send("Looks like you didn't react in time, please try again later!")
 
 
-    @profile.command()
+    @oldprofile.command()
     async def canvas(self, ctx, *, profile: discord.Member = None):
         print(profile)
         author = ctx.message.author
@@ -651,4 +652,4 @@ class ProfileCMD(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(ProfileCMD(bot))
+    bot.add_cog(OldProfileCMD(bot))
