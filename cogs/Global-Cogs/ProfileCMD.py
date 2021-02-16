@@ -109,17 +109,17 @@ class ProfileCMD(commands.Cog):
                     profileembed.set_thumbnail(url=pfp)
                     profileembed.add_field(name="Discord", value=discordname, inline=True)
                     profileembed.add_field(name="LongID", value=longid, inline=True)
-                    if tzone != "":
+                    if tzone != "None":
                         profileembed.add_field(name="Timezone", value=tzone, inline=True)
-                    if xbox != "":
+                    if xbox != "None":
                         profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
-                    if psnid != "":
+                    if psnid != "None":
                         profileembed.add_field(name="Playstation ID", value=psnid, inline=False) 
-                    if switch != "":
+                    if switch != "None":
                         profileembed.add_field(name="Switch Friend Code", value=switch, inline=False) 
-                    if pokemongo != "":
+                    if pokemongo != "None":
                         profileembed.add_field(name="Pokemon Go ID", value=pokemongo, inline=False) 
-                    if chessdotcom != "":
+                    if chessdotcom != "None":
                         profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
                     if username == ctx.message.author:
                         profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
@@ -127,10 +127,10 @@ class ProfileCMD(commands.Cog):
                         profileembed.set_footer(text="Requested by " + author.name)
                     if role in author.roles: 
                         try:
-                            longid = sheet.find(longid, in_column=2)
+                            longid = (database.MRP_Blacklist_Data.select().where(data.contains(longid)))
                         except:
                             try:
-                                discordname = sheet.find(username_re, in_column=1)
+                                discordname = (database.MRP_Blacklist_Data.select().where(data.contains(discordname)))
                             except:
                                 await ctx.send(embed=profileembed)
                             else:
