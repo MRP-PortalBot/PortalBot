@@ -34,7 +34,7 @@ class SkeletonCMD(commands.Cog):
                 await ctx.send(embed = e)
 
         else:
-            for issue in jira.search_issues(f'text = "{query}"'):
+            for issue in jira.search_issues(f'text ~ "{query}"'):
                 x = issue.fields.created
                 x, nonehere = x.split("T")
                 y, m, d = x.split("-")
