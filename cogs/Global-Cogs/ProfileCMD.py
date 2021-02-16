@@ -103,7 +103,7 @@ class ProfileCMD(commands.Cog):
                     xbox = p.XBOX
                     psnid = p.Playstation
                     switch = p.Switch
-                    pokemongo = p.PokemonGO
+                    pokemongo = p.PokemonGo
                     chessdotcom = p.Chessdotcom
                     
                     profileembed.set_thumbnail(url=pfp)
