@@ -18,7 +18,7 @@ import sys
 import aiohttp
 import xbox
 import traceback
-
+from core.common import mainTask2
 
 '''
 - Incase REPL has problems finding packages: (Manual PIP Install)
@@ -80,6 +80,16 @@ try:
     xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
 except:
     logger.critical("ERROR: Unable to authenticate with XBOX!")
+
+if client.loop.is_running() == True:
+    confirmLoop = True
+    print(confirmLoop)
+
+try:
+    if confirmLoop == True:
+        client.loop.create_task(mainTask2(client))
+except:
+    logger.critical("ERROR: Unable to start task!")
 
 def get_extensions():  # Gets extension list dynamically
     extensions = []
