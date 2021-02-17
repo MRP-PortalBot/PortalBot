@@ -81,15 +81,12 @@ try:
 except:
     logger.critical("ERROR: Unable to authenticate with XBOX!")
 
-if client.loop.is_running() == True:
-    confirmLoop = True
-    print(confirmLoop)
 
-try:
-    if confirmLoop == True:
-        client.loop.create_task(mainTask2(client))
-except:
-    logger.critical("ERROR: Unable to start task!")
+
+
+with open("taskcheck.txt", "w") as f:
+    f.write("OFF")
+
 
 def get_extensions():  # Gets extension list dynamically
     extensions = []
@@ -146,6 +143,15 @@ async def on_ready():
     await channel.send(embed=embed)
     with open("commandcheck.txt", "w") as f:
         f.write("OFF")
+    try:
+        with open("commandcheck.txt", "r") as f:
+            first_line = f.readline()
+        if first_line == "OFF":
+            client.loop.create_task(mainTask2(client))
+            with open("taskcheck.txt", "w") as f:
+                f.write("ON")
+    except:
+        logger.critical("ERROR: Unable to start task!")
 
 keep_alive.keep_alive()  # webserver setup, used w/ REPL
 

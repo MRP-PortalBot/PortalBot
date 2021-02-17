@@ -335,7 +335,8 @@ class DailyCMD(commands.Cog):
     @commands.command()
     async def startTask(self, ctx):
         self.bot.loop.create_task(mainTask(self))
-        #await ctx.send("Initiated Task")
+        await ctx.send("Done!")
+        
 
 def setup(bot):
     bot.add_cog(DailyCMD(bot))
