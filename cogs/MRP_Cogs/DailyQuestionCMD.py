@@ -30,9 +30,9 @@ async def getQuestion(ctx):
     try:
         database.db.connect(reuse_if_open=True)
         try:
-            q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
-            if q.usage == "False":
-                q.usage = "True"
+            q: database.Question = database.Question.select().where(database.Question.id == Rnum, database.Question.usage == "FALSE" or database.Question.usage == False).get()
+            if q.usage == False or q.usage == "FALSE":
+                q.usage = True
                 q.save()
                 embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
                 await ctx.send(embed=embed)
@@ -45,6 +45,30 @@ async def getQuestion(ctx):
     finally:
         database.db.close()
 
+async def mainTask(self):
+    while True:
+        d = datetime.utcnow()
+        if d.hour == 17 or d.hour == "17":
+            guild = self.bot.get_guild(config['ServerID'])
+            channel = guild.get_channel(config['GeneralChannel'])
+            limit = int(database.Question.select().count())
+            print(limit)
+            Rnum = random.randint(1 , limit)
+            try:
+                database.db.connect(reuse_if_open=True)
+                try:
+                    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+                    embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+                    await channel.send(embed=embed)
+        
+                finally:
+                    database.db.close()
+
+            finally:
+                database.db.close()
+        asyncio.sleep(3600)
+
+
 
 
 class DailyCMD(commands.Cog):
@@ -56,29 +80,7 @@ class DailyCMD(commands.Cog):
         for i, t in enumerate(database.Question.select()):
             if i+1 == index:
                 return t
-
-    @tasks.loop(hours = 1.0)
-    async def dailyq_loop(self):
-        d = datetime.datetime.utcnow()
-        print (d.hour)
-        if d.hour == 17:
-            guild = self.bot.get_guild(448488274562908170)
-            channel = guild.get_channel(777987716008509490)
-            limit = int(database.Question.select().count())
-            print(limit)
-            Rnum = random.randint(1 , limit)
-            try:
-                database.db.connect(reuse_if_open=True)
-                try:
-                    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
-                    embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-                    await channel.send(embed=embed)
-                except database.DoesNotExist:
-                    await channel.send("Tag not found, please try again.")
-            finally:
-                database.db.close()
-            
-
+                    
 
     # Waits for either the approval or denial on a question suggestion
     @commands.Cog.listener()
@@ -251,13 +253,11 @@ class DailyCMD(commands.Cog):
         q: database.Question = database.Question.select().where(database.Question.usage == True).count()
         print(f"{str(limit)}: limit\n{str(q)}: true count")
         if limit == q:
-            query = database.Question.select().where(database.Question.usage == "True")
+            query = database.Question.select().where(database.Question.usage == True)
             for question in query:
-                question.usage = "False"
+                question.usage = False
                 question.save()
-        x = False
-        while x == False:
-            x = await getQuestion(ctx)
+        await getQuestion(ctx)
 
     @commands.command(aliases=['mq'])
     @commands.has_any_role('Bot Manager', 'Moderator')
@@ -332,6 +332,11 @@ class DailyCMD(commands.Cog):
         embed = discord.Embed(title="Tag List")
         embed = await common.paginate_embed(self.bot, ctx, embed, populate_embed, get_end(10), page=page)
 
+    @commands.command()
+    async def startTask(self, ctx):
+        self.bot.loop.create_task(mainTask(self))
+        await ctx.send("Done!")
+        
 
 def setup(bot):
     bot.add_cog(DailyCMD(bot))

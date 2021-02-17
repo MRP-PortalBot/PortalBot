@@ -7,6 +7,7 @@ import asyncio
 from discord import Embed
 import requests
 from discord import File
+from core import database, common
 
 from PIL import Image, ImageDraw, ImageFont
 import io
@@ -67,6 +68,9 @@ class ProfileCMD(commands.Cog):
     @commands.group(invoke_without_command=True)
     async def profile(self, ctx, *, profile: discord.Member = None):
         print(profile)
+        databaseData = [database.PortalbotProfile.DiscordName,database.PortalbotProfile.DiscordLongID,database.PortalbotProfile.Timezone,database.PortalbotProfile.XBOX,database.PortalbotProfile.Playstation,database.PortalbotProfile.Switch,database.PortalbotProfile.PokemonGo,database.PortalbotProfile.Chessdotcom,database.PortalbotProfile.entryid]
+        blacklistdata = [database.MRP_Blacklist_Data.DiscUsername,database.MRP_Blacklist_Data.DiscID]
+        ResultsGiven = False
         author = ctx.message.author
         role = discord.utils.get(ctx.guild.roles, name="Realm OP")
         channel = ctx.message.channel
@@ -90,61 +94,49 @@ class ProfileCMD(commands.Cog):
             title=anick + "'s Profile", description="=======================", color=0x18c927)
         username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
 
-        try:
-            usercell = profilesheet.find(username_re, in_column=1)
-        except:
-            print("User Not Found")
-            noprofileembed = discord.Embed(
-            title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
-            await ctx.send(embed=noprofileembed) 
-        else:
-            print("User Found!")
-
-            userrow = usercell.row
-            discordname = profilesheet.cell(userrow, discordcol).value
-            longid = profilesheet.cell(userrow, longidcol).value
-            tzone = profilesheet.cell(userrow, tzonecol).value
-            xbox = profilesheet.cell(userrow, xboxcol).value
-            psnid = profilesheet.cell(userrow, psnidcol).value
-            switch = profilesheet.cell(userrow, switchcol).value
-            pokemongo = profilesheet.cell(userrow, pokemongocol).value
-            chessdotcom = profilesheet.cell(userrow, chesscol).value
-            
-            profileembed.set_thumbnail(url=pfp)
-            profileembed.add_field(name="Discord", value=discordname, inline=True)
-            profileembed.add_field(name="LongID", value=longid, inline=True)
-            if tzone != "":
-                profileembed.add_field(name="Timezone", value=tzone, inline=True)
-            if xbox != "":
-                profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
-            if psnid != "":
-                profileembed.add_field(name="Playstation ID", value=psnid, inline=False) 
-            if switch != "":
-                profileembed.add_field(name="Switch Friend Code", value=switch, inline=False) 
-            if pokemongo != "":
-                profileembed.add_field(name="Pokemon Go ID", value=pokemongo, inline=False) 
-            if chessdotcom != "":
-                profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
-            if username == ctx.message.author:
-                profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
-            else:
-                profileembed.set_footer(text="Requested by " + author.name)
-            if role in author.roles: 
-                try:
-                    longid = sheet.find(longid, in_column=2)
-                except:
-                    try:
-                        discordname = sheet.find(username_re, in_column=1)
-                    except:
-                        await ctx.send(embed=profileembed)
+        for data in databaseData:
+            query = (database.PortalbotProfile.select().where(data.contains(longid)))
+            if query.exists():
+                for p in query:
+                    discordname = p.DiscordName
+                    longid = p.DiscordLongID
+                    tzone = p.Timezone
+                    xbox = p.XBOX
+                    psnid = p.Playstation
+                    switch = p.Switch
+                    pokemongo = p.PokemonGo
+                    chessdotcom = p.Chessdotcom
+                    
+                    profileembed.set_thumbnail(url=pfp)
+                    profileembed.add_field(name="Discord", value=discordname, inline=True)
+                    profileembed.add_field(name="LongID", value=longid, inline=True)
+                    if tzone != None:
+                        profileembed.add_field(name="Timezone", value=tzone, inline=True)
+                    if xbox != None:
+                        profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
+                    if psnid != None:
+                        profileembed.add_field(name="Playstation ID", value=psnid, inline=False) 
+                    if switch != None:
+                        profileembed.add_field(name="Switch Friend Code", value=switch, inline=False) 
+                    if pokemongo != None:
+                        profileembed.add_field(name="Pokemon Go ID", value=pokemongo, inline=False) 
+                    if chessdotcom != None:
+                        profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
+                    if username == ctx.message.author:
+                        profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
                     else:
-                        profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
+                        profileembed.set_footer(text="Requested by " + author.name)
+                    if role in author.roles: 
+                        for data in blacklistdata:
+                            qID = (database.MRP_Blacklist_Data.select().where(data.contains(longid)))
+                            qNAME = (database.MRP_Blacklist_Data.select().where(data.contains(discordname)))
+                            if qID.exists() or qNAME.exists():
+                                profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
+                                await ctx.send(embed=profileembed)
+                            else:
+                                await ctx.send(embed=profileembed)
+                    else:
                         await ctx.send(embed=profileembed)
-                else:
-                    profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
-                    await ctx.send(embed=profileembed)
-            else:
-                await ctx.send(embed=profileembed)
 
 
     @profile.error

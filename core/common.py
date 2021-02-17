@@ -5,6 +5,9 @@ import discord
 import json
 import os
 import requests
+import random
+from core import database
+from datetime import datetime
 
 def load_config() -> Tuple[dict, Path]:
     """Load data from the botconfig.json.\n
@@ -82,3 +85,29 @@ def solve(s):
     for i in range(len(a)):
         a[i] = a[i].capitalize()
     return ' '.join(a)
+
+
+config, _ = load_config()
+
+async def mainTask2(client):
+    while True:
+        d = datetime.utcnow()
+        if d.hour == 17 or d.hour == "17":
+            guild = client.get_guild(config['ServerID'])
+            channel = client.get_channel(config['GeneralChannel'])
+            limit = int(database.Question.select().count())
+            print(limit)
+            Rnum = random.randint(1 , limit)
+            try:
+                database.db.connect(reuse_if_open=True)
+                try:
+                    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+                    embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+                    await channel.send(embed=embed)
+        
+                finally:
+                    database.db.close()
+
+            finally:
+                database.db.close()
+        asyncio.sleep(3600)

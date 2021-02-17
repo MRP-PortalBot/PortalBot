@@ -18,7 +18,7 @@ import sys
 import aiohttp
 import xbox
 import traceback
-
+from core.common import mainTask2
 
 '''
 - Incase REPL has problems finding packages: (Manual PIP Install)
@@ -52,7 +52,7 @@ intents.presences = True
 
 #Defining client and SlashCommands
 client = commands.Bot(command_prefix=config['prefix'], intents=intents)
-client.slash = SlashCommand(client, auto_register=True)  #TODO: Fix Slash Commands
+client.slash = SlashCommand(client, sync_commands=True)  #TODO: Fix Slash Commands
 client.remove_command("help")
 
 #Sentry Panel Stuff - 
@@ -80,6 +80,13 @@ try:
     xbox.client.authenticate(login=os.getenv("XBOXU"), password=os.getenv("XBOXP"))
 except:
     logger.critical("ERROR: Unable to authenticate with XBOX!")
+
+
+
+
+with open("taskcheck.txt", "w") as f:
+    f.write("OFF")
+
 
 def get_extensions():  # Gets extension list dynamically
     extensions = []
@@ -136,6 +143,15 @@ async def on_ready():
     await channel.send(embed=embed)
     with open("commandcheck.txt", "w") as f:
         f.write("OFF")
+    try:
+        with open("commandcheck.txt", "r") as f:
+            first_line = f.readline()
+        if first_line == "OFF":
+            client.loop.create_task(mainTask2(client))
+            with open("taskcheck.txt", "w") as f:
+                f.write("ON")
+    except:
+        logger.critical("ERROR: Unable to start task!")
 
 keep_alive.keep_alive()  # webserver setup, used w/ REPL
 
