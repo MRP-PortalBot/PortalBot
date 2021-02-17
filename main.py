@@ -81,11 +81,13 @@ try:
 except:
     logger.critical("ERROR: Unable to authenticate with XBOX!")
 
-if client.loop.is_running(mainTask2) == True:
-    print("True")
+if client.loop.is_running() == True:
+    confirmLoop = True
+    print(confirmLoop)
 
 try:
-    client.loop.create_task(mainTask2(client))
+    if confirmLoop == True:
+        client.loop.create_task(mainTask2(client))
 except:
     logger.critical("ERROR: Unable to start task!")
 
