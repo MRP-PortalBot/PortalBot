@@ -137,6 +137,11 @@ class ProfileCMD(commands.Cog):
                             await ctx.send(embed=profileembed)
                     else:
                         await ctx.send(embed=profileembed)
+            else:
+                noprofileembed = discord.Embed(
+                title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
+                await ctx.send(embed=noprofileembed)
+
 
 
     @profile.error
