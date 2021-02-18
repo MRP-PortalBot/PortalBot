@@ -129,7 +129,8 @@ class ProfileCMD(commands.Cog):
                     if role in author.roles: 
                         qID = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID.contains(longid)))
                         qNAME = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(discordname)))
-                        if qID.exists() or qNAME.exists():
+                        qNAME2 = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(aname)))
+                        if qID.exists() or qNAME.exists() or qNAME2.exists():
                             profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
                             await ctx.send(embed=profileembed)
                         else:
