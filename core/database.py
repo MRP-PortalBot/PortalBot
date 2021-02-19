@@ -14,7 +14,7 @@ DB_password = os.getenv("DB_password")
 DB_Database = os.getenv("DB_Database")
 
 #db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
-db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=DB_Port)
+db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
 logger = logging.getLogger(__name__)
 
 def iter_table(model_dict):
