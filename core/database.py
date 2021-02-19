@@ -1,12 +1,20 @@
 import logging
-
+import os
+from peewee import *
 from discord.enums import ExpireBehavior
 from peewee import AutoField, ForeignKeyField, Model, IntegerField, PrimaryKeyField, TextField, SqliteDatabase, DoesNotExist, DateTimeField, UUIDField, IntegrityError
 from playhouse.shortcuts import model_to_dict, dict_to_model  # these can be used to convert an item to or from json http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#model_to_dict
 from playhouse.sqlite_ext import RowIDField
 from datetime import datetime
 
-db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
+DB_IP = os.getenv("DB_IP")
+DB_Port = os.getenv("DB_Port")
+DB_user = os.getenv("DB_user")
+DB_password = os.getenv("DB_password")
+DB_Database = os.getenv("DB_Database")
+
+#db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
+db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
 logger = logging.getLogger(__name__)
 
 def iter_table(model_dict):
