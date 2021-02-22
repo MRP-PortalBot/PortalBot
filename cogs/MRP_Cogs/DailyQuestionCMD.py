@@ -28,7 +28,7 @@ async def getQuestion(ctx):
     print(limit)
     Rnum = random.randint(1 , limit)
     database.db.connect(reuse_if_open=True)
-    q: database.Question = database.Question.select().where(database.Question.id == Rnum, database.Question.usage == "False").get()
+    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
     if q.usage == False or q.usage == "False":
         q.usage = True
         q.save()
