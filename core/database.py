@@ -74,13 +74,15 @@ class RealmProfile(BaseModel):
     """Stores Realm Profile Data here"""
     entryid = AutoField()
     RealmName = TextField()
+    RealmName = TextField()
     RealmEmoji = TextField()
     RealmLongDesc = TextField()
     RealmShortDesc = TextField()
+    Realmaddons = TextField()
     WorldAge = TextField()
     PVP = TextField()
     OnePlayerSleep = TextField()
-    Factions = TextField()
+    RealmStyle = TextField()
     Gamemode = TextField()
 
 
