@@ -29,7 +29,7 @@ async def getQuestion(ctx):
     Rnum = random.randint(1 , limit)
     database.db.connect(reuse_if_open=True)
     q: database.Question = database.Question.select().where(database.Question.id == Rnum, database.Question.usage == "False").get()
-    if q.usage == False or q.usage == "FALSE":
+    if q.usage == False or q.usage == "False":
         q.usage = True
         q.save()
         embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
