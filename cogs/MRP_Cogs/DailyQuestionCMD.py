@@ -25,7 +25,7 @@ def LineCount():
 
 async def getQuestion(ctx):
     limit = int(database.Question.select().count())
-    print(limit + "| getQuestion")
+    print(str(limit) + "| getQuestion")
     Rnum = random.randint(1 , limit)
     print(strr(Rnum))
     database.db.connect(reuse_if_open=True)
