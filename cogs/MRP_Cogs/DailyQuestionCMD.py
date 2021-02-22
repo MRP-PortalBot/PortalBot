@@ -27,7 +27,7 @@ async def getQuestion(ctx):
     limit = int(database.Question.select().count())
     print(str(limit) + "| getQuestion")
     Rnum = random.randint(1 , limit)
-    print(strr(Rnum))
+    print(str(Rnum))
     database.db.connect(reuse_if_open=True)
     q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
     print(q.id)
