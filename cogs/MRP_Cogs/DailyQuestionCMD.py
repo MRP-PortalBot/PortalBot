@@ -25,22 +25,19 @@ def LineCount():
 
 async def getQuestion(ctx):
     limit = int(database.Question.select().count())
-    print(limit)
+    print(limit + "| getQuestion")
     Rnum = random.randint(1 , limit)
+    print(strr(Rnum))
     database.db.connect(reuse_if_open=True)
-    qtrue: database.Question = database.Question.select().where(database.Question.usage == "False").get()
-    if qtrue == False or qtrue == "False":
-        q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
-        print(q.id)
-        if q.usage == False or q.usage == "False":
-            q.usage = True
-            q.save()
-            embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-            embed.set_footer(text = f"Question ID: {q.id}")
-            await ctx.send(embed=embed)
-            return True
-        else:
-            return False
+    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+    print(q.id)
+    if q.usage == False or q.usage == "False":
+        q.usage = True
+        q.save()
+        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+        embed.set_footer(text = f"Question ID: {q.id}")
+        await ctx.send(embed=embed)
+        return True
     else:
         return False
        
