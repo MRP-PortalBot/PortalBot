@@ -72,8 +72,32 @@ class CommandErrorHandler(commands.Cog):
 
         elif isinstance(error, commands.CommandNotFound):
             config, _ = core.common.load_config()
-            await ctx.send(f"No such command! Please contact a Bot Manager if you are having trouble! \nPlease also refer to the help command! `{config['prefix']}help`")
+            em = discord.Embed(title = "Invalid Command!", description = f"This command", color = 0xf5160a)
+            em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
+            await ctx.send(embed = em)
             print("Ignored error: " + str(ctx.command))
+
+        elif isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.TooManyArguments):
+            em = discord.Embed(title = "Missing/Extra Required Arguments Passed In!", description = f"You have missed one or several arguments in this command", color = 0xf5160a)
+            em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
+            await ctx.send(embed = em)
+            return
+
+        elif isinstance(error, commands.BadArgument):
+            em = discord.Embed(title = "Bad Argument!", description = f"Unable to parse arguments, check what arguments you provided.", color = 0xf5160a)
+            em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
+            await ctx.send(embed = em)
+            return
+
+        elif isinstance(error, commands.MissingRole):
+            em = discord.Embed(title = "Unauthorized Access!", description = f"Unable to parse arguments, check what arguments you provided.", color = 0xf5160a)
+            em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
+            await ctx.send(embed = em)
+            return
+
+
+
+
         else:
             if len(exception_msg)+160 > 1024:
                 error_file = Path("error.txt")

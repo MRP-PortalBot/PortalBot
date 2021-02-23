@@ -111,3 +111,9 @@ async def mainTask2(client):
             finally:
                 database.db.close()
         await asyncio.sleep(3600)
+
+
+async def missingArguments(ctx, example):
+    em = discord.Embed(title = "Missing Required Arguments!", description = f"You have missed one or several arguments in this command\n**Example Usage:** `>{example}`", color = 0xf5160a)
+    await ctx.send(embed = em)
+    return
