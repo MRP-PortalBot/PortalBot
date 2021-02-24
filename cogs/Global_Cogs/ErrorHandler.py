@@ -89,8 +89,8 @@ class CommandErrorHandler(commands.Cog):
             await ctx.send(embed = em)
             return
 
-        elif isinstance(error, commands.MissingRole):
-            em = discord.Embed(title = "Unauthorized Access!", description = f"Unable to parse arguments, check what arguments you provided.", color = 0xf5160a)
+        elif isinstance(error, commands.MissingRole) or isinstance(error, commands.MissingPermissions):
+            em = discord.Embed(title = "Unauthorized Access!", description = f"You are not allowed to run this command!", color = 0xf5160a)
             em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
             await ctx.send(embed = em)
             return
