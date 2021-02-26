@@ -165,7 +165,8 @@ class Events(commands.Cog):
                 if RealmOP not in message.author.roles or Bots not in message.author.roles or Moderator not in message.author.roles or Admin not in message.author.roles:
                     await message.delete()
                     embed = discord.Embed(title = "⚠️ Warning!", description = "Advertisement Is Not Allowed!", color = 0xf05c07)
-                    embed.add_field(name = f"WARNING:", value = f"{message.author.mention}: \nPlease DO NOT send server links here! If you would like to advertise your realm, please apply for one using the >applyrealm command!\nPlease view the rules here! <#588102983011794980>")
+                    embed.add_field(name = f"WARNING:", value = f"{message.author.mention}: \n**Please DO NOT send server links here!** *If you would like to advertise your realm, please apply for one using the >applyrealm command!*")
+                    embed.set_footer(text = "Please review the rules again!")
                     await message.channel.send(embed = embed)
 
                     channel = self.bot.get_channel(config["ModReport"])

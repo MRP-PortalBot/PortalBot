@@ -73,24 +73,28 @@ class CommandErrorHandler(commands.Cog):
         elif isinstance(error, commands.CommandNotFound):
             config, _ = core.common.load_config()
             em = discord.Embed(title = "Invalid Command!", description = f"This command", color = 0xf5160a)
+            em.set_thumbnail(url = "https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/sign-error-icon.png")
             em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
             await ctx.send(embed = em)
             print("Ignored error: " + str(ctx.command))
 
         elif isinstance(error, commands.MissingRequiredArgument) or isinstance(error, commands.TooManyArguments):
             em = discord.Embed(title = "Missing/Extra Required Arguments Passed In!", description = f"You have missed one or several arguments in this command", color = 0xf5160a)
+            em.set_thumbnail(url = "https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/sign-error-icon.png")
             em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
             await ctx.send(embed = em)
             return
 
         elif isinstance(error, commands.BadArgument):
             em = discord.Embed(title = "Bad Argument!", description = f"Unable to parse arguments, check what arguments you provided.", color = 0xf5160a)
+            em.set_thumbnail(url = "https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/sign-error-icon.png")
             em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
             await ctx.send(embed = em)
             return
 
         elif isinstance(error, commands.MissingRole) or isinstance(error, commands.MissingPermissions):
             em = discord.Embed(title = "Unauthorized Access!", description = f"You are not allowed to run this command!", color = 0xf5160a)
+            em.set_thumbnail(url = "https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/sign-error-icon.png")
             em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
             await ctx.send(embed = em)
             return
