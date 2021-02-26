@@ -72,7 +72,7 @@ class CommandErrorHandler(commands.Cog):
 
         elif isinstance(error, commands.CommandNotFound):
             config, _ = core.common.load_config()
-            em = discord.Embed(title = "Invalid Command!", description = f"This command", color = 0xf5160a)
+            em = discord.Embed(title = "Invalid Command!", description = f"This command doesn't exist!", color = 0xf5160a)
             em.set_thumbnail(url = "https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/sign-error-icon.png")
             em.set_footer(text = "Consult the Help Command if you are having trouble or call over a Bot Manager!")
             await ctx.send(embed = em)
