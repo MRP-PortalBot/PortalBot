@@ -50,6 +50,9 @@ pokemongocol = 7
 chesscol = 8
 
 IPlinks = ["turtletest.com","grabify.link", "lovebird.gutu", "dateing.club", 'otherhalf.life','shrekis.life','headshot.monster','gaming-at-my.best','progaming.monster','yourmy.monster','screenshare.host','imageshare.best','screenshot.best','gamingfun.me','catsnthing.com','mypic.icu','catsnthings.fun','curiouscat.club','joinmy.site','fortnitechat.site','fortnight.space','freegiftcards.co','stopify.co','leancoding.co','bit.ly','shorte.st','adf.lv','bc.vc','bit.do','soo.gd','7.ly','5.gp','tiny.cc','ouo.io','zzb.bz','adfoc.us','my.su','goo.gl']
+discordLink = ['discord.gg']
+
+
 # -----------------------------------------------------
 
 class Events(commands.Cog):
@@ -149,6 +152,25 @@ class Events(commands.Cog):
                 channel = self.bot.get_channel(config["ModReport"])
                 embed2 = discord.Embed(title = "Suspicious Link Detected", description = f"Information:\nAuthor: {message.author.mention}\nChannel: {message.channel.mention}\nLink: {msg}" ,color =0xf05c07)
                 await channel.send(embed =embed2)
+            elif discordLink in message_content:
+                guild = self.bot.get_guild(config['ServerID'])
+                RealmOP = discord.utils.get(guild.roles, name='Realm OP')
+                Bots = discord.utils.get(guild.roles, name='Bots')
+                Moderator = discord.utils.get(guild.roles, name='Moderator')
+                Admin = discord.utils.get(guild.roles, name='Admin')
+
+                if RealmOP not in message.author.roles or Bots not in message.author.roles or Moderator not in message.author.roles or Admin not in message.author.roles:
+                    await message.delete()
+                    embed = discord.Embed(title = "⚠️ Warning!", description = "Advertisement Is Not Allowed!", color = 0xf05c07)
+                    embed.add_field(name = f"WARNING:", value = f"{message.author.mention}: \nPlease DO NOT send server links here! If you would like to advertise your realm, please apply for one using the >applyrealm command!\nPlease view the rules here! <#588102983011794980>")
+                    await message.channel.send(embed = embed)
+
+                    channel = self.bot.get_channel(config["ModReport"])
+                    embed2 = discord.Embed(title = "Discord Server Link Detected", description = f"Information:\nAuthor: {message.author.mention}\nChannel: {message.channel.mention}\nLink: {msg}" ,color =0xf05c07)
+                    await channel.send(embed =embed2)
+                else:
+                    print("Ignored Server Invite")
+
 
 
         #await self.bot.process_commands(message)
