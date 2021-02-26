@@ -87,5 +87,5 @@ class RealmProfile(BaseModel):
 
 
 
-tables = {"tag": Tag, "questions": Question, "blacklist": MRP_Blacklist_Data, "profile": PortalbotProfile}
+tables = {"tag": Tag, "questions": Question, "blacklist": MRP_Blacklist_Data, "profile": PortalbotProfile, "realmprofile": RealmProfile}
 iter_table(tables)
