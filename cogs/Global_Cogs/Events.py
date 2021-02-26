@@ -152,7 +152,10 @@ class Events(commands.Cog):
                 channel = self.bot.get_channel(config["ModReport"])
                 embed2 = discord.Embed(title = "Suspicious Link Detected", description = f"Information:\nAuthor: {message.author.mention}\nChannel: {message.channel.mention}\nLink: {msg}" ,color =0xf05c07)
                 await channel.send(embed =embed2)
-            elif discordLink in message_content:
+
+
+        for serverLink in discordLink:
+            if serverLink in message_content:
                 guild = self.bot.get_guild(config['ServerID'])
                 RealmOP = discord.utils.get(guild.roles, name='Realm OP')
                 Bots = discord.utils.get(guild.roles, name='Bots')
