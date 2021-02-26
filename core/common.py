@@ -102,8 +102,14 @@ async def mainTask2(client):
                 database.db.connect(reuse_if_open=True)
                 try:
                     q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
-                    embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-                    await channel.send(embed=embed)
+                    if q.usage == False or q.usage == "False" or q.usage == "FALSE":
+                        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+                        await channel.send(embed=embed)
+                        if config['BotType'] == "STABLE":
+                            q.usage = "True"
+                            q.save()
+                    else:
+                        return
         
                 finally:
                     database.db.close()

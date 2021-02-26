@@ -145,7 +145,7 @@ async def on_ready():
     with open("commandcheck.txt", "w") as f:
         f.write("OFF")
     try:
-        with open("commandcheck.txt", "r") as f:
+        with open("taskcheck.txt", "r") as f:
             first_line = f.readline()
         if first_line == "OFF":
             client.loop.create_task(mainTask2(client))
