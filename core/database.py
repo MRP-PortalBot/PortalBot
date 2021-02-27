@@ -33,7 +33,7 @@ class BaseModel(Model):
 
 class Tag(BaseModel):
     """Stores our tags accessed by the tag command."""
-    id = PrimaryKeyField()
+    id = AutoField()
     tag_name = TextField(unique=True)
     embed_title = TextField()
     text = TextField()
@@ -42,7 +42,7 @@ class Question(BaseModel):
     """Stores Questions for DailyQ here"""
     id = AutoField()
     question = TextField()
-    usage = TextField(default= False)
+    usage = TextField(default=False)
 
 class MRP_Blacklist_Data(BaseModel):
     """Stores Blacklist Data here"""
@@ -70,7 +70,22 @@ class PortalbotProfile(BaseModel):
     PokemonGo = TextField()
     Chessdotcom = TextField()
 
+class RealmProfile(BaseModel):
+    """Stores Realm Profile Data here"""
+    entryid = AutoField()
+    RealmName = TextField()
+    RealmName = TextField()
+    RealmEmoji = TextField()
+    RealmLongDesc = TextField()
+    RealmShortDesc = TextField()
+    Realmaddons = TextField()
+    WorldAge = TextField()
+    PVP = TextField()
+    OnePlayerSleep = TextField()
+    RealmStyle = TextField()
+    Gamemode = TextField()
 
 
-tables = {"tag": Tag, "questions": Question, "blacklist": MRP_Blacklist_Data, "profile": PortalbotProfile}
+
+tables = {"tag": Tag, "questions": Question, "blacklist": MRP_Blacklist_Data, "profile": PortalbotProfile, "realmprofile": RealmProfile}
 iter_table(tables)

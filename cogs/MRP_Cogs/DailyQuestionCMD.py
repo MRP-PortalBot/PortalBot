@@ -25,25 +25,22 @@ def LineCount():
 
 async def getQuestion(ctx):
     limit = int(database.Question.select().count())
-    print(limit)
+    print(str(limit) + "| getQuestion")
     Rnum = random.randint(1 , limit)
-    try:
-        database.db.connect(reuse_if_open=True)
-        try:
-            q: database.Question = database.Question.select().where(database.Question.id == Rnum, database.Question.usage == "FALSE" or database.Question.usage == False).get()
-            if q.usage == False or q.usage == "FALSE":
-                q.usage = True
-                q.save()
-                embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-                await ctx.send(embed=embed)
-                return True
-            else:
-                return False
-
-        except database.DoesNotExist:
-            await ctx.send("Tag not found, please try again.")
-    finally:
-        database.db.close()
+    print(str(Rnum))
+    database.db.connect(reuse_if_open=True)
+    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+    print(q.id)
+    if q.usage == False or q.usage == "False":
+        q.usage = True
+        q.save()
+        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+        embed.set_footer(text = f"Question ID: {q.id}")
+        await ctx.send(embed=embed)
+        return True
+    else:
+        return False
+       
 
 async def mainTask(self):
     while True:
@@ -95,7 +92,7 @@ class DailyCMD(commands.Cog):
                 if str(payload.emoji) == "✅":
                     try:
                         database.db.connect(reuse_if_open=True)
-                        q: database.Question = database.Question.create(question=question)
+                        q: database.Question = database.Question.create(question=question, usage = False)
                         q.save()
                     except database.IntegrityError:
                         await channel.send("ERROR: That question is already taken!")
@@ -141,42 +138,6 @@ class DailyCMD(commands.Cog):
                 await ctx.send(embed=em)
                 msg = file.read(1024).strip()
 
-    # Sends a random question.
-    @commands.command()
-    async def olddailyq(self, ctx):
-        await ctx.channel.purge(limit=1)
-        author = ctx.message.author
-        file = open("DailyQuestions.txt", "r")
-        line_count = 0
-        for line in file:
-            if line != "\n":
-                line_count += 1
-        lc = line_count + 1
-        file.close()
-        A = random.randint(0, int(lc))
-
-        Q = None
-        fullLine = None
-        with open("DailyQuestions.txt", "r") as myFile:
-            for num, line in enumerate(myFile, 1):
-                if num == A:
-                    Numberl, Q = line.split(" - ")
-                    fullLine = line
-
-        with open("DailyQuestions.txt", "r") as f:
-            lines = f.readlines()
-        with open("DailyQuestions.txt", "w") as f:
-            for line in lines:
-                if line.strip("\n") != fullLine:
-                    f.write(line)
-
-        Dailyq = discord.Embed(
-            title="❓ QUESTION OF THE DAY ❓", description="**" + Q + "**", color=0xb10d9f)
-        Dailyq.set_footer(
-            text="Got a question? Use the suggest command! \n*Usage:* >suggestq (Your Question Here)")
-        await ctx.send(embed=Dailyq)
-
-
     # Suggests a question and sends it to the moderators.
     @commands.command()
     async def suggestq(self, ctx, *, question):
@@ -201,9 +162,11 @@ class DailyCMD(commands.Cog):
             try:
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
                 if str(reaction.emoji) == "❌":
+                    await message.delete()
                     await ctx.send("Okay, I didn't send your suggestion...")
                     return
                 else:
+                    await message.delete()
                     msga = await ctx.send("Standby, sending your suggestion. ")
                     channels = await self.bot.fetch_channel(config['questionSuggestChannel'])
                     embed = discord.Embed(title="Daily Question Suggestion", description=str(

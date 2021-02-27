@@ -19,6 +19,7 @@ import aiohttp
 import xbox
 import traceback
 from core.common import mainTask2
+from core.common import missingArguments
 
 '''
 - Incase REPL has problems finding packages: (Manual PIP Install)
@@ -144,7 +145,7 @@ async def on_ready():
     with open("commandcheck.txt", "w") as f:
         f.write("OFF")
     try:
-        with open("commandcheck.txt", "r") as f:
+        with open("taskcheck.txt", "r") as f:
             first_line = f.readline()
         if first_line == "OFF":
             client.loop.create_task(mainTask2(client))
@@ -168,7 +169,9 @@ async def cogs(ctx):
 
 @cogs.command()
 @commands.has_role('Bot Manager')
-async def unload(ctx, ext):
+async def unload(ctx, ext = None):
+    if ext == None:
+       await missingArguments(ctx, "cogs unload BlacklistCMD")
     if "cogs." not in ext:
         ext = f"cogs.{ext}"
     if ext in get_extensions():
@@ -185,6 +188,8 @@ async def unload(ctx, ext):
 @cogs.command()
 @commands.has_role('Bot Manager')
 async def load(ctx, ext):
+    if ext == None:
+        await missingArguments(ctx, "cogs load BlacklistCMD")
     if "cogs." not in ext:
         ext = f"cogs.{ext}"
     if ext in get_extensions():
@@ -200,7 +205,9 @@ async def load(ctx, ext):
 
 @cogs.command(aliases=['restart'])
 @commands.has_role('Bot Manager')
-async def reload(ctx, ext):
+async def reload(ctx, ext = None):
+    if ext == None:
+        await missingArguments(ctx, "cogs reload all")
     with open("commandcheck.txt", "w") as f:
         f.write("ON")
     if ext == "all":
@@ -322,7 +329,9 @@ async def gitpull(ctx, mode = "-a"):
 
 @client.command()
 @commands.has_role('Bot Manager')
-async def shell(ctx, * , command):
+async def shell(ctx, * , command = None):
+    if command == None:
+        await missingArguments(ctx, "shell echo 'hello!'")
     timestamp = datetime.now()
     author = ctx.message.author
     guild = ctx.message.guild
