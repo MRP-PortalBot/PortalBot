@@ -279,10 +279,6 @@ class BlacklistCMD(commands.Cog):
             await ctx.send(embed = e)
                 
     
-    @Bsearch.error
-    async def Bsearch_error(self, ctx, error):
-        if isinstance(error, commands.MissingRole):
-            await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
 
 
     @commands.command()
