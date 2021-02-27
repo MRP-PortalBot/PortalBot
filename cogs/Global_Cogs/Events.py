@@ -152,7 +152,7 @@ class Events(commands.Cog):
                 embed.add_field(name = f"WARNING:", value = f"{message.author.mention}: \nPlease DO NOT Send IP Grabbers!")
                 await message.channel.send(embed = embed)
                 channel = self.bot.get_channel(config["ModReport"])
-                embed2 = discord.Embed(title = "Suspicious Link Detected", description = f"Information:\nAuthor: {message.author.mention}\nChannel: {message.channel.mention}\nLink: {msg}" ,color =0xf05c07)
+                embed2 = discord.Embed(title = "Suspicious Link Detected", description = f"**Information:**\n\n**Author:** {message.author.mention}\**Channel:** {message.channel.mention}\n**Link:** {msg}" ,color =0xf05c07)
                 await channel.send(embed =embed2)
 
 
@@ -172,7 +172,7 @@ class Events(commands.Cog):
                     await message.channel.send(embed = embed)
 
                     channel = self.bot.get_channel(config["ModReport"])
-                    embed2 = discord.Embed(title = "Discord Server Link Detected", description = f"Information:\nAuthor: {message.author.mention}\nChannel: {message.channel.mention}\nLink: {msg}" ,color =0xf05c07)
+                    embed2 = discord.Embed(title = "Discord Server Link Detected", description = f"**Information:**\n\n**Author:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Link:** {msg}" ,color =0xf05c07)
                     await channel.send(embed =embed2)
                 else:
                     print("Ignored Server Invite")
