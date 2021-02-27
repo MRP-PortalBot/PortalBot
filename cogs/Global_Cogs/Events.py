@@ -163,6 +163,11 @@ class Events(commands.Cog):
                 Bots = discord.utils.get(guild.roles, name='Bots')
                 Moderator = discord.utils.get(guild.roles, name='Moderator')
                 Admin = discord.utils.get(guild.roles, name='Admin')
+                print(guild.roles)
+                print(RealmOP)
+                print(Bots)
+                print(Moderator)
+                print(Admin)
 
                 if RealmOP not in message.author.roles or Bots not in message.author.roles or Moderator not in message.author.roles or Admin not in message.author.roles:
                     await message.delete()
