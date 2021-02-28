@@ -157,13 +157,16 @@ class Events(commands.Cog):
 
 
         
-        if re.match(".*discord.gg.*|*turtletest2.com*", message.content):
+        if message.content.lower() == 'discord.gg':
             RealmOP = discord.utils.get(message.guild.roles, name='Realm OP')
             Bots = discord.utils.get(message.guild.roles, name='Bots')
             Moderator = discord.utils.get(message.guild.roles, name='Moderator')
             Admin = discord.utils.get(message.guild.roles, name='Admin')
 
-            if RealmOP or Bots or Moderator or Admin in message.author.roles:
+            if RealmOP in message.author.roles or Bots in message.author.roles or Moderator in message.author.roles or Admin in message.author.roles:
+                print("Ignored Server Invite")
+                return
+            else:
                 await message.delete()
                 embed = discord.Embed(title = "⚠️ Warning!", description = "Advertisement Is Not Allowed!", color = 0xf05c07)
                 embed.add_field(name = f"WARNING:", value = f"{message.author.mention}: \n**Please DO NOT send server links here!** \n*If you would like to advertise your realm, please apply for one using the >applyrealm command!*")
@@ -173,8 +176,6 @@ class Events(commands.Cog):
                 channel = self.bot.get_channel(config["ModReport"])
                 embed2 = discord.Embed(title = "Discord Server Link Detected", description = f"**Information:**\n\n**Author:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Link:** {msg}" ,color =0xf05c07)
                 await channel.send(embed =embed2)
-            else:
-                print("Ignored Server Invite")
 
 
 
