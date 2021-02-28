@@ -156,31 +156,25 @@ class Events(commands.Cog):
                 await channel.send(embed =embed2)
 
 
-        for serverLink in discordLink:
-            if serverLink in message_content:
-                guild = self.bot.get_guild(config['ServerID'])
-                RealmOP = discord.utils.get(guild.roles, name='Realm OP')
-                Bots = discord.utils.get(guild.roles, name='Bots')
-                Moderator = discord.utils.get(guild.roles, name='Moderator')
-                Admin = discord.utils.get(guild.roles, name='Admin')
-                print(guild.roles)
-                print(RealmOP)
-                print(Bots)
-                print(Moderator)
-                print(Admin)
+        
+        if re.match(".*discord.gg.*|*turtletest2.com*", message.content):
+            RealmOP = discord.utils.get(message.guild.roles, name='Realm OP')
+            Bots = discord.utils.get(message.guild.roles, name='Bots')
+            Moderator = discord.utils.get(message.guild.roles, name='Moderator')
+            Admin = discord.utils.get(message.guild.roles, name='Admin')
 
-                if RealmOP not in message.author.roles or Bots not in message.author.roles or Moderator not in message.author.roles or Admin not in message.author.roles:
-                    await message.delete()
-                    embed = discord.Embed(title = "⚠️ Warning!", description = "Advertisement Is Not Allowed!", color = 0xf05c07)
-                    embed.add_field(name = f"WARNING:", value = f"{message.author.mention}: \n**Please DO NOT send server links here!** \n*If you would like to advertise your realm, please apply for one using the >applyrealm command!*")
-                    embed.set_footer(text = "Reading the rules again will help you avoid any warnings!")
-                    await message.channel.send(embed = embed)
+            if RealmOP or Bots or Moderator or Admin in message.author.roles:
+                await message.delete()
+                embed = discord.Embed(title = "⚠️ Warning!", description = "Advertisement Is Not Allowed!", color = 0xf05c07)
+                embed.add_field(name = f"WARNING:", value = f"{message.author.mention}: \n**Please DO NOT send server links here!** \n*If you would like to advertise your realm, please apply for one using the >applyrealm command!*")
+                embed.set_footer(text = "Reading the rules again will help you avoid any warnings!")
+                await message.channel.send(embed = embed)
 
-                    channel = self.bot.get_channel(config["ModReport"])
-                    embed2 = discord.Embed(title = "Discord Server Link Detected", description = f"**Information:**\n\n**Author:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Link:** {msg}" ,color =0xf05c07)
-                    await channel.send(embed =embed2)
-                else:
-                    print("Ignored Server Invite")
+                channel = self.bot.get_channel(config["ModReport"])
+                embed2 = discord.Embed(title = "Discord Server Link Detected", description = f"**Information:**\n\n**Author:** {message.author.mention}\n**Channel:** {message.channel.mention}\n**Link:** {msg}" ,color =0xf05c07)
+                await channel.send(embed =embed2)
+            else:
+                print("Ignored Server Invite")
 
 
 
