@@ -129,7 +129,7 @@ class Events(commands.Cog):
             embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is ready to game!", color = 0xFFCE41)
             embed.add_field(name="Want to see more channels?", value="Check out the Game list in <#796114173514743928>, and react to a game to join the channel!", inline=False)
             embed.set_thumbnail(url=member.avatar_url)
-            embed.set_footer(text = "Got any questions? Feel free to ask a Moderator!",icon_url = member.guild.icon_url)
+            embed.set_footer(text = "Got any questions? Feel free to ask around!",icon_url = member.guild.icon_url)
             await channel.send(embed=embed)    
         elif member.guild.id == 448488274562908170:
             print("here!")

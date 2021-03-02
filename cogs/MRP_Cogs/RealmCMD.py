@@ -65,27 +65,39 @@ class RealmCMD(commands.Cog):
         guild = ctx.message.guild
         channel = ctx.message.channel
         color = discord.Colour(0x3498DB)
+
+        #Realm OP Role
         role = await guild.create_role(name=realm + " OP", color=color, mentionable=True)
         RoleCreate = "DONE"
+
         #category = discord.utils.get(guild.categories, name = "Realm Channels List Test")
+
+        #Channel Create
         category = discord.utils.get(guild.categories, name="🎮 Realms & Servers")
         channel = await category.create_text_channel(realm + "-" + emoji)
+
+        #Welcome Message
         welcomeEM = discord.Embed(title = "Welcome to the MRP!", description = f"{role.mention} **Welcome to the MRP!** \n Your channel has been created and you should have gotten a DM regarding some stuff about your channel! \n If you have any questions, feel free to DM an Admin or a Moderator!", color = 0x4c594b)
         await channel.send(embed = welcomeEM)
         await channel.edit(topic="The newest Realm on the Minecraft Realm Portal, Check it out and chat with the owners for more Realm information. \n \n ]]Realm: Survival Multiplayer[[")
         ChannelCreate = "DONE"
+
+        #Role
         await user.add_roles(role)
         RoleGiven = "DONE"
+
+        #Channel Permissions
         perms = channel.overwrites_for(role)
         perms.manage_channels = True
         perms.manage_webhooks = True
         perms.manage_messages = True
+        await channel.set_permissions(role, overwrite=perms, reason="Created New Realm! (RealmOP)")
 
         Muted = discord.utils.get(ctx.guild.roles, name="muted")
         permsM = channel.overwrites_for(Muted)
         permsM.read_messages = False
         permsM.send_messages = False
-        await channel.set_permissions(role, overwrite=perms, reason="Created New Realm!")
+        await channel.set_permissions(Muted, overwrite=permsM, reason="Created New Realm! (Muted)")
 
         # This try statement is here incase we are testing this in the testing server as this channel does not appear in that server!
         if ctx.guild.id == 587495640502763521:
@@ -94,9 +106,10 @@ class RealmCMD(commands.Cog):
             await channelrr.send(role.mention + "\n **Please agree to the rules to gain access to the Realm Owner Chats!**")
             perms12 = channelrr.overwrites_for(role)
             perms12.read_messages = True
-            await channel.set_permissions(role, overwrite=perms12, reason="Created New Realm!")
+            await channelrr.set_permissions(role, overwrite=perms12, reason="Created New Realm!")
+
         ChannelPermissions = "DONE"
-        await channel.set_permissions(Muted, overwrite=permsM)
+        #await channel.set_permissions(Muted, overwrite=permsM)
         DMStatus = "FAILED"
         embed = discord.Embed(title="Congrats On Your New Realm Channel!",description="Your new channel: <#" + str(channel.id) + ">", color=0x42f5bc)
         embed.add_field(name="Information", value="Enjoy your new channel. Use this channel to advertise your realm, and engage the community. The more active a channel the more likely people will be to stop by and check you out. You have moderation privileges in your channel. You can change the description, pin messages, and delete messages. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules. If you would like to add an OP to your team, in your channel type: \n```>addOP @newOP @reamlrole``` \n", inline = True)

@@ -22,7 +22,7 @@ class OperatorCMD(commands.Cog):
     async def _addOP(self, ctx, user: discord.Member, *, role: discord.Role):
         author = ctx.message.author
         print(str(role) + author.name)
-        if "OP" in role.name and "Realm OP" not in role.name:
+        if "OP" in role.name and "Realm OP" == role.name:
             if role not in author.roles:
                 await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
                 return
@@ -54,7 +54,7 @@ class OperatorCMD(commands.Cog):
         check_role = discord.utils.get(ctx.guild.roles, name=role.name)
         realm_op_role = discord.utils.get(ctx.guild.roles, name="Realm OP")
         print(check_role)
-        if "OP" in role.name and "Realm OP" not in role.name:
+        if "OP" in role.name and "Realm OP" == role.name:
             if role not in author.roles:
                 await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
             else:  # TODO: Remove Realm OP role if only has one OP role
