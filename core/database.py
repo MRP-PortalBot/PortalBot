@@ -6,6 +6,8 @@ from peewee import AutoField, ForeignKeyField, Model, IntegerField, PrimaryKeyFi
 from playhouse.shortcuts import model_to_dict, dict_to_model  # these can be used to convert an item to or from json http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#model_to_dict
 from playhouse.sqlite_ext import RowIDField
 from datetime import datetime
+from peewee import MySQLDatabase
+from playhouse.shortcuts import ReconnectMixin
 
 DB_IP = os.getenv("DB_IP")
 DB_Port = os.getenv("DB_Port")
@@ -86,6 +88,11 @@ class RealmProfile(BaseModel):
     Gamemode = TextField()
 
 
+
+class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
+    pass
+
+db = ReconnectMySQLDatabase('PortalBot_S')
 
 tables = {"tag": Tag, "questions": Question, "blacklist": MRP_Blacklist_Data, "profile": PortalbotProfile, "realmprofile": RealmProfile}
 iter_table(tables)
