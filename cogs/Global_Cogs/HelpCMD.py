@@ -34,8 +34,7 @@ class HelpCMD(commands.Cog):
 
         if Moderator in author.roles:
             embed.add_field(name = "Moderation Commands", value = '[Moderation Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)', inline = False)
-        
-
+    
         await ctx.send(embed = embed)
             
 
