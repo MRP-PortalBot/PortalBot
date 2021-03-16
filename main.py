@@ -52,7 +52,7 @@ intents.members = True
 intents.presences = True
 
 #Defining client and SlashCommands
-client = commands.Bot(command_prefix=config['prefix'], intents=intents)
+client = commands.Bot(command_prefix=config['prefix'], intents=intents, case_insensitive=True)
 client.slash = SlashCommand(client, sync_commands=True)  #TODO: Fix Slash Commands
 client.remove_command("help")
 
