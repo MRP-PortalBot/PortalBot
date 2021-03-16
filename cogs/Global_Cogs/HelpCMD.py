@@ -31,11 +31,9 @@ class HelpCMD(commands.Cog):
         if RealmOP in author.roles:
             embed.add_field(name = "Realm OP Commands", value = '[Realm OP Documentation](https://www.notion.so/Realm-Operator-Commands-62e80e2232434407a2099f782c54189c)', inline = False)
             embed.add_field(name = "Blacklist Commands", value = '[Blacklist Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)', inline = False)
-            
-        print("divider")
 
         if Moderator in author.roles:
-            embed.add_field(name = "Moderation Commands", value = '[Moderation Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)'), inline = False
+            embed.add_field(name = "Moderation Commands", value = '[Moderation Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)', inline = False)
         
 
         await ctx.send(embed = embed)
