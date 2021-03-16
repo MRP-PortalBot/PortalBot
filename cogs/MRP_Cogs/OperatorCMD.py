@@ -17,7 +17,7 @@ class OperatorCMD(commands.Cog):
         self.bot = bot
         logger.info("OperatorCMD: Cog Loaded!")
 
-    @commands.command(aliases=['addop', 'addOP', 'Addop', 'AddOP'])
+    @commands.command()
     @commands.has_role("Realm OP")
     async def _addOP(self, ctx, user: discord.Member, *, role: discord.Role):
         author = ctx.message.author
@@ -47,7 +47,7 @@ class OperatorCMD(commands.Cog):
         elif isinstance(error, commands.BadArgument):
             await ctx.send("Hmmm, are you sure you ran the command right? Check the help command for 'addOP'! ")
 
-    @commands.command(aliases=['removeop', 'removeOP', 'Removeop', 'RemoveOP'])
+    @commands.command()
     @commands.has_role("Realm OP")
     async def _removeOP(self, ctx, user: discord.Member, *, role: discord.Role):
         author = ctx.message.author
