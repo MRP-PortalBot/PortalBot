@@ -33,7 +33,7 @@ class HelpCMD(commands.Cog):
             embed.add_field(name = "Blacklist Commands", value = '[Blacklist Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)', inline = False)
 
         if Moderator in author.roles:
-            embed.add_field(name = "Moderation Commands", value = '[Moderation Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)', inline = False)
+            embed.add_field(name = "Moderation Commands", value = '[Moderation Documentation](https://www.notion.so/Moderator-Commands-cd82d2a12a934b9eb35f35cd0f79184d)', inline = False)
     
         embed.set_footer(text = "PortalBot Help Command")
         embed.set_thumbnail(url = "https://trello-attachments.s3.amazonaws.com/5fbbceacaa98655a742901e1/5fff9d3c3209576cc10ee8ed/fb338712ddb6f1c84fda6bae9f5514d1/Nether_Portal_Avatargreen.png")
