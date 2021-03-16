@@ -21,20 +21,20 @@ class HelpCMD(commands.Cog):
 
         embed = discord.Embed(title = "Help Commands", description = "Every PortalBot Command!", color = 0xffd700)
         embed.add_field(name = "Misc Commands", value = "[Misc Documentation](https://www.notion.so/Misc-Commands-ee70d925c3474749b6415a169f3b2ac4)")
-        embed.add_field(name = "Profile/Gamertag Commands", value = '[Profile/Gamertag Documentation](https://www.notion.so/Profile-Gamertag-Commands-d5e0debd59fc4cb3a6a2bed5cbd3a39b)', inline = False)
-        embed.add_field(name = "Music Commands", value = '[Music Documentation](https://www.notion.so/Music-Commands-e6e2ccd03b694ebe96bb130fda966656)', inline = False)
+        embed.add_field(name = "Profile/Gamertag Commands", value = '[Profile/Gamertag Documentation](https://www.notion.so/Profile-Gamertag-Commands-d5e0debd59fc4cb3a6a2bed5cbd3a39b)', inline = True)
+        embed.add_field(name = "Music Commands", value = '[Music Documentation](https://www.notion.so/Music-Commands-e6e2ccd03b694ebe96bb130fda966656)', inline = True)
         embed.add_field(name = "Application Commands", value = '[Application Documentation](https://www.notion.so/Application-Commands-2aabe7f7bcac45feb788c2ad8092d908)')
         embed.add_field(name = "Dailyq Commands", value = '[Daily Question Documentation](https://www.notion.so/Daily-Question-Commands-5226b3c698c94593a72543efad24ad82)', inline = False)
-        embed.add_field(name = "Bug Reporting", value = '[Bug Reporting Documentation](https://www.notion.so/Bug-Reporting-0e7ea86e881646a4984dbb9e7762329d)', inline = False)
+        embed.add_field(name = "Bug Reporting", value = '[Bug Reporting Documentation](https://www.notion.so/Bug-Reporting-0e7ea86e881646a4984dbb9e7762329d)', inline = True)
 
     
         if RealmOP in author.roles:
             embed.add_field(name = "Realm OP Commands", value = '[Realm OP Documentation](https://www.notion.so/Realm-Operator-Commands-62e80e2232434407a2099f782c54189c)')
-            embed.add_field(name = "Blacklist Commands", value = '[Blacklist Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)', inline = False)
+            embed.add_field(name = "Blacklist Commands", value = '[Blacklist Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)', inline = True)
             
 
         elif Moderator in author.roles:
-            embed.add_field(name = "Moderation Commands", value = '[Moderation Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)', inline = False)
+            embed.add_field(name = "Moderation Commands", value = '[Moderation Documentation](https://www.notion.so/Blacklist-Commands-5293a1765f014993b64fe53cacebb005)', inline = True)
             
         else:
             pass
