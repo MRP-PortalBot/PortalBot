@@ -46,23 +46,26 @@ async def mainTask(self):
     while True:
         d = datetime.utcnow()
         if d.hour == 17 or d.hour == "17":
-            guild = self.bot.get_guild(config['ServerID'])
-            channel = guild.get_channel(config['GeneralChannel'])
-            limit = int(database.Question.select().count())
-            print(limit)
-            Rnum = random.randint(1 , limit)
-            try:
-                database.db.connect(reuse_if_open=True)
+            if config["ServerID"] == 587495640502763521:
+                guild = self.bot.get_guild(config['ServerID'])
+                channel = guild.get_channel(config['GeneralChannel'])
+                limit = int(database.Question.select().count())
+                print(limit)
+                Rnum = random.randint(1 , limit)
                 try:
-                    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
-                    embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-                    await channel.send(embed=embed)
-        
+                    database.db.connect(reuse_if_open=True)
+                    try:
+                        q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+                        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+                        await channel.send(embed=embed)
+            
+                    finally:
+                        database.db.close()
+
                 finally:
                     database.db.close()
-
-            finally:
-                database.db.close()
+            else:
+                pass
         await asyncio.sleep(3600)
 
 
