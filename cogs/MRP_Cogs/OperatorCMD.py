@@ -19,13 +19,14 @@ class OperatorCMD(commands.Cog):
 
     @commands.command()
     @commands.has_role("Realm OP")
-    async def _addOP(self, ctx, user: discord.Member, *, role: discord.Role):
+    async def addOP(self, ctx, user: discord.Member, *, role: discord.Role):
         author = ctx.message.author
         print(str(role) + author.name)
-        if "OP" in role.name and "Realm OP" == role.name:
+        if "OP" in role.name:
             if role not in author.roles:
-                await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
-                return
+                return await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
+            elif role.id == 683430456490065959:
+                return await ctx.send("You are not allowed to give out the `Realm OP` role.")
             else:
                 await user.add_roles(role)
             embed = discord.Embed(title="Realm Operator Command", description=user.mention + " now has " + role.mention +
@@ -36,7 +37,7 @@ class OperatorCMD(commands.Cog):
         else:
             await ctx.send("This role is not a Realm role. Please contact an Admin if you believe this is a mistake.")
 
-    @_addOP.error
+    @addOP.error
     async def addOP_error(self, ctx, error):
         if isinstance(error, commands.MissingRole):
             await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
@@ -49,14 +50,17 @@ class OperatorCMD(commands.Cog):
 
     @commands.command()
     @commands.has_role("Realm OP")
-    async def _removeOP(self, ctx, user: discord.Member, *, role: discord.Role):
+    async def removeOP(self, ctx, user: discord.Member, *, role: discord.Role):
         author = ctx.message.author
         check_role = discord.utils.get(ctx.guild.roles, name=role.name)
         realm_op_role = discord.utils.get(ctx.guild.roles, name="Realm OP")
         print(check_role)
-        if "OP" in role.name and "Realm OP" == role.name:
+
+        if "OP" in role.name:
             if role not in author.roles:
                 await ctx.send(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
+            elif role.id == 683430456490065959:
+                return await ctx.send("You are not allowed to give out the `Realm OP` role.")
             else:  # TODO: Remove Realm OP role if only has one OP role
                 await user.remove_roles(role)
                 embed = discord.Embed(title="Realm Operator Command", description="**Operator** " +
@@ -65,7 +69,7 @@ class OperatorCMD(commands.Cog):
         else:
             await ctx.send("This role is not a Realm role. Please contact an Admin if you believe this is a mistake.")
 
-    @_removeOP.error
+    @removeOP.error
     async def removeOP_error(self, ctx, error):
         if isinstance(error, commands.MissingRole):
             await ctx.send("Uh oh, looks like you don't have the Realm OP role!")

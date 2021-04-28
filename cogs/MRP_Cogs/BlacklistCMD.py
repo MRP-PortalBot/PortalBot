@@ -345,7 +345,7 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "4️⃣":
-                await ctx.send("New content to modify:\n*Currently modifying* `Gamertag")
+                await ctx.send("New content to modify:\n*Currently modifying* `Gamertag`")
                 messagecontent = await self.bot.wait_for('message', check=check3)
                 newData = messagecontent.content
 
@@ -384,7 +384,7 @@ class BlacklistCMD(commands.Cog):
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
             elif str(reaction.emoji) == "7️⃣":
-                await ctx.send("New content to modify:\n*Currently modifying* `Ban Reason")
+                await ctx.send("New content to modify:\n*Currently modifying* `Ban Reason`")
                 messagecontent = await self.bot.wait_for('message', check=check3)
                 newData = messagecontent.content
 

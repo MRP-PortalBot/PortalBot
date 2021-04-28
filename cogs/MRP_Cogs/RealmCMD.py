@@ -243,7 +243,9 @@ class RealmCMD(commands.Cog):
 
         # Questions
         introem = discord.Embed(title="Realm Channel Application", description="Hello! Please make sure you fill every question with a good amount of detail and if at any point you feel like you made a mistake, you will see a cancel reaction at the end. Then you can come back and re-answer your questions! \n**Questions will start in 5 seconds.**", color=0x42f5f5)
+        warning = discord.Embed(title = "WARNING", description = "Please do not include any special characters or any fancy additions to your text, this will quickly approach the character limit and limit your application from being processed!", color = discord.Colour.red())
         await channel.send(embed=introem)
+        await channel.send(embed=warning)
         time.sleep(5)
         await channel.send("Your Community's name?")
         answer1 = await self.bot.wait_for('message', check=check)
