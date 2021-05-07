@@ -1,4 +1,3 @@
-from os import add_dll_directory
 import discord
 from discord.ext import commands
 from datetime import datetime, timezone
