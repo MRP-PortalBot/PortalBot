@@ -157,17 +157,10 @@ class ProfileCMD(commands.Cog):
 
     @profile.command()
     async def edit(self, ctx):
-        database.db.connect(reuse_if_open=True)
         channel = ctx.message.channel
         username = ctx.message.author
         discordname = str(username.name + "#" + username.discriminator)
         longid = str(username.id)
-        tzone = str("")
-        xbox = str("")
-        psnid = str("")
-        switch = str("")
-        pokemongo = str("")
-        chessdotcom = str("")        
 
         def purgecheck(m):
             return m.author == username or m.author == self.bot.user
@@ -210,7 +203,8 @@ class ProfileCMD(commands.Cog):
                         profile: database.PortalbotProfile = database.PortalbotProfile.create(
                             DiscordName=discordname, DiscordLongID=longid, timezone=addedid)
                         profile.save()
-                        await channel.send(f"{profile.DiscordName}'s Profile has been created successfully.")
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Timezone to to your profile!")
                     except database.IntegrityError:
                         await channel.send("That profile name is already taken!")
                 finally:
@@ -225,26 +219,27 @@ class ProfileCMD(commands.Cog):
                 addedid = messagecontent.content
 
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    discordname = str(username.name + "#" + username.discriminator)
-                    longid = longid
-                    xbox = addedid
-
-                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
-                    print(row)
-                    profilesheet.insert_row(row, 3)
-
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.XBOX = addedid
+                    profile.save()
                     await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
-                else:
-                    userrow = usercell.row
-                    xbox = addedid
-                    profilesheet.update_cell(userrow, xboxcol, str(xbox))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=4, check = purgecheck)
-                    await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid, XBOX=addedid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your XBOX Gamertag to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+
             elif str(reaction.emoji) == "3️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author == username
@@ -254,26 +249,27 @@ class ProfileCMD(commands.Cog):
                 addedid = messagecontent.content
 
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    discordname = str(username.name + "#" + username.discriminator)
-                    longid = longid
-                    psnid = addedid
-
-                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
-                    print(row)
-                    profilesheet.insert_row(row, 3)
-
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.Playstation = addedid
+                    profile.save()
                     await ctx.channel.purge(limit=4, check = purgecheck)
-                    await channel.send("Success!, You have added your PSN ID to to your profile!")
-                else:
-                    userrow = usercell.row
-                    psnid = addedid
-                    profilesheet.update_cell(userrow, psnidcol, str(psnid))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=4, check = purgecheck)                    
-                    await channel.send("Success!, You have added your PSN ID to to your profile!")
+                    await channel.send("Success!, You have added your Playstation ID to to your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid, Playstation=addedid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Playstation ID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+
             elif str(reaction.emoji) == "4️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author == username
@@ -283,26 +279,27 @@ class ProfileCMD(commands.Cog):
                 addedid = messagecontent.content
 
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    discordname = str(username.name + "#" + username.discriminator)
-                    longid = longid
-                    switch = addedid
-
-                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
-                    print(row)
-                    profilesheet.insert_row(row, 3)
-
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.Switch = addedid
+                    profile.save()
                     await ctx.channel.purge(limit=4, check = purgecheck)
-                    await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
-                else:
-                    userrow = usercell.row
-                    switch = addedid
-                    profilesheet.update_cell(userrow, switchcol, str(switch))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=4, check = purgecheck)
-                    await channel.send("Success!, You have added your Switch Friend Code to to your profile!")
+                    await channel.send("Success!, You have added your NNID to to your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid, Switch=addedid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your NNID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+
             elif str(reaction.emoji) == "5️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author == username
@@ -312,26 +309,27 @@ class ProfileCMD(commands.Cog):
                 addedid = messagecontent.content
 
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    discordname = str(username.name + "#" + username.discriminator)
-                    longid = longid
-                    pokemongo = addedid
-
-                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
-                    print(row)
-                    profilesheet.insert_row(row, 3)
-
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.PokemonGo = addedid
+                    profile.save()
                     await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Pokemon Go ID to to your profile!")
-                else:
-                    userrow = usercell.row
-                    pokemongo = addedid
-                    profilesheet.update_cell(userrow, pokemongocol, str(pokemongo))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=4, check = purgecheck)
-                    await channel.send("Success!, You have added your Pokemon Go ID? to to your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid, PokemonGo=addedid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Pokemon Go ID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+
             elif str(reaction.emoji) == "6️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author == username
@@ -341,26 +339,26 @@ class ProfileCMD(commands.Cog):
                 addedid = messagecontent.content
 
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    discordname = str(username.name + "#" + username.discriminator)
-                    longid = longid
-                    chessdotcom = addedid
-
-                    row = [discordname, longid, xbox, psnid, switch, pokemongo, chessdotcom]
-                    print(row)
-                    profilesheet.insert_row(row, 3)
-
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.Chessdotcom = addedid
+                    profile.save()
                     await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Chess.com ID to to your profile!")
-                else:
-                    userrow = usercell.row
-                    chessdotcom = addedid
-                    profilesheet.update_cell(userrow, chesscol, str(chessdotcom))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=4, check = purgecheck)
-                    await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid, Chessdotcom=addedid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
@@ -393,82 +391,142 @@ class ProfileCMD(commands.Cog):
                 await channel.send("Okay, nothing will be removed!")
             elif str(reaction.emoji) == "1️⃣":
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await ctx.send("User has no profile")
-                else:
-                    userrow = usercell.row
-                    profilesheet.update_cell(userrow, tzonecol, str(cellclear))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=2)
-                    await channel.send("Success!, You have removed your Timezone from your profile!")
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.Timezone = cellclear
+                    profile.save()
+                    await ctx.channel.purge(limit=4, check = purgecheck)
+                    await channel.send("Success!, You have edited your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+
             elif str(reaction.emoji) == "2️⃣":
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await ctx.send("User has no profile")
-                else:
-                    userrow = usercell.row
-                    profilesheet.update_cell(userrow, xboxcol, str(cellclear))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await channel.send("Success!, You have removed your XBOX Gamertag from your profile!")
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.XBOX = cellclear
+                    profile.save()
+                    await ctx.channel.purge(limit=4, check = purgecheck)
+                    await channel.send("Success!, You have edited your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+                    
             elif str(reaction.emoji) == "3️⃣":
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await ctx.send("User has no profile")
-                else:
-                    userrow = usercell.row
-                    profilesheet.update_cell(userrow, psnidcol, str(cellclear))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await channel.send("Success!, You have removed your Playstation ID from your profile!")
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.Playstation = cellclear
+                    profile.save()
+                    await ctx.channel.purge(limit=4, check = purgecheck)
+                    await channel.send("Success!, You have edited your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+                    
             elif str(reaction.emoji) == "4️⃣":
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await ctx.send("User has no profile")
-                else:
-                    userrow = usercell.row
-                    profilesheet.update_cell(userrow, switchcol, str(cellclear))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await channel.send("Success!, You have removed your Switch Friend Code from your profile!")
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.Switch = cellclear
+                    profile.save()
+                    await ctx.channel.purge(limit=4, check = purgecheck)
+                    await channel.send("Success!, You have edited your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+                    
             elif str(reaction.emoji) == "5️⃣":
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await ctx.send("User has no profile")
-                else:
-                    userrow = usercell.row
-                    profilesheet.update_cell(userrow, pokemongocol, str(cellclear))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await channel.send("Success!, You have removed your Pokemon GO ID from your profile!")
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.PokemonGo = cellclear
+                    profile.save()
+                    await ctx.channel.purge(limit=4, check = purgecheck)
+                    await channel.send("Success!, You have edited your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+                    
             elif str(reaction.emoji) == "6️⃣":
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await ctx.send("User has no profile")
-                else:
-                    userrow = usercell.row
-                    profilesheet.update_cell(userrow, chesscol, str(cellclear))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=2, check = purgecheck)
-                    await channel.send("Success!, You have removed Chess.com ID from your profile!")
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.Chessdotcom = cellclear
+                    profile.save()
+                    await ctx.channel.purge(limit=4, check = purgecheck)
+                    await channel.send("Success!, You have edited your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid)
+                        profile.save()
+                        await ctx.channel.purge(limit=4, check = purgecheck)
+                        await channel.send("Success!, You have added your Chess.com ID to to your profile!")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+                    
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
