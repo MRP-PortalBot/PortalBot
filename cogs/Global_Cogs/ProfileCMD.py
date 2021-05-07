@@ -74,6 +74,7 @@ class ProfileCMD(commands.Cog):
         author = ctx.message.author
         role = discord.utils.get(ctx.guild.roles, name="Realm OP")
         channel = ctx.message.channel
+        adminchannel = 778710730580557847
 
         if profile == None:
             username = ctx.message.author
@@ -125,7 +126,7 @@ class ProfileCMD(commands.Cog):
                     profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
                 else:
                     profileembed.set_footer(text="Requested by " + author.name)
-                if role in author.roles: 
+                if role in author.roles and adminchannel in channel.id: 
                     qID = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID.contains(longid)))
                     qNAME = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(discordname)))
                     qNAME2 = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(aname)))
