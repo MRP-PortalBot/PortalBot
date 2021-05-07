@@ -74,7 +74,7 @@ class ProfileCMD(commands.Cog):
         author = ctx.message.author
         role = discord.utils.get(ctx.guild.roles, name="Realm OP")
         channel = ctx.message.channel
-        adminchannel = ctx.guild.get_channel(788801843438420070)
+        adminchannel = ctx.guild.get_channel(778710730580557847)
 
         if profile == None:
             username = ctx.message.author
