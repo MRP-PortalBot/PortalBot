@@ -1,6 +1,7 @@
+from os import add_dll_directory
 import discord
 from discord.ext import commands
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 import re
 import asyncio
@@ -157,6 +158,7 @@ class ProfileCMD(commands.Cog):
 
     @profile.command()
     async def edit(self, ctx):
+        database.db.connect(reuse_if_open=True)
         channel = ctx.message.channel
         username = ctx.message.author
         discordname = str(username.name + "#" + username.discriminator)
@@ -195,26 +197,26 @@ class ProfileCMD(commands.Cog):
                 addedid = messagecontent.content
 
                 try:
-                    usercell = profilesheet.find(longid, in_column=2)
-                except:
-                    discordname = str(username.name + "#" + username.discriminator)
-                    longid = longid
-                    tzone = addedid
-
-                    row = [discordname, longid, tzone, xbox, psnid, switch, pokemongo, chessdotcom]
-                    print(row)
-                    profilesheet.insert_row(row, 3)
-
+                    database.db.connect(reuse_if_open=True)
+                    profile: database.PortalbotProfile = database.PortalbotProfile.select().where(
+                        database.PortalbotProfile.DiscordLongID == longid).get()
+                    profile.DiscordName = discordname
+                    profile.Timezone = addedid
+                    profile.save()
                     await ctx.channel.purge(limit=4, check = purgecheck)
                     await channel.send("Success!, You have added your Timezone to to your profile!")
-                else:
-                    userrow = usercell.row
-                    tzone = addedid
-                    profilesheet.update_cell(userrow, tzonecol, str(tzone))
-                    profilesheet.update_cell(userrow, discordcol, str(discordname))
-                    print("User Found!")
-                    await ctx.channel.purge(limit=4, check = purgecheck)
-                    await channel.send("Success!, You have added your Timezone to to your profile!")
+                except database.DoesNotExist:
+                    try:
+                        database.db.connect(reuse_if_open=True)
+                        profile: database.PortalbotProfile = database.PortalbotProfile.create(
+                            DiscordName=discordname, DiscordLongID=longid, timezone=addedid)
+                        profile.save()
+                        await channel.send(f"{profile.DiscordName}'s Profile has been created successfully.")
+                    except database.IntegrityError:
+                        await channel.send("That profile name is already taken!")
+                finally:
+                    database.db.close()
+
             elif str(reaction.emoji) == "2️⃣":
                 def check3(m):
                     return m.content is not None and m.channel == channel and m.author == username
