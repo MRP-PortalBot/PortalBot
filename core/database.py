@@ -10,6 +10,9 @@ from peewee import MySQLDatabase
 from playhouse.shortcuts import ReconnectMixin
 from flask import Flask
 
+from dotenv import load_dotenv
+load_dotenv()
+
 DB_IP = os.getenv("DB_IP")
 DB_Port = os.getenv("DB_Port")
 DB_user = os.getenv("DB_user")
