@@ -14,6 +14,12 @@ import logging
 from core import database
 import random
 
+def printlen(*args):
+    if not args:
+        return 0
+    value = sum(len(str(arg)) for arg in args) + len(args) - 1
+    return value + 300
+
 logger = logging.getLogger(__name__)
 # --------------------------------------------------
 # pip3 install gspread oauth2client
@@ -99,6 +105,7 @@ class BlacklistCMD(commands.Cog):
             return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
         await channel.send("Please answer the questions with as much detail as you can. \nWant to cancel the command? Answer everything and at the end then you have the option to either break or submit the responses, there you could say 'break'!\nIf you are having trouble with the command, please contact Space! \n\n*Starting Questions Now...*")
+        await channel.send("You ")
         time.sleep(2)
         await channel.send(Q1)
         answer1 = await self.bot.wait_for('message', check=check)
@@ -128,7 +135,9 @@ class BlacklistCMD(commands.Cog):
         answer9 = await self.bot.wait_for('message', check=check)
 
         time.sleep(0.5)
-
+        x = printlen(answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content)
+        if x >= 6000:
+            return await channel.send("Unable to process this blacklist application!\nThis response has exceeded 6000 characters!")
 
         # Add to DB
 
@@ -161,15 +170,17 @@ class BlacklistCMD(commands.Cog):
                 await channel.send("Sending your responses!")
                 blacklistembed = discord.Embed(
                     title="Blacklist Report", description="Sent from: " + author.mention, color=0xb10d9f)
-                blacklistembed.add_field(name="Questions", value=f'**{Q1}** \n {answer1.content} \n\n'
-                                         f'**{Q2}** \n {answer2.content} \n\n'
-                                         f'**{Q3}** \n {answer3.content} \n\n'
-                                         f'**{Q4}** \n {answer4.content} \n\n'
-                                         f'**{Q5}** \n {answer5.content} \n\n'
-                                         f'**{Q6}** \n {answer6.content} \n\n'
-                                         f'**{Q7}** \n {answer7.content} \n\n'
-                                         f'**{Q8}** \n {answer8.content} \n\n'
-                                         f'**{Q9}** \n {answer9.content} \n\n')
+
+                blacklistembed.add_field(name = Q1, value = answer1.content + "\n")
+                blacklistembed.add_field(name = Q2, value = answer2.content + "\n")
+                blacklistembed.add_field(name = Q3, value = answer3.content + "\n")
+                blacklistembed.add_field(name = Q4, value = answer4.content + "\n")
+                blacklistembed.add_field(name = Q5, value = answer5.content + "\n")
+                blacklistembed.add_field(name = Q6, value = answer6.content + "\n")
+                blacklistembed.add_field(name = Q7, value = answer7.content + "\n")
+                blacklistembed.add_field(name = Q8, value = answer8.content + "\n")
+                blacklistembed.add_field(name = Q9, value = answer9.content + "\n")
+
                 timestamp = datetime.now()
                 blacklistembed.set_footer(
                     text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
