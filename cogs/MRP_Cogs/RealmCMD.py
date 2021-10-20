@@ -70,7 +70,7 @@ class RealmCMD(commands.Cog):
         #get values from sheet
         realm = sheet.cell(row,2).value
         emoji = sheet.cell(row,4).value
-        user = sheet.cell(row,5).value
+        user = guild.get_member_named(sheet.cell(row,5).value)
 
         #Realm OP Role
         role = await guild.create_role(name=realm + " OP", color=color, mentionable=True)
