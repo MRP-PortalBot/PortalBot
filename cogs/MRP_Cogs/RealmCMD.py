@@ -65,11 +65,12 @@ class RealmCMD(commands.Cog):
         guild = ctx.message.guild
         channel = ctx.message.channel
         color = discord.Colour(0x3498DB)
+        row = sheet.find(appnumber).row
 
         #get values from sheet
-        realm = sheet.cell(appnumber,2).value
-        emoji = sheet.cell(appnumber,4).value
-        user = sheet.cell(appnumber,5).value
+        realm = sheet.cell(row,2).value
+        emoji = sheet.cell(row,4).value
+        user = sheet.cell(row,5).value
 
         #Realm OP Role
         role = await guild.create_role(name=realm + " OP", color=color, mentionable=True)
