@@ -40,7 +40,7 @@ class BaseModel(Model):
 class Tag(BaseModel):
     """Stores our tags accessed by the tag command."""
     id = AutoField()
-    tag_name = TextField(unique=True)
+    tag_name = TextField()
     embed_title = TextField()
     text = TextField()
 
