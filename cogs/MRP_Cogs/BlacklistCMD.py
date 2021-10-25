@@ -171,15 +171,15 @@ class BlacklistCMD(commands.Cog):
                 blacklistembed = discord.Embed(
                     title="Blacklist Report", description="Sent from: " + author.mention, color=0xb10d9f)
 
-                blacklistembed.add_field(name = Q1, value = answer1.content + "\n")
-                blacklistembed.add_field(name = Q2, value = answer2.content + "\n")
-                blacklistembed.add_field(name = Q3, value = answer3.content + "\n")
-                blacklistembed.add_field(name = Q4, value = answer4.content + "\n")
-                blacklistembed.add_field(name = Q5, value = answer5.content + "\n")
-                blacklistembed.add_field(name = Q6, value = answer6.content + "\n")
-                blacklistembed.add_field(name = Q7, value = answer7.content + "\n")
-                blacklistembed.add_field(name = Q8, value = answer8.content + "\n")
-                blacklistembed.add_field(name = Q9, value = answer9.content + "\n")
+                blacklistembed.add_field(name = Q1, value = answer1.content + "\n", inline = False)
+                blacklistembed.add_field(name = Q2, value = answer2.content + "\n", inline = False)
+                blacklistembed.add_field(name = Q3, value = answer3.content + "\n", inline = False)
+                blacklistembed.add_field(name = Q4, value = answer4.content + "\n", inline = False)
+                blacklistembed.add_field(name = Q5, value = answer5.content + "\n", inline = False)
+                blacklistembed.add_field(name = Q6, value = answer6.content + "\n", inline = False)
+                blacklistembed.add_field(name = Q7, value = answer7.content + "\n", inline = False)
+                blacklistembed.add_field(name = Q8, value = answer8.content + "\n", inline = False)
+                blacklistembed.add_field(name = Q9, value = answer9.content + "\n", inline = False)
 
                 timestamp = datetime.now()
                 blacklistembed.set_footer(
