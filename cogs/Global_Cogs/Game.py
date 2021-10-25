@@ -30,7 +30,7 @@ def checkWinner(winningConditions, mark):
             if board[condition[0]] == mark and board[condition[1]] == mark and board[condition[2]] == mark:
                 gameOver = True
 
-class SkeletonCMD(commands.Cog):
+class TTCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -144,4 +144,4 @@ class SkeletonCMD(commands.Cog):
             await ctx.send("Please make sure to enter an integer.")
 
 def setup(bot):
-    bot.add_cog(SkeletonCMD(bot))
+    bot.add_cog(TTCMD(bot))

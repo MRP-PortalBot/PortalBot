@@ -9,7 +9,7 @@ from jira import JIRA
 options = {"server": "https://bugs.mojang.com"}
 jira = JIRA(options)
 
-class SkeletonCMD(commands.Cog):
+class JiraCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -63,4 +63,4 @@ class SkeletonCMD(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(SkeletonCMD(bot))
+    bot.add_cog(JiraCMD(bot))
