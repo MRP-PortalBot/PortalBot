@@ -4,12 +4,13 @@ from discord.ext import commands
 import json
 import datetime
 from datetime import timedelta, datetime
-from jira import JIRA
+jira = None
+#from jira import JIRA
 
-options = {"server": "https://bugs.mojang.com"}
-jira = JIRA(options)
+#options = {"server": "https://bugs.mojang.com"}
+#jira = JIRA(options)
 
-class JiraCMD(commands.Cog):
+class SkeletonCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
@@ -63,4 +64,4 @@ class JiraCMD(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(JiraCMD(bot))
+    bot.add_cog(SkeletonCMD(bot))

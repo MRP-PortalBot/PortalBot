@@ -10,8 +10,8 @@ from peewee import MySQLDatabase
 from playhouse.shortcuts import ReconnectMixin
 from flask import Flask
 
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
 #DB_IP = os.getenv("DB_IP")
 #DB_Port = os.getenv("DB_Port")
@@ -40,7 +40,7 @@ class BaseModel(Model):
 class Tag(BaseModel):
     """Stores our tags accessed by the tag command."""
     id = AutoField()
-    tag_name = TextField(unique=True)
+    tag_name = TextField()
     embed_title = TextField()
     text = TextField()
 
