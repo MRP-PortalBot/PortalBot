@@ -49,6 +49,7 @@ print(cell)
 '''
 # -----------------------------------------------------
 
+entryidcol = 1
 discordcol = 2
 longidcol = 3
 tzonecol = 4

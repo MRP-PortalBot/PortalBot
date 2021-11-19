@@ -40,14 +40,15 @@ print(cell)
 '''
 # -----------------------------------------------------
 
-discordcol = 1
-longidcol = 2
-tzonecol = 3
-xboxcol = 4
-psnidcol = 5
-nnidcol = 6
-pokemongocol = 7
-chesscol = 8
+entryidcol = 1
+discordcol = 2
+longidcol = 3
+tzonecol = 4
+xboxcol = 5
+psnidcol = 6
+nnidcol = 7
+pokemongocol = 8
+chesscol = 9
 
 IPlinks = ["turtletest.com","grabify.link", "lovebird.gutu", "dateing.club", 'otherhalf.life','shrekis.life','headshot.monster','gaming-at-my.best','progaming.monster','yourmy.monster','screenshare.host','imageshare.best','screenshot.best','gamingfun.me','catsnthing.com','mypic.icu','catsnthings.fun','curiouscat.club','joinmy.site','fortnitechat.site','fortnight.space','freegiftcards.co','stopify.co','leancoding.co','bit.ly','shorte.st','adf.lv','bc.vc','bit.do','soo.gd','7.ly','5.gp','tiny.cc','ouo.io','zzb.bz','adfoc.us','my.su','goo.gl']
 discordLink = ['discord.gg']
@@ -102,11 +103,13 @@ class Events(commands.Cog):
         #----GSheets------------------------------------------------
        
         try:
-            usercell = gtsheet.find(longid, in_column=2)
+            usercell = gtsheet.find(longid, in_column=3)
         except:
-            row = [discordname, longid]
+            rowid = gtsheet.cell(2,1).value
+            entryid = (rowid + 1)
+            row = [entryid, discordname, longid]
             print(row)
-            gtsheet.insert_row(row, 3)
+            gtsheet.insert_row(row, 2)
         else:
             userrow = usercell.row
             gtsheet.update_cell(userrow, discordcol, str(discordname))
