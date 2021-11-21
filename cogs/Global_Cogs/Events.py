@@ -105,8 +105,7 @@ class Events(commands.Cog):
         try:
             usercell = gtsheet.find(longid, in_column=3)
         except:
-            rowid = gtsheet.cell(2,1).value
-            entryid = (rowid + 1)
+            entryid = (int(gtsheet.acell('A2').value)+1)
             row = [entryid, discordname, longid]
             print(row)
             gtsheet.insert_row(row, 2)
