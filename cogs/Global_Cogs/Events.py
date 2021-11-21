@@ -142,8 +142,6 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author == self.bot or message.guild.id == 192052103017922567:
-            return
         msg = message.content
         message_content = message.content.strip().lower()
         for link in IPlinks:
