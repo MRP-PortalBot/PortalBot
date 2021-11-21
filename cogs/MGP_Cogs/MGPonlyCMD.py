@@ -47,25 +47,24 @@ class MGPonlyCMD(commands.Cog):
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload):
-        if payload.guild_id == 587495640502763521:
-            return
-        guild = self.bot.get_guild(payload.guild_id)
-        channel = discord.utils.get(guild.channels, name="games-selection")
-        if payload.user_id != self.bot.user.id:
-            if payload.channel_id == channel.id:
-                print(channel.id)
-                channel = self.bot.get_channel(payload.channel_id)
-                msg = await channel.fetch_message(payload.message_id)
-                embed = msg.embeds[0]
-                game = embed.title
-                game = game.replace("__","")
-                print(game)
-                emoji = msg.reactions[0]
-                author = discord.utils.get(guild.members, id=payload.user_id)
-                if str(payload.emoji) == str(emoji):
-                    role = discord.utils.get(guild.roles, name=str(game))
-                    print(role)
-                    await author.add_roles(role)
+        if payload.guild_id == 192052103017922567:
+            guild = self.bot.get_guild(payload.guild_id)
+            channel = discord.utils.get(guild.channels, name="games-selection")
+            if payload.user_id != self.bot.user.id:
+                if payload.channel_id == channel.id:
+                    print(channel.id)
+                    channel = self.bot.get_channel(payload.channel_id)
+                    msg = await channel.fetch_message(payload.message_id)
+                    embed = msg.embeds[0]
+                    game = embed.title
+                    game = game.replace("__","")
+                    print(game)
+                    emoji = msg.reactions[0]
+                    author = discord.utils.get(guild.members, id=payload.user_id)
+                    if str(payload.emoji) == str(emoji):
+                        role = discord.utils.get(guild.roles, name=str(game))
+                        print(role)
+                        await author.add_roles(role)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload):
