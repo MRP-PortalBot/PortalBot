@@ -156,12 +156,13 @@ class BlacklistCMD(commands.Cog):
                 await message.delete()
                 return
             else:
-                row = [answer1.content, answer2.content, answer3.content, answer4.content,
+                entryid = (int(gtsheet.acell('A2').value)+1)
+                row = [entryid, str(author.name + "#" + author.discriminator), answer1.content, answer2.content, answer3.content, answer4.content,
                 answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
                 sheet.insert_row(row, 3)
 
                 database.db.connect(reuse_if_open=True)
-                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReason = author.name)
+                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReporter = str(author.name + "#" + author.discriminator))
                 q.save()
                 await ctx.send(f"{q.DiscUsername} has been added successfully.")
                 database.db.close()
