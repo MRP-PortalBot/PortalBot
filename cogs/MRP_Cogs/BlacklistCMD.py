@@ -95,8 +95,8 @@ class BlacklistCMD(commands.Cog):
     async def blacklist(self, ctx):
         author = ctx.message.author
         guild = ctx.message.guild
-        entryid = (int(gtsheet.acell('A2').value)+1)
-        banreporter = str(author.name + "#" + author.discriminator)
+        entryid = (int(sheet.acell('A3').value)+1)
+        banreport = author.name
         channel = await ctx.author.create_dm()
         #schannel = self.bot.get_channel(778453455848996876)
 
@@ -141,8 +141,6 @@ class BlacklistCMD(commands.Cog):
             return await channel.send("Unable to process this blacklist application!\nThis response has exceeded 6000 characters!")
 
         # Add to DB
-        print(entryid, banreporter, answer1.content, answer2.content, answer3.content, answer4.content,
-                answer5.content, answer6.content, answer7.content, answer8.content, answer9.content)
 
         message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 150 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['✅', '❌']
@@ -159,13 +157,13 @@ class BlacklistCMD(commands.Cog):
                 await message.delete()
                 return
             else:
-                row = [entryid, banreporter, answer1.content, answer2.content, answer3.content, answer4.content,
+                row = [entryid, banreport, answer1.content, answer2.content, answer3.content, answer4.content,
                 answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
                 print(row)
                 sheet.insert_row(row, 3)
 
                 database.db.connect(reuse_if_open=True)
-                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReporter = banreporter)
+                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(BanReporter = banreport, DiscUsername = answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content, ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content)
                 q.save()
                 await ctx.send(f"{q.DiscUsername} has been added successfully.")
                 database.db.close()
@@ -187,7 +185,7 @@ class BlacklistCMD(commands.Cog):
 
                 timestamp = datetime.now()
                 blacklistembed.set_footer(
-                    text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")) + " | ID:" + entryid)
+                    text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")) + " | ID: " + str(entryid))
                 await schannel.send(embed=blacklistembed)
                 await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
 
@@ -275,7 +273,8 @@ class BlacklistCMD(commands.Cog):
     @commands.command()
     @commands.has_role("Realm OP")
     async def Bsearch(self, ctx, *, req : str):
-        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid]
+        databaseData = [database.MRP_Blacklist_Data.DiscUsername, database.MRP_Blacklist_Data.DiscID, database.MRP_Blacklist_Data.Gamertag, database.MRP_Blacklist_Data.BannedFrom, database.MRP_Blacklist_Data.KnownAlts, database.MRP_Blacklist_Data.ReasonforBan, database.MRP_Blacklist_Data.DateofIncident, database.MRP_Blacklist_Data.TypeofBan, database.MRP_Blacklist_Data.DatetheBanEnds, database.MRP_Blacklist_Data.entryid,
+        database.MRP_Blacklist_Data.BanReporter]
         ResultsGiven = False
 
         for data in databaseData:
@@ -283,7 +282,7 @@ class BlacklistCMD(commands.Cog):
             if query.exists():
                 for p in query:
                     e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}", color = 0x18c927)
-                    e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n```", inline=False)
+                    e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\nReported by: {p.BanReporter}\n```", inline=False)
                     e.set_footer(text = f"Querying from MRP_Blacklist_Data | Entry ID: {p.entryid}")
                     await ctx.send(embed = e)
                     ResultsGiven = True
