@@ -95,6 +95,8 @@ class BlacklistCMD(commands.Cog):
     async def blacklist(self, ctx):
         author = ctx.message.author
         guild = ctx.message.guild
+        entryid = (int(gtsheet.acell('A2').value)+1)
+        banreporter = str(author.name + "#" + author.discriminator)
         channel = await ctx.author.create_dm()
         #schannel = self.bot.get_channel(778453455848996876)
 
@@ -139,7 +141,8 @@ class BlacklistCMD(commands.Cog):
             return await channel.send("Unable to process this blacklist application!\nThis response has exceeded 6000 characters!")
 
         # Add to DB
-
+        print(entryid, banreporter, answer1.content, answer2.content, answer3.content, answer4.content,
+                answer5.content, answer6.content, answer7.content, answer8.content, answer9.content)
 
         message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 150 seconds to react, otherwise the application will automaically cancel.* ")
         reactions = ['✅', '❌']
@@ -156,10 +159,9 @@ class BlacklistCMD(commands.Cog):
                 await message.delete()
                 return
             else:
-                entryid = (int(gtsheet.acell('A2').value)+1)
-                banreporter = str(author.name + "#" + author.discriminator)
                 row = [entryid, banreporter, answer1.content, answer2.content, answer3.content, answer4.content,
                 answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
+                print(row)
                 sheet.insert_row(row, 3)
 
                 database.db.connect(reuse_if_open=True)
