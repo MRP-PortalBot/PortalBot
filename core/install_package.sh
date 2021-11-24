@@ -9,6 +9,7 @@ pip install discord-py-slash-command
 pip install --upgrade sentry-sdk
 pip install pymysql
 pip install peewee
+pip install py-cord
 
 echo -e "\n\e[33mPackages have been downlaoded, returning to file!\n"
 
