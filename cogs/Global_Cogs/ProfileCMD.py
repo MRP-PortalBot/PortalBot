@@ -111,7 +111,7 @@ class ProfileCMD(commands.Cog):
                 profileembed.set_thumbnail(url=pfp)
                 profileembed.add_field(name="Discord", value=discordname, inline=True)
                 profileembed.add_field(name="LongID", value=longid, inline=True)
-                if tzone.exists():
+                if tzone != "":
                     profileembed.add_field(name="Timezone", value=tzone, inline=True)
                 #if xbox.exists():
                  #   profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
@@ -125,8 +125,8 @@ class ProfileCMD(commands.Cog):
                  #   profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
                 #if username == ctx.message.author:
                  #   profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
-                else:
-                    profileembed.set_footer(text="Requested by " + author.name)
+                #else:
+                    #profileembed.set_footer(text="Requested by " + author.name)
                 #if role in author.roles and adminchannel == channel: 
                  #   qID = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID.contains(longid)))
                   #  qNAME = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(discordname)))
