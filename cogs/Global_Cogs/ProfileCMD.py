@@ -123,8 +123,8 @@ class ProfileCMD(commands.Cog):
                     profileembed.add_field(name="Pokemon Go ID", value=pokemongo, inline=False) 
                 if chessdotcom != "":
                     profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
-                #if username == ctx.message.author:
-                 #   profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
+                if username == ctx.message.author:
+                    profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
                 #else:
                     #profileembed.set_footer(text="Requested by " + author.name)
                 #if role in author.roles and adminchannel == channel: 
