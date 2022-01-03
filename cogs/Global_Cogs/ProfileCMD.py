@@ -90,7 +90,8 @@ class ProfileCMD(commands.Cog):
         else:
             anick = str(username.nick)
 
-        longid = str(username.id)        
+        longid = str(username.id)
+        print (longid)
         pfp = username.avatar_url
         profileembed = discord.Embed(
             title=anick + "'s Profile", description="=======================", color=0x18c927)
