@@ -111,17 +111,17 @@ class ProfileCMD(commands.Cog):
                 profileembed.set_thumbnail(url=pfp)
                 profileembed.add_field(name="Discord", value=discordname, inline=True)
                 profileembed.add_field(name="LongID", value=longid, inline=True)
-                if tzone != "Null":
+                if tzone.exists():
                     profileembed.add_field(name="Timezone", value=tzone, inline=True)
-                if xbox != "Null":
+                if xbox.exists():
                     profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
-                if psnid != "Null":
+                if psnid.exists():
                     profileembed.add_field(name="Playstation ID", value=psnid, inline=False) 
-                if switch != "Null":
+                if switch.exists():
                     profileembed.add_field(name="Switch Friend Code", value=switch, inline=False) 
-                if pokemongo != "Null":
+                if pokemongo.exists():
                     profileembed.add_field(name="Pokemon Go ID", value=pokemongo, inline=False) 
-                if chessdotcom != "Null":
+                if chessdotcom.exists():
                     profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
                 if username == ctx.message.author:
                     profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
