@@ -111,33 +111,33 @@ class ProfileCMD(commands.Cog):
                 profileembed.set_thumbnail(url=pfp)
                 profileembed.add_field(name="Discord", value=discordname, inline=True)
                 profileembed.add_field(name="LongID", value=longid, inline=True)
-                if tzone.exists():
-                    profileembed.add_field(name="Timezone", value=tzone, inline=True)
-                if xbox.exists():
-                    profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
-                if psnid.exists():
-                    profileembed.add_field(name="Playstation ID", value=psnid, inline=False) 
-                if switch.exists():
-                    profileembed.add_field(name="Switch Friend Code", value=switch, inline=False) 
-                if pokemongo.exists():
-                    profileembed.add_field(name="Pokemon Go ID", value=pokemongo, inline=False) 
-                if chessdotcom.exists():
-                    profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
-                if username == ctx.message.author:
-                    profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
-                else:
-                    profileembed.set_footer(text="Requested by " + author.name)
-                if role in author.roles and adminchannel == channel: 
-                    qID = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID.contains(longid)))
-                    qNAME = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(discordname)))
-                    qNAME2 = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(aname)))
-                    if qID.exists() or qNAME.exists() or qNAME2.exists():
-                        profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
-                        await ctx.send(embed=profileembed)
-                    else:
-                        await ctx.send(embed=profileembed)
-                else:
-                    await ctx.send(embed=profileembed)
+                #if tzone.exists():
+                 #   profileembed.add_field(name="Timezone", value=tzone, inline=True)
+                #if xbox.exists():
+                 #   profileembed.add_field(name="XBOX Gamertag", value=xbox, inline=False)
+                #if psnid.exists():
+                 #   profileembed.add_field(name="Playstation ID", value=psnid, inline=False) 
+                #if switch.exists():
+                 #   profileembed.add_field(name="Switch Friend Code", value=switch, inline=False) 
+                #if pokemongo.exists():
+                 #   profileembed.add_field(name="Pokemon Go ID", value=pokemongo, inline=False) 
+                #if chessdotcom.exists():
+                 #   profileembed.add_field(name="Chess.com ID", value=chessdotcom, inline=False)      
+                #if username == ctx.message.author:
+                 #   profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
+                #else:
+                 #   profileembed.set_footer(text="Requested by " + author.name)
+                #if role in author.roles and adminchannel == channel: 
+                 #   qID = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID.contains(longid)))
+                  #  qNAME = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(discordname)))
+                   # qNAME2 = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(aname)))
+                   # if qID.exists() or qNAME.exists() or qNAME2.exists():
+                    #    profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
+                     #   await ctx.send(embed=profileembed)
+                  #  else:
+                   #     await ctx.send(embed=profileembed)
+                #else:
+                await ctx.send(embed=profileembed)
         else:
             noprofileembed = discord.Embed(
             title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)
