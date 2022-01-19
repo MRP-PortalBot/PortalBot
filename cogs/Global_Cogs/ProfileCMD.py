@@ -90,7 +90,8 @@ class ProfileCMD(commands.Cog):
         else:
             anick = str(username.nick)
 
-        longid = str(username.id)        
+        longid = str(username.id)
+        print (longid)
         pfp = username.avatar_url
         profileembed = discord.Embed(
             title=anick + "'s Profile", description="=======================", color=0x18c927)
@@ -127,17 +128,17 @@ class ProfileCMD(commands.Cog):
                     profileembed.set_footer(text="If you want to edit your profile, use the command >profile edit")
                 else:
                     profileembed.set_footer(text="Requested by " + author.name)
-                if role in author.roles and adminchannel == channel: 
-                    qID = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID.contains(longid)))
-                    qNAME = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(discordname)))
-                    qNAME2 = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(aname)))
-                    if qID.exists() or qNAME.exists() or qNAME2.exists():
-                        profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
-                        await ctx.send(embed=profileembed)
-                    else:
-                        await ctx.send(embed=profileembed)
-                else:
-                    await ctx.send(embed=profileembed)
+                #if role in author.roles and adminchannel == channel: 
+                 #   qID = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscID.contains(longid)))
+                  #  qNAME = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(discordname)))
+                   # qNAME2 = (database.MRP_Blacklist_Data.select().where(database.MRP_Blacklist_Data.DiscUsername.contains(aname)))
+                   # if qID.exists() or qNAME.exists() or qNAME2.exists():
+                    #    profileembed.add_field(name="BANNED PLAYER", value="Player is on the banned players list", inline=False)
+                     #   await ctx.send(embed=profileembed)
+                  #  else:
+                   #     await ctx.send(embed=profileembed)
+                #else:
+                await ctx.send(embed=profileembed)
         else:
             noprofileembed = discord.Embed(
             title="Sorry", description=author.mention + "\n" + "No user by that name has been found.", color=0x18c927)

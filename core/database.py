@@ -69,12 +69,12 @@ class PortalbotProfile(BaseModel):
     entryid = AutoField()
     DiscordName = TextField()
     DiscordLongID = TextField()
-    Timezone = TextField()
-    XBOX = TextField()
-    Playstation = TextField()
-    Switch = TextField()
-    PokemonGo = TextField()
-    Chessdotcom = TextField()
+    Timezone = TextField(default="None")
+    XBOX = TextField(default="None")
+    Playstation = TextField(default="None")
+    Switch = TextField(default="None")
+    PokemonGo = TextField(default="None")
+    Chessdotcom = TextField(default="None")
 
 class RealmProfile(BaseModel):
     """Stores Realm Profile Data here"""
