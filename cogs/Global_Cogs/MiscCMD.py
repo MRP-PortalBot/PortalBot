@@ -89,7 +89,7 @@ class MiscCMD(commands.Cog):
             await ctx.send("Uh oh, looks like you don't have the Moderator role!")
 
     # Ping Command
-    @slash_command(name="ping", description = "Shows the bots latency", guild_ids=[config['MRP'],config['PBtest']])
+    @slash_command(name="ping", description = "Shows the bots latency", guild_ids=[config['PBtest']])
     async def ping(self, ctx):
         # await ctx.send(f'**__Latency is__ ** {round(client.latency * 1000)}ms')
         pingembed = discord.Embed(
@@ -112,7 +112,7 @@ class MiscCMD(commands.Cog):
         await ctx.channel.purge(limit=amount)
 
     # Embed Command
-    @slash_command(name="embed", description = "converts your message to an embed", guild_ids=[config['MRP'],config['PBtest']])
+    @slash_command(name="embed", description = "converts your message to an embed", guild_ids=[config['PBtest']])
     @commands.has_permissions(manage_channels=True)
     async def embed(self, ctx, channel: discord.TextChannel, title, body):
         colorvalue = int(discord.Colour.random())
@@ -139,7 +139,7 @@ class MiscCMD(commands.Cog):
             await ctx.send("Uh oh, looks like you don't have the Moderator role!")
 
     # Removes your nickname.
-    @slash_command(name="rememoji", description = "Reverts your nickname back to your username!", guild_ids=[config['MRP'],config['PBtest']])
+    @slash_command(name="rememoji", description = "Reverts your nickname back to your username!", guild_ids=[config['PBtest']])
     async def removeemoji(self, ctx):
         author = ctx.author
         name = author.name
@@ -147,7 +147,7 @@ class MiscCMD(commands.Cog):
         await ctx.send(content = "Removed your nickname!")
 
     # Add's an emoji to your nickname.
-    @slash_command(name="addemoji", description = "Add's an emoji to your nickname!", guild_ids=[config['MRP'],config['PBtest']])
+    @slash_command(name="addemoji", description = "Add's an emoji to your nickname!", guild_ids=[config['PBtest']])
     async def addemoji(self, ctx, channel: discord.TextChannel = None):
         author = ctx.author
         name = author.display_name
@@ -161,7 +161,7 @@ class MiscCMD(commands.Cog):
 
 
     # Rule Command [INT]
-    @slash_command(name="rule", description = "Sends out MRP Server Rules", guild_ids=[config['MRP'],config['PBtest']])
+    @slash_command(name="rule", description = "Sends out MRP Server Rules", guild_ids=[config['PBtest']])
     async def rule(self, ctx, number = None):
         await ctx.send(content = rules[int(number)-1])
 
