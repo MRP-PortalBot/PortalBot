@@ -1,18 +1,19 @@
-from oauth2client.service_account import ServiceAccountCredentials
-import gspread
-import discord
-from discord.ext import commands
-from datetime import datetime
-import time
-import re
 import asyncio
-from discord import Embed
-from six import python_2_unicode_compatible
-from core.common import load_config, paginate_embed
-config, _ = load_config()
 import logging
-from core import database
 import random
+import re
+import time
+from datetime import datetime
+
+import discord
+import gspread
+from core import database
+from core.common import load_config, paginate_embed
+from discord.ext import commands
+from discord.ui import InputText, Modal
+from oauth2client.service_account import ServiceAccountCredentials
+
+config, _ = load_config()
 
 def printlen(*args):
     if not args:
@@ -70,19 +71,149 @@ def random_rgb(seed=None):
         random.seed(seed)
     return discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))
 
-Q1 = "User's Discord: "
-Q2 = "User's Discord Long ID: "
-Q3 = "User's Gamertag: "
-Q4 = "Banned from (realm): "
-Q5 = "Known Alts: "
-Q6 = "Reason for Ban: "
+Q1 = "User's Discord"
+Q2 = "User's Discord Long ID"
+Q3 = "User's Gamertag"
+Q4 = "What realm were they banned from?"
+Q5 = "Known Alts"
+Q6 = "Reason for Ban"
 Q7 = "Date of Incident"
-Q8 = "The User has faced a (Temporary/Permanent) ban: "
-Q9 = "If the ban is Temporary, the ban ends on: "
+Q8 = "Is this a Temporary or Permanent ban?"
+Q9 = "If the ban is temporary, the ban ends on:"
 
 QQ1 = "What should I open for you? \n >  **Options:** `Gamertag` / `Discord` / `Combined`"
 a_list = []
 
+class BlacklistFormModal(Modal):
+    def __init__(self, bot) -> None:
+        super().__init__("Blacklist Form")
+        self.bot = bot
+
+        self.add_item(
+            InputText(
+                label=Q1,
+                style=discord.InputTextStyle.short,
+                max_length=75
+            )
+        )
+        self.add_item(
+            InputText(
+                label=Q2,
+                style=discord.InputTextStyle.short,
+                max_length=20
+            )
+        )
+        self.add_item(
+            InputText(
+                label=Q3,
+                style=discord.InputTextStyle.short,
+                max_length=100
+            )
+        )
+        self.add_item(
+            InputText(
+                label=Q4,
+                style=discord.InputTextStyle.short,
+                max_length=200
+            )
+        )
+        self.add_item(
+            InputText(
+                label=Q5,
+                style=discord.InputTextStyle.long,
+            )
+        )
+        self.add_item(
+            InputText(
+                label=Q6,
+                style=discord.InputTextStyle.long,
+                max_length=2000
+            )
+        )
+        self.add_item(
+            InputText(
+                label=Q7,
+                style=discord.InputTextStyle.short,
+                max_length=100
+            )
+        )
+        self.add_item(
+            InputText(
+                label=Q8,
+                style=discord.InputTextStyle.short,
+                max_length=75
+            )
+        )
+        self.add_item(
+            InputText(
+                label=Q9,
+                style=discord.InputTextStyle.short,
+                max_length=75
+            )
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        schannel = await self.bot.fetch_channel(config['blacklistChannel'])
+        entryid = (int(sheet.acell('A3').value)+1)
+        row = [
+            entryid,
+            interaction.user.name,
+            self.children[0].value, 
+            self.children[1].value, 
+            self.children[2].value, 
+            self.children[3].value, 
+            self.children[4].value, 
+            self.children[5].value, 
+            self.children[6].value, 
+            self.children[7].value, 
+            self.children[8].value
+        ]
+        sheet.insert_row(row, 3)
+
+        database.db.connect(reuse_if_open=True)
+        q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=self.children[0].value, DiscID = self.children[1].value, Gamertag = self.children[2].value, BannedFrom = self.children[3].value, KnownAlts = self.children[4].value, ReasonforBan = self.children[5].value, DateofIncident = self.children[6].value, TypeofBan = self.children[7].value, DatetheBanEnds = self.children[8].value, BanReason = interaction.user.name)
+        q.save()
+        database.db.close()
+        blacklistembed = discord.Embed(
+            title="Blacklist Report", description="Sent from: " + interaction.user.mention, color=0xb10d9f)
+
+        blacklistembed.add_field(name = Q1, value = self.children[0].value + "\n", inline = False)
+        blacklistembed.add_field(name = Q2, value = self.children[1].value + "\n", inline = False)
+        blacklistembed.add_field(name = Q3, value = self.children[2].value + "\n", inline = False)
+        blacklistembed.add_field(name = Q4, value = self.children[3].value + "\n", inline = False)
+        blacklistembed.add_field(name = Q5, value = self.children[4].value + "\n", inline = False)
+        blacklistembed.add_field(name = Q6, value = self.children[5].value + "\n", inline = False)
+        blacklistembed.add_field(name = Q7, value = self.children[6].value + "\n", inline = False)
+        blacklistembed.add_field(name = Q8, value = self.children[7].value + "\n", inline = False)
+        blacklistembed.add_field(name = Q9, value = self.children[8].value + "\n", inline = False)
+
+        timestamp = datetime.now()
+        blacklistembed.set_footer(
+            text=interaction.guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
+        await schannel.send(embed=blacklistembed)
+
+        await interaction.response.send_message("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪", ephemeral = True)
+
+class BlacklistFormButton(discord.ui.View):
+    def __init__(self, bot, author_id: int):
+        super().__init__(timeout=None)
+        self.value = None
+        self.bot = bot
+        self.author_id = author_id
+
+    @discord.ui.button(
+        label="Start Blacklist Process",
+        style=discord.ButtonStyle.red,
+        emoji="📝",
+    )
+    async def verify(self, button: discord.ui.Button, interaction: discord.Interaction):
+        if self.author_id == interaction.user.id:
+            await interaction.response.defer("You can't perform this action, do the command on your own if you intend to fill this out.")
+        modal = BlacklistFormModal(self.bot)
+        try:
+            await interaction.response.send_modal(modal)
+        except Exception as e:
+            await interaction.response.send_message(f"Uh, something went wrong. Please try again.\n{e}")
 
 class BlacklistCMD(commands.Cog):
     def __init__(self, bot):
@@ -92,105 +223,9 @@ class BlacklistCMD(commands.Cog):
     # Starts the blacklist process.
     @commands.command()
     @commands.has_role("Realm OP")
-    async def blacklist(self, ctx):
-        author = ctx.message.author
-        guild = ctx.message.guild
-        entryid = (int(sheet.acell('A3').value)+1)
-        banreport = author.name
-        channel = await ctx.author.create_dm()
-        #schannel = self.bot.get_channel(778453455848996876)
-
-        schannel = self.bot.get_channel(config['blacklistChannel'])
-        await ctx.send("Please take a look at your DM's!")
-
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
-
-        await channel.send("Please answer the questions with as much detail as you can. \nWant to cancel the command? Answer everything and at the end then you have the option to either break or submit the responses, there you could say 'break'!\nIf you are having trouble with the command, please contact Space! \n\n*Starting Questions Now...*")
-        time.sleep(2)
-        await channel.send(Q1)
-        answer1 = await self.bot.wait_for('message', check=check)
-
-        await channel.send(Q2)
-        answer2 = await self.bot.wait_for('message', check=check)
-
-        await channel.send(Q3)
-        answer3 = await self.bot.wait_for('message', check=check)
-
-        await channel.send(Q4)
-        answer4 = await self.bot.wait_for('message', check=check)
-
-        await channel.send(Q5)
-        answer5 = await self.bot.wait_for('message', check=check)
-
-        await channel.send(Q6)
-        answer6 = await self.bot.wait_for('message', check=check)
-
-        await channel.send(Q7)
-        answer7 = await self.bot.wait_for('message', check=check)
-
-        await channel.send(Q8)
-        answer8 = await self.bot.wait_for('message', check=check)
-
-        await channel.send(Q9)
-        answer9 = await self.bot.wait_for('message', check=check)
-
-        time.sleep(0.5)
-        x = printlen(answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content)
-        if x >= 6000:
-            return await channel.send("Unable to process this blacklist application!\nThis response has exceeded 6000 characters!")
-
-        # Add to DB
-
-        message = await channel.send("**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 150 seconds to react, otherwise the application will automaically cancel.* ")
-        reactions = ['✅', '❌']
-        for emoji in reactions:
-            await message.add_reaction(emoji)
-
-        def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
-        
-        try:
-            reaction, user = await self.bot.wait_for('reaction_add', timeout=150.0, check=check2)
-            if str(reaction.emoji) == "❌":
-                await channel.send("Ended Form...")
-                await message.delete()
-                return
-            else:
-                row = [entryid, banreport, answer1.content, answer2.content, answer3.content, answer4.content,
-                answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
-                print(row)
-                sheet.insert_row(row, 3)
-
-                database.db.connect(reuse_if_open=True)
-                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(BanReporter = banreport, DiscUsername = answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content, ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content)
-                q.save()
-                await ctx.send(f"{q.DiscUsername} has been added successfully.")
-                database.db.close()
-
-                await message.delete()
-                await channel.send("Sending your responses!")
-                blacklistembed = discord.Embed(
-                    title="Blacklist Report", description="Sent from: " + author.mention, color=0xb10d9f)
-
-                blacklistembed.add_field(name = Q1, value = answer1.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q2, value = answer2.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q3, value = answer3.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q4, value = answer4.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q5, value = answer5.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q6, value = answer6.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q7, value = answer7.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q8, value = answer8.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q9, value = answer9.content + "\n", inline = False)
-
-                timestamp = datetime.now()
-                blacklistembed.set_footer(
-                    text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")) + " | ID: " + str(entryid))
-                await schannel.send(embed=blacklistembed)
-                await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
-
-        except asyncio.TimeoutError:
-            await channel.send("Looks like you didn't react in time, please try again later!")
+    async def blacklist(self, ctx: commands.Context):
+        view = BlacklistFormButton(self.bot, ctx.author.id)
+        await ctx.send(view=view)
 
     @blacklist.error
     async def blacklist_error(self, ctx, error):
