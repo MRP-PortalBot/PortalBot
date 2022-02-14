@@ -274,7 +274,8 @@ class MiscCMD(commands.Cog):
     async def embed(self, ctx, channel: discord.TextChannel, title, body):
         colorvalue = int(discord.Colour.random())
         embed = discord.Embed(title=title, description=body, color=colorvalue)
-        await channel.respond(embed=embed)
+        await channel.send(embed=embed)
+        await ctx.respond("Embed Sent")
 
     # Ping Command
     @slash_command(name="ping", description = "Shows the bots latency", guild_ids=[config['PBtest']])
