@@ -147,7 +147,7 @@ class MiscCMD(commands.Cog):
         await ctx.send(content = "Removed your nickname!")
 
     # Add's an emoji to your nickname.
-    @slash_command(name="addemoji", description = "Add's an emoji to your nickname!", guild_ids=[config['MRP'],config['PBtest']], options=[manage_commands.create_option(name = "channel" , description = "Channel's Emoji", option_type = 7, required = True)])
+    @slash_command(name="addemoji", description = "Add's an emoji to your nickname!", guild_ids=[config['MRP'],config['PBtest']])
     async def addemoji(self, ctx, channel: discord.TextChannel = None):
         author = ctx.author
         name = author.display_name
@@ -161,7 +161,7 @@ class MiscCMD(commands.Cog):
 
 
     # Rule Command [INT]
-    @slash_command(name="rule", description = "Sends out MRP Server Rules", guild_ids=[config['MRP'],config['PBtest']], options=[manage_commands.create_option(name = "number" , description = "Rule Number", option_type = 4, required = True)])
+    @slash_command(name="rule", description = "Sends out MRP Server Rules", guild_ids=[config['MRP'],config['PBtest']])
     async def rule(self, ctx, number = None):
         await ctx.send(content = rules[int(number)-1])
 
