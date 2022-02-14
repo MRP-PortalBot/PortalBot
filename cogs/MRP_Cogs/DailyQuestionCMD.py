@@ -169,7 +169,6 @@ class DailyCMD(commands.Cog):
                     await ctx.send("Okay, I didn't send your suggestion...")
                     return
                 else:
-                    await message.delete()
                     msga = await ctx.send("Standby, sending your suggestion. ")
                     channels = await self.bot.fetch_channel(config['questionSuggestChannel'])
                     embed = discord.Embed(title="Daily Question Suggestion", description=str(
@@ -199,6 +198,7 @@ class DailyCMD(commands.Cog):
                     await msga.edit(content="I have sent your question! \nPlease wait for an admin to approve it. ")
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
+                    await message.delete()
             except asyncio.TimeoutError:
                 await channel.send("Looks like you didn't react in time, please try again later!")
         else:
