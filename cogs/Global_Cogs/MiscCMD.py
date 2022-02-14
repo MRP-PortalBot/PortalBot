@@ -76,7 +76,7 @@ class MiscCMD(commands.Cog):
         logger.info("MiscCMD: Cog Loaded!")
 
     # Ping Command
-    @slash_command(name="ping", description = "Shows the bots latency", guild_ids=[config['PBtest']])
+    @slash_command(name="ping", description = "Shows the bots latency", guild_ids=[448488274562908170])
     async def ping(self, ctx):
         # await ctx.send(f'**__Latency is__ ** {round(client.latency * 1000)}ms')
         pingembed = discord.Embed(
