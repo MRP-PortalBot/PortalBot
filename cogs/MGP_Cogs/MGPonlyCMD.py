@@ -190,7 +190,7 @@ class MGPonlyCMD(commands.Cog):
         embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
         embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + "->\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Embed Posted:** " + EmbedPosted + "\n**Reaction Role Added:** " + ReactionsAdded)
         embed.set_footer(text = "The command has finished all of its tasks")
-        embed.set_thumbnail(url = author.avatar_url)
+        embed.set_thumbnail(url = author.avatar.url)
         await ctx.send(embed=embed)
         
 
@@ -254,7 +254,7 @@ class MGPonlyCMD(commands.Cog):
         #embed = discord.Embed(title="Game Creation Output", description="game Requested by: " + author.mention, color=0x38ebeb)
         #embed.add_field(name="**Console Logs**", value="**Role Created:** " + RoleCreate + " -> " + role.mention + "\n**Category Created:** " + CategoryCreate + "->\n**Channel Created:** " + ChannelCreate +" -> <#" + str(channel.id) + ">\n**Embed Posted:** " + EmbedPosted + "\n**Reaction Role Added:** " + ReactionsAdded)
         #embed.set_footer(text = "The command has finished all of its tasks")
-        #embed.set_thumbnail(url = author.avatar_url)
+        #embed.set_thumbnail(url = author.avatar.url)
         
 
 
