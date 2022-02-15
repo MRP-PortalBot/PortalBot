@@ -5,7 +5,6 @@ pip install PyGithub
 pip install discord-sentry-reporting
 pip install gspread
 pip install xbox
-pip install discord-py-slash-command
 pip install --upgrade sentry-sdk
 pip install pymysql
 pip install peewee

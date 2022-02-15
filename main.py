@@ -5,13 +5,10 @@ from discord.ext import commands
 from datetime import datetime
 import asyncio
 from pathlib import Path
-from discord_slash.utils import manage_commands
 import os
 from core.common import prompt_config, load_config
 import core.keep_alive as keep_alive
 import core.bcolors as bcolors
-from discord_slash import SlashCommand
-from discord_slash import SlashContext
 import subprocess
 import time
 import sys
@@ -53,7 +50,6 @@ intents.presences = True
 
 #Defining client and SlashCommands
 client = commands.Bot(command_prefix=config['prefix'], intents=intents, case_insensitive=True)
-client.slash = SlashCommand(client, sync_commands=True)  #TODO: Fix Slash Commands
 client.remove_command("help")
 
 #Sentry Panel Stuff - 
@@ -244,31 +240,6 @@ async def view(ctx):
     embed = discord.Embed(title="Cogs - View", description=msg, color=0xd6b4e8)
     await ctx.send(embed=embed)
 
-
-@client.group(invoke_without_command=True)
-@commands.has_role('Bot Manager')
-async def slashm(ctx):
-    embed = discord.Embed(title = "Slash Management Commands", description = "Slash Commands", color = 0x1ebdf7)
-    embed.add_field(name = "Commands:", value = "**get** - Get's current slash commands in the API \n**remove** - Remove's slash commands from the API. (Needs commandid and guildid)")
-    await ctx.send(embed = embed)
-
-@slashm.command()
-@commands.has_role('Bot Manager')
-async def get(ctx, guildid = None):
-    if guildid == None:
-        guildid == ctx.message.guild.id
-        await ctx.send("```\n" + str(await(manage_commands.get_all_commands(client.user.id, os.getenv("TOKEN"), guildid))) + "\n```")
-    else:
-        await ctx.send("```\n" + str(await(manage_commands.get_all_commands(client.user.id, os.getenv("TOKEN"), guildid))) + "\n```")
-
-
-@slashm.command()
-@commands.has_role('Bot Manager')
-async def remove(ctx, commandid, guildid = None):
-    try:
-        await ctx.send("Response: " + str(await(manage_commands.remove_slash_command(config['BotID'], os.getenv("TOKEN"), guildid, commandid))))
-    except:
-        await ctx.send("Something went wrong!")
 
 @client.command()
 @commands.has_role('Bot Manager')

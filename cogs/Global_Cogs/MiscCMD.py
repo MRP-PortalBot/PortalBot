@@ -68,11 +68,7 @@ def insert_returns(body):
 
 class MiscCMD(commands.Cog):
     def __init__(self, bot):
-        if not hasattr(bot, "slash"):
-            # Creates new SlashCommand instance to bot if bot doesn't have.
-            bot.slash = SlashCommand(bot, override_type=True)
         self.bot = bot
-        self.bot.slash.get_cog_commands(self)
         logger.info("MiscCMD: Cog Loaded!")
 
 ##======================================================Commands===========================================================
@@ -159,7 +155,8 @@ class MiscCMD(commands.Cog):
             await ctx.send("Database does not exist yet.")
             return
         with db.open(mode="rb") as f:
-            await ctx.author.send(file=discord.File(f, "database.db"))
+            file=discord.File(f, "database.db")
+            await ctx.author.send(file=file)
         await ctx.send("Database file sent to your DMs.")
 
     @commands.command()
