@@ -159,7 +159,7 @@ class MiscCMD(commands.Cog):
             await ctx.send("Database does not exist yet.")
             return
         with db.open(mode="rb") as f:
-            await ctx.author.send(file=discord.File(f, "database.db"))
+            await ctx.author.send(file=discord.File(f, "data.db"))
         await ctx.send("Database file sent to your DMs.")
 
     @commands.command()
