@@ -52,7 +52,7 @@ class HelpCMD(commands.Cog):
         em.add_field(name="PortalBot Version:", value="1.3")
         em.add_field(name="Help Command:",
                      value=f"Prefix: **{config['prefix']}** | Help Command: **{config['prefix']}help** *or* **{config['prefix']}help (command)**")
-        em.set_thumbnail(url=guild.icon_url)
+        em.set_thumbnail(url=guild.icon.url)
         timestamp = datetime.now()
         em.set_footer(text=guild.name + " | Date: " +
                       str(timestamp.strftime(r"%x")))
