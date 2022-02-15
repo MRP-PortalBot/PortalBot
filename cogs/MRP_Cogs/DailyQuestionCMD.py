@@ -27,8 +27,8 @@ async def getQuestion(ctx):
     limit = int(database.Question.select().count())
     print(str(limit) + "| getQuestion")
     database.db.connect(reuse_if_open=True)
-    posted = False
-    while posted is False:
+    posted = 0
+    while (posted == 0):
         Rnum = random.randint(1 , limit)
         print(str(Rnum))
         q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
@@ -36,12 +36,12 @@ async def getQuestion(ctx):
         if q.usage == False or q.usage == "False":
             q.usage = True
             q.save()
-            posted = True
+            posted = 1
             embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
             embed.set_footer(text = f"Question ID: {q.id}")
             await ctx.send(embed=embed)
         else:
-            posted = False
+            posted = 0
        
 
 async def mainTask(self, ctx):
