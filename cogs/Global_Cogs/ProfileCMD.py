@@ -92,7 +92,7 @@ class ProfileCMD(commands.Cog):
 
         longid = str(username.id)
         print (longid)
-        pfp = username.avatar_url
+        pfp = username.avatar.url
         profileembed = discord.Embed(
             title=anick + "'s Profile", description="=======================", color=0x18c927)
         username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
@@ -555,7 +555,7 @@ class ProfileCMD(commands.Cog):
             anick = str(username.nick)
 
         longid = str(username.id)        
-        pfp = username.avatar_url
+        pfp = username.avatar.url
         profileembed = discord.Embed(
             title=anick + "'s Profile", description="=======================", color=0x18c927)
         username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
@@ -646,7 +646,7 @@ class ProfileCMD(commands.Cog):
 
             # get URL to avatar
             # sometimes `size=` doesn't gives me image in expected size so later I use `resize()`
-            avatar_asset = author.avatar_url_as(format='jpg', size=AVATAR_SIZE)
+            avatar_asset = author.avatar.url_as(format='jpg', size=AVATAR_SIZE)
 
             # read JPG from server to buffer (file-like object)
             buffer_avatar = io.BytesIO(await avatar_asset.read())
