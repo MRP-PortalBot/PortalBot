@@ -31,41 +31,52 @@ async def getQuestion(ctx):
     database.db.connect(reuse_if_open=True)
     q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
     print(q.id)
-    if q.usage == False or q.usage == "False":
-        q.usage = True
-        q.save()
-        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-        embed.set_footer(text = f"Question ID: {q.id}")
-        await ctx.send(embed=embed)
-        return True
-    else:
-        return False
+    posted = False
+    while posted is False:
+        q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+        if q.usage == False or q.usage == "False":
+            q.usage = True
+            q.save()
+            posted = True
+            embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+            embed.set_footer(text = f"Question ID: {q.id}")
+            await ctx.send(embed=embed)
+        else:
+            posted = False
        
 
-async def mainTask(self):
+async def mainTask(self, ctx):
     while True:
         d = datetime.utcnow()
-        if d.hour == 17 or d.hour == "17":
+        if d.hour == 21 or d.hour == "21":
             if config["ServerID"] == 587495640502763521:
                 guild = self.bot.get_guild(config['ServerID'])
                 channel = guild.get_channel(config['GeneralChannel'])
                 limit = int(database.Question.select().count())
                 print(limit)
                 Rnum = random.randint(1 , limit)
-                try:
-                    database.db.connect(reuse_if_open=True)
-                    try:
+                q: database.Question = database.Question.select().where(database.Question.usage == True).count()
+                print(f"{str(limit)}: limit\n{str(q)}: true count")
+                if limit == q:
+                    query = database.Question.select().where(database.Question.usage == True)
+                    for question in query:
+                        question.usage = False
+                        question.save()
+                else:
+                    posted = False
+                    while posted is False:
                         q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
-                        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-                        await channel.send(embed=embed)
-            
-                    finally:
-                        database.db.close()
+                        if q.usage == False or q.usage == "False":
+                            q.usage = True
+                            q.save()
+                            posted = True
+                            embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+                            embed.set_footer(text = f"Question ID: {q.id}")
+                            await channel.send(embed=embed)
+                        else:
+                            posted = False
 
-                finally:
-                    database.db.close()
-            else:
-                pass
+
         await asyncio.sleep(3600)
 
 
