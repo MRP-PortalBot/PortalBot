@@ -122,7 +122,7 @@ class Events(commands.Cog):
             embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is the **{str(count)}**th member!", color = 0xb10d9f)
             embed.add_field(name="Looking for a Realm?", value="Check out the Realm list in <#588070315117117440>!", inline=False)
             embed.set_thumbnail(url=member.avatar.url)
-            embed.set_footer(text = "Join the MRP Community Realm!!!",icon.url = member.guild.icon.url)
+            embed.set_footer(text = "Join the MRP Community Realm!!!",icon_url = member.guild.icon.url)
             await channel.send(embed=embed)
         elif member.guild.id == 192052103017922567:
             guild = self.bot.get_guild(192052103017922567)
@@ -131,7 +131,7 @@ class Events(commands.Cog):
             embed = discord.Embed(title = f"Welcome to the {member.guild.name}!", description = f"**{str(member.display_name)}** is ready to game!", color = 0xFFCE41)
             embed.add_field(name="Want to see more channels?", value="Check out the Game list in <#796114173514743928>, and react to a game to join the channel!", inline=False)
             embed.set_thumbnail(url=member.avatar.url)
-            embed.set_footer(text = "Got any questions? Feel free to ask in the Gaming Hub!",icon.url = member.guild.icon.url)
+            embed.set_footer(text = "Got any questions? Feel free to ask in the Gaming Hub!",icon_url = member.guild.icon.url)
             await channel.send(embed=embed)    
         elif member.guild.id == 448488274562908170:
             print("here!")
