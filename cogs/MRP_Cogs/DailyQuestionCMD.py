@@ -214,7 +214,7 @@ class DailyCMD(commands.Cog):
 
 
     
-    @slash_command(name="reapeatq", description = "Repeat a daily question by id number", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
+    @slash_command(name="repeatq", description = "Repeat a daily question by id number", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
     @commands.has_role("Moderator")
     async def repeatq(self, ctx, number):
         """Activate a question"""
