@@ -77,7 +77,7 @@ async def mainTask(self, ctx):
                         print(posted)
                         embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
                         embed.set_footer(text = f"Question ID: {q.id}")
-                        await ctx.send(embed=embed)
+                        await channel.send(embed=embed)
                     else:
                         posted = 0
                         print(posted)
