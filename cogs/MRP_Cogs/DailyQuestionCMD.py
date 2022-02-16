@@ -216,7 +216,7 @@ class DailyCMD(commands.Cog):
     
     @slash_command(name="reapeatq", description = "Repeat a daily question by id number", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
     @commands.has_role("Moderator")
-    async def reapeatq(self, ctx, number):
+    async def repeatq(self, ctx, number):
         """Activate a question"""
         q: database.Question = database.Question.select().where(database.Question.id == number).get()
         embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
