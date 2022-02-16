@@ -92,7 +92,7 @@ config, _ = load_config()
 async def mainTask2(client):
     while True:
         d = datetime.utcnow()
-        if d.hour == 18 or d.hour == "18":
+        if d.hour == 16 or d.hour == "16":
             guild = client.get_guild(config['ServerID'])
             channel = client.get_channel(config['GeneralChannel'])
             limit = int(database.Question.select().count())
