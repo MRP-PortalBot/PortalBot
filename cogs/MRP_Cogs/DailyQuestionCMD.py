@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.commands import slash_command
 from datetime import datetime
 import random
 import threading
@@ -143,20 +144,6 @@ class DailyCMD(commands.Cog):
         else:
             return
 
-    # Lists all current questions in the textfile.
-
-    @commands.command()
-    async def listq(self, ctx):
-        with open('DailyQuestions.txt', 'r') as file:
-            author = ctx.message.author
-            msg = file.read(984).strip()
-            while len(msg) > 0:
-                em = discord.Embed(title="Current Recorded Questions",
-                                   description="Requested by: " + author.mention, color=0xb10d9f)
-                em.add_field(name="Questions:", value=msg)
-                await ctx.send(embed=em)
-                msg = file.read(1024).strip()
-
     # Suggests a question and sends it to the moderators.
     @commands.command()
     async def suggestq(self, ctx, *, question):
@@ -227,6 +214,15 @@ class DailyCMD(commands.Cog):
 
 
     
+    @slash_command(name="reapeatq", description = "Repeat a daily question by id number", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
+    @commands.has_role("Moderator")
+    async def reapeatq(self, ctx, number):
+        """Activate a question"""
+        q: database.Question = database.Question.select().where(database.Question.id == number).get()
+        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
+        embed.set_footer(text = f"Question ID: {q.id}")
+        await ctx.respond(embed=embed)
+
 
     @commands.command(aliases=['q', 'dailyq'])
     async def _q(self, ctx):
