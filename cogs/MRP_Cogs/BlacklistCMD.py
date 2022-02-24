@@ -305,7 +305,7 @@ class BlacklistCMD(commands.Cog):
 
 
     @commands.command()
-    async def Bmodify(self, ctx, entryID: str):
+    async def Bmodify(self, ctx, entryID: int):
         channel = ctx.message.channel
         username = ctx.message.author
         try:
