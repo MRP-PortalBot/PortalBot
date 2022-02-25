@@ -431,7 +431,7 @@ class BlacklistCMD(commands.Cog):
                     b.save()
                     usercell = sheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
-                    sheet.update_cell(userrow, bannedfromcol, str(newData))
+                    sheet.update_cell(userrow, knownaltscol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
