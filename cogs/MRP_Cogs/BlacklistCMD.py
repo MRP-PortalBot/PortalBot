@@ -44,6 +44,17 @@ print("Done.")
 cell = sheet.cell(3,1).value
 print(cell)
 '''
+entryidcol = 1
+banreportcol = 2
+discusercol = 3
+longIDcol = 4
+gamertagcol = 5
+bannedfromcol = 6
+knownaltscol = 7
+reasoncol = 8
+dateofbancol = 9
+bantypecol = 10
+banenddatecol = 11
 
 gtsheet = client.open("Gamertag Data").sheet1
 # 3 Values to fill
@@ -338,6 +349,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.BanReporter
                     b.BanReporter = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, banreportcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
@@ -351,6 +365,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.DiscUsername
                     b.DiscUsername = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, discusercol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
@@ -364,6 +381,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.DiscID
                     b.DiscID = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, longIDcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
@@ -377,6 +397,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.Gamertag
                     b.Gamertag = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, gamertagcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
@@ -390,6 +413,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.BannedFrom
                     b.BannedFrom = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, bannedfromcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
@@ -403,6 +429,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.KnownAlts
                     b.KnownAlts = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, bannedfromcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
@@ -416,6 +445,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.ReasonforBan
                     b.ReasonforBan = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, reasoncol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
@@ -429,6 +461,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.DateofIncident
                     b.DateofIncident = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, dateofbancol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
@@ -442,6 +477,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.TypeofBan
                     b.TypeofBan = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, bantypecol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
@@ -455,6 +493,9 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.DatetheBanEnds
                     b.DatetheBanEnds = newData
                     b.save()
+                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    userrow = usercell.row
+                    gtsheet.update_cell(userrow, banenddatecol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
                 except database.DoesNotExist:
                     await ctx.send("ERROR: This entry you provided **DOES NOT EXIST**\nPlease make sure you provided an **ENTRY ID**, you can find this by searching for your entry using `>Bsearch` and looking at the footer for its ID!")
