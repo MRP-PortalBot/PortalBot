@@ -349,7 +349,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.BanReporter
                     b.BanReporter = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, banreportcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
@@ -365,7 +365,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.DiscUsername
                     b.DiscUsername = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, discusercol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
@@ -381,7 +381,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.DiscID
                     b.DiscID = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, longIDcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
@@ -397,7 +397,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.Gamertag
                     b.Gamertag = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, gamertagcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
@@ -413,7 +413,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.BannedFrom
                     b.BannedFrom = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, bannedfromcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
@@ -429,7 +429,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.KnownAlts
                     b.KnownAlts = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, bannedfromcol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
@@ -445,7 +445,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.ReasonforBan
                     b.ReasonforBan = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, reasoncol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
@@ -461,7 +461,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.DateofIncident
                     b.DateofIncident = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, dateofbancol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
@@ -477,7 +477,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.TypeofBan
                     b.TypeofBan = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, bantypecol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
@@ -493,7 +493,7 @@ class BlacklistCMD(commands.Cog):
                     oldData = b.DatetheBanEnds
                     b.DatetheBanEnds = newData
                     b.save()
-                    usercell = gtsheet.find(entryID, in_column=entryidcol)
+                    usercell = gtsheet.find(str(entryID), in_column=entryidcol)
                     userrow = usercell.row
                     gtsheet.update_cell(userrow, banenddatecol, str(newData))
                     await ctx.send(f"Entry {b.entryid} has been modified successfully.\n**Updated:** {oldData} -> {newData}")
