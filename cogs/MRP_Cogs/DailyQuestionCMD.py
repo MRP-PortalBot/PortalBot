@@ -48,47 +48,6 @@ async def getQuestion(ctx):
             print(posted)
        
 
-async def mainTask(self, ctx):
-    while True:
-        d = datetime.utcnow()
-        if d.hour == 17 or d.hour == "17":
-            if config["ServerID"] == 587495640502763521:
-                guild = self.bot.get_guild(config['ServerID'])
-                channel = guild.get_channel(config['GeneralChannel'])
-                limit = int(database.Question.select().count())
-                print(limit)
-                Rnum = random.randint(1 , limit)
-                q: database.Question = database.Question.select().where(database.Question.usage == True).count()
-                print(f"{str(limit)}: limit\n{str(q)}: true count")
-                if limit == q:
-                    query = database.Question.select().where(database.Question.usage == True)
-                    for question in query:
-                        question.usage = False
-                        question.save()
-
-                posted = 0
-                while (posted < 1):
-                    Rnum = random.randint(1 , limit)
-                    print(str(Rnum))
-                    q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
-                    print(q.id)
-                    if q.usage == False or q.usage == "False":
-                        q.usage = True
-                        q.save()
-                        posted = 2
-                        print(posted)
-                        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-                        embed.set_footer(text = f"Question ID: {q.id}")
-                        await channel.send(embed=embed)
-                    else:
-                        posted = 0
-                        print(posted)
-
-        await asyncio.sleep(3600)
-
-
-
-
 class DailyCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
