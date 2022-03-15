@@ -120,40 +120,40 @@ class BlacklistCMD(commands.Cog):
         await channel.send("Please answer the questions with as much detail as you can. \nWant to cancel the command? Answer everything and at the end then you have the option to either break or submit the responses, there you could say 'break'!\nIf you are having trouble with the command, please contact Space! \n\n*Starting Questions Now...*")
         await asyncio.sleep(3)
         await channel.send(Q1)
-        await asyncio.sleep(3)
         answer1 = await self.bot.wait_for('message', check=check)
+        await asyncio.sleep(2)
 
         await channel.send(Q2)
-        await asyncio.sleep(3)
         answer2 = await self.bot.wait_for('message', check=check)
+        await asyncio.sleep(2)
 
         await channel.send(Q3)
-        await asyncio.sleep(3)
         answer3 = await self.bot.wait_for('message', check=check)
+        await asyncio.sleep(2)
 
         await channel.send(Q4)
-        await asyncio.sleep(3)
         answer4 = await self.bot.wait_for('message', check=check)
+        await asyncio.sleep(2)
 
         await channel.send(Q5)
-        await asyncio.sleep(3)
         answer5 = await self.bot.wait_for('message', check=check)
+        await asyncio.sleep(2)
 
         await channel.send(Q6)
-        await asyncio.sleep(3)
         answer6 = await self.bot.wait_for('message', check=check)
+        await asyncio.sleep(2)
 
         await channel.send(Q7)
-        await asyncio.sleep(3)
         answer7 = await self.bot.wait_for('message', check=check)
+        await asyncio.sleep(2)
 
         await channel.send(Q8)
-        await asyncio.sleep(3)
         answer8 = await self.bot.wait_for('message', check=check)
+        await asyncio.sleep(2)
 
         await channel.send(Q9)
-        await asyncio.sleep(3)
         answer9 = await self.bot.wait_for('message', check=check)
+        await asyncio.sleep(2)
 
         await asyncio.sleep(0.5)
         x = printlen(answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content)
