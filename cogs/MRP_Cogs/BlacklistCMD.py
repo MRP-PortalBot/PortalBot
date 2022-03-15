@@ -115,47 +115,47 @@ class BlacklistCMD(commands.Cog):
         await ctx.send("Please take a look at your DM's!")
 
         def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
+            return m.content is not None and m.channel == channel and m.author == author
 
         await channel.send("Please answer the questions with as much detail as you can. \nWant to cancel the command? Answer everything and at the end then you have the option to either break or submit the responses, there you could say 'break'!\nIf you are having trouble with the command, please contact Space! \n\n*Starting Questions Now...*")
-        time.sleep(3)
+        await asyncio.sleep(3)
         await channel.send(Q1)
-        time.sleep(3)
+        await asyncio.sleep(3)
         answer1 = await self.bot.wait_for('message', check=check)
 
         await channel.send(Q2)
-        time.sleep(3)
+        await asyncio.sleep(3)
         answer2 = await self.bot.wait_for('message', check=check)
 
         await channel.send(Q3)
-        time.sleep(3)
+        await asyncio.sleep(3)
         answer3 = await self.bot.wait_for('message', check=check)
 
         await channel.send(Q4)
-        time.sleep(3)
+        await asyncio.sleep(3)
         answer4 = await self.bot.wait_for('message', check=check)
 
         await channel.send(Q5)
-        time.sleep(3)
+        await asyncio.sleep(3)
         answer5 = await self.bot.wait_for('message', check=check)
 
         await channel.send(Q6)
-        time.sleep(3)
+        await asyncio.sleep(3)
         answer6 = await self.bot.wait_for('message', check=check)
 
         await channel.send(Q7)
-        time.sleep(3)
+        await asyncio.sleep(3)
         answer7 = await self.bot.wait_for('message', check=check)
 
         await channel.send(Q8)
-        time.sleep(3)
+        await asyncio.sleep(3)
         answer8 = await self.bot.wait_for('message', check=check)
 
         await channel.send(Q9)
-        time.sleep(3)
+        await asyncio.sleep(3)
         answer9 = await self.bot.wait_for('message', check=check)
 
-        time.sleep(0.5)
+        await asyncio.sleep(0.5)
         x = printlen(answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content)
         if x >= 6000:
             return await channel.send("Unable to process this blacklist application!\nThis response has exceeded 6000 characters!")
