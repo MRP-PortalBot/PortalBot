@@ -121,39 +121,39 @@ class BlacklistCMD(commands.Cog):
         await asyncio.sleep(3)
         await channel.send(Q1)
         answer1 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
 
         await channel.send(Q2)
         answer2 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
 
         await channel.send(Q3)
         answer3 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
 
         await channel.send(Q4)
         answer4 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
 
         await channel.send(Q5)
         answer5 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
 
         await channel.send(Q6)
         answer6 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
 
         await channel.send(Q7)
         answer7 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
 
         await channel.send(Q8)
         answer8 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
 
         await channel.send(Q9)
         answer9 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(2)
+        await asyncio.sleep(0.5)
 
         await asyncio.sleep(0.5)
         x = printlen(answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content)
