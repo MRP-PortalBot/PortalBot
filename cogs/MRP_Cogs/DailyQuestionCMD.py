@@ -175,7 +175,7 @@ class DailyCMD(commands.Cog):
 
     
     @slash_command(name="repeatq", description = "Repeat a daily question by id number", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
-    @permissions.has_any_role("Moderator")
+    @discord.ext.commands.has_any_role("Moderator")
     async def repeatq(self, ctx, number):
         """Activate a question"""
         q: database.Question = database.Question.select().where(database.Question.id == number).get()
