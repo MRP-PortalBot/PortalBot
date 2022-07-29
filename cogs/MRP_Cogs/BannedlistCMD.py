@@ -107,8 +107,7 @@ class BannedlistCMD(commands.Cog):
         logger.info("BannedlistCMD: Cog Loaded!")
 
     # Starts the bannedlist process.
-    @bridge.bridge_command()
-    @check_MRP
+    @slash_command(name="Banned List", description = "AAdd a player to the ban list", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
     @bridge.has_role("Realm OP")
     async def bannedlist(self, ctx):
         author = ctx.message.author
