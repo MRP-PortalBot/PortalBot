@@ -2,7 +2,6 @@ from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 import discord
 from discord.ext import commands
-from discord.commands import slash_command
 from datetime import datetime
 import time
 import re
@@ -100,12 +99,6 @@ class BannedlistCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         logger.info("BannedlistCMD: Cog Loaded!")
-    
-    # Rule Command [INT]
-    @slash_command(name="Banned List", description = "Ban a Player", guild_ids=[config['SlashServer1'],config['SlashServer2']])
-    async def bannedlist2(self, ctx):
-        await ctx.respond("works")
-
 
     # Starts the bannedlist process.
     @commands.command()
