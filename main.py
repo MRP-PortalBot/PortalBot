@@ -2,6 +2,7 @@
 import discord
 import logging
 from discord.ext import commands
+from discord.ext import bridge
 from datetime import datetime
 import asyncio
 from pathlib import Path
@@ -48,7 +49,7 @@ intents.presences = True
 intents.message_content = True
 
 #Defining client and SlashCommands
-client = commands.Bot(command_prefix=config['prefix'],
+client = bridge.Bot(command_prefix=config['prefix'],
                       intents=intents,
                       case_insensitive=True)
 client.remove_command("help")
