@@ -32,7 +32,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 
 client = gspread.authorize(creds)
 
-sheet = client.open("MRP Blacklist Data").sheet1
+sheet = client.open("MRP Bannedlist Data").sheet1
 # 9 Values to fill
 
 # Template on modfying spreadsheet
@@ -98,12 +98,12 @@ a_list = []
 class BannedlistCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("BlacklistCMD: Cog Loaded!")
+        logger.info("BannedlistCMD: Cog Loaded!")
 
-    # Starts the blacklist process.
+    # Starts the bannedlist process.
     @commands.command()
     @commands.has_role("Realm OP")
-    async def blacklist(self, ctx):
+    async def bannedlist(self, ctx):
         author = ctx.message.author
         guild = ctx.message.guild
         entryid = (int(sheet.acell('A3').value)+1)
@@ -111,7 +111,7 @@ class BannedlistCMD(commands.Cog):
         channel = await ctx.author.create_dm()
         #schannel = self.bot.get_channel(778453455848996876)
 
-        schannel = self.bot.get_channel(config['blacklistChannel'])
+        schannel = self.bot.get_channel(config['bannedlistChannel'])
         await ctx.send("Please take a look at your DM's!")
 
         def check(m):
@@ -158,7 +158,7 @@ class BannedlistCMD(commands.Cog):
         await asyncio.sleep(0.5)
         x = printlen(answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content)
         if x >= 6000:
-            return await channel.send("Unable to process this blacklist application!\nThis response has exceeded 6000 characters!")
+            return await channel.send("Unable to process this bannedlist application!\nThis response has exceeded 6000 characters!")
 
         # Add to DB
 
@@ -190,30 +190,30 @@ class BannedlistCMD(commands.Cog):
 
                 await message.delete()
                 await channel.send("Sending your responses!")
-                blacklistembed = discord.Embed(
-                    title="Blacklist Report", description="Sent from: " + author.mention, color=0xb10d9f)
+                bannedlistembed = discord.Embed(
+                    title="Bannedlist Report", description="Sent from: " + author.mention, color=0xb10d9f)
 
-                blacklistembed.add_field(name = Q1, value = answer1.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q2, value = answer2.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q3, value = answer3.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q4, value = answer4.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q5, value = answer5.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q6, value = answer6.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q7, value = answer7.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q8, value = answer8.content + "\n", inline = False)
-                blacklistembed.add_field(name = Q9, value = answer9.content + "\n", inline = False)
+                bannedlistembed.add_field(name = Q1, value = answer1.content + "\n", inline = False)
+                bannedlistembed.add_field(name = Q2, value = answer2.content + "\n", inline = False)
+                bannedlistembed.add_field(name = Q3, value = answer3.content + "\n", inline = False)
+                bannedlistembed.add_field(name = Q4, value = answer4.content + "\n", inline = False)
+                bannedlistembed.add_field(name = Q5, value = answer5.content + "\n", inline = False)
+                bannedlistembed.add_field(name = Q6, value = answer6.content + "\n", inline = False)
+                bannedlistembed.add_field(name = Q7, value = answer7.content + "\n", inline = False)
+                bannedlistembed.add_field(name = Q8, value = answer8.content + "\n", inline = False)
+                bannedlistembed.add_field(name = Q9, value = answer9.content + "\n", inline = False)
 
                 timestamp = datetime.now()
-                blacklistembed.set_footer(
+                bannedlistembed.set_footer(
                     text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")) + " | ID: " + str(entryid))
-                await schannel.send(embed=blacklistembed)
-                await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
+                await schannel.send(embed=bannedlistembed)
+                await channel.send("I have sent in your bannedlist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
 
-    @blacklist.error
-    async def blacklist_error(self, ctx, error):
+    @bannedlist.error
+    async def bannedlist_error(self, ctx, error):
         if isinstance(error, commands.MissingRole):
             await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
 
@@ -280,7 +280,7 @@ class BannedlistCMD(commands.Cog):
     
 
         author = ctx.message.author
-        embed = discord.Embed(title="MRP Blacklist Data", description=
+        embed = discord.Embed(title="MRP Bannedlist Data", description=
             f"Requested by Operator {author.mention}")
         await paginate_embed(self.bot, ctx, embed, populate_embed, sheet.row_count, page=page, begin=3)
 
@@ -301,14 +301,14 @@ class BannedlistCMD(commands.Cog):
             query = (database.MRP_Blacklist_Data.select().where(data.contains(req)))
             if query.exists():
                 for p in query:
-                    e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}", color = 0x18c927)
+                    e = discord.Embed(title = "Bannedlist Search", description = f"Requested by {ctx.message.author.mention}", color = 0x18c927)
                     e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\nReported by: {p.BanReporter}\n```", inline=False)
-                    e.set_footer(text = f"Querying from MRP_Blacklist_Data | Entry ID: {p.entryid}")
+                    e.set_footer(text = f"Querying from MRP_Bannedlist_Data | Entry ID: {p.entryid}")
                     await ctx.send(embed = e)
                     ResultsGiven = True
             
         if ResultsGiven == False:
-            e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}", color = 0x18c927)
+            e = discord.Embed(title = "Bannedlist Search", description = f"Requested by {ctx.message.author.mention}", color = 0x18c927)
             e.add_field(name = "No Results!", value = f"`{req}`'s query did not bring back any results!")
             await ctx.send(embed = e)
                 
@@ -517,7 +517,7 @@ class BannedlistCMD(commands.Cog):
                 await ctx.send("No results")
             else:
                 for p in query:
-                    e = discord.Embed(title = "Blacklist Search", description = f"Requested by {ctx.message.author.mention}")
+                    e = discord.Embed(title = "Bannedlist Search", description = f"Requested by {ctx.message.author.mention}")
                     e.add_field(name="Results: \n", value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag} \nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n```", inline=False)
                     await ctx.send(embed = e)
         
@@ -534,5 +534,5 @@ class BannedlistCMD(commands.Cog):
             
 
 def setup(bot):
-    bot.add_cog(BlacklistCMD(bot))
+    bot.add_cog(BannedlistCMD(bot))
 
