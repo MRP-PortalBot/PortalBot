@@ -1,7 +1,7 @@
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 import discord
-from discord.ext import commands, bridge
+from discord.ext import commands
 from discord.commands import slash_command
 from datetime import datetime
 import time
@@ -71,11 +71,6 @@ print(cell)
 '''
 # -----------------------------------------------------
 
-def check_MRP():
-    def predicate(ctx):
-        return ctx.message.guild.id == 587495640502763521 or ctx.message.guild.id == 448488274562908170
-    return commands.check(predicate)
-
 def solve(s):
     a = s.split(' ')
     for i in range(len(a)):
@@ -105,10 +100,16 @@ class BannedlistCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         logger.info("BannedlistCMD: Cog Loaded!")
+    
+    # Rule Command [INT]
+    @slash_command(name="Banned List", description = "Ban a Player", guild_ids=[config['SlashServer1'],config['SlashServer2']])
+    async def bannedlist2(self, ctx):
+        await ctx.respond("works")
+
 
     # Starts the bannedlist process.
-    @slash_command(name="Banned List", description = "AAdd a player to the ban list", guild_ids=[config['SlashServer1'],config['SlashServer2']])
-    @bridge.has_role("Realm OP")
+    @commands.command()
+    @commands.has_role("Realm OP")
     async def bannedlist(self, ctx):
         author = ctx.message.author
         guild = ctx.message.guild

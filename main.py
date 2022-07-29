@@ -2,7 +2,6 @@
 import discord
 import logging
 from discord.ext import commands
-from discord.ext import bridge
 from datetime import datetime
 import asyncio
 from pathlib import Path
