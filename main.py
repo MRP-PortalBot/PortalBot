@@ -45,6 +45,7 @@ intents = discord.Intents.default()
 intents.reactions = True
 intents.members = True
 intents.presences = True
+intents.message_content = True
 
 #Defining client and SlashCommands
 client = commands.Bot(command_prefix=config['prefix'],

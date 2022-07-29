@@ -95,7 +95,7 @@ QQ1 = "What should I open for you? \n >  **Options:** `Gamertag` / `Discord` / `
 a_list = []
 
 
-class BlacklistCMD(commands.Cog):
+class BannedlistCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         logger.info("BlacklistCMD: Cog Loaded!")
