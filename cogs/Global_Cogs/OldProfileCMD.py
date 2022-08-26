@@ -35,7 +35,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 client = gspread.authorize(creds)
 
 profilesheet = client.open("PortalbotProfile").sheet1
-sheet = client.open("MRP Blacklist Data").sheet1
+sheet = client.open("MRP Bannedlist Data").sheet1
 # 3 Values to fill
 
 # Template on modfying spreadsheet
