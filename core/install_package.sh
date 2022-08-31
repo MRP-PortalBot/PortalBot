@@ -9,6 +9,8 @@ pip install --upgrade sentry-sdk
 pip install pymysql
 pip install peewee
 pip install py-cord
+pip install oauth2client
+pip install youtube_dl
 
 echo -e "\n\e[33mPackages have been downlaoded, returning to file!\n"
 
