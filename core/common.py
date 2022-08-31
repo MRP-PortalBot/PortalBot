@@ -9,6 +9,7 @@ import random
 from core import database
 from datetime import datetime
 
+
 def load_config() -> Tuple[dict, Path]:
     """Load data from the botconfig.json.\n
     Returns a tuple containing the data as a dict, and the file as a Path"""
@@ -30,11 +31,17 @@ def prompt_config(msg, key):
             json.dump(config, f, indent=4)
 
 
-async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, population_func, end: int, begin: int = 1, page=1):
+async def paginate_embed(bot: discord.Client,
+                         ctx,
+                         embed: discord.Embed,
+                         population_func,
+                         end: int,
+                         begin: int = 1,
+                         page=1):
     emotes = ["◀️", "▶️"]
 
     async def check_reaction(reaction, user):
-         return await user == ctx.author and str(reaction.emoji) in emotes
+        return await user == ctx.author and str(reaction.emoji) in emotes
 
     embed = await population_func(embed, page)
     if isinstance(embed, discord.Embed):
@@ -46,7 +53,9 @@ async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, populat
     await message.add_reaction(emotes[1])
     while True:
         try:
-            reaction, user = await bot.wait_for("reaction_add", timeout=60, check=check_reaction)
+            reaction, user = await bot.wait_for("reaction_add",
+                                                timeout=60,
+                                                check=check_reaction)
             if user == bot.user:
                 continue
             if str(reaction.emoji) == emotes[1] and page < end:
@@ -63,22 +72,26 @@ async def paginate_embed(bot: discord.Client, ctx, embed: discord.Embed, populat
             await message.clear_reactions()
             break
 
+
 def query(authorname, ID, server, channel, suggestion, trellotype):
     url = "https://api.trello.com/1/cards"
     query = {
-        'key': os.getenv("TRELLOKEY"),
-        'token': os.getenv("TRELLOTOKEN"),
-        'idList': '5fff8cd40de14a1cdc6fd79a',
-        'pos': 'top',
-        'name': f'[{trellotype}] by {authorname}',
-        'desc': f'Author ID: {ID}\nGuild: {server}\nChannel: {channel}\n\nSuggestion/Bug: {suggestion}'
+        'key':
+        os.getenv("TRELLOKEY"),
+        'token':
+        os.getenv("TRELLOTOKEN"),
+        'idList':
+        '5fff8cd40de14a1cdc6fd79a',
+        'pos':
+        'top',
+        'name':
+        f'[{trellotype}] by {authorname}',
+        'desc':
+        f'Author ID: {ID}\nGuild: {server}\nChannel: {channel}\n\nSuggestion/Bug: {suggestion}'
     }
-    response = requests.request(
-        "POST",
-        url,
-        params=query
-    )
+    response = requests.request("POST", url, params=query)
     return response.text
+
 
 def solve(s):
     a = s.split(' ')
@@ -89,36 +102,42 @@ def solve(s):
 
 config, _ = load_config()
 
+
 async def mainTask2(client):
     while True:
         d = datetime.utcnow()
         if d.hour == 16 or d.hour == "16":
             guild = client.get_guild(config['ServerID'])
-            channel = client.get_channel(config['GeneralChannel'])
+            channel = guild.get_channel(config['dqchannel'])
             limit = int(database.Question.select().count())
             print(limit)
-            Rnum = random.randint(1 , limit)
-            q: database.Question = database.Question.select().where(database.Question.usage == True).count()
+            Rnum = random.randint(1, limit)
+            q: database.Question = database.Question.select().where(
+                database.Question.usage == True).count()
             print(f"{str(limit)}: limit\n{str(q)}: true count")
             if limit == q:
-                query = database.Question.select().where(database.Question.usage == True)
+                query = database.Question.select().where(
+                    database.Question.usage == True)
                 for question in query:
                     question.usage = False
                     question.save()
 
             posted = 0
             while (posted < 1):
-                Rnum = random.randint(1 , limit)
+                Rnum = random.randint(1, limit)
                 print(str(Rnum))
-                q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+                q: database.Question = database.Question.select().where(
+                    database.Question.id == Rnum).get()
                 print(q.id)
                 if q.usage == False or q.usage == "False":
                     q.usage = True
                     q.save()
                     posted = 2
                     print(posted)
-                    embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-                    embed.set_footer(text = f"Question ID: {q.id}")
+                    embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓",
+                                          description=f"**{q.question}**",
+                                          color=0xb10d9f)
+                    embed.set_footer(text=f"Question ID: {q.id}")
                     await channel.send(embed=embed)
                 else:
                     posted = 0
@@ -128,6 +147,10 @@ async def mainTask2(client):
 
 
 async def missingArguments(ctx, example):
-    em = discord.Embed(title = "Missing Required Arguments!", description = f"You have missed one or several arguments in this command\n**Example Usage:** `>{example}`", color = 0xf5160a)
-    await ctx.send(embed = em)
+    em = discord.Embed(
+        title="Missing Required Arguments!",
+        description=
+        f"You have missed one or several arguments in this command\n**Example Usage:** `>{example}`",
+        color=0xf5160a)
+    await ctx.send(embed=em)
     return

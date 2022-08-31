@@ -8,6 +8,7 @@ import threading
 import asyncio
 from core import database, common
 from core.common import load_config
+
 config, _ = load_config()
 import math
 from discord.ext import tasks
@@ -16,6 +17,8 @@ from discord.ext import tasks
 import logging
 
 logger = logging.getLogger(__name__)
+
+
 def LineCount():
     file = open("DailyQuestions.txt", "r")
     line_count = 0
@@ -25,28 +28,33 @@ def LineCount():
     file.close()
     print(line_count)
 
-async def getQuestion(ctx):
+
+async def getQuestion(self, ctx):
+    #sendchannel = self.bot.get_channel(config['dqchannel'])
     limit = int(database.Question.select().count())
     print(str(limit) + "| getQuestion")
     database.db.connect(reuse_if_open=True)
     posted = 0
     while (posted < 1):
-        Rnum = random.randint(1 , limit)
+        Rnum = random.randint(1, limit)
         print(str(Rnum))
-        q: database.Question = database.Question.select().where(database.Question.id == Rnum).get()
+        q: database.Question = database.Question.select().where(
+            database.Question.id == Rnum).get()
         print(q.id)
         if q.usage == False or q.usage == "False":
             q.usage = True
             q.save()
             posted = 2
             print(posted)
-            embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-            embed.set_footer(text = f"Question ID: {q.id}")
+            embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓",
+                                  description=f"**{q.question}**",
+                                  color=0xb10d9f)
+            embed.set_footer(text=f"Question ID: {q.id}")
             await ctx.send(embed=embed)
         else:
             posted = 0
             print(posted)
-       
+
 
 class DailyCMD(commands.Cog):
     def __init__(self, bot):
@@ -55,9 +63,8 @@ class DailyCMD(commands.Cog):
 
     def get_by_index(self, index):
         for i, t in enumerate(database.Question.select()):
-            if i+1 == index:
+            if i + 1 == index:
                 return t
-                    
 
     # Waits for either the approval or denial on a question suggestion
     @commands.Cog.listener()
@@ -72,15 +79,20 @@ class DailyCMD(commands.Cog):
                 if str(payload.emoji) == "✅":
                     try:
                         database.db.connect(reuse_if_open=True)
-                        q: database.Question = database.Question.create(question=question, usage = False)
+                        q: database.Question = database.Question.create(
+                            question=question, usage=False)
                         q.save()
                     except database.IntegrityError:
-                        await channel.send("ERROR: That question is already taken!")
+                        await channel.send(
+                            "ERROR: That question is already taken!")
                     finally:
                         database.db.close()
 
-                    embed = discord.Embed(title="Suggestion Approved", description="<@" + str(
-                        payload.user_id) + "> has approved a suggestion! ", color=0x31f505)
+                    embed = discord.Embed(title="Suggestion Approved",
+                                          description="<@" +
+                                          str(payload.user_id) +
+                                          "> has approved a suggestion! ",
+                                          color=0x31f505)
                     embed.add_field(name="Question Approved",
                                     value="Question: " + str(question))
                     await channel.send(embed=embed)
@@ -89,8 +101,11 @@ class DailyCMD(commands.Cog):
                         await msg.clear_reaction(emoji)
 
                 elif str(payload.emoji) == "❌":
-                    embed2 = discord.Embed(title="Suggestion Denied", description="<@" + str(
-                        payload.user_id) + "> has denied a suggestion! ", color=0xf50505)
+                    embed2 = discord.Embed(title="Suggestion Denied",
+                                           description="<@" +
+                                           str(payload.user_id) +
+                                           "> has denied a suggestion! ",
+                                           color=0xf50505)
                     embed.add_field(name="Question Denied",
                                     value="Question: " + str(question))
                     await channel.send(embed=embed2)
@@ -117,25 +132,37 @@ class DailyCMD(commands.Cog):
             def check(m):
                 return m.content is not None and m.channel == channel and m.author is not self.bot.user
 
-            await channel.send("Are you sure you want to submit this question for approval? \n**Warning:** You will be subjected to a warn/mute if your suggestion is deemed inappropriate!")
-            message = await channel.send("**Steps to either submit or cancel:**\n\nReaction Key:\n✅ - SUBMIT\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
+            await channel.send(
+                "Are you sure you want to submit this question for approval? \n**Warning:** You will be subjected to a warn/mute if your suggestion is deemed inappropriate!"
+            )
+            message = await channel.send(
+                "**Steps to either submit or cancel:**\n\nReaction Key:\n✅ - SUBMIT\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* "
+            )
             reactions = ['✅', '❌']
             for emoji in reactions:
                 await message.add_reaction(emoji)
 
             def check2(reaction, user):
-                return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
+                return user == ctx.author and (str(reaction.emoji) == '✅'
+                                               or str(reaction.emoji) == '❌')
+
             try:
-                reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
+                reaction, user = await self.bot.wait_for('reaction_add',
+                                                         timeout=60.0,
+                                                         check=check2)
                 if str(reaction.emoji) == "❌":
                     await message.delete()
                     await ctx.send("Okay, I didn't send your suggestion...")
                     return
                 else:
                     msga = await ctx.send("Standby, sending your suggestion. ")
-                    channels = await self.bot.fetch_channel(config['questionSuggestChannel'])
-                    embed = discord.Embed(title="Daily Question Suggestion", description=str(
-                        author.name) + " suggested a question in <#" + str(channel.id) + ">", color=0xfcba03)
+                    channels = await self.bot.fetch_channel(
+                        config['questionSuggestChannel'])
+                    embed = discord.Embed(title="Daily Question Suggestion",
+                                          description=str(author.name) +
+                                          " suggested a question in <#" +
+                                          str(channel.id) + ">",
+                                          color=0xfcba03)
                     embed.add_field(name="Suggestion:", value=str(question))
                     # QuestionSuggestQ.txt
                     file = open("QuestionSuggestQ.txt", "r")
@@ -151,47 +178,63 @@ class DailyCMD(commands.Cog):
                                     value=str(lc) + " | " + str(question))
                     timestamp = datetime.now()
                     embed.set_footer(text=guild.name + " | Date: " +
-                                    str(timestamp.strftime(r"%x")))
+                                     str(timestamp.strftime(r"%x")))
                     msg = await channels.send(embed=embed)
                     with open("QuestionSuggestQ.txt", "a") as f:
                         f.write(str(lc) + " - " + question + "\n")
                     reactions = ['✅', '❌']
                     for emoji in reactions:
                         await msg.add_reaction(emoji)
-                    await msga.edit(content="I have sent your question! \nPlease wait for an admin to approve it. ")
+                    await msga.edit(
+                        content=
+                        "I have sent your question! \nPlease wait for an admin to approve it. "
+                    )
                     for emoji in reactions:
                         await message.clear_reaction(emoji)
                     await message.delete()
             except asyncio.TimeoutError:
-                await channel.send("Looks like you didn't react in time, please try again later!")
+                await channel.send(
+                    "Looks like you didn't react in time, please try again later!"
+                )
         else:
             await ctx.channel.purge(limit=1)
             embed = discord.Embed(
-                title="Woah Slow Down!", description="This command is locked to <#588728994661138494>!\nI also sent your command in your DM's so all you have to do is just copy it and send it in the right channel!", color=0xb10d9f)
+                title="Woah Slow Down!",
+                description=
+                "This command is locked to <#588728994661138494>!\nI also sent your command in your DM's so all you have to do is just copy it and send it in the right channel!",
+                color=0xb10d9f)
             msg = await ctx.send(embed=embed, delete_after=6)
-            await DMChannel.send("Here is your command! \nPlease send it in #bot-spam!")
+            await DMChannel.send(
+                "Here is your command! \nPlease send it in #bot-spam!")
             await DMChannel.send(">suggestq " + str(question))
 
-
-    
-    @slash_command(name="repeatq", description = "Repeat a daily question by id number", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
+    @slash_command(name="repeatq",
+                   description="Repeat a daily question by id number",
+                   guild_ids=[
+                       config['SlashServer1'], config['SlashServer2'],
+                       config['SlashServer3']
+                   ])
     @discord.ext.commands.has_any_role("Moderator")
     async def repeatq(self, ctx, number):
         """Activate a question"""
-        q: database.Question = database.Question.select().where(database.Question.id == number).get()
-        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓", description=f"**{q.question}**", color = 0xb10d9f)
-        embed.set_footer(text = f"Question ID: {q.id}")
+        q: database.Question = database.Question.select().where(
+            database.Question.id == number).get()
+        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓",
+                              description=f"**{q.question}**",
+                              color=0xb10d9f)
+        embed.set_footer(text=f"Question ID: {q.id}")
         await ctx.respond(embed=embed)
-
 
     @commands.command(aliases=['q', 'dailyq'])
     async def _q(self, ctx):
         """Activate a question"""
         limit = int(database.Question.select().count())
-        q: database.Question = database.Question.select().where(database.Question.usage == True).count()
+        q: database.Question = database.Question.select().where(
+            database.Question.usage == True).count()
         print(f"{str(limit)}: limit\n{str(q)}: true count")
         if limit == q:
-            query = database.Question.select().where(database.Question.usage == True)
+            query = database.Question.select().where(
+                database.Question.usage == True)
             for question in query:
                 question.usage = False
                 question.save()
@@ -214,22 +257,19 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    
     @commands.command(aliases=['nq', 'newquestion'])
     @commands.has_any_role('Bot Manager', 'Moderator')
     async def newq(self, ctx, *, question):
         """Add a question!"""
         try:
             database.db.connect(reuse_if_open=True)
-            q: database.Question = database.Question.create(
-                question=question)
+            q: database.Question = database.Question.create(question=question)
             q.save()
             await ctx.send(f"{q.question} has been added successfully.")
         except database.IntegrityError:
             await ctx.send("That question is already taken!")
         finally:
             database.db.close()
-
 
     @commands.command(aliases=['delq', 'dq'])
     @commands.has_any_role("Bot Manager", "Moderator")
@@ -252,7 +292,7 @@ class DailyCMD(commands.Cog):
         def get_end(page_size: int):
             database.db.connect(reuse_if_open=True)
             q: int = database.Question.select().count()
-            return math.ceil(q/10)
+            return math.ceil(q / 10)
 
         async def populate_embed(embed: discord.Embed, page: int):
             """Used to populate the embed in listtag command"""
@@ -261,20 +301,26 @@ class DailyCMD(commands.Cog):
             database.db.connect(reuse_if_open=True)
             if database.Question.select().count() == 0:
                 q_list = "No questions found"
-            for i, q in enumerate(database.Question.select().paginate(page, 10)):
+            for i, q in enumerate(database.Question.select().paginate(
+                    page, 10)):
                 q_list += f"{i+1+(10*(page-1))}. {q.question}\n"
             embed.add_field(name=f"Page {page}", value=q_list)
             database.db.close()
             return embed
 
         embed = discord.Embed(title="Tag List")
-        embed = await common.paginate_embed(self.bot, ctx, embed, populate_embed, get_end(10), page=page)
+        embed = await common.paginate_embed(self.bot,
+                                            ctx,
+                                            embed,
+                                            populate_embed,
+                                            get_end(10),
+                                            page=page)
 
     @commands.command()
     async def startTask(self, ctx):
         self.bot.loop.create_task(mainTask(self))
         await ctx.send("Done!")
-        
+
 
 def setup(bot):
     bot.add_cog(DailyCMD(bot))
