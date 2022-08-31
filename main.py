@@ -41,7 +41,7 @@ prompt_config("Slash Commands Server ID", "ServerID")
 config, _ = load_config()
 
 #Applying towards intents
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.reactions = True
 intents.members = True
 intents.presences = True
@@ -157,7 +157,7 @@ async def on_ready():
     print(f"{bcolors.OKGREEN}BOT TYPE: {bcolors.ENDC}" + config['BotType'])
     print(f"{bcolors.WARNING}ID: {client.user.id}{bcolors.ENDC}")
     print(
-        f"{bcolors.WARNING}URL: https://discord.com/oauth2/authorize?client_id={client.user.id}&scope=bot&permissions=8{bcolors.ENDC}"
+        f"{bcolors.WARNING}URL: https://discord.com/oauth2/authorize?client_id={client.user.id}&permissions=8&scope=bot%20applications.commands{bcolors.ENDC}"
     )
     print("Current Time =", now)
     await client.change_presence(
