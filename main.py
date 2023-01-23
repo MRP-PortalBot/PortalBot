@@ -6,6 +6,7 @@ from datetime import datetime
 import asyncio
 from pathlib import Path
 import os
+from os import system
 from core.common import prompt_config, load_config
 import core.keep_alive as keep_alive
 import core.bcolors as bcolors
@@ -412,4 +413,9 @@ async def _maintenance(ctx, choice=None):
         await ctx.send("Sorry, I didn't understand you!\nChoices: ON/OFF")
 
 
-client.run(os.getenv("TOKEN"))
+try:
+    client.run(os.getenv("TOKEN"))
+#Bot Restarter
+except discord.errors.HTTPException:
+    print("\n\n\nBLOCKED BY RATE LIMITS\nRESTARTING NOW\n\n\n")
+    system('kill 1')

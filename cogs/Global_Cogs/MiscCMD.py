@@ -11,6 +11,7 @@ import requests
 import ast
 import random
 from datetime import datetime
+import os
 
 config, _ = load_config()
 

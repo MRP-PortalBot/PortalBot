@@ -80,7 +80,7 @@ class Events(commands.Cog):
 #  Join Messages-----------------------------------------------------
 
     @commands.Cog.listener()
-    async def on_member_join(self, member):
+    async def on_member_join(ctx, self, member):
         #    username = member
         #    longid = str(username.id)
         #    discordname = str(username.name + "#" + username.discriminator)
@@ -89,10 +89,12 @@ class Events(commands.Cog):
         #    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReason = author.name)
         #   q.save()
         #   database.db.close()
+        print(member)
         guild = member.guild
+        print(guild)
         channel = discord.utils.get(guild.channels, name="member-log")
         username = member
-        longid = str(username.id)
+        longid = str(member.id)
         discordname = str(username.name + "#" + username.discriminator)
 
         #----Database------------------------------------------------
