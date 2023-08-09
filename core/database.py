@@ -13,19 +13,19 @@ from flask import Flask
 #from dotenv import load_dotenv
 #load_dotenv()
 
-DB_IP = os.getenv("DB_IP")
-print(DB_IP)
-DB_Port = os.getenv("DB_PORT")
-print(DB_Port)
-DB_user = os.getenv("DB_USER")
-print(DB_user)
-DB_password = os.getenv("DB_PASSWORD")
-print(DB_password)
-DB_Database = os.getenv("DB_DATABASE")
-print(DB_Database)
+#DB_IP = os.getenv("DB_IP")
+#print(DB_IP)
+#DB_Port = os.getenv("DB_PORT")
+#print(DB_Port)
+#DB_user = os.getenv("DB_USER")
+#print(DB_user)
+#DB_password = os.getenv("DB_PASSWORD")
+#print(DB_password)
+#DB_Database = os.getenv("DB_DATABASE")
+#print(DB_Database)
 
-#db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
-db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
+db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
+#db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
 logger = logging.getLogger(__name__)
 
 def iter_table(model_dict):
