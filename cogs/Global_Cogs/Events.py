@@ -125,9 +125,11 @@ class Events(commands.Cog):
 
         #----GSheets------------------------------------------------
 
+        usercell = gtsheet.find(longid, in_column=3)
+        print(usercell)
+
         try:
             usercell = gtsheet.find(longid, in_column=3)
-            print(usercell)
         except:
             entryid = (int(gtsheet.acell('A2').value) + 1)
             row = [entryid, discordname, longid]
