@@ -125,22 +125,23 @@ class Events(commands.Cog):
 
         #----GSheets------------------------------------------------
 
-        usercell = gtsheet.find(longid, in_column=3)
-        print(usercell)
+        #usercell = gtsheet.find(longid, in_column=3)
+        #print(usercell)
 
-        try:
-            usercell = gtsheet.find(longid, in_column=3)
-        except:
-            entryid = (int(gtsheet.acell('A2').value) + 1)
-            row = [entryid, discordname, longid]
-            print(row)
-            gtsheet.insert_row(row, 2)
-        else:
-            userrow = usercell.row
-            gtsheet.update_cell(userrow, discordcol, str(discordname))
-            gtsheet.update_cell(userrow, longidcol, str(longid))
+        #try:
+        #    usercell = gtsheet.find(longid, in_column=3)
+        #except:
+        #    entryid = (int(gtsheet.acell('A2').value) + 1)
+        #    row = [entryid, discordname, longid]
+        #    print(row)
+        #    gtsheet.insert_row(row, 2)
+        #else:
+        #    userrow = usercell.row
+        #    gtsheet.update_cell(userrow, discordcol, str(discordname))
+        #    gtsheet.update_cell(userrow, longidcol, str(longid))
 
         #------Welcome Message:---------
+
         if member.guild.id == 587495640502763521:
             guild = self.bot.get_guild(587495640502763521)
             channel = guild.get_channel(588813558486269956)
