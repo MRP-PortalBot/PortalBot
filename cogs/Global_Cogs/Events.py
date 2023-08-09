@@ -95,6 +95,7 @@ class Events(commands.Cog):
         channel = discord.utils.get(guild.channels, name="member-log")
         username = member
         longid = str(member.id)
+        print(longid)
         discordname = str(username.name + "#" + username.discriminator)
 
         #----Database------------------------------------------------
@@ -126,6 +127,7 @@ class Events(commands.Cog):
 
         try:
             usercell = gtsheet.find(longid, in_column=3)
+            print(usercell)
         except:
             entryid = (int(gtsheet.acell('A2').value) + 1)
             row = [entryid, discordname, longid]
