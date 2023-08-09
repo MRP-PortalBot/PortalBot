@@ -128,17 +128,15 @@ class Events(commands.Cog):
         usercell = gtsheet.find(longid, in_column=3)
         print(usercell)
 
-        #try:
-        #    usercell = gtsheet.find(longid, in_column=3)
-        #except:
-        #    entryid = (int(gtsheet.acell('A2').value) + 1)
-        #    row = [entryid, discordname, longid]
-        #    print(row)
-        #    gtsheet.insert_row(row, 2)
-        #else:
-        #    userrow = usercell.row
-        #    gtsheet.update_cell(userrow, discordcol, str(discordname))
-        #    gtsheet.update_cell(userrow, longidcol, str(longid))
+        if usercell is None:
+            entryid = (int(gtsheet.acell('A2').value) + 1)
+            row = [entryid, discordname, longid]
+            print(row)
+            gtsheet.insert_row(row, 2)
+        else:
+            userrow = usercell.row
+            gtsheet.update_cell(userrow, discordcol, str(discordname))
+            gtsheet.update_cell(userrow, longidcol, str(longid))
 
         #------Welcome Message:---------
 
