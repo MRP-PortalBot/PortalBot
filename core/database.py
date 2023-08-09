@@ -14,6 +14,7 @@ from flask import Flask
 #load_dotenv()
 
 DB_IP = os.getenv("DB_IP")
+print(DB_IP)
 DB_Port = os.getenv("DB_Port")
 DB_user = os.getenv("DB_user")
 DB_password = os.getenv("DB_password")
