@@ -125,8 +125,8 @@ class Events(commands.Cog):
 
         #----GSheets------------------------------------------------
 
-        #usercell = gtsheet.find(longid, in_column=3)
-        #print(usercell)
+        usercell = gtsheet.find(longid, in_column=3)
+        print(usercell)
 
         #try:
         #    usercell = gtsheet.find(longid, in_column=3)
