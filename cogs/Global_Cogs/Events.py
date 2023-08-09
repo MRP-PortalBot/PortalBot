@@ -80,7 +80,7 @@ class Events(commands.Cog):
 #  Join Messages-----------------------------------------------------
 
     @commands.Cog.listener()
-    async def on_member_join(ctx, self, member):
+    async def on_member_join(self, member):
         #    username = member
         #    longid = str(username.id)
         #    discordname = str(username.name + "#" + username.discriminator)
