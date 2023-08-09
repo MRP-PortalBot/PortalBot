@@ -15,13 +15,13 @@ from flask import Flask
 
 DB_IP = os.getenv("DB_IP")
 print(DB_IP)
-DB_Port = os.getenv("DB_Port")
+DB_Port = os.getenv("DB_PORT")
 print(DB_Port)
-DB_user = os.getenv("DB_user")
+DB_user = os.getenv("DB_USER")
 print(DB_user)
-DB_password = os.getenv("DB_password")
+DB_password = os.getenv("DB_PASSWORD")
 print(DB_password)
-DB_Database = os.getenv("DB_Database")
+DB_Database = os.getenv("DB_DATABASE")
 print(DB_Database)
 
 #db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
