@@ -706,6 +706,7 @@ class ProfileCMD(commands.Cog):
                                      description="=======================",
                                      color=0x18c927)
         username_re = re.compile(r'(?i)' + '(?:' + aname + ')')
+        usercell = profilesheet.find(username_re, in_column=1)
 
         try:
             usercell = profilesheet.find(username_re, in_column=1)
