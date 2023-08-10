@@ -26,7 +26,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from core import database
-from core.common import mainTask2
+#from core.common import mainTask2
 from core.common import prompt_config, load_config
 from core.logging_module import get_log
 from core.special_methods import on_app_command_error_, initialize_db, on_ready_, on_command_error_, on_command_, \
