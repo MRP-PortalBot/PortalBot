@@ -17,7 +17,6 @@ db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
 #db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
 
 _log = get_log(__name__)
-_log.info("Starting PortalBot...")
 
 def iter_table(model_dict):
     """Iterates through a dictionary of tables, confirming they exist and creating them if necessary."""
