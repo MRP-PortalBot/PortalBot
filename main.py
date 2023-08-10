@@ -75,7 +75,7 @@ with open("taskcheck.txt", "w") as f:
 
 def get_extensions():  # Gets extension list dynamically
     extensions = []
-    for file in Path("cogs").glob("**/*.py"):
+    for file in Path("utils").glob("**/*.py"):
         if "!" in file.name or "__" in file.name:
             continue
         extensions.append(str(file).replace("/", ".").replace(".py", ""))

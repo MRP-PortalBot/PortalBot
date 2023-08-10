@@ -94,17 +94,18 @@ class CoreBotConfig(commands.Cog):
         if mode == "-a":
             embed.set_footer(text="Attempting to restart the bot...")
         elif mode == "-c":
-            embed.set_footer(text="Attempting to reload cogs...")
+            embed.set_footer(text="Attempting to reload utils...")
 
         await interaction.response.send_message(embed=embed)
 
         if mode == "-a":
-            await self._force_restart(interaction, directory)
+            await interaction.followup.send("Unsupported Action")
+            #await self._force_restart(interaction, directory)
         elif mode == "-c":
             try:
                 embed = discord.Embed(
                     title="Cogs - Reload",
-                    description="Reloaded all cogs.",
+                    description="Reloaded all utils.",
                     color=discord.Color.brand_green(),
                 )
                 for extension in get_extensions():
@@ -113,7 +114,7 @@ class CoreBotConfig(commands.Cog):
             except commands.ExtensionError:
                 embed = discord.Embed(
                     title="Cogs - Reload",
-                    description="Failed to reload cogs.",
+                    description="Failed to reload utils.",
                     color=discord.Color.brand_red(),
                 )
                 return await interaction.channel.send(embed=embed)
@@ -187,7 +188,7 @@ class CoreBotConfig(commands.Cog):
 
         embed = discord.Embed(
             title="Bot Administrators",
-            description="Whitelisted Users that have Increased Authorization",
+            description="Whitelisted Users that have Increased Powers",
             color=discord.Color.green(),
         )
         embed.add_field(
@@ -199,7 +200,7 @@ class CoreBotConfig(commands.Cog):
             f"\n\n**Permit 1:** *Bot Managers*\n{adminLEVEL1}",
         )
         embed.set_footer(
-            text="Only Owners/Permit 4's can modify Bot Administrators. | Permit 4 is the HIGHEST Authorization Level"
+            text="Only Owners/Permit 4's can modify Bot Administrators. | Permit 4 is the HIGHEST Level"
         )
 
         await interaction.response.send_message(embed=embed)

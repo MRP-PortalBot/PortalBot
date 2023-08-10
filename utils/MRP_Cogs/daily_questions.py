@@ -3,7 +3,7 @@ import random
 from datetime import datetime
 
 import discord
-from discord import app_commands
+from discord import app_commands, ui
 from discord.ext import commands
 
 from core import database, common
@@ -60,6 +60,11 @@ async def get_question(self):
 class DailyCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    DQ = app_commands.Group(
+        name="daily-question",
+        description="Configure the daily-question settings.",
+    )
 
     def get_by_index(self, index):
         for i, t in enumerate(database.Question.select()):
@@ -120,100 +125,29 @@ class DailyCMD(commands.Cog):
             return
 
     # Suggests a question and sends it to the moderators.
-    @commands.command()
-    async def suggestq(self, ctx, *, question):
-        author = ctx.message.author
-        channel = ctx.message.channel
-        guild = ctx.message.guild
-        DMChannel = await ctx.author.create_dm()
-        if channel.name == "bot-spam":
-            print(channel)
+    @DQ.command()
+    async def suggest(self, interaction: discord.Interaction):
+        class SuggestModal(discord.ui.Modal, title="Suggest a Question"):
+            def __init__(self, bot: PortalBot):
+                super().__init__(timeout=None)
+                self.bot = bot
 
-            def check(m):
-                return m.content is not None and m.channel == channel and m.author is not self.bot.user
-
-            await channel.send(
-                "Are you sure you want to submit this question for approval? \n**Warning:** You will be subjected to a warn/mute if your suggestion is deemed inappropriate!"
+            short_description = ui.TextInput(
+                label="Daily Question",
+                style=discord.TextStyle.long,
+                required=True
             )
-            message = await channel.send(
-                "**Steps to either submit or cancel:**\n\nReaction Key:\n✅ - SUBMIT\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* "
-            )
-            reactions = ['✅', '❌']
-            for emoji in reactions:
-                await message.add_reaction(emoji)
 
-            def check2(reaction, user):
-                return user == ctx.author and (str(reaction.emoji) == '✅'
-                                               or str(reaction.emoji) == '❌')
+            async def on_submit(self, interaction: discord.Interaction):
+                await interaction.response.defer()
+                await interaction.followup.send("Thank you for your suggestion!")
 
-            try:
-                reaction, user = await self.bot.wait_for('reaction_add',
-                                                         timeout=60.0,
-                                                         check=check2)
-                if str(reaction.emoji) == "❌":
-                    await message.delete()
-                    await ctx.send("Okay, I didn't send your suggestion...")
-                    return
-                else:
-                    msga = await ctx.send("Standby, sending your suggestion. ")
-                    channels = await self.bot.fetch_channel(
-                        config['questionSuggestChannel'])
-                    embed = discord.Embed(title="Daily Question Suggestion",
-                                          description=str(author.name) +
-                                          " suggested a question in <#" +
-                                          str(channel.id) + ">",
-                                          color=0xfcba03)
-                    embed.add_field(name="Suggestion:", value=str(question))
-                    # QuestionSuggestQ.txt
-                    file = open("QuestionSuggestQ.txt", "r")
-                    line_count = 0
-                    for line in file:
-                        if line != "\n":
-                            line_count += 1
-                    file.close()
-                    lc = line_count + 1
-                    embed.add_field(name="Approving/Denial Command",
-                                    value="\n✅ - Approve \n❌ - Reject")
-                    embed.add_field(name="Developer Payload",
-                                    value=str(lc) + " | " + str(question))
-                    timestamp = datetime.now()
-                    embed.set_footer(text=guild.name + " | Date: " +
-                                     str(timestamp.strftime(r"%x")))
-                    msg = await channels.send(embed=embed)
-                    with open("QuestionSuggestQ.txt", "a") as f:
-                        f.write(str(lc) + " - " + question + "\n")
-                    reactions = ['✅', '❌']
-                    for emoji in reactions:
-                        await msg.add_reaction(emoji)
-                    await msga.edit(
-                        content=
-                        "I have sent your question! \nPlease wait for an admin to approve it. "
-                    )
-                    for emoji in reactions:
-                        await message.clear_reaction(emoji)
-                    await message.delete()
-            except asyncio.TimeoutError:
-                await channel.send(
-                    "Looks like you didn't react in time, please try again later!"
-                )
-        else:
-            await ctx.channel.purge(limit=1)
-            embed = discord.Embed(
-                title="Woah Slow Down!",
-                description=
-                "This command is locked to <#588728994661138494>!\nI also sent your command in your DM's so all you have to do is just copy it and send it in the right channel!",
-                color=0xb10d9f)
-            msg = await ctx.send(embed=embed, delete_after=6)
-            await DMChannel.send(
-                "Here is your command! \nPlease send it in #bot-spam!")
-            await DMChannel.send(">suggestq " + str(question))
-
-    @app_commands.command(
-        name="repeatq",
+    @DQ.command(
+        name="repeat",
         description="Repeat a daily question by id number",
     )
     @discord.ext.commands.has_any_role("Moderator")
-    async def repeatq(self, ctx, number):
+    async def repeatq(self, interaction: discord.Interaction, number):
         """Activate a question"""
         q: database.Question = database.Question.select().where(
             database.Question.id == number).get()
@@ -223,8 +157,8 @@ class DailyCMD(commands.Cog):
         embed.set_footer(text=f"Question ID: {q.id}")
         await ctx.respond(embed=embed)
 
-    @app_commands.command(name="q", description="Activate a question")
-    async def _q(self, interaction: discord.Interaction):
+    @DQ.command(name="use", description="Use a question")
+    async def _activate(self, interaction: discord.Interaction):
         """Activate a question"""
         limit = int(database.Question.select().count())
         q: database.Question = database.Question.select().where(
@@ -238,9 +172,9 @@ class DailyCMD(commands.Cog):
                 question.save()
         await get_question(self)
 
-    @app_commands.command(description="Modify a question!")
+    @DQ.command(description="Modify a question!")
     @commands.has_any_role('Bot Manager', 'Moderator')
-    async def modq(self, ctx, id, *, question):
+    async def _modify(self, interaction: discord.Interaction, id, *, question):
         """Modify a question!"""
         try:
             if id != None:
@@ -255,9 +189,9 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    @app_commands.command(description="Add a question!")
+    @DQ.command(description="Add a question!")
     @commands.has_any_role('Bot Manager', 'Moderator')
-    async def newq(self, ctx, *, question):
+    async def _new(self, interaction: discord.Interaction, *, question):
         """Add a question!"""
         try:
             database.db.connect(reuse_if_open=True)
@@ -269,9 +203,9 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    @app_commands.command(aliases=['delq', 'dq'])
+    @app_commands.command(description="Delete a question!")
     @commands.has_any_role("Bot Manager", "Moderator")
-    async def deleteq(self, ctx, id):
+    async def _delete(self, interaction: discord.Interaction, id):
         """Delete a tag"""
         try:
             database.db.connect(reuse_if_open=True)
@@ -284,8 +218,8 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    @commands.command(aliases=['lq'])
-    async def listq(self, ctx, page=1):
+    @DQ.command(description="List every question.")
+    async def listq(self, interaction: discord.Interaction, page=1):
         """List all tags in the database"""
         def get_end(page_size: int):
             database.db.connect(reuse_if_open=True)
