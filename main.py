@@ -1,32 +1,38 @@
-#Importing Modules
-import discord
+"""
+Copyright (C) Minecraft Realm Portal - All Rights Reserved
+ * Permission is granted to use this application as a code reference for educational purposes.
+ * Written by Minecraft Realm Portal, Development Team. August 2023
+"""
+
+__author__ = "M.R.P Bot Development"
+
 import logging
-from discord.ext import commands
-from datetime import datetime
-import asyncio
-from pathlib import Path
 import os
-from os import system
-from core.common import prompt_config, load_config
-import core.keep_alive as keep_alive
-import core.bcolors as bcolors
 import subprocess
-import time
 import sys
-import aiohttp
+import time
+from datetime import datetime
+from os import system
+from pathlib import Path
+
+import discord
 import xbox
-import traceback
+from alive_progress import alive_bar
+from discord import app_commands
+from discord.ext import commands
+from discord_sentry_reporting import use_sentry
+from pygit2 import Repository, GIT_DESCRIBE_TAGS
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
+
+from core import database
 from core.common import mainTask2
-from core.common import missingArguments
-'''
-- Incase REPL has problems finding packages: (Manual PIP Install)
-pip install discord-py-slash-command
-pip install --upgrade sentry-sdk
-pip install discord-sentry-reporting
+from core.common import prompt_config, load_config
+from core.logging_module import get_log
+from core.special_methods import on_app_command_error_, initialize_db, on_ready_, on_command_error_, on_command_, \
+    before_invoke_
 
-'''
-
-#Filling botconfig incase the file is missing
+# Filling botconfig incase the file is missing
 prompt_config("Enter bot prefix here: ", "prefix")
 prompt_config("Enter channel (ID) to display blacklist responses: ",
               "blacklistChannel")
@@ -41,40 +47,21 @@ prompt_config("Bot's ID", "BotID")
 prompt_config("Slash Commands Server ID", "ServerID")
 config, _ = load_config()
 
-#Applying towards intents
+# Applying towards intents
 intents = discord.Intents.all()
-intents.reactions = True
-intents.members = True
-intents.presences = True
-intents.message_content = True
 
-#Defining client and SlashCommands
-client = commands.Bot(command_prefix=config['prefix'],
+# Defining client and SlashCommands
+bot = commands.Bot(command_prefix=config['prefix'],
                       intents=intents,
                       case_insensitive=True)
-client.remove_command("help")
+bot.remove_command("help")
 
-#Sentry Panel Stuff -
-from discord_sentry_reporting import use_sentry
 
-use_sentry(
-    client,  # it is typically named client or bot
-    dsn=
-    "https://75b468c0a2e34f8ea4b724ca2a5e68a1@o500070.ingest.sentry.io/5579376",
-    traces_sample_rate=1.0)
+logger = logging.getLogger("discord")
+logger.setLevel(logging.INFO)
 
-#Logging
-logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='discord.log',
-                              encoding='utf-8',
-                              mode='w')
-handler.setFormatter(
-    logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-logger.addHandler(handler)
-now = datetime.now().strftime("%H:%M:%S")
-
-logger.info(f"PortalBot has started! {now}")
+_log = get_log(__name__)
+_log.info("Starting PortalBot...")
 
 try:
     xbox.client.authenticate(login=os.getenv("XBOXU"),
@@ -95,7 +82,7 @@ def get_extensions():  # Gets extension list dynamically
     return extensions
 
 
-async def force_restart(ctx):  #Forces REPL to apply changes to everything
+async def force_restart(ctx):  # Forces REPL to apply changes to everything
     try:
         subprocess.run("python main.py",
                        shell=True,
@@ -110,312 +97,149 @@ async def force_restart(ctx):  #Forces REPL to apply changes to everything
         sys.exit(0)
 
 
-@client.check
-async def mainModeCheck(ctx):
-    dev_role = discord.utils.get(ctx.guild.roles,
-                                 name='Bot Manager')  #Role Check
+class PBCommandTree(app_commands.CommandTree):
+    def __init__(self, bot):
+        super().__init__(bot)
+        self.bot = bot
 
-    if dev_role not in ctx.author.roles:
-        with open("commandcheck.txt", "r") as f:
-            first_line = f.readline()
-        if first_line == "ON":  #Mode ON, so return False
-            p = subprocess.run("git describe --always",
-                               shell=True,
-                               text=True,
-                               capture_output=True,
-                               check=True)
-            output = p.stdout
-            embed = discord.Embed(
-                title="⚠️ Maintenance Mode is Currently Active!",
-                description=
-                f"Currently PortalBot is updating to the latest version! \n**GitHub Version:** `{output}`",
-                color=0xfce303)
-            embed.add_field(
-                name="Check Back Later!",
-                value=
-                "A developer is currently syncing changes with GitHub!\n\nCheck [PortalBots Status Page](https://space-turtle0.github.io/PortalBOT-Hosting/) for an update! "
-            )
-            await ctx.send(embed=embed)
+    async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
+        blacklisted_users = [p.discordID for p in database.Blacklist]
+        if interaction.user.avatar is None:
+            await interaction.response.send_message(
+                "Due to a discord limitation, you must have an avatar set to use this command.")
             return False
-        elif first_line == "OFF":  #Mode OFF, so return TRUE
-            return True
-        else:  #Safety, so return TRUE
-            print(
-                "WARNING: commandcheck.txt has an unknown value, passing TRUE for now. "
+        if interaction.user.id in blacklisted_users:
+            await interaction.response.send_message(
+                "You have been blacklisted from using commands!", ephemeral=True
             )
-            return True
-    else:
-        #Bot Managers don't need to go through the process, it lets them do commands regardless of the lock.
+            return False
         return True
 
+    async def on_error(
+            self, interaction: discord.Interaction, error: app_commands.AppCommandError
+    ):
+        await on_app_command_error_(self.bot, interaction, error)
 
-@client.event
-async def on_ready():
-    print(discord.__version__)
-    print(f"{bcolors.OKGREEN}Successfully connected to Discord!{bcolors.ENDC}")
-    print(f"{bcolors.OKCYAN}BOT INFORMATION: {bcolors.ENDC}")
-    print(f"{bcolors.OKCYAN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>{bcolors.ENDC}")
-    print(f"{bcolors.OKGREEN}BOT TYPE: {bcolors.ENDC}" + config['BotType'])
-    print(f"{bcolors.WARNING}ID: {client.user.id}{bcolors.ENDC}")
-    print(
-        f"{bcolors.WARNING}URL: https://discord.com/oauth2/authorize?client_id={client.user.id}&permissions=8&scope=bot%20applications.commands{bcolors.ENDC}"
+
+class PortalBot(commands.Bot):
+    """
+    Generates a Timmy Instance.
+    """
+
+    def __init__(self, uptime: time.time):
+        super().__init__(
+            command_prefix=commands.when_mentioned_or(config['prefix']),
+            intents=discord.Intents.all(),
+            case_insensitive=True,
+            tree_cls=PBCommandTree,
+            status=discord.Status.online,
+            activity=discord.Activity(
+                type=discord.ActivityType.watching,
+                name=f"over the Portal! | {config['prefix']}help")
+        )
+        self.help_command = None
+        self.add_check(self.check)
+        self._start_time = uptime
+
+    async def on_ready(self):
+        await on_ready_(self)
+
+    async def on_command_error(self, ctx: commands.Context, error: Exception):
+        await on_command_error_(self, ctx, error)
+
+    async def on_command(self, ctx: commands.Context):
+        await on_command_(self, ctx)
+
+    async def analytics_before_invoke(self, ctx: commands.Context):
+        await before_invoke_(ctx)
+
+    async def setup_hook(self) -> None:
+        with alive_bar(
+                len(get_extensions()),
+                ctrl_c=False,
+                bar="bubbles",
+                title="Initializing Cogs:",
+        ) as bar:
+
+            for ext in get_extensions():
+                try:
+                    await bot.load_extension(ext)
+                except commands.ExtensionAlreadyLoaded:
+                    await bot.unload_extension(ext)
+                    await bot.load_extension(ext)
+                except commands.ExtensionNotFound:
+                    raise commands.ExtensionNotFound(ext)
+                bar()
+        # await bot.tree.set_translator(TimmyTranslator())
+
+    async def is_owner(self, user: discord.User):
+        admin_ids = []
+        query = database.Administrators.select().where(
+            database.Administrators.TierLevel >= 3
+        )
+        for admin in query:
+            admin_ids.append(admin.discordID)
+
+        if user.id in admin_ids:
+            return True
+
+        return await super().is_owner(user)
+
+    @property
+    def version(self):
+        """
+        Returns the current version of the bot.
+        """
+        repo = Repository(".")
+        current_commit = repo.head
+        current_branch = repo.head.shorthand
+
+        version = ...  # type: str
+        if current_branch == "HEAD":
+            current_tag = repo.describe(committish=current_commit, describe_strategy=GIT_DESCRIBE_TAGS)
+            version = f"{current_tag} (stable)"
+        else:
+            version = "development"
+        version += f" | {str(current_commit.target)[:7]}"
+
+        return version
+
+    @property
+    def author(self):
+        """
+        Returns the author of the bot.
+        """
+        return __author__
+
+    @property
+    def start_time(self):
+        """
+        Returns the time the bot was started.
+        """
+        return self._start_time
+
+
+bot = PortalBot(time.time())
+
+if os.getenv("DSN_SENTRY") is not None:
+    sentry_logging = LoggingIntegration(
+        level=logging.INFO,  # Capture info and above as breadcrumbs
+        event_level=logging.ERROR,  # Send errors as events
     )
-    print("Current Time =", now)
-    await client.change_presence(
-        status=discord.Status.idle,
-        activity=discord.Activity(
-            type=discord.ActivityType.watching,
-            name=f"over the Portal! | {config['prefix']}help"))
-    channel = client.get_channel(792485617954586634)
-    embed = discord.Embed(title=f"{client.user.name} is back up!",
-                          description="Time: " + now,
-                          color=0x3df5a2)
-    await channel.send(embed=embed)
-    with open("commandcheck.txt", "w") as f:
-        f.write("OFF")
-    try:
-        with open("taskcheck.txt", "r") as f:
-            first_line = f.readline()
-        if first_line == "OFF":
-            client.loop.create_task(mainTask2(client))
-            with open("taskcheck.txt", "w") as f:
-                f.write("ON")
-    except:
-        logger.critical("ERROR: Unable to start task!")
 
+    # Traceback tracking, DO NOT MODIFY THIS
+    use_sentry(
+        bot,
+        dsn=os.getenv("DSN_SENTRY"),
+        traces_sample_rate=1.0,
+        integrations=[FlaskIntegration(), sentry_logging],
+    )
 
-keep_alive.keep_alive()  # webserver setup, used w/ REPL
+initialize_db(bot)
+
 
 if __name__ == '__main__':
-    for ext in get_extensions():
-        client.load_extension(ext)
-
-
-@client.group(aliases=['cog'])
-@commands.has_role('Bot Manager')
-async def cogs(ctx):
-    pass
-
-
-@cogs.command()
-@commands.has_role('Bot Manager')
-async def unload(ctx, ext=None):
-    if ext == None:
-        await missingArguments(ctx, "cogs unload BlacklistCMD")
-    if "cogs." not in ext:
-        ext = f"cogs.{ext}"
-    if ext in get_extensions():
-        client.unload_extension(ext)
-        embed = discord.Embed(title="Cogs - Unload",
-                              description=f"Unloaded cog: {ext}",
-                              color=0xd6b4e8)
-        await ctx.send(embed=embed)
-    else:
-        embed = discord.Embed(title="Cogs Reloaded",
-                              description=f"Cog '{ext}' not found",
-                              color=0xd6b4e8)
-        await ctx.send(embed=embed)
-
-
-@cogs.command()
-@commands.has_role('Bot Manager')
-async def load(ctx, ext):
-    if ext == None:
-        await missingArguments(ctx, "cogs load BlacklistCMD")
-    if "cogs." not in ext:
-        ext = f"cogs.{ext}"
-    if ext in get_extensions():
-        client.load_extension(ext)
-        embed = discord.Embed(title="Cogs - Load",
-                              description=f"Loaded cog: {ext}",
-                              color=0xd6b4e8)
-        await ctx.send(embed=embed)
-    else:
-        embed = discord.Embed(title="Cogs - Load",
-                              description=f"Cog '{ext}' not found.",
-                              color=0xd6b4e8)
-        await ctx.send(embed=embed)
-
-
-@cogs.command(aliases=['restart'])
-@commands.has_role('Bot Manager')
-async def reload(ctx, ext=None):
-    if ext == None:
-        await missingArguments(ctx, "cogs reload all")
-    with open("commandcheck.txt", "w") as f:
-        f.write("ON")
-    if ext == "all":
-        embed = discord.Embed(title="Cogs - Reload",
-                              description="Reloaded all cogs",
-                              color=0xd6b4e8)
-        for extension in get_extensions():
-            client.reload_extension(extension)
-        await ctx.send(embed=embed)
-        with open("commandcheck.txt", "w") as f:
-            f.write("OFF")
-        return
-
-    if "cogs." not in ext:
-        ext = f"cogs.{ext}"
-
-    if ext in get_extensions():
-        client.reload_extension(ext)
-        embed = discord.Embed(title="Cogs - Reload",
-                              description=f"Reloaded cog: {ext}",
-                              color=0xd6b4e8)
-        await ctx.send(embed=embed)
-
-    else:
-        embed = discord.Embed(title="Cogs - Reload",
-                              description=f"Cog '{ext}' not found.",
-                              color=0xd6b4e8)
-        await ctx.send(embed=embed)
-    with open("commandcheck.txt", "w") as f:
-        f.write("OFF")
-
-
-@cogs.command()
-@commands.has_role('Bot Manager')
-async def view(ctx):
-    msg = " ".join(get_extensions())
-    embed = discord.Embed(title="Cogs - View", description=msg, color=0xd6b4e8)
-    await ctx.send(embed=embed)
-
-
-@client.command()
-@commands.has_role('Bot Manager')
-async def gitpull(ctx, mode="-a"):
-    with open("commandcheck.txt", "w") as f:
-        f.write("ON")
-    typebot = config['BotType']
-    output = ''
-    if typebot == "BETA":
-        try:
-            p = subprocess.run("git fetch --all",
-                               shell=True,
-                               text=True,
-                               capture_output=True,
-                               check=True)
-            output += p.stdout
-        except Exception as e:
-            await ctx.send("⛔️ Unable to fetch the Current Repo Header!")
-            await ctx.send(f"**Error:**\n{e}")
-        try:
-            p = subprocess.run("git reset --hard origin/TestingInstance",
-                               shell=True,
-                               text=True,
-                               capture_output=True,
-                               check=True)
-            output += p.stdout
-        except Exception as e:
-            await ctx.send("⛔️ Unable to apply changes!")
-            await ctx.send(f"**Error:**\n{e}")
-
-        embed = discord.Embed(
-            title="GitHub Local Reset",
-            description=
-            "Local Files changed to match PortalBot/TestingInstance",
-            color=0x3af250)
-        embed.add_field(name="Shell Output",
-                        value=f"```shell\n$ {output}\n```")
-        embed.set_footer(text="Attempting to restart the bot...")
-        msg = await ctx.send(embed=embed)
-        with open("commandcheck.txt", "w") as f:
-            f.write("OFF")
-        if mode == "-a":
-            await force_restart(ctx)
-        elif mode == "-c":
-            await ctx.invoke(client.get_command('cogs reload'), ext='all')
-
-    elif typebot == "STABLE":
-        try:
-            p = subprocess.run("git fetch --all",
-                               shell=True,
-                               text=True,
-                               capture_output=True,
-                               check=True)
-            output += p.stdout
-        except Exception as e:
-            await ctx.send("⛔️ Unable to fetch the Current Repo Header!")
-            await ctx.send(f"**Error:**\n{e}")
-        try:
-            p = subprocess.run("git reset --hard origin/main",
-                               shell=True,
-                               text=True,
-                               capture_output=True,
-                               check=True)
-            output += p.stdout
-        except Exception as e:
-            await ctx.send("⛔️ Unable to apply changes!")
-            await ctx.send(f"**Error:**\n{e}")
-        embed = discord.Embed(
-            title="GitHub Local Reset",
-            description="Local Files changed to match PortalBot/Main",
-            color=0x3af250)
-        embed.add_field(name="Shell Output",
-                        value=f"```shell\n$ {output}\n```")
-        embed.set_footer(text="Attempting to restart the bot...")
-        msg = await ctx.send(embed=embed)
-        with open("commandcheck.txt", "w") as f:
-            f.write("OFF")
-        if mode == "-a":
-            await force_restart(ctx)
-        elif mode == "-c":
-            await ctx.invoke(client.get_command('cogs reload'), ext='all')
-
-
-@client.command()
-@commands.has_role('Bot Manager')
-async def sentry(ctx):
-    embed = discord.Embed(title='Sentry Traceback Logging',
-                          description=f"TYPE: PortalBot -{config['BotType']}",
-                          color=0x4c594b)
-    embed.set_thumbnail(
-        url="http://myovchev.github.io/sentry-slack/images/logo32.png")
-    embed.add_field(
-        name="Sentry Project",
-        value=
-        "**BETA:** https://sentry.io/organizations/space-turtle0/issues/?project=5579376 \n**STABLE:** https://sentry.io/organizations/space-turtle0/issues/?project=5579425"
-    )
-    await ctx.send(embed=embed)
-
-
-@client.command(aliases=['m', 'maintenance'])
-@commands.has_role('Bot Manager')
-async def _maintenance(ctx, choice=None):
-    #0xfce303
-    if choice == None:
-        embed = discord.Embed(
-            title="About Maintenance Mode",
-            description=
-            "Upon activating this, every commands will be locked and Bot Managers will be the one ones who can invoke commands. This will be automatically enabled when attempting to reload a cog or when using gitpull!",
-            color=0xfce303)
-        await ctx.send(embed=embed)
-    elif choice == "ON" or choice == "on" or choice == "On":
-        with open("commandcheck.txt", "w") as f:
-            f.write("ON")
-        embed = discord.Embed(
-            title="⚠️ Activated Maintenance Mode!",
-            description=
-            "Maintenance Mode has been turned **ON** and all commands will be locked to Bot Manager **ONLY**",
-            color=0xfce303)
-        await ctx.send(embed=embed)
-    elif choice == "OFF" or choice == "off" or choice == "Off":
-        with open("commandcheck.txt", "w") as f:
-            f.write("OFF")
-        embed = discord.Embed(
-            title="⚠️ Removed Maintenance Mode!",
-            description=
-            "Maintenance Mode has been turned **OFF** and commands will be available to everyone again.",
-            color=0xfce303)
-        await ctx.send(embed=embed)
-    else:
-        await ctx.send("Sorry, I didn't understand you!\nChoices: ON/OFF")
-
-
-try:
-    client.run(os.getenv("TOKEN"))
-#Bot Restarter
-except discord.errors.HTTPException:
-    print("\n\n\nBLOCKED BY RATE LIMITS\nRESTARTING NOW\n\n\n")
-    system('kill 1')
+    try:
+        bot.run(os.getenv("TOKEN"))
+    except Exception as e:
+        _log.exception(e)

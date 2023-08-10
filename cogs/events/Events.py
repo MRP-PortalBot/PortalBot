@@ -1,16 +1,11 @@
 import discord
 from discord.ext import commands
-from datetime import datetime, timezone
-import time
-import re
-import asyncio
-from discord import Embed
-import requests
+
 from core.common import load_config
 
 config, _ = load_config()
 import logging
-from core import database, common
+from core import database
 
 logger = logging.getLogger(__name__)
 # --------------------------------------------------
@@ -18,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 
 scope = [
     "https://spreadsheets.google.com/feeds",
@@ -89,9 +85,7 @@ class Events(commands.Cog):
         #    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReason = author.name)
         #   q.save()
         #   database.db.close()
-        print(member)
         guild = member.guild
-        print(guild)
         channel = discord.utils.get(guild.channels, name="member-log")
         username = member
         longid = str(member.id)
@@ -240,6 +234,15 @@ class Events(commands.Cog):
                 await channel.send(embed=embed2)
 
         #await self.bot.process_commands(message)
+
+    @commands.Cog.listener()
+    async def on_command(self, ctx):
+        author = ctx.message.author
+        authorname = author.name
+        timestamp = datetime.now()
+        with open("commandlog.txt", "a") as file:
+            file.write(str(authorname) + " used " + str(ctx.command) + " | Executed on: (Date | Time) " + str(
+                timestamp.strftime("%m/%d/%y")) + " : " + str(timestamp.strftime("%H:%M:%S")) + "\n")
 
 
 def setup(bot):

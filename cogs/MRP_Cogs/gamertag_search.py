@@ -1,16 +1,16 @@
-import discord
-from discord.ext import commands
-from datetime import datetime
-import time
-import re
 import asyncio
-from discord import Embed
-import requests
-import xbox
 import logging
+import re
 
+import discord
+import xbox
+from discord.ext import commands
+from discord import app_commands
 
-logger = logging.getLogger(__name__)
+from core.logging_module import get_log
+
+_log = get_log(__name__)
+_log.info("Starting PortalBot...")
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -43,7 +43,6 @@ print(cell)
 class GamertagCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("GamertagCMD: Cog Loaded!")
 
     # new gamertags command
     @commands.command()
@@ -133,9 +132,13 @@ class GamertagCMD(commands.Cog):
         if isinstance(error, commands.MissingRole):
             await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
 
-    # Add's a gamertag to the database.
-    @commands.command()
-    async def gtadd(self, ctx, *, gamertag):
+
+    @app_commands.command()
+    @app_commands.describe(
+        gamertag="Enter your gamer-tag here",
+        replace_nick="Do you want to use your gamer-tag as your nickname?"
+    )
+    async def gamertag(self, interaction: discord.Interaction, gamertag: str, replace_nick: bool = False):
         author = ctx.message.author
         channel = ctx.message.channel
         alid = str(author.id)
@@ -148,41 +151,11 @@ class GamertagCMD(commands.Cog):
         #GamerTag = open("Gamertags.txt", "a")
         #GamerTag.write(gamertag + " " + str(author.id) + "\n")
 
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author is not self.bot.user
-        await channel.send("Success! \nWould you like to change your nickname to your gamertag? (If so, you may have to add your emojis to your nickname again!)")
-        
-
-        message = await channel.send("✅ - CHANGE NICKNAME\n❌ - CANCEL\n*You have 60 seconds to react, otherwise the application will automaically cancel.* ")
-        reactions = ['✅', '❌']
-        for emoji in reactions:
-            await message.add_reaction(emoji)
-
-        def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✅' or str(reaction.emoji) == '❌')
-        try:
-            reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check2)
-            if str(reaction.emoji) == "❌":
-                await channel.send("Okay, won't change your nickname!")
-                for emoji in reactions:
-                    await message.clear_reaction(emoji)
-                return
-            else:
-                for emoji in reactions:
-                    await message.clear_reaction(emoji)
-                await author.edit(nick=gamertag)
-                await ctx.send("Success!")
-
-        except asyncio.TimeoutError:
-            await channel.send("Looks like you didn't react in time, please try again later!")
-
-
-            
-
-    @gtadd.error
-    async def gtadd_error(self, ctx, error):
-        if isinstance(error, commands.BadArgument):
-            await ctx.send("Uh oh, you didn't include all the arguments! ")
+        if replace_nick is True:
+            await author.edit(nick=gamertag)
+            await interaction.response.send_message("Updated your gamertag and nickname!", ephemeral=True)
+        else:
+            await interaction.response.send_message("Updated your gamertag!", ephemeral=True)
 
 
     @commands.command()
@@ -256,161 +229,6 @@ class GamertagCMD(commands.Cog):
 
         except asyncio.TimeoutError:
             await channel.send("Looks like you didn't react in time, please try again later!")
-
-
-
-'''
-  #searches gamertags
-  @commands.command()
-  @commands.has_role("Realm OP")
-  async def gsearch(self, ctx):
-    author = ctx.message.author
-    channel = ctx.message.channel
-    guild = ctx.message.guild
-     logfile = open("commandlog.txt", "a")
-     logfile.write(str(author.name) + " used GSEARCH \n")
-     logfile.close()
-     searchfile = open("Gamertags.txt", "r")
-     SearchResults = discord.Embed(title = "Search Results", description = "Requested by: " + author.mention, color = 0xb10d9f)
-    def check(m):
-       return m.content is not None and m.channel == channel and m.author is not self.bot.user
-
-     await ctx.send("Specify a User or a Gamertag!")
-     message1 = await self.bot.wait_for('message', check=check)
-
-     message1c = message1.content
-
-     if message1c.isdigit():   #DISCORD ID
-       for line in searchfile:
-         if message1c in line:
-          #searchphrase being ID
-           Gamertag , ID = line.split(" ")
-           newI = Gamertag.replace("\n", "")
-           SearchResults.add_field(name = "Gamertag Results", value = "**Xbox Gamertag:** " + "**" + newI + "**" + "\n**Xbox Profile:** https://account.xbox.com/en-us/profile?gamertag=" + newI + "\n**Xbox Lookup:** https://xboxgamertag.com/search/" + newI)
-           SearchResults.set_thumbnail(url = guild.icon.url)
-           timestamp = datetime.now()
-           SearchResults.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-           await ctx.send(embed = SearchResults)
-           time.sleep(2)
-           return
-        else:
-          print()
-
-     else:
-       for line in searchfile:   #GAMERTAG
-         if message1c in line:
-           #searchphrase being ID
-           Gamertag , ID = line.split(" ")
-           newI = ID.replace("\n", "")
-           GamertagI = Gamertag.replace("\n" , "")
-           SearchResults.add_field(name = "User Results", value = "Username: <@" + newI + "> \nThis user matched up with: **" + GamertagI + "**")
-           SearchResults.set_thumbnail(url = guild.icon.url)
-           timestamp = datetime.now()
-           SearchResults.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-           await ctx.send(embed = SearchResults)
-           time.sleep(2)
-           return
-
-         else:
-           await ctx.send(message1c + " was not found in the database!")
-           time.sleep(1)
-           newI = message1c
-           SearchResults.add_field(name = "Gamertag Search Failed", value = "**Xbox Gamertag:** " + "**" + newI + "**" + "\n**Xbox Profile:** https://account.xbox.com/en-us/profile?gamertag=" + newI + "\n**Xbox Lookup:** https://xboxgamertag.com/search/" + newI)
-           SearchResults.set_thumbnail(url = guild.icon.url)
-           timestamp = datetime.now()
-           SearchResults.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-           await ctx.send(embed = SearchResults)
-           time.sleep(2)
-           return
-
-  @gtsearch.error
-  async def gtsearc_error(self,ctx,error):
-    if isinstance(error, commands.MissingRole):
-      await ctx.send("Uh oh, you can't run this! You aren't a Realm OP!")
-'''
-'''
-#Starts the blacklist process.
-  @commands.command()
-  @commands.has_role("Realm OP")
-  async def blacklist(self, ctx):
-    a_list = []
-    author = ctx.message.author
-    guild = ctx.message.guild
-    channel = await ctx.author.create_dm()
-    #schannel = self.bot.get_channel(778453455848996876)
-
-    schannel = self.bot.get_channel(590226302171349003)
-    await ctx.send("Please take a look at your DM's!")
-
-
-    def check(m):
-        return m.content is not None and m.channel == channel and m.author is not self.bot.user
-
-    await channel.send("Please answer the questions with as much detail as you can. \nWant to cancel the command? Answer everything and at the end then you have the option to either break or submit the responses, there you could say 'break'!\nIf you are having trouble with the command, please contact Space! \n\n*Starting Questions Now...*")
-    time.sleep(2)
-    await channel.send(Q1)
-    answer1 = await self.bot.wait_for('message', check=check)
-
-    await channel.send(Q2)
-    answer2 = await self.bot.wait_for('message', check=check)
-
-    await channel.send(Q3)
-    answer3 = await self.bot.wait_for('message', check=check)
-
-    await channel.send(Q4)
-    answer4 = await self.bot.wait_for('message', check=check)
-
-    await channel.send(Q5)
-    answer5 = await self.bot.wait_for('message', check=check)
-
-    await channel.send(Q6)
-    answer6 = await self.bot.wait_for('message', check=check)
-
-    await channel.send(Q7)
-    answer7 = await self.bot.wait_for('message', check=check)
-
-    await channel.send(Q8)
-    answer8 = await self.bot.wait_for('message', check=check)
-
-    await channel.send(Q9)
-    answer9 = await self.bot.wait_for('message', check=check)
-
-    time.sleep(0.5)
-
-    #Spreadsheet Data
-    row = [answer1.content, answer2.content, answer3.content, answer4.content, answer5.content, answer6.content, answer7.content, answer8.content, answer9.content]
-    sheet.insert_row(row, 3)
-
-    submit_wait = True
-    while submit_wait:
-      await channel.send('End of questions, send "**submit**". If you want to cancel, send "**break**".  \nPlease note that the bot is **CASE SENSITIVE**!')
-      msg = await self.bot.wait_for('message', check=check)
-      if "submit" in msg.content:
-        submit_wait = False
-        blacklistembed = discord.Embed(title = "Blacklist Report", description = "Sent from: " + author.mention, color = 0xb10d9f)
-        blacklistembed.add_field(name = "Questions", value = f'**{Q1}** \n {answer1.content} \n\n'
-        f'**{Q2}** \n {answer2.content} \n\n'
-        f'**{Q3}** \n {answer3.content} \n\n'
-        f'**{Q4}** \n {answer4.content} \n\n'
-        f'**{Q5}** \n {answer5.content} \n\n'
-        f'**{Q6}** \n {answer6.content} \n\n'
-        f'**{Q7}** \n {answer7.content} \n\n'
-        f'**{Q8}** \n {answer8.content} \n\n'
-        f'**{Q9}** \n {answer9.content} \n\n')
-        timestamp = datetime.now()
-        blacklistembed.set_footer(text=guild.name + " | Date: " + str(timestamp.strftime(r"%x")))
-        await schannel.send(embed = blacklistembed)
-        await channel.send("I have sent in your blacklist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪")
-      elif "break" in msg.content:
-        schannel.send("Canceled Request...")
-        submit_wait = False
-
-
-  @blacklist.error
-  async def blacklist_error(self,ctx, error):
-    if isinstance(error, commands.MissingRole):
-      await ctx.send("Uh oh, looks like you don't have the Realm OP role!")
-'''
 
 
 def setup(bot):

@@ -1,4 +1,3 @@
-from logging import exception
 import discord
 from discord.ext import commands
 import time
@@ -7,11 +6,23 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import asyncio
 from core.common import load_config
+import asyncio
+import time
+from datetime import datetime
+
+import discord
+import gspread
+from discord.ext import commands
+from oauth2client.service_account import ServiceAccountCredentials
+
+from core.common import load_config
+from core.logging_module import get_log
+
 config, _ = load_config()
 i = 1
 time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
-import logging
-logger = logging.getLogger(__name__)
+_log = get_log(__name__)
+_log.info("Starting PortalBot...")
 
 # -------------------------------------------------------
 
@@ -242,60 +253,6 @@ class RealmCMD(commands.Cog):
         
         else:
             raise error
-
-    @commands.command()
-    @check_MRP()
-    async def checkin2(self, ctx):
-        # 28
-        em = discord.Embed(
-            title="Realm Checkin", description="Please react with your Realm Emoji to checkin for the month!\n======================================================")
-        em.add_field(name="Page 1/2", value="77th Combine - 🚜\n"
-                     "Accelerated Survival - 🌎\n"
-                     "Altered Reality - ⚜️\n"
-                     "Aurafall - 💀\n"
-                     "Bigbraincraft - 🧠\n"
-                     "Biomecraft - 🌄\n"
-                     "Bovinia - 👑\n"
-                     "Brokerock - 💎\n"
-                     "Coastal Craft - ☸️\n"
-                     "Codename Electrify - ⚡️\n"
-                     "Crimson Isles - 🍂\n"
-                     "Dragons Keep - 🐲\n"
-                     "Evercraft - ⏳\n"
-                     "Evilcraft - 👹\n"
-                     )
-
-        msg = await ctx.send(embed=em)
-        reactions = ['🚜', '🌎', '⚜️', '💀', '🧠', '🌄',
-                     '👑', '💎', '☸️', '⚡', '🍂', '🐲', '⏳', '👹']
-        for emoji in reactions:
-            await msg.add_reaction(emoji)
-            time.sleep(3)
-        # Part2
-        em = discord.Embed(
-            title="Realm Checkin", description="Please react with your Realm Emoji to checkin for the month!\n======================================================")
-        em.add_field(name="Page 2/2", value="Fortressworld - 🐉\n"
-                     "Fresh Start - 🍃\n"
-                     "Genesis - 🌱\n"
-                     "Hals Crafters - 🌞\n"
-                     "Industrious Inc - 🏭\n"
-                     "Kingdoms Realm - 🏰\n"
-                     "Mistical Darkness - 🌑\n"
-                     "Oakridge - 🌳\n"
-                     "Phantom Smp - 👻\n"
-                     "Rage Craft Room - 😡\n"
-                     "Slownerd Bedrock Paradise - 🐢\n"
-                     "Tiny World - 🔬\n"
-                     "World Traveling - 🛸\n"
-                     "Xencraft - 🌹\n"
-                     "Guest OP - 👀"
-                     )
-        msg = await ctx.send(embed=em)
-        reactions = ['🐉', '🍃', '🌱', '🌞', '🏭', '🏰', '🌑',
-                     '🌳', '👻', '😡', '🐢', '🔬', '🛸', '🌹', '👀']
-        for emoji in reactions:
-            await msg.add_reaction(emoji)
-            time.sleep(3)
 
     @commands.command()
     @check_MRP()

@@ -1,17 +1,11 @@
 import logging
-import os
-from peewee import *
-from discord.enums import ExpireBehavior
-from peewee import AutoField, ForeignKeyField, Model, IntegerField, PrimaryKeyField, TextField, SqliteDatabase, DoesNotExist, DateTimeField, UUIDField, IntegrityError
-from playhouse.shortcuts import model_to_dict, dict_to_model  # these can be used to convert an item to or from json http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#model_to_dict
-from playhouse.sqlite_ext import RowIDField
-from datetime import datetime
-from peewee import MySQLDatabase
-from playhouse.shortcuts import ReconnectMixin
+from peewee import AutoField, Model, IntegerField, TextField, SqliteDatabase, BigIntegerField
 from flask import Flask
+from dotenv import load_dotenv
 
-#from dotenv import load_dotenv
-#load_dotenv()
+from core.logging_module import get_log
+
+load_dotenv()
 
 #DB_IP = os.getenv("DB_IP")
 #DB_Port = os.getenv("DB_Port")
@@ -21,7 +15,9 @@ from flask import Flask
 
 db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
 #db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
-logger = logging.getLogger(__name__)
+
+_log = get_log(__name__)
+_log.info("Starting PortalBot...")
 
 def iter_table(model_dict):
     """Iterates through a dictionary of tables, confirming they exist and creating them if necessary."""
@@ -29,7 +25,7 @@ def iter_table(model_dict):
         if not db.table_exists(key):
             db.connect(reuse_if_open=True)
             db.create_tables([model_dict[key]])
-            logger.debug(f"Created table '{key}'")
+            _log.debug(f"Created table '{key}'")
             db.close()
 
 class BaseModel(Model):
@@ -80,7 +76,6 @@ class RealmProfile(BaseModel):
     """Stores Realm Profile Data here"""
     entryid = AutoField()
     RealmName = TextField()
-    RealmName = TextField()
     RealmEmoji = TextField()
     RealmLongDesc = TextField()
     RealmShortDesc = TextField()
@@ -91,7 +86,29 @@ class RealmProfile(BaseModel):
     RealmStyle = TextField()
     Gamemode = TextField()
 
+class Administrators(BaseModel):
+    """
+    Administrators:
+    List of users who are whitelisted on the bot.
 
+    `id`: AutoField()
+    Database Entry
+
+    `discordID`: BigIntegerField()
+    Discord ID
+
+    `TierLevel`: IntegerField()
+    TIER LEVEL
+
+    1 - Bot Manager\n
+    2 - Admin\n
+    3 - Sudo Admin\n
+    4 - Owner
+    """
+
+    id = AutoField()
+    discordID = BigIntegerField(unique=True)
+    TierLevel = IntegerField(default=1)
 
 app = Flask(__name__)
 
@@ -108,5 +125,11 @@ def _db_close(exc):
     if not db.is_closed():
         db.close()
 
-tables = {"tag": Tag, "questions": Question, "blacklist": MRP_Blacklist_Data, "profile": PortalbotProfile, "realmprofile": RealmProfile}
+tables = {
+    "tag": Tag,
+    "questions": Question,
+    "blacklist": MRP_Blacklist_Data,
+    "profile": PortalbotProfile,
+    "realmprofile": RealmProfile
+}
 iter_table(tables)

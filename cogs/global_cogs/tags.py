@@ -1,12 +1,10 @@
-import discord
-from discord.ext import commands
-from discord.ext.commands.core import command
-from core import database, common
-import asyncio
 import logging
 import math
 
+import discord
 from discord.ext import commands
+
+from core import database, common
 
 logger = logging.getLogger(__name__)
 

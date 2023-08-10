@@ -1,22 +1,23 @@
-import discord
-from discord.ext import commands
-from discord.commands import slash_command
-from discord.commands import permissions
-from datetime import datetime
-import random
-import threading
 import asyncio
+import random
+from datetime import datetime
+
+import discord
+from discord import app_commands
+from discord.ext import commands
+
 from core import database, common
 from core.common import load_config
+from core.logging_module import get_log
+from main import PortalBot
 
 config, _ = load_config()
 import math
-from discord.ext import tasks
 # Counts current lines in a file.
 
-import logging
 
-logger = logging.getLogger(__name__)
+_log = get_log(__name__)
+_log.info("Starting PortalBot...")
 
 
 def LineCount():
@@ -29,8 +30,8 @@ def LineCount():
     print(line_count)
 
 
-async def getQuestion(self, ctx):
-    #sendchannel = self.bot.get_channel(config['dqchannel'])
+async def get_question(self):
+    send_channel = self.bot.get_channel(config['dqchannel'])
     limit = int(database.Question.select().count())
     print(str(limit) + "| getQuestion")
     database.db.connect(reuse_if_open=True)
@@ -41,7 +42,7 @@ async def getQuestion(self, ctx):
         q: database.Question = database.Question.select().where(
             database.Question.id == Rnum).get()
         print(q.id)
-        if q.usage == False or q.usage == "False":
+        if q.usage is False or q.usage == "False":
             q.usage = True
             q.save()
             posted = 2
@@ -50,7 +51,7 @@ async def getQuestion(self, ctx):
                                   description=f"**{q.question}**",
                                   color=0xb10d9f)
             embed.set_footer(text=f"Question ID: {q.id}")
-            await ctx.send(embed=embed)
+            await send_channel.send(embed=embed)
         else:
             posted = 0
             print(posted)
@@ -59,7 +60,6 @@ async def getQuestion(self, ctx):
 class DailyCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("DailyQuestionsCMD: Cog Loaded!")
 
     def get_by_index(self, index):
         for i, t in enumerate(database.Question.select()):
@@ -208,12 +208,10 @@ class DailyCMD(commands.Cog):
                 "Here is your command! \nPlease send it in #bot-spam!")
             await DMChannel.send(">suggestq " + str(question))
 
-    @slash_command(name="repeatq",
-                   description="Repeat a daily question by id number",
-                   guild_ids=[
-                       config['SlashServer1'], config['SlashServer2'],
-                       config['SlashServer3']
-                   ])
+    @app_commands.command(
+        name="repeatq",
+        description="Repeat a daily question by id number",
+    )
     @discord.ext.commands.has_any_role("Moderator")
     async def repeatq(self, ctx, number):
         """Activate a question"""
@@ -225,8 +223,8 @@ class DailyCMD(commands.Cog):
         embed.set_footer(text=f"Question ID: {q.id}")
         await ctx.respond(embed=embed)
 
-    @commands.command(aliases=['q', 'dailyq'])
-    async def _q(self, ctx):
+    @app_commands.command(name="q", description="Activate a question")
+    async def _q(self, interaction: discord.Interaction):
         """Activate a question"""
         limit = int(database.Question.select().count())
         q: database.Question = database.Question.select().where(
@@ -238,9 +236,9 @@ class DailyCMD(commands.Cog):
             for question in query:
                 question.usage = False
                 question.save()
-        await getQuestion(ctx)
+        await get_question(self)
 
-    @commands.command(aliases=['mq'])
+    @app_commands.command(description="Modify a question!")
     @commands.has_any_role('Bot Manager', 'Moderator')
     async def modq(self, ctx, id, *, question):
         """Modify a question!"""
@@ -257,7 +255,7 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    @commands.command(aliases=['nq', 'newquestion'])
+    @app_commands.command(description="Add a question!")
     @commands.has_any_role('Bot Manager', 'Moderator')
     async def newq(self, ctx, *, question):
         """Add a question!"""
@@ -271,7 +269,7 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    @commands.command(aliases=['delq', 'dq'])
+    @app_commands.command(aliases=['delq', 'dq'])
     @commands.has_any_role("Bot Manager", "Moderator")
     async def deleteq(self, ctx, id):
         """Delete a tag"""
@@ -315,11 +313,6 @@ class DailyCMD(commands.Cog):
                                             populate_embed,
                                             get_end(10),
                                             page=page)
-
-    @commands.command()
-    async def startTask(self, ctx):
-        self.bot.loop.create_task(mainTask(self))
-        await ctx.send("Done!")
 
 
 def setup(bot):

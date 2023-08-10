@@ -1,18 +1,14 @@
-import discord
-from discord.ext import commands
-from datetime import datetime, timezone
-import time
-import re
 import asyncio
-from discord import Embed
-import requests
-from discord import File
-from core import database, common
-
-from PIL import Image, ImageDraw, ImageFont
 import io
-from urllib.request import urlopen
 import logging
+import re
+
+import discord
+from PIL import Image, ImageDraw, ImageFont
+from discord import File
+from discord.ext import commands
+
+from core import database
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +66,6 @@ chesscol = 9
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("ProfileCMD: Cog Loaded!")
 
     @commands.group(invoke_without_command=True)
     async def profile(self, ctx, *, profile: discord.Member = None):

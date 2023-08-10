@@ -1,17 +1,15 @@
-import asyncio
 import logging
 import random
-import re
-import time
 from datetime import datetime
 
 import discord
 import gspread
-from core import database
-from core.common import load_config, paginate_embed
 from discord.ext import commands
 from discord.ui import InputText, Modal
 from oauth2client.service_account import ServiceAccountCredentials
+
+from core import database
+from core.common import load_config
 
 config, _ = load_config()
 

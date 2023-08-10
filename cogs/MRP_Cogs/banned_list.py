@@ -1,18 +1,17 @@
-from oauth2client.service_account import ServiceAccountCredentials
-import gspread
-import discord
-from discord.ext import commands
-from discord.commands import slash_command
-from datetime import datetime
-import time
-import re
 import asyncio
-from discord import Embed
-from six import python_2_unicode_compatible
-from core.common import load_config, paginate_embed
+import re
+from datetime import datetime
+from typing import List, Literal
+
+import discord
+import gspread
+from discord.ext import commands
+from oauth2client.service_account import ServiceAccountCredentials
+from discord import app_commands
+from core.common import load_config, paginate_embed, return_banishblacklistform_modal
+from core.logging_module import get_log
 
 config, _ = load_config()
-import logging
 from core import database
 import random
 
@@ -24,7 +23,7 @@ def printlen(*args):
     return value + 300
 
 
-logger = logging.getLogger(__name__)
+_log = get_log(__name__)
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -110,177 +109,42 @@ a_list = []
 class BannedlistCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("BannedlistCMD: Cog Loaded!")
 
-    # Starts the bannedlist process.
-    @slash_command(name="bannedlist",
-                   description="Add a person to the banned list",
-                   guild_ids=[config['MRP'], config['PBtest']])
-    @commands.has_role("Realm OP")
-    async def bannedlist(self, ctx):
-        author = ctx.author
-        guild = ctx.guild
-        entryid = (int(sheet.acell('A3').value) + 1)
-        banreport = author.name
-        channel = await ctx.author.create_dm()
-        #schannel = self.bot.get_channel(778453455848996876)
-
-        schannel = self.bot.get_channel(config['bannedlistChannel'])
-        await ctx.respond("Please take a look at your DM's!")
-
-        def check(m):
-            return m.content is not None and m.channel == channel and m.author == author
-
-        await channel.send(
-            "Please answer the questions with as much detail as you can. \nWant to cancel the command? Answer everything and at the end then you have the option to either break or submit the responses, there you could say 'break'!\nIf you are having trouble with the command, please contact Space! \n\n*Starting Questions Now...*"
-        )
-        await asyncio.sleep(3)
-        await channel.send(Q1)
-        answer1 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(0.5)
-
-        await channel.send(Q2)
-        answer2 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(0.5)
-
-        await channel.send(Q3)
-        answer3 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(0.5)
-
-        await channel.send(Q4)
-        answer4 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(0.5)
-
-        await channel.send(Q5)
-        answer5 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(0.5)
-
-        await channel.send(Q6)
-        answer6 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(0.5)
-
-        await channel.send(Q7)
-        answer7 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(0.5)
-
-        await channel.send(Q8)
-        answer8 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(0.5)
-
-        await channel.send(Q9)
-        answer9 = await self.bot.wait_for('message', check=check)
-        await asyncio.sleep(0.5)
-
-        await asyncio.sleep(0.5)
-        x = printlen(answer1.content, answer2.content, answer3.content,
-                     answer4.content, answer5.content, answer6.content,
-                     answer7.content, answer8.content, answer9.content)
-        if x >= 6000:
-            return await channel.send(
-                "Unable to process this bannedlist application!\nThis response has exceeded 6000 characters!"
-            )
-
-        # Add to DB
-
-        message = await channel.send(
-            "**That's it!**\n\nReady to submit?\n✅ - SUBMIT\n❌ - CANCEL\n*You have 150 seconds to react, otherwise the application will automaically cancel.* "
-        )
-        reactions = ['✅', '❌']
-        for emoji in reactions:
-            await message.add_reaction(emoji)
-
-        def check2(reaction, user):
-            return user == ctx.author and (str(reaction.emoji) == '✅'
-                                           or str(reaction.emoji) == '❌')
-
+    @app_commands.command(
+        name="banish_user",
+        description="Add a person to the banned list")
+    @app_commands.describe(
+        discord_id="The Discord ID of the user to banish",
+        gamertag="The gamertag of the user to banish",
+        originating_realm="The realm the user is being banned from",
+        ban_type="The type of ban that was applied"
+    )
+    async def banish_user(
+            self,
+            interaction: discord.Interaction,
+            discord_id: str,
+            gamertag: str,
+            originating_realm: str,
+            ban_type: Literal["Temporary", "Permanent"]
+    ):
+        """Add a person to the banned list"""
+        # check if the discord_id is valid
         try:
-            reaction, user = await self.bot.wait_for('reaction_add',
-                                                     timeout=150.0,
-                                                     check=check2)
-            if str(reaction.emoji) == "❌":
-                await channel.send("Ended Form...")
-                await message.delete()
-                return
-            else:
-                row = [
-                    entryid, banreport, answer1.content, answer2.content,
-                    answer3.content, answer4.content, answer5.content,
-                    answer6.content, answer7.content, answer8.content,
-                    answer9.content
-                ]
-                print(row)
-                sheet.insert_row(row, 3)
-
-                database.db.connect(reuse_if_open=True)
-                q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(
-                    BanReporter=banreport,
-                    DiscUsername=answer1.content,
-                    DiscID=answer2.content,
-                    Gamertag=answer3.content,
-                    BannedFrom=answer4.content,
-                    KnownAlts=answer5.content,
-                    ReasonforBan=answer6.content,
-                    DateofIncident=answer7.content,
-                    TypeofBan=answer8.content,
-                    DatetheBanEnds=answer9.content)
-                q.save()
-                await ctx.send(f"{q.DiscUsername} has been added successfully."
-                               )
-                database.db.close()
-
-                await message.delete()
-                await channel.send("Sending your responses!")
-                bannedlistembed = discord.Embed(title="Bannedlist Report",
-                                                description="Sent from: " +
-                                                author.mention,
-                                                color=0xb10d9f)
-
-                bannedlistembed.add_field(name=Q1,
-                                          value=answer1.content + "\n",
-                                          inline=False)
-                bannedlistembed.add_field(name=Q2,
-                                          value=answer2.content + "\n",
-                                          inline=False)
-                bannedlistembed.add_field(name=Q3,
-                                          value=answer3.content + "\n",
-                                          inline=False)
-                bannedlistembed.add_field(name=Q4,
-                                          value=answer4.content + "\n",
-                                          inline=False)
-                bannedlistembed.add_field(name=Q5,
-                                          value=answer5.content + "\n",
-                                          inline=False)
-                bannedlistembed.add_field(name=Q6,
-                                          value=answer6.content + "\n",
-                                          inline=False)
-                bannedlistembed.add_field(name=Q7,
-                                          value=answer7.content + "\n",
-                                          inline=False)
-                bannedlistembed.add_field(name=Q8,
-                                          value=answer8.content + "\n",
-                                          inline=False)
-                bannedlistembed.add_field(name=Q9,
-                                          value=answer9.content + "\n",
-                                          inline=False)
-
-                timestamp = datetime.now()
-                bannedlistembed.set_footer(text=guild.name + " | Date: " +
-                                           str(timestamp.strftime(r"%x")) +
-                                           " | ID: " + str(entryid))
-                await schannel.send(embed=bannedlistembed)
-                await channel.send(
-                    "I have sent in your bannedlist report, thank you! \n**Response Record:** https://docs.google.com/spreadsheets/d/1WKplLqk2Tbmy_PeDDtFV7sPs1xhIrySpX8inY7Z1wzY/edit#gid=0&range=D3 \n*Here is your cookie!* 🍪"
-                )
-
-        except asyncio.TimeoutError:
-            await channel.send(
-                "Looks like you didn't react in time, please try again later!")
-
-    @bannedlist.error
-    async def bannedlist_error(self, ctx, error):
-        if isinstance(error, commands.MissingRole):
-            await ctx.send(
-                "Uh oh, looks like you don't have the Realm OP role!")
+            found_user = await self.bot.fetch_user(int(discord_id))
+        except discord.NotFound:
+            await interaction.response.send_message(
+                "The Discord ID you provided is invalid!",
+                ephemeral=True)
+            return
+        except Exception as e:
+            await interaction.response.send_message(
+                "An unknown error occured while checking the Discord ID!",
+                ephemeral=True)
+            _log.exception(e)
+            return
+        view = return_banishblacklistform_modal(self.bot, sheet, found_user, gamertag, originating_realm,
+                                                ban_type)
+        await interaction.response.send_modal(view)
 
     @commands.command()
     @commands.has_role("Realm OP")
@@ -385,9 +249,11 @@ class BannedlistCMD(commands.Cog):
             await ctx.send(
                 "Uh oh, looks like you don't have the Realm OP role!")
 
-    @commands.command()
+    @app_commands.command(description="Search the banned list")
+    @app_commands.describe(
+        search_term="The term to search for in the banned list")
     @commands.has_role("Realm OP")
-    async def Bsearch(self, ctx, *, req: str):
+    async def blacklist_search(self, interaction: discord.Interaction, *, query: str):
         databaseData = [
             database.MRP_Blacklist_Data.DiscUsername,
             database.MRP_Blacklist_Data.DiscID,
@@ -405,7 +271,7 @@ class BannedlistCMD(commands.Cog):
 
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(
-                data.contains(req)))
+                data.contains(query)))
             if query.exists():
                 for p in query:
                     e = discord.Embed(
@@ -422,18 +288,22 @@ class BannedlistCMD(commands.Cog):
                         text=
                         f"Querying from MRP_Bannedlist_Data | Entry ID: {p.entryid}"
                     )
-                    await ctx.send(embed=e)
-                    ResultsGiven = True
+                    if ResultsGiven is True:
+                        await interaction.followup.send(
+                            embed=e)
+                    else:
+                        await interaction.response.send_message(embed=e)
+                        ResultsGiven = True
 
         if ResultsGiven == False:
             e = discord.Embed(
                 title="Bannedlist Search",
-                description=f"Requested by {ctx.message.author.mention}",
+                description=f"Requested by {interaction.user.mention}",
                 color=0x18c927)
             e.add_field(
                 name="No Results!",
-                value=f"`{req}`'s query did not bring back any results!")
-            await ctx.send(embed=e)
+                value=f"`{query}`'s query did not bring back any results!")
+            await interaction.response.send_message(embed=e)
 
     @commands.command()
     async def Bmodify(self, ctx, entryID: int):
