@@ -690,3 +690,53 @@ def get_bot_data_id():
     }
 
     return key_value[os.getenv("bot_type")]
+
+
+class SuggestModalNEW(discord.ui.Modal, title="Suggest a Question"):
+    def __init__(self, bot):
+        super().__init__(timeout=None)
+        self.bot = bot
+
+    short_description = ui.TextInput(
+        label="Daily Question",
+        style=discord.TextStyle.long,
+        required=True
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        row_id = get_bot_data_id()
+        q: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
+        await interaction.response.defer(thinking=True)
+        embed = discord.Embed(title="Question Suggestion",
+                              description=f"Requested by {interaction.user.mention}", color=0x18c927)
+        embed.add_field(name="Question:", value=f"{self.short_description.value}")
+        log_channel = await self.bot.fetch_channel(777987716008509490)
+        msg = await log_channel.send(embed=embed, view=QuestionSuggestionManager())
+        q: database.QuestionSuggestionQueue = database.QuestionSuggestionQueue.create(
+            question=self.short_description.value,
+            discord_id=interaction.user.id,
+            message_id=msg.id,
+        )
+        q.save()
+
+        await interaction.followup.send("Thank you for your suggestion!")
+
+
+class SuggestQuestionFromDQ(discord.ui.View):
+    def __init__(self, bot):
+        super().__init__(timeout=None)
+        self.value = None
+        self.bot = bot
+
+    @discord.ui.button(
+        label="Suggest a Question!",
+        style=discord.ButtonStyle.blurple,
+        emoji="📝",
+        custom_id="persistent_view:qsm_sug_question",
+    )
+    async def add_question(
+            self,
+            interaction: discord.Interaction,
+            button: discord.ui.Button,
+    ):
+        await interaction.response.send_modal(SuggestModalNEW(self.bot))

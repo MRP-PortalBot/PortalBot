@@ -133,11 +133,13 @@ class PortalBot(commands.Bot):
         # await bot.tree.set_translator(TimmyTranslator())
 
     async def is_owner(self, user: discord.User):
+        database.db.connect(reuse_if_open=True)
         query = database.Administrators.select().where(
             (database.Administrators.TierLevel >= 3) & (database.Administrators.discordID == user.id)
         )
         if query.exists():
             return True
+        database.db.close()
 
         return await super().is_owner(user)
 

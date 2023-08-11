@@ -9,7 +9,7 @@ from peewee import fn
 
 from core import database, common
 from core.checks import slash_is_bot_admin_2
-from core.common import load_config, QuestionSuggestionManager, get_bot_data_id
+from core.common import load_config, QuestionSuggestionManager, get_bot_data_id, SuggestQuestionFromDQ
 from core.logging_module import get_log
 from main import PortalBot
 
@@ -53,7 +53,7 @@ async def get_question(self):
                                   description=f"**{q.question}**",
                                   color=0xb10d9f)
             embed.set_footer(text=f"Question ID: {q.id}")
-            await send_channel.send(embed=embed)
+            await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
         else:
             posted = 0
             print(posted)
@@ -91,7 +91,7 @@ class DailyCMD(commands.Cog):
                                   description=f"**{question.question}**",
                                   color=0xb10d9f)
             embed.set_footer(text=f"Question ID: {question.id}")
-            await send_channel.send(embed=embed)
+            await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
 
             # Update the last_question_posted time
             q.last_question_posted = datetime.now()
