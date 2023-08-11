@@ -1,6 +1,6 @@
 import logging
 import os
-from peewee import AutoField, Model, IntegerField, TextField, SqliteDatabase, BigIntegerField, BooleanField, \
+from peewee import AutoField, Model, IntegerField, TextField, SqliteDatabase, BigIntegerField, BooleanField, TimestampField, \
     MySQLDatabase
 from flask import Flask
 from dotenv import load_dotenv
@@ -251,18 +251,20 @@ class RealmApplications(BaseModel):
     """
     id = AutoField()
     discord_id = BigIntegerField()
+    discord_name = TextField()
     realm_name = TextField()
     type_of_realm = TextField()
     emoji = TextField()
     short_desc = TextField()
     long_desc = TextField()
     application_process = TextField()
-    member_count = IntegerField()
+    member_count = TextField()
     realm_age = TextField()
     world_age = TextField()
     reset_schedule = TextField()
     foreseeable_future = TextField()
     admin_team = TextField()
+    timestamp = TimestampField()
 
 
 app = Flask(__name__)
