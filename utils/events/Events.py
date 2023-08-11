@@ -75,7 +75,6 @@ discordLink = ['discord.gg']
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("Events: Cog Loaded!")
 
     #  Join Messages-----------------------------------------------------
 
