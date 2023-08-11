@@ -186,7 +186,7 @@ if os.getenv("sentry_dsn") is not None:
     # Traceback tracking, DO NOT MODIFY THIS
     use_sentry(
         bot,
-        dsn=os.getenv("DSN_SENTRY"),
+        dsn=os.getenv("sentry_dsn"),
         traces_sample_rate=1.0,
         integrations=[FlaskIntegration(), sentry_logging],
     )
@@ -196,6 +196,6 @@ initialize_db(bot)
 
 if __name__ == '__main__':
     try:
-        bot.run(os.getenv("token"))
+        bot.run(os.getenv("TOKEN"))
     except Exception as e:
         _log.exception(e)
