@@ -24,8 +24,11 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 
 client = gspread.authorize(creds)
 
-gtsheet = client.open("Gamertag Data").sheet1
-sheet = client.open("MRP Bannedlist Data").sheet1
+try:
+    gtsheet = client.open("Gamertag Data").sheet1
+    sheet = client.open("MRP Bannedlist Data").sheet1
+except Exception as e:
+    _log.error(f"Error: {e}")
 # 3 Values to fill
 
 # Template on modfying spreadsheet
