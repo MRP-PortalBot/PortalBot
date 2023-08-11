@@ -61,7 +61,10 @@ dateofbancol = 9
 bantypecol = 10
 banenddatecol = 11
 
-gtsheet = client.open("Gamertag Data").sheet1
+try:
+    gtsheet = client.open("Gamertag Data").sheet1
+except Exception as e:
+    _log.error(f"Error: {e}")
 # 3 Values to fill
 
 # Template on modfying spreadsheet
