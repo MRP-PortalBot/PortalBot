@@ -133,7 +133,7 @@ class DailyCMD(commands.Cog):
         name="repeat",
         description="Repeat a daily question by id number",
     )
-    @slash_is_bot_admin_2()
+    @slash_is_bot_admin_2
     async def repeatq(self, interaction: discord.Interaction, number: int):
         """Activate a question"""
         q: database.Question = database.Question.select().where(
@@ -159,7 +159,7 @@ class DailyCMD(commands.Cog):
         await get_question(self)"""
 
     @DQ.command(description="Modify a question!")
-    @slash_is_bot_admin_2()
+    @slash_is_bot_admin_2
     async def modify(self, interaction: discord.Interaction, id: int, question: str):
         """Modify a question!"""
         try:
@@ -176,7 +176,7 @@ class DailyCMD(commands.Cog):
             database.db.close()
 
     @DQ.command(description="Add a question!")
-    @slash_is_bot_admin_2()
+    @slash_is_bot_admin_2
     async def new(self, interaction: discord.Interaction, question: str):
         """Add a question!"""
         try:
@@ -190,7 +190,7 @@ class DailyCMD(commands.Cog):
             database.db.close()
 
     @DQ.command(description="Delete a question!")
-    @slash_is_bot_admin_2()
+    @slash_is_bot_admin_2
     async def delete(self, interaction: discord.Interaction, id: int):
         """Delete a tag"""
         try:

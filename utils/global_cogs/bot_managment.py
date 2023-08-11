@@ -42,7 +42,7 @@ class CoreBotConfig(commands.Cog):
 
 
     @command()
-    @slash_is_bot_admin_2()
+    @slash_is_bot_admin_2
     async def gitpull(
         self,
         interaction: discord.Interaction,
@@ -123,7 +123,7 @@ class CoreBotConfig(commands.Cog):
             await self.bot.tree.sync()
 
     @PM.command(description="Lists all permit levels and users.")
-    @slash_is_bot_admin()
+    @slash_is_bot_admin
     async def list(self, interaction: discord.Interaction):
         adminList = []
 
@@ -209,7 +209,7 @@ class CoreBotConfig(commands.Cog):
     @app_commands.describe(
         user="The user to remove from the Bot Administrators list.",
     )
-    @slash_is_bot_admin_4()
+    @slash_is_bot_admin_4
     async def remove(self, interaction: discord.Interaction, user: discord.User):
         database.db.connect(reuse_if_open=True)
 
@@ -242,7 +242,7 @@ class CoreBotConfig(commands.Cog):
     @app_commands.describe(
         user="The user to add to the Bot Administrators list.",
     )
-    @slash_is_bot_admin_4()
+    @slash_is_bot_admin_4
     async def add(
         self, interaction: discord.Interaction, user: discord.User, level: int
     ):

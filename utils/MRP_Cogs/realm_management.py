@@ -78,7 +78,7 @@ class RealmCMD(commands.Cog):
     @app_commands.describe(
         app_number="Application number that corresponds with the realm you're trying to create."
     )
-    @slash_is_bot_admin_3()
+    @slash_is_bot_admin_3
     async def create_realm(self, interaction: discord.Interaction, app_number: int):
         await interaction.response.defer(thinking=True)
         # Status set to null
@@ -178,7 +178,7 @@ class RealmCMD(commands.Cog):
 
     @commands.command()
     @check_MRP()
-    @slash_is_bot_admin_3()
+    @slash_is_bot_admin_3
     async def newrealm2(self, ctx, realm, emoji, user: discord.Member):
         # Status set to null
         RoleCreate = "FALSE"
