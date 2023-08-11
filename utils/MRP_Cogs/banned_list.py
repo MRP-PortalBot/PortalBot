@@ -8,10 +8,9 @@ import gspread
 from discord.ext import commands
 from oauth2client.service_account import ServiceAccountCredentials
 from discord import app_commands
-from core.common import load_config, paginate_embed, return_banishblacklistform_modal
+from core.common import paginate_embed, return_banishblacklistform_modal
 from core.logging_module import get_log
 
-config, _ = load_config()
 from core import database
 import random
 
@@ -158,7 +157,7 @@ class BannedlistCMD(commands.Cog):
     @app_commands.describe(
         search_term="The term to search for in the banned list")
     @app_commands.checks.has_role("Realm OP")
-    async def _search(self, interaction: discord.Interaction, *, query: str):
+    async def _search(self, interaction: discord.Interaction, *, search_term: str):
         databaseData = [
             database.MRP_Blacklist_Data.DiscUsername,
             database.MRP_Blacklist_Data.DiscID,
@@ -176,7 +175,7 @@ class BannedlistCMD(commands.Cog):
 
         for data in databaseData:
             query = (database.MRP_Blacklist_Data.select().where(
-                data.contains(query)))
+                data.contains(search_term)))
             if query.exists():
                 for p in query:
                     e = discord.Embed(
@@ -207,12 +206,14 @@ class BannedlistCMD(commands.Cog):
                 color=0x18c927)
             e.add_field(
                 name="No Results!",
-                value=f"`{query}`'s query did not bring back any results!")
+                value=f"`{search_term}`'s query did not bring back any results!")
             await interaction.response.send_message(embed=e)
 
     @BL.command(name="edit")
     @app_commands.checks.has_role("Realm OP")
-    async def _edit(self, interaction: discord.Interaction, entry_id: int, modify: Literal["Ban Reporter", "Discord Username", "Discord ID", "Gamertag", "Realm Banned from", "Known Alts", "Ban Reason", "Date of Incident", "Type of Ban", "Ban End Date"], new_value: str):
+    async def _edit(self, interaction: discord.Interaction, entry_id: int, modify: Literal[
+        "Ban Reporter", "Discord Username", "Discord ID", "Gamertag", "Realm Banned from", "Known Alts", "Ban Reason", "Date of Incident", "Type of Ban", "Ban End Date"],
+                    new_value: str):
         q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(
             database.MRP_Blacklist_Data.id == entry_id)
         if not q.exists():
@@ -227,6 +228,5 @@ class BannedlistCMD(commands.Cog):
             await interaction.response.send_message(f"Modified Field {modify} to {new_value}.")
 
 
-
-def setup(bot):
-    bot.add_cog(BannedlistCMD(bot))
+async def setup(bot):
+    await bot.add_cog(BannedlistCMD(bot))

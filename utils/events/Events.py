@@ -64,6 +64,7 @@ IPlinks = [
 ]
 discordLink = ['discord.gg']
 
+
 # -----------------------------------------------------
 
 
@@ -72,8 +73,7 @@ class Events(commands.Cog):
         self.bot = bot
         logger.info("Events: Cog Loaded!")
 
-
-#  Join Messages-----------------------------------------------------
+    #  Join Messages-----------------------------------------------------
 
     @commands.Cog.listener()
     async def on_member_join(ctx, self, member):
@@ -91,7 +91,7 @@ class Events(commands.Cog):
         longid = str(member.id)
         discordname = str(username.name + "#" + username.discriminator)
 
-        #----Database------------------------------------------------
+        # ----Database------------------------------------------------
 
         try:
             database.db.connect(reuse_if_open=True)
@@ -116,7 +116,7 @@ class Events(commands.Cog):
         finally:
             database.db.close()
 
-        #----GSheets------------------------------------------------
+        # ----GSheets------------------------------------------------
 
         try:
             usercell = gtsheet.find(longid, in_column=3)
@@ -130,7 +130,7 @@ class Events(commands.Cog):
             gtsheet.update_cell(userrow, discordcol, str(discordname))
             gtsheet.update_cell(userrow, longidcol, str(longid))
 
-        #------Welcome Message:---------
+        # ------Welcome Message:---------
         if member.guild.id == 587495640502763521:
             guild = self.bot.get_guild(587495640502763521)
             channel = guild.get_channel(588813558486269956)
@@ -173,7 +173,7 @@ class Events(commands.Cog):
                 f"Unhandled Server: {member.display_name} | {member.guild.name}"
             )
 
-    @commands.Cog.listener()
+    """@commands.Cog.listener()
     async def on_message(self, message):
         msg = message.content
         message_content = message.content.strip().lower()
@@ -233,7 +233,8 @@ class Events(commands.Cog):
                     color=0xf05c07)
                 await channel.send(embed=embed2)
 
-        #await self.bot.process_commands(message)
+        #await self.bot.process_commands(message)"""
 
-def setup(bot):
-    bot.add_cog(Events(bot))
+
+async def setup(bot):
+    await bot.add_cog(Events(bot))

@@ -20,7 +20,6 @@ import math
 
 
 _log = get_log(__name__)
-_log.info("Starting PortalBot...")
 
 
 def LineCount():
@@ -116,7 +115,7 @@ class DailyCMD(commands.Cog):
                 embed = discord.Embed(title="Question Suggestion",
                                       description=f"Requested by {interaction.user.mention}", color=0x18c927)
                 embed.add_field(name="Question:", value=f"{self.short_description.value}")
-                log_channel = await self.bot.fetch_channel(q.question_suggest_channel)
+                log_channel = await self.bot.fetch_channel(777987716008509490)
                 msg = await log_channel.send(embed=embed, view=QuestionSuggestionManager())
                 q: database.QuestionSuggestionQueue = database.QuestionSuggestionQueue.create(
                     question=self.short_description.value,
@@ -126,13 +125,14 @@ class DailyCMD(commands.Cog):
                 q.save()
 
                 await interaction.followup.send("Thank you for your suggestion!")
+        await interaction.response.send_modal(SuggestModal(self.bot))
 
     @DQ.command(
         name="repeat",
         description="Repeat a daily question by id number",
     )
     @slash_is_bot_admin_2()
-    async def repeatq(self, interaction: discord.Interaction, number):
+    async def repeatq(self, interaction: discord.Interaction, number: int):
         """Activate a question"""
         q: database.Question = database.Question.select().where(
             database.Question.id == number).get()
@@ -158,7 +158,7 @@ class DailyCMD(commands.Cog):
 
     @DQ.command(description="Modify a question!")
     @slash_is_bot_admin_2()
-    async def _modify(self, interaction: discord.Interaction, id, *, question):
+    async def modify(self, interaction: discord.Interaction, id: int, question: str):
         """Modify a question!"""
         try:
             if id != None:
@@ -174,8 +174,8 @@ class DailyCMD(commands.Cog):
             database.db.close()
 
     @DQ.command(description="Add a question!")
-    @commands.has_any_role('Bot Manager', 'Moderator')
-    async def _new(self, interaction: discord.Interaction, *, question):
+    @slash_is_bot_admin_2()
+    async def new(self, interaction: discord.Interaction, question: str):
         """Add a question!"""
         try:
             database.db.connect(reuse_if_open=True)
@@ -187,9 +187,9 @@ class DailyCMD(commands.Cog):
         finally:
             database.db.close()
 
-    @app_commands.command(description="Delete a question!")
-    @commands.has_any_role("Bot Manager", "Moderator")
-    async def _delete(self, interaction: discord.Interaction, id):
+    @DQ.command(description="Delete a question!")
+    @slash_is_bot_admin_2()
+    async def delete(self, interaction: discord.Interaction, id: int):
         """Delete a tag"""
         try:
             database.db.connect(reuse_if_open=True)
@@ -203,7 +203,7 @@ class DailyCMD(commands.Cog):
             database.db.close()
 
     @DQ.command(description="List every question.")
-    async def listq(self, interaction: discord.Interaction, page=1):
+    async def list(self, interaction: discord.Interaction, page: int=1):
         """List all tags in the database"""
 
         def get_end(page_size: int):
@@ -234,5 +234,5 @@ class DailyCMD(commands.Cog):
                                             page=page)
 
 
-def setup(bot):
-    bot.add_cog(DailyCMD(bot))
+async def setup(bot):
+    await bot.add_cog(DailyCMD(bot))

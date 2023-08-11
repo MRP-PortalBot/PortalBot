@@ -1,5 +1,7 @@
 import logging
-from peewee import AutoField, Model, IntegerField, TextField, SqliteDatabase, BigIntegerField, BooleanField
+import os
+from peewee import AutoField, Model, IntegerField, TextField, SqliteDatabase, BigIntegerField, BooleanField, \
+    MySQLDatabase
 from flask import Flask
 from dotenv import load_dotenv
 
@@ -7,14 +9,14 @@ from core.logging_module import get_log
 
 load_dotenv()
 
-# DB_IP = os.getenv("database_ip")
-# DB_Port = os.getenv("database_port")
-# DB_user = os.getenv("database_username")
-# DB_password = os.getenv("database_password")
-# DB_Database = os.getenv("database_schema")
+DB_IP = os.getenv("database_ip")
+DB_Port = os.getenv("database_port")
+DB_user = os.getenv("database_username")
+DB_password = os.getenv("database_password")
+DB_Database = os.getenv("database_schema")
 
-db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
-# db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
+# db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
+db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
 
 _log = get_log(__name__)
 
@@ -286,6 +288,10 @@ tables = {
     "questions": Question,
     "blacklist": MRP_Blacklist_Data,
     "profile": PortalbotProfile,
-    "realmprofile": RealmProfile
+    "realmprofile": RealmProfile,
+    "administrators": Administrators,
+    "questionsuggestionqueue": QuestionSuggestionQueue,
+    "realmapplications": RealmApplications,
+    "botdata": BotData
 }
 iter_table(tables)

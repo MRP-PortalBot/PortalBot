@@ -14,10 +14,8 @@ from core import database
 from datetime import datetime
 
 from core.logging_module import get_log
-from main import PortalBot
 
 _log = get_log(__name__)
-_log.info("Starting PortalBot...")
 
 
 def load_config() -> Tuple[dict, Path]:
@@ -51,7 +49,7 @@ async def paginate_embed(bot: discord.Client,
     emotes = ["◀️", "▶️"]
 
     async def check_reaction(reaction, user):
-        return await user == ctx.author and str(reaction.emoji) in emotes
+        return await user == interaction.user and str(reaction.emoji) in emotes
 
     embed = await population_func(embed, page)
     if isinstance(embed, discord.Embed):
@@ -355,14 +353,14 @@ class Me:
     TracebackChannel = 797193549992165456
 
 
-def return_banishblacklistform_modal(bot: PortalBot,
+def return_banishblacklistform_modal(bot,
                                      sheet,
                                      user: discord.User,
                                      gamertag: str,
                                      originating_realm: str,
                                      type_of_ban: str):
     class BanishBlacklistForm(ui.Modal, title="Blacklist Form"):
-        def __init__(self, sheet, bot: PortalBot, user: discord.User, gamertag: str, originating_realm: str,
+        def __init__(self, sheet, bot, user: discord.User, gamertag: str, originating_realm: str,
                      type_of_ban: str):
             super().__init__(timeout=None)
             self.sheet = sheet
@@ -482,7 +480,7 @@ def return_banishblacklistform_modal(bot: PortalBot,
 
 
 def return_applyfornewrealm_modal(
-        bot: PortalBot,
+        bot,
         realm_name: str,
         type_of_realm: str,
         emoji: str,
@@ -492,7 +490,7 @@ def return_applyfornewrealm_modal(
         reset_schedule: str
 ):
     class ApplyForNewRealmForm(ui.Modal, title="Realm Application"):
-        def __init__(self, bot: PortalBot, realm_name: str, type_of_realm: str, emoji: str, member_count: str,
+        def __init__(self, bot, realm_name: str, type_of_realm: str, emoji: str, member_count: str,
                      community_duration: str, world_duration: str, reset_schedule: str):
             super().__init__(timeout=None)
             self.bot = bot
@@ -602,6 +600,29 @@ def return_applyfornewrealm_modal(
                                 reset_schedule)
 
 
+class DisabledQuestionSuggestionManager(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.value = None
+
+    @discord.ui.button(
+        label="Add Question",
+        style=discord.ButtonStyle.green,
+        emoji="✅",
+        custom_id="persistent_view:qsm_add_question",
+        disabled=True
+    )
+    async def add_question(
+            self,
+            interaction: discord.Interaction,
+            button: discord.ui.Button,
+    ):
+        pass
+
+    @discord.ui.button(label="Discard Question", style=discord.ButtonStyle.red, emoji="❌",  custom_id="persistent_view:qsm_discard_question", disabled=True)
+    async def discard_question(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
+
 class QuestionSuggestionManager(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -618,9 +639,6 @@ class QuestionSuggestionManager(discord.ui.View):
             interaction: discord.Interaction,
             button: discord.ui.Button,
     ):
-        for child in self.children:
-            child.disabled = True
-
         q: database.QuestionSuggestionQueue = database.QuestionSuggestionQueue.select().where(database.QuestionSuggestionQueue.message_id == interaction.message.id).get()
 
         move_to: database.Question = database.Question.create(
@@ -638,10 +656,10 @@ class QuestionSuggestionManager(discord.ui.View):
         new_embed.add_field(name="Question", value=q.question)
         new_embed.add_field(name="Added By", value=interaction.user.mention)
         new_embed.set_footer(text=f"Question ID: {move_to.id}")
-        await interaction.message.edit(embed=new_embed)
-        self.stop()
+        await interaction.message.edit(embed=new_embed, view=DisabledQuestionSuggestionManager())
+        await interaction.response.send_message("Operation Complete.", ephemeral=True)
 
-    @discord.ui.button(label="Discard Question", style=discord.ButtonStyle.red, emoji="❌")
+    @discord.ui.button(label="Discard Question", style=discord.ButtonStyle.red, emoji="❌",  custom_id="persistent_view:qsm_discard_question")
     async def discard_question(self, interaction: discord.Interaction, button: discord.ui.Button):
         # Disable both buttons
         for child in self.children:
@@ -658,7 +676,7 @@ class QuestionSuggestionManager(discord.ui.View):
         new_embed.add_field(name="Question", value=q.question)
         new_embed.add_field(name="Discarded By", value=interaction.user.mention)
         new_embed.set_footer(text=f"Question ID: {q.id}")
-        await interaction.message.edit(embed=new_embed)
-        self.stop()
+        await interaction.message.edit(embed=new_embed, view=DisabledQuestionSuggestionManager())
+        await interaction.response.send_message("Operation Complete.", ephemeral=True)
 
 

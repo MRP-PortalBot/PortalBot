@@ -9,7 +9,7 @@ from discord.ext import commands
 from core.logging_module import get_log
 
 _log = get_log(__name__)
-_log.info("Starting PortalBot...")
+
 
 def solve(s):
     a = s.split(' ')
@@ -29,27 +29,34 @@ class OperatorCMD(commands.Cog):
         role="The role to add or remove from the user. (Must be a Realm OP role & YOU MUST HAVE THE ROLE)"
     )
     @app_commands.checks.has_role("Realm OP")
-    async def manage_operators(self, interaction: discord.Interaction, action: Literal["add", "remove"], user: discord.Member, *, role: discord.Role):
+    async def manage_operators(self, interaction: discord.Interaction, action: Literal["add", "remove"],
+                               user: discord.Member, *, role: discord.Role):
         if "OP" in role.name:
             if role not in interaction.user.roles:
-                return await interaction.response.send_message(f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
+                return await interaction.response.send_message(
+                    f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!")
             elif role.id == 683430456490065959:
                 return await interaction.response.send_message("You are not allowed to give out the `Realm OP` role.")
             else:
                 if action == "add":
                     await user.add_roles(role)
-                    embed = discord.Embed(title="Realm Operator Command", description=user.mention + " now has " + role.mention +
-                                          "!\nPlease remember you require Spider Sniper or above in order to get the Realm OP role!", color=0x4287f5)
+                    embed = discord.Embed(title="Realm Operator Command",
+                                          description=user.mention + " now has " + role.mention +
+                                                      "!\nPlease remember you require Spider Sniper or above in order to get the Realm OP role!",
+                                          color=0x4287f5)
                     await user.send(
                         f"Hello, you have been given OP privileges for {str(role)} in the Minecraft Realm Portal. You now have access to the Realm Owner Chats. Before they will be fully unlocked you will need to agree to the rules in #realm-op-rules.")
                 else:
                     await user.remove_roles(role)
-                    embed = discord.Embed(title="Realm Operator Command", description="**Operator** " + user.mention + " removed " + role.mention + " from " + user.name,
+                    embed = discord.Embed(title="Realm Operator Command",
+                                          description="**Operator** " + user.mention + " removed " + role.mention + " from " + user.name,
                                           color=0x4287f5)
                 await interaction.followup.send(embed=embed)
 
         else:
-            await interaction.response.send_message("This role is not a Realm role. Please contact an Admin if you believe this is a mistake.")
+            await interaction.response.send_message(
+                "This role is not a Realm role. Please contact an Admin if you believe this is a mistake.")
 
-def setup(bot):
-    bot.add_cog(OperatorCMD(bot))
+
+async def setup(bot):
+    await bot.add_cog(OperatorCMD(bot))

@@ -11,7 +11,6 @@ from discord import app_commands
 from core.logging_module import get_log
 
 _log = get_log(__name__)
-_log.info("Starting PortalBot...")
 # --------------------------------------------------
 # pip3 install gspread oauth2client
 
@@ -38,6 +37,8 @@ print("Done.")
 gtcell = sheet.cell(3,1).value
 print(cell)
 '''
+
+
 # -----------------------------------------------------
 
 
@@ -58,12 +59,14 @@ class GamertagCMD(commands.Cog):
                 gamertag_value = profile.gamertag
                 GT = gamertag_value.replace(" ", "-")
             except xbox.exceptions.GamertagNotFound:
-                embed = discord.Embed(title="Xbox Information", description=f"Requested by Operator: {interaction.user.mention}",
+                embed = discord.Embed(title="Xbox Information",
+                                      description=f"Requested by Operator: {interaction.user.mention}",
                                       color=0x18c927)
                 embed.add_field(name="Information", value="No results found!")
                 await interaction.response.send_message(embed=embed)
             else:
-                embed = discord.Embed(title="Xbox Information", description=f"Requested by Operator: {interaction.user.mention}",
+                embed = discord.Embed(title="Xbox Information",
+                                      description=f"Requested by Operator: {interaction.user.mention}",
                                       color=0x18c927)
                 embed.add_field(name="Information:",
                                 value=f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
@@ -84,17 +87,20 @@ class GamertagCMD(commands.Cog):
                 gamertag_value = profile.gamertag
                 GT = gamertag_value.replace(" ", "-")
             except xbox.exceptions.GamertagNotFound:
-                embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {interaction.user.mention}", color =0x18c927)
-                embed.add_field(name = "Information", value = "No results found!")
-                await interaction.response.send_message(embed = embed)
+                embed = discord.Embed(title="Xbox Information",
+                                      description=f"Requested by Operator: {interaction.user.mention}", color=0x18c927)
+                embed.add_field(name="Information", value="No results found!")
+                await interaction.response.send_message(embed=embed)
             else:
-                embed = discord.Embed(title = "Xbox Information", description = f"Requested by Operator: {interaction.user.mention}", color =0x18c927)
-                embed.add_field(name = "Information:", value = f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
-                embed.add_field(name = "Profile Links", value = f"**XBOX Lookup:** https://xboxgamertag.com/search/{GT} \n**XBOX Profile:** https://account.xbox.com/en-us/profile?gamertag={GT}")
-                embed.set_thumbnail(url = profile.gamerpic)
+                embed = discord.Embed(title="Xbox Information",
+                                      description=f"Requested by Operator: {interaction.user.mention}", color=0x18c927)
+                embed.add_field(name="Information:",
+                                value=f"**Gamertag:** {profile.gamertag}\n**Gamerscore:** {profile.gamerscore} \n**XUID:** {profile.xuid}")
+                embed.add_field(name="Profile Links",
+                                value=f"**XBOX Lookup:** https://xboxgamertag.com/search/{GT} \n**XBOX Profile:** https://account.xbox.com/en-us/profile?gamertag={GT}")
+                embed.set_thumbnail(url=profile.gamerpic)
                 return await interaction.response.send_message(embed=embed)
 
 
-
-def setup(bot):
-    bot.add_cog(GamertagCMD(bot))
+async def setup(bot):
+    await bot.add_cog(GamertagCMD(bot))

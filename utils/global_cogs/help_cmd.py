@@ -62,9 +62,6 @@ class HelpCMD(commands.Cog):
             value=f"```diff\n- CPU Usage: {psutil.cpu_percent()}%\n- Memory Usage: {psutil.virtual_memory().percent}%\n```",
             inline=False,
         )
-        pingembed.add_field(
-            name="Status Page", value="[Click here](https://status.timmy.ssimpl.org/)"
-        )
         pingembed.set_footer(
             text=f"PortalBot Version: {self.bot.version}",
             icon_url=interaction.user.display_avatar.url,
@@ -73,8 +70,5 @@ class HelpCMD(commands.Cog):
         await interaction.response.send_message(embed=pingembed)
 
 
-
-# nick clear DM newrealm
-
-def setup(bot):
-    bot.add_cog(HelpCMD(bot))
+async def setup(bot):
+    await bot.add_cog(HelpCMD(bot))

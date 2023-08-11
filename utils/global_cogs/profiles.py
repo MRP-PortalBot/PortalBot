@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 #---------------------------------------------------
 
-background_image = Image.open('./images/profilebackground2.png')
+background_image = Image.open('./core/images/profilebackground2.png')
 background_image = background_image.convert('RGBA')
 #fontfile = './fonts/gameria.ttf'
 
@@ -872,5 +872,5 @@ class ProfileCMD(commands.Cog):
             await ctx.send(file=File(buffer_output, 'myimage.png'))
 
 
-def setup(bot):
-    bot.add_cog(ProfileCMD(bot))
+async def setup(bot):
+    await bot.add_cog(ProfileCMD(bot))

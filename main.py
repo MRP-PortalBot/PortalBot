@@ -8,8 +8,6 @@ __author__ = "M.R.P Bot Development"
 
 import logging
 import os
-import subprocess
-import sys
 import time
 from pathlib import Path
 
@@ -19,12 +17,12 @@ from alive_progress import alive_bar
 from discord import app_commands
 from discord.ext import commands
 from discord_sentry_reporting import use_sentry
+from dotenv import load_dotenv
 from pygit2 import Repository, GIT_DESCRIBE_TAGS
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from core import database
-from core.common import prompt_config, load_config
 from core.logging_module import get_log
 from core.special_methods import on_app_command_error_, initialize_db, on_ready_, on_command_error_, on_command_, \
     before_invoke_
@@ -34,18 +32,18 @@ logger.setLevel(logging.INFO)
 
 _log = get_log(__name__)
 _log.info("Starting PortalBot...")
-
+load_dotenv()
 try:
     xbox.client.authenticate(
-        login=os.getenv("XBOXU"),
-        password=os.getenv("XBOXP")
+        login=os.getenv("xbox_u"),
+        password=os.getenv("xbox_p"),
     )
 except:
     logger.critical("ERROR: Unable to authenticate with XBOX!")
 
 
 def get_extensions():  # Gets extension list dynamically
-    extensions = []
+    extensions = ["jishaku"]
     for file in Path("utils").glob("**/*.py"):
         if "!" in file.name or "__" in file.name:
             continue
@@ -59,16 +57,16 @@ class PBCommandTree(app_commands.CommandTree):
         self.bot = bot
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
-        blacklisted_users = [p.discordID for p in database.Blacklist]
+        #blacklisted_users = [p.discordID for p in database.Blacklist]
         if interaction.user.avatar is None:
             await interaction.response.send_message(
                 "Due to a discord limitation, you must have an avatar set to use this command.")
             return False
-        if interaction.user.id in blacklisted_users:
+        """if interaction.user.id in blacklisted_users:
             await interaction.response.send_message(
                 "You have been blacklisted from using commands!", ephemeral=True
             )
-            return False
+            return False"""
         return True
 
     async def on_error(
@@ -83,20 +81,20 @@ class PortalBot(commands.Bot):
     """
 
     def __init__(self, uptime: time.time):
-        bot_info: database.BotData = database.BotData.select().where(
-            database.BotData.id == 1).get()
+        #bot_info: database.BotData = database.BotData.select().where(
+            #database.BotData.id == 1).get()
         super().__init__(
-            command_prefix=commands.when_mentioned_or(bot_info.prefix),
+            command_prefix=commands.when_mentioned_or("!"),
             intents=discord.Intents.all(),
             case_insensitive=True,
             tree_cls=PBCommandTree,
             status=discord.Status.online,
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name=f"over the Portal! | {bot_info.prefix}help")
+                name=f"over the Portal! | !help")
         )
         self.help_command = None
-        self.add_check(self.check)
+        #self.add_check(self.check)
         self._start_time = uptime
 
     async def on_ready(self):
@@ -108,8 +106,8 @@ class PortalBot(commands.Bot):
     async def on_command(self, ctx: commands.Context):
         await on_command_(self, ctx)
 
-    async def analytics_before_invoke(self, ctx: commands.Context):
-        await before_invoke_(ctx)
+    """async def analytics_before_invoke(self, ctx: commands.Context):
+        await before_invoke_(ctx)"""
 
     async def setup_hook(self) -> None:
         with alive_bar(

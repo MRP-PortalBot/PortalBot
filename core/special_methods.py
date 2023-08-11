@@ -26,7 +26,8 @@ _log = get_log(__name__)
 
 
 async def before_invoke_(ctx: commands.Context):
-    sentry_sdk.set_user(None)
+    pass
+    """sentry_sdk.set_user(None)
     sentry_sdk.set_user({"id": ctx.author.id, "username": ctx.author.name})
     sentry_sdk.set_tag("username", f"{ctx.author.name}#{ctx.author.discriminator}")
     if ctx.command is None:
@@ -54,10 +55,10 @@ async def before_invoke_(ctx: commands.Context):
                 "channel": ctx.channel.name,
                 "channel_id": ctx.channel.id,
             },
-        )
+        )"""
 
 
-async def on_ready_(bot: PortalBot):
+async def on_ready_(bot: 'PortalBot'):
     now = datetime.now()
     query: database.BotData = (
         database.BotData.select()
@@ -65,7 +66,7 @@ async def on_ready_(bot: PortalBot):
         .get()
     )
 
-    if not query.PersistantChange:
+    if not query.persistent_views:
         bot.add_view(QuestionSuggestionManager())
         query.persistent_views = True
         query.save()
@@ -118,7 +119,7 @@ async def on_ready_(bot: PortalBot):
     )
 
 
-async def on_command_error_(bot: PortalBot, ctx: commands.Context, error: Exception):
+async def on_command_error_(bot, ctx: commands.Context, error: Exception):
     tb = error.__traceback__
     etype = type(error)
     exception = traceback.format_exception(etype, error, tb, chain=True)
@@ -305,7 +306,7 @@ async def on_command_error_(bot: PortalBot, ctx: commands.Context, error: Except
 
 
 async def on_app_command_error_(
-        bot: PortalBot,
+        bot: 'PortalBot',
         interaction: discord.Interaction,
         error: app_commands.AppCommandError,
 ):
@@ -415,8 +416,8 @@ async def on_app_command_error_(
     raise error
 
 
-async def on_command_(bot: PortalBot, ctx: commands.Context):
-    if ctx.command.name in ["sync", "ping", "kill", "jsk", "py"]:
+async def on_command_(bot: 'PortalBot', ctx: commands.Context):
+    if ctx.command.name in ["sync", "ping", "kill", "jsk", "py", "jishaku"]:
         return
 
     await ctx.reply(
