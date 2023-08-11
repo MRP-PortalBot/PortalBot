@@ -42,7 +42,7 @@ def prompt_config(msg, key):
 
 
 async def paginate_embed(bot: discord.Client,
-                         ctx,
+                         interaction: discord.Interaction,
                          embed: discord.Embed,
                          population_func,
                          end: int,
@@ -55,9 +55,9 @@ async def paginate_embed(bot: discord.Client,
 
     embed = await population_func(embed, page)
     if isinstance(embed, discord.Embed):
-        message = await ctx.send(embed=embed)
+        message = await interaction.response.send_message(embed=embed)
     else:
-        await ctx.send(str(type(embed)))
+        await interaction.response.send_message(str(type(embed)))
         return
     await message.add_reaction(emotes[0])
     await message.add_reaction(emotes[1])
@@ -93,7 +93,7 @@ def solve(s):
 config, _ = load_config()
 
 
-async def mainTask2(client):
+"""async def mainTask2(client):
     while True:
         d = datetime.utcnow()
         if d.hour == 16 or d.hour == "16":
@@ -133,17 +133,7 @@ async def mainTask2(client):
                     posted = 0
                     print(posted)
 
-        await asyncio.sleep(3600)
-
-
-async def missing_arguments(ctx, example):
-    em = discord.Embed(
-        title="Missing Required Arguments!",
-        description=
-        f"You have missed one or several arguments in this command\n**Example Usage:** `>{example}`",
-        color=0xf5160a)
-    await ctx.send(embed=em)
-    return
+        await asyncio.sleep(3600)"""
 
 
 class SelectMenuHandler(ui.Select):
@@ -614,7 +604,7 @@ def return_applyfornewrealm_modal(
 
 class QuestionSuggestionManager(discord.ui.View):
     def __init__(self):
-        super().__init__()
+        super().__init__(timeout=None)
         self.value = None
 
     @discord.ui.button(
@@ -628,11 +618,47 @@ class QuestionSuggestionManager(discord.ui.View):
             interaction: discord.Interaction,
             button: discord.ui.Button,
     ):
-        self.value = True
+        for child in self.children:
+            child.disabled = True
+
+        q: database.QuestionSuggestionQueue = database.QuestionSuggestionQueue.select().where(database.QuestionSuggestionQueue.message_id == interaction.message.id).get()
+
+        move_to: database.Question = database.Question.create(
+            question=q.question,
+            usage=False
+        )
+        move_to.save()
+        q.delete_instance()
+
+        new_embed = discord.Embed(
+            title="Question Suggestion",
+            description="This question has been added to the database!",
+            color=discord.Color.green()
+        )
+        new_embed.add_field(name="Question", value=q.question)
+        new_embed.add_field(name="Added By", value=interaction.user.mention)
+        new_embed.set_footer(text=f"Question ID: {move_to.id}")
+        await interaction.message.edit(embed=new_embed)
         self.stop()
 
     @discord.ui.button(label="Discard Question", style=discord.ButtonStyle.red, emoji="❌")
     async def discard_question(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.send_message("Cancelling", ephemeral=True)
-        self.value = False
+        # Disable both buttons
+        for child in self.children:
+            child.disabled = True
+
+        q: database.QuestionSuggestionQueue = database.QuestionSuggestionQueue.select().where(database.QuestionSuggestionQueue.message_id == interaction.message.id).get()
+        q.delete_instance()
+
+        new_embed = discord.Embed(
+            title="Question Suggestion",
+            description="This question has been discarded!",
+            color=discord.Color.red()
+        )
+        new_embed.add_field(name="Question", value=q.question)
+        new_embed.add_field(name="Discarded By", value=interaction.user.mention)
+        new_embed.set_footer(text=f"Question ID: {q.id}")
+        await interaction.message.edit(embed=new_embed)
         self.stop()
+
+

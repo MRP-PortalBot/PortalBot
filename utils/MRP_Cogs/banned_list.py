@@ -157,6 +157,7 @@ class BannedlistCMD(commands.Cog):
     @BL.command(description="Search the banned list")
     @app_commands.describe(
         search_term="The term to search for in the banned list")
+    @app_commands.checks.has_role("Realm OP")
     async def _search(self, interaction: discord.Interaction, *, query: str):
         databaseData = [
             database.MRP_Blacklist_Data.DiscUsername,
@@ -210,6 +211,7 @@ class BannedlistCMD(commands.Cog):
             await interaction.response.send_message(embed=e)
 
     @BL.command(name="edit")
+    @app_commands.checks.has_role("Realm OP")
     async def _edit(self, interaction: discord.Interaction, entry_id: int, modify: Literal["Ban Reporter", "Discord Username", "Discord ID", "Gamertag", "Realm Banned from", "Known Alts", "Ban Reason", "Date of Incident", "Type of Ban", "Ban End Date"], new_value: str):
         q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.select().where(
             database.MRP_Blacklist_Data.id == entry_id)

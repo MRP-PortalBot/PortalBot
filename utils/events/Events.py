@@ -235,15 +235,5 @@ class Events(commands.Cog):
 
         #await self.bot.process_commands(message)
 
-    @commands.Cog.listener()
-    async def on_command(self, ctx):
-        author = ctx.message.author
-        authorname = author.name
-        timestamp = datetime.now()
-        with open("commandlog.txt", "a") as file:
-            file.write(str(authorname) + " used " + str(ctx.command) + " | Executed on: (Date | Time) " + str(
-                timestamp.strftime("%m/%d/%y")) + " : " + str(timestamp.strftime("%H:%M:%S")) + "\n")
-
-
 def setup(bot):
     bot.add_cog(Events(bot))

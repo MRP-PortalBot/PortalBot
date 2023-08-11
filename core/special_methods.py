@@ -16,7 +16,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from core import database
-from core.common import ConsoleColors, Colors, Others
+from core.common import ConsoleColors, Colors, Others, QuestionSuggestionManager
 from core.logging_module import get_log
 
 if TYPE_CHECKING:
@@ -59,15 +59,15 @@ async def before_invoke_(ctx: commands.Context):
 
 async def on_ready_(bot: PortalBot):
     now = datetime.now()
-    query: database.CheckInformation = (
-        database.CheckInformation.select()
-        .where(database.CheckInformation.id == 1)
+    query: database.BotData = (
+        database.BotData.select()
+        .where(database.BotData.id == 1)
         .get()
     )
 
     if not query.PersistantChange:
-        #
-        query.PersistantChange = True
+        bot.add_view(QuestionSuggestionManager())
+        query.persistent_views = True
         query.save()
 
     if not os.getenv("USEREAL"):
@@ -90,19 +90,6 @@ async def on_ready_(bot: PortalBot):
         output = p.stdout
     except subprocess.CalledProcessError:
         output = "ERROR"
-
-    # chat_exporter.init_exporter(bot)
-    with open("commandcheck.txt", "w") as f:
-        f.write("OFF")
-    try:
-        with open("taskcheck.txt", "r") as f:
-            first_line = f.readline()
-        if first_line == "OFF":
-            bot.loop.create_task(mainTask2(bot))
-            with open("taskcheck.txt", "w") as f:
-                f.write("ON")
-    except:
-        _log.critical("ERROR: Unable to start task!")
 
     print(
         f"""
@@ -172,36 +159,18 @@ async def on_command_error_(bot: PortalBot, ctx: commands.Context, error: Except
     ):
         signature = f"{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}"
 
-        if ctx.command.name == "schedule":
-            em = discord.Embed(
-                title="Missing/Extra Required Arguments Passed In!",
-                description=f"Looks like you messed up an argument somewhere here!\n\n**Check the "
-                            f"following:**\nUsage:\n`{signature}`\n\n-> If you seperated the time and the AM/PM. "
-                            f"(Eg; "
-                            f"5:00 PM)\n-> If you provided a valid student's ID\n-> If you followed the MM/DD "
-                            f"Format.\n-> Keep all the arguments in one word.\n-> If you followed the ["
-                            f"documentation "
-                            f"for schedule.](https://timmy.schoolsimplified.org/tutorbot#schedule)",
-                color=Colors.red,
-            )
-            em.set_thumbnail(url=Others.error_png)
-            em.set_footer(
-                text="Consult the Help Command if you are having trouble or call over a Bot Manager!"
-            )
-            return await ctx.send(embed=em)
-        else:
-            em = discord.Embed(
-                title="Missing/Extra Required Arguments Passed In!",
-                description="You have missed one or several arguments in this command"
-                            "\n\nUsage:"
-                            f"\n`{signature}`",
-                color=Colors.red,
-            )
-            em.set_thumbnail(url=Others.error_png)
-            em.set_footer(
-                text="Consult the Help Command if you are having trouble or call over a Bot Manager!"
-            )
-            return await ctx.send(embed=em)
+        em = discord.Embed(
+            title="Missing/Extra Required Arguments Passed In!",
+            description="You have missed one or several arguments in this command"
+                        "\n\nUsage:"
+                        f"\n`{signature}`",
+            color=Colors.red,
+        )
+        em.set_thumbnail(url=Others.error_png)
+        em.set_footer(
+            text="Consult the Help Command if you are having trouble or call over a Bot Manager!"
+        )
+        return await ctx.send(embed=em)
 
     elif isinstance(
             error,
@@ -285,12 +254,12 @@ async def on_command_error_(bot: PortalBot, ctx: commands.Context, error: Except
             data = "\n".join([l.strip() for l in f])
 
             GITHUB_API = "https://api.github.com"
-            API_TOKEN = os.getenv("GITHUB")
+            API_TOKEN = os.getenv("github_gist")
             url = GITHUB_API + "/gists"
             headers = {"Authorization": "token %s" % API_TOKEN}
             params = {"scope": "gist"}
             payload = {
-                "description": "Timmy encountered a Traceback!",
+                "description": "PortalBot encountered a Traceback!",
                 "public": True,
                 "files": {"error": {"content": f"{data}"}},
             }
@@ -319,14 +288,10 @@ async def on_command_error_(bot: PortalBot, ctx: commands.Context, error: Except
                 embed.set_footer(text=f"Error: {str(error)}")
                 await ctx.send(embed=embed)
 
-                view = FeedbackButton(bot=bot, gist_url=gisturl)
-                await ctx.send(
-                    "Want to help even more? Click here to submit feedback!", view=view
-                )
             else:
                 embed = discord.Embed(
                     title="Traceback Detected!",
-                    description="Timmy here has ran into an error!\nTraceback has been attached below.",
+                    description="PortalBot here has ran into an error!\nTraceback has been attached below.",
                     color=Colors.red,
                 )
                 embed.add_field(name="GIST URL", value=gisturl)
@@ -334,22 +299,6 @@ async def on_command_error_(bot: PortalBot, ctx: commands.Context, error: Except
                 embed.set_footer(text=f"Error: {str(error)}")
                 await ctx.send(embed=embed)
 
-            guild = bot.get_guild(Me.TechGuild)
-            channel = guild.get_channel(Me.TracebackChannel)
-
-            embed2 = discord.Embed(
-                title="Traceback Detected!",
-                description=f"**Information**\n"
-                            f"**Server:** {ctx.message.guild.name}\n"
-                            f"**User:** {ctx.message.author.mention}\n"
-                            f"**Command:** {ctx.command.name}",
-                color=Colors.red,
-            )
-            embed2.add_field(
-                name="Gist URL",
-                value=f"[Uploaded Traceback to GIST](https://gist.github.com/{ID})",
-            )
-            await channel.send(embed=embed2)
             error_file.unlink()
 
     raise error
@@ -411,7 +360,7 @@ async def on_app_command_error_(
             headers = {"Authorization": "token %s" % API_TOKEN}
             params = {"scope": "gist"}
             payload = {
-                "description": "Timmy encountered a Traceback!",
+                "description": "PortalBot encountered a Traceback!",
                 "public": True,
                 "files": {"error": {"content": f"{data}"}},
             }
@@ -437,61 +386,31 @@ async def on_app_command_error_(
                 )
                 embed.add_field(
                     name="Error Message",
-                    value="I've contacted the IT Department and they have been notified, meanwhile, please double "
+                    value="I've contacted the Bot Developers and they have been notified, meanwhile, please double "
                           "check the command you've sent for any issues.\n "
                           "Consult the help command for more information.",
                 )
-                embed.set_thumbnail(url=Others.timmy_dog_png)
                 embed.set_footer(text="Submit a bug report or feedback below!")
                 if interaction.response.is_done():
                     await interaction.followup.send(
-                        embed=embed, view=FeedbackButton(bot=bot, gist_url=gisturl)
+                        embed=embed
                     )
                 else:
                     await interaction.response.send_message(
-                        embed=embed, view=FeedbackButton(bot=bot, gist_url=gisturl)
+                        embed=embed
                     )
             else:
                 embed = discord.Embed(
                     title="Traceback Detected!",
-                    description="Timmy here has ran into an error!\nTraceback has been attached below.",
+                    description="PortalBot here has ran into an error!\nTraceback has been attached below.",
                     color=Colors.red,
                 )
                 embed.add_field(name="GIST URL", value=gisturl)
-                embed.set_thumbnail(url=Others.timmy_dog_png)
                 embed.set_footer(text=f"Error: {str(error)}")
                 if interaction.response.is_done():
                     await interaction.followup.send(embed=embed)
                 else:
                     await interaction.response.send_message(embed=embed)
-
-            guild = bot.get_guild(Me.TechGuild)
-            channel = guild.get_channel(Me.TracebackChannel)
-
-            embed2 = discord.Embed(
-                title="Traceback Detected!",
-                description=f"**Information**\n"
-                            f"**Server:** {interaction.guild.name}\n"
-                            f"**User:** {interaction.user.mention}\n"
-                            f"**Command:** {interaction.command.name}",
-                color=Colors.red,
-            )
-            embed2.add_field(
-                name="Gist URL",
-                value=f"[Uploaded Traceback to GIST](https://gist.github.com/{ID})",
-            )
-            await channel.send(embed=embed2)
-
-            view = FeedbackButton(bot=bot, gist_url=gisturl)
-            try:
-                error_file.unlink()
-                await interaction.followup.send(
-                    "Want to help even more? Click here to submit feedback!", view=view
-                )
-            except:
-                await interaction.channel.send(
-                    "Want to help even more? Click here to submit feedback!", view=view
-                )
 
     raise error
 
@@ -510,21 +429,19 @@ def initialize_db(bot):
     Initializes the database, and creates the needed table data if they don't exist.
     """
     database.db.connect(reuse_if_open=True)
-    CIQ = database.CheckInformation.select().where(database.CheckInformation.id == 1)
-    BTE = database.BaseTickerInfo.select().where(database.BaseTickerInfo.id == 1)
-    SM = database.SandboxConfig.select().where(database.SandboxConfig.id == 1)
+    bot_data = database.BotData.select().where(database.BotData.id == 1)
 
-    if not CIQ.exists():
-        database.CheckInformation.create(
-            MasterMaintenance=False,
-            guildNone=False,
-            externalGuild=True,
-            ModRoleBypass=True,
-            ruleBypass=True,
-            publicCategories=True,
-            elseSituation=True,
-            PersistantChange=False,
+    if not bot_data.exists():
+        q = database.BotData.create(
+            prefix=">",
+            persistent_views=False,
+            blacklist_response_channel=995819431538217093,
+            question_suggest_channel=787803726168588318,
+            bot_spam_channel=588728994661138494,
+            realm_channel_response=588408514796322816,
+            server_id=587495640502763521
         )
+        q.save()
         _log.info("Created CheckInformation Entry.")
 
     if len(database.Administrators) == 0:
@@ -533,11 +450,4 @@ def initialize_db(bot):
             _log.info("Created Administrator Entry.")
         database.Administrators.create(discordID=409152798609899530, TierLevel=4)
 
-    query: database.CheckInformation = (
-        database.CheckInformation.select()
-        .where(database.CheckInformation.id == 1)
-        .get()
-    )
-    query.PersistantChange = False
-    query.save()
     database.db.close()

@@ -1,8 +1,10 @@
 import logging
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import discord
+import psutil
 from discord import app_commands
 from discord.ext import commands
 
@@ -35,6 +37,40 @@ class HelpCMD(commands.Cog):
                                           f"\n\nRead the documentation here: https://brave-bongo-a8b.notion.site/PortalBot-Help-Commands-9f482fe2d19545aa9d497bb1f3c18b84")
         embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.avatar.url)
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(description="Ping the bot")
+    async def ping(self, interaction: discord.Interaction):
+        current_time = float(time.time())
+        difference = int(round(current_time - float(self.bot.start_time)))
+        text = str(timedelta(seconds=difference))
+
+        pingembed = discord.Embed(
+            title="Pong! ⌛",
+            color=discord.Colour.purple(),
+            description="Current Discord API Latency",
+        )
+        pingembed.set_author(
+            name="PortalBot"
+        )
+        pingembed.add_field(
+            name="Ping & Uptime:",
+            value=f"```diff\n+ Ping: {round(self.bot.latency * 1000)}ms\n+ Uptime: {text}\n```",
+        )
+
+        pingembed.add_field(
+            name="System Resource Usage",
+            value=f"```diff\n- CPU Usage: {psutil.cpu_percent()}%\n- Memory Usage: {psutil.virtual_memory().percent}%\n```",
+            inline=False,
+        )
+        pingembed.add_field(
+            name="Status Page", value="[Click here](https://status.timmy.ssimpl.org/)"
+        )
+        pingembed.set_footer(
+            text=f"PortalBot Version: {self.bot.version}",
+            icon_url=interaction.user.display_avatar.url,
+        )
+
+        await interaction.response.send_message(embed=pingembed)
 
 
 

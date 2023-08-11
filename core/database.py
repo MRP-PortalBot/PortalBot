@@ -1,5 +1,5 @@
 import logging
-from peewee import AutoField, Model, IntegerField, TextField, SqliteDatabase, BigIntegerField
+from peewee import AutoField, Model, IntegerField, TextField, SqliteDatabase, BigIntegerField, BooleanField
 from flask import Flask
 from dotenv import load_dotenv
 
@@ -7,11 +7,11 @@ from core.logging_module import get_log
 
 load_dotenv()
 
-# DB_IP = os.getenv("DB_IP")
-# DB_Port = os.getenv("DB_Port")
-# DB_user = os.getenv("DB_user")
-# DB_password = os.getenv("DB_password")
-# DB_Database = os.getenv("DB_Database")
+# DB_IP = os.getenv("database_ip")
+# DB_Port = os.getenv("database_port")
+# DB_user = os.getenv("database_username")
+# DB_password = os.getenv("database_password")
+# DB_Database = os.getenv("database_schema")
 
 db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
 # db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
@@ -34,6 +34,63 @@ class BaseModel(Model):
 
     class Meta:
         database = db
+
+
+class BotData(BaseModel):
+    """
+    BotData:
+    Information used across the bot.
+
+    `id`: AutoField()
+    Database Entry ID (ALWAYS QUERY 1)
+
+    `last_question_posted`: DateTimeField()
+    Last time a question was posted
+
+    `persistent_views`: BooleanField()
+    Whether or not persistent views are enabled
+
+    `prefix`: TextField()
+    Bot prefix
+
+    `blacklist_response_channel`: BigIntegerField()
+    Channel ID for blacklist responses
+
+    `question_suggest_channel`: BigIntegerField()
+    Channel ID for question suggestions
+
+    `bot_spam_channel`: BigIntegerField()
+    Channel ID for bot spam
+
+    `realm_channel_response`: BigIntegerField()
+    Channel ID for realm channel responses
+
+    `bot_type`: TextField()
+    Bot type
+
+    `other_bot_id`: BigIntegerField()
+    Other bot ID
+
+    `bot_id`: BigIntegerField()
+    Bot ID
+
+    `server_id`: BigIntegerField()
+    Server ID
+    """
+    id = AutoField()
+    last_question_posted = TextField(null=True)
+    persistent_views = BooleanField(default=False)
+    prefix = TextField(default=">")
+    blacklist_response_channel = BigIntegerField(default=0)
+    daily_question_channel = BigIntegerField(default=0)
+    question_suggest_channel = BigIntegerField(default=0)
+    bot_spam_channel = BigIntegerField(default=0)
+    realm_channel_response = BigIntegerField(default=0)
+    bot_type = TextField(default="Stable")
+    other_bot_id = BigIntegerField(default=0)
+    bot_id = BigIntegerField(default=0)
+    server_id = BigIntegerField(default=0)
+
 
 
 class Tag(BaseModel):
@@ -118,6 +175,7 @@ class Administrators(BaseModel):
     discordID = BigIntegerField(unique=True)
     TierLevel = IntegerField(default=1)
 
+
 class QuestionSuggestionQueue(BaseModel):
     """
     QuestionSuggestionQueue:
@@ -131,11 +189,15 @@ class QuestionSuggestionQueue(BaseModel):
 
     `question`: TextField()
     Question
+
+    `message_id`: BigIntegerField()
+    Message ID
     """
 
     id = AutoField()
     discord_id = BigIntegerField()
     question = TextField()
+    message_id = BigIntegerField()
 
 
 class RealmApplications(BaseModel):

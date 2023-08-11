@@ -11,8 +11,6 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime
-from os import system
 from pathlib import Path
 
 import discord
@@ -26,37 +24,10 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from core import database
-from core import common
-from core.common import mainTask2
 from core.common import prompt_config, load_config
 from core.logging_module import get_log
 from core.special_methods import on_app_command_error_, initialize_db, on_ready_, on_command_error_, on_command_, \
     before_invoke_
-
-# Filling botconfig incase the file is missing
-prompt_config("Enter bot prefix here: ", "prefix")
-prompt_config("Enter channel (ID) to display blacklist responses: ",
-              "blacklistChannel")
-prompt_config("Enter channel (ID) to display question suggestions: ",
-              "questionSuggestChannel")
-prompt_config("Enter bot-spam channel (ID)", "botspamChannel")
-prompt_config("Enter channel (ID) to display realm channel applications: ",
-              "realmChannelResponse")
-prompt_config("Enter bot type (Stable/Beta)", "BotType")
-prompt_config("Other bot's ID", "OtherBotID")
-prompt_config("Bot's ID", "BotID")
-prompt_config("Slash Commands Server ID", "ServerID")
-config, _ = load_config()
-
-# Applying towards intents
-intents = discord.Intents.all()
-
-# Defining client and SlashCommands
-bot = commands.Bot(command_prefix=config['prefix'],
-                      intents=intents,
-                      case_insensitive=True)
-bot.remove_command("help")
-
 
 logger = logging.getLogger("discord")
 logger.setLevel(logging.INFO)
@@ -65,13 +36,12 @@ _log = get_log(__name__)
 _log.info("Starting PortalBot...")
 
 try:
-    xbox.client.authenticate(login=os.getenv("XBOXU"),
-                             password=os.getenv("XBOXP"))
+    xbox.client.authenticate(
+        login=os.getenv("XBOXU"),
+        password=os.getenv("XBOXP")
+    )
 except:
     logger.critical("ERROR: Unable to authenticate with XBOX!")
-
-with open("taskcheck.txt", "w") as f:
-    f.write("OFF")
 
 
 def get_extensions():  # Gets extension list dynamically
@@ -81,21 +51,6 @@ def get_extensions():  # Gets extension list dynamically
             continue
         extensions.append(str(file).replace("/", ".").replace(".py", ""))
     return extensions
-
-
-async def force_restart(ctx):  # Forces REPL to apply changes to everything
-    try:
-        subprocess.run("python main.py",
-                       shell=True,
-                       text=True,
-                       capture_output=True,
-                       check=True)
-    except Exception as e:
-        await ctx.send(
-            f"❌ Something went wrong while trying to restart the bot!\nThere might have been a bug which could have caused this!\n**Error:**\n{e}"
-        )
-    finally:
-        sys.exit(0)
 
 
 class PBCommandTree(app_commands.CommandTree):
@@ -128,15 +83,17 @@ class PortalBot(commands.Bot):
     """
 
     def __init__(self, uptime: time.time):
+        bot_info: database.BotData = database.BotData.select().where(
+            database.BotData.id == 1).get()
         super().__init__(
-            command_prefix=commands.when_mentioned_or(config['prefix']),
+            command_prefix=commands.when_mentioned_or(bot_info.prefix),
             intents=discord.Intents.all(),
             case_insensitive=True,
             tree_cls=PBCommandTree,
             status=discord.Status.online,
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name=f"over the Portal! | {config['prefix']}help")
+                name=f"over the Portal! | {bot_info.prefix}help")
         )
         self.help_command = None
         self.add_check(self.check)
@@ -222,7 +179,7 @@ class PortalBot(commands.Bot):
 
 bot = PortalBot(time.time())
 
-if os.getenv("DSN_SENTRY") is not None:
+if os.getenv("sentry_dsn") is not None:
     sentry_logging = LoggingIntegration(
         level=logging.INFO,  # Capture info and above as breadcrumbs
         event_level=logging.ERROR,  # Send errors as events
@@ -241,6 +198,6 @@ initialize_db(bot)
 
 if __name__ == '__main__':
     try:
-        bot.run(os.getenv("TOKEN"))
+        bot.run(os.getenv("token"))
     except Exception as e:
         _log.exception(e)

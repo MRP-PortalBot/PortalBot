@@ -136,7 +136,7 @@ class MiscCMD(commands.Cog):
 ##======================================================Slash Commands===========================================================
 
     # Removes your nickname.
-    @slash_command(name="rememoji", description = "Reverts your nickname back to your username!", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
+    """@slash_command(name="rememoji", description = "Reverts your nickname back to your username!", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
     async def removeemoji(self, ctx):
         author = ctx.author
         name = author.name
@@ -154,33 +154,13 @@ class MiscCMD(commands.Cog):
         else:  # realm-name-emoji
             realm, emoji = channel[0], channel[-1]
         await author.edit(nick=str(name) + str(emoji))
-        await ctx.respond(content = "Changed your nickname!")
+        await ctx.respond(content = "Changed your nickname!")"""
 
 
     # Rule Command [INT]
-    @slash_command(name="rule", description = "Sends out MRP Server Rules", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
-    async def rule(self, ctx, number = None):
-        await ctx.respond(content = rules[int(number)-1])
-
-
-    # Embed Command
-    @slash_command(name="embed", description = "converts your message to an embed", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
-    @commands.has_permissions(manage_channels=True)
-    async def embed(self, ctx, channel: discord.TextChannel, title, body):
-        colorvalue = int(discord.Colour.random())
-        embed = discord.Embed(title=title, description=body, color=colorvalue)
-        await channel.send(embed=embed)
-        await ctx.respond("Embed Sent")
-
-    # Ping Command
-    @slash_command(name="ping", description = "Shows the bots latency", guild_ids=[config['SlashServer1'],config['SlashServer2'],config['SlashServer3']])
-    async def ping(self, ctx):
-        # await ctx.send(f'**__Latency is__ ** {round(client.latency * 1000)}ms')
-        pingembed = discord.Embed(
-            title="Pong! ⌛", color=0x20F6B3, description="Current Discord API Latency")
-        pingembed.add_field(name="Current Ping:",
-                            value=f'{round(self.bot.latency * 1000)}ms')
-        await ctx.respond(embed=pingembed)
+    @app_commands.command(name="rule", description = "Sends out MRP Server Rules")
+    async def rule(self, interaction: discord.Interaction, number: int = None):
+        await interaction.response.send_message(rules[int(number)-1])
         
 
 def setup(bot):
