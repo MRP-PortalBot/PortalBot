@@ -35,8 +35,8 @@ _log.info("Starting PortalBot...")
 load_dotenv()
 try:
     xbox.client.authenticate(
-        login=os.getenv("xbox_u"),
-        password=os.getenv("xbox_p"),
+        login=os.getenv('xbox_u'),
+        password=os.getenv('xbox_p'),
     )
 except:
     logger.critical("ERROR: Unable to authenticate with XBOX!")
@@ -177,7 +177,7 @@ class PortalBot(commands.Bot):
 
 bot = PortalBot(time.time())
 
-if os.getenv("sentry_dsn") is not None:
+if os.getenv('sentry_dsn') is not None:
     sentry_logging = LoggingIntegration(
         level=logging.INFO,  # Capture info and above as breadcrumbs
         event_level=logging.ERROR,  # Send errors as events
@@ -186,7 +186,7 @@ if os.getenv("sentry_dsn") is not None:
     # Traceback tracking, DO NOT MODIFY THIS
     use_sentry(
         bot,
-        dsn=os.getenv("sentry_dsn"),
+        dsn=os.getenv('sentry_dsn'),
         traces_sample_rate=1.0,
         integrations=[FlaskIntegration(), sentry_logging],
     )
@@ -196,6 +196,6 @@ initialize_db(bot)
 
 if __name__ == '__main__':
     try:
-        bot.run(os.getenv("TOKEN"))
+        bot.run(os.getenv('TOKEN'))
     except Exception as e:
         _log.exception(e)

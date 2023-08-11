@@ -9,15 +9,15 @@ from core.logging_module import get_log
 
 load_dotenv()
 
-DB_IP = os.getenv("database_ip")
+DB_IP = os.getenv('database_ip')
 print(DB_IP)
-DB_Port = os.getenv("database_port")
+DB_Port = os.getenv('database_port')
 print(DB_Port)
-DB_user = os.getenv("database_username")
+DB_user = os.getenv('database_username')
 print(DB_user)
-DB_password = os.getenv("database_password")
+DB_password = os.getenv('database_password')
 print(DB_password)
-DB_Database = os.getenv("database_schema")
+DB_Database = os.getenv('database_schema')
 print(DB_Database)
 
 # db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
