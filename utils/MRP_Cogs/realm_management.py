@@ -38,10 +38,13 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 
 client = gspread.authorize(creds)
 
-sheet = client.open(
-    "Minecraft Realm Portal Channel Application (Responses)").sheet1
+try:
+    sheet = client.open(
+        "Minecraft Realm Portal Channel Application (Responses)").sheet1
 
-sheet2 = client.open("MRPCommunityRealmApp").sheet1
+    sheet2 = client.open("MRPCommunityRealmApp").sheet1
+except Exception as e:
+    _log.error(f"Error: {e}")
 
 
 # -------------------------------------------------------
