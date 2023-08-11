@@ -34,6 +34,11 @@ logger.setLevel(logging.INFO)
 _log = get_log(__name__)
 _log.info("Starting PortalBot...")
 load_dotenv()
+
+row_id = get_bot_data_id()
+bot_info: database.BotData = database.BotData.select().where(
+    database.BotData.id == row_id).get()
+
 try:
     xbox.client.authenticate(
         login=os.getenv('xbox_u'),
@@ -82,9 +87,6 @@ class PortalBot(commands.Bot):
     """
 
     def __init__(self, uptime: time.time):
-        row_id = get_bot_data_id()
-        bot_info: database.BotData = database.BotData.select().where(
-            database.BotData.id == row_id).get()
         super().__init__(
             command_prefix=commands.when_mentioned_or(bot_info.prefix),
             intents=discord.Intents.all(),
@@ -131,14 +133,10 @@ class PortalBot(commands.Bot):
         # await bot.tree.set_translator(TimmyTranslator())
 
     async def is_owner(self, user: discord.User):
-        admin_ids = []
         query = database.Administrators.select().where(
-            database.Administrators.TierLevel >= 3
+            (database.Administrators.TierLevel >= 3) & (database.Administrators.discordID == user.id)
         )
-        for admin in query:
-            admin_ids.append(admin.discordID)
-
-        if user.id in admin_ids:
+        if query.exists():
             return True
 
         return await super().is_owner(user)
@@ -198,6 +196,6 @@ initialize_db(bot)
 
 if __name__ == '__main__':
     try:
-        bot.run(os.getenv('TOKEN'))
+        bot.run(os.getenv('token'))
     except Exception as e:
         _log.exception(e)
