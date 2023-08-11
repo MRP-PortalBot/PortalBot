@@ -9,8 +9,9 @@ from discord import File
 from discord.ext import commands
 
 from core import database
+from core.logging_module import get_log
 
-logger = logging.getLogger(__name__)
+_log = get_log(__name__)
 
 #---------------------------------------------------
 
@@ -35,8 +36,11 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 
 client = gspread.authorize(creds)
 
-profilesheet = client.open("PortalbotProfile").sheet1
-sheet = client.open("MRP Bannedlist Data").sheet1
+try:
+    profilesheet = client.open("PortalbotProfile").sheet1
+    sheet = client.open("MRP Bannedlist Data").sheet1
+except Exception as e:
+    _log.error(f"Error: {e}")
 # 3 Values to fill
 
 # Template on modfying spreadsheet
