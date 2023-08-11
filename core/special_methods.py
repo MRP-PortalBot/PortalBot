@@ -16,7 +16,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from core import database
-from core.common import ConsoleColors, Colors, Others, QuestionSuggestionManager
+from core.common import ConsoleColors, Colors, Others, QuestionSuggestionManager, get_bot_data_id
 from core.logging_module import get_log
 
 if TYPE_CHECKING:
@@ -60,9 +60,11 @@ async def before_invoke_(ctx: commands.Context):
 
 async def on_ready_(bot: 'PortalBot'):
     now = datetime.now()
+    row_id = get_bot_data_id()
+
     query: database.BotData = (
         database.BotData.select()
-        .where(database.BotData.id == 1)
+        .where(database.BotData.id == row_id)
         .get()
     )
 
@@ -430,7 +432,8 @@ def initialize_db(bot):
     Initializes the database, and creates the needed table data if they don't exist.
     """
     database.db.connect(reuse_if_open=True)
-    bot_data = database.BotData.select().where(database.BotData.id == 1)
+    row_id = get_bot_data_id()
+    bot_data = database.BotData.select().where(database.BotData.id == row_id)
 
     if not bot_data.exists():
         q = database.BotData.create(

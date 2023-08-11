@@ -9,7 +9,7 @@ from peewee import fn
 
 from core import database, common
 from core.checks import slash_is_bot_admin_2
-from core.common import load_config, QuestionSuggestionManager
+from core.common import load_config, QuestionSuggestionManager, get_bot_data_id
 from core.logging_module import get_log
 from main import PortalBot
 
@@ -75,7 +75,8 @@ class DailyCMD(commands.Cog):
 
     @tasks.loop(hours=24)
     async def post_question(self):
-        q: database.BotData = database.BotData.select().where(database.BotData.id == 1).get()
+        row_id = get_bot_data_id()
+        q: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
         send_channel = self.bot.get_channel(q.daily_question_channel)
         last_time_posted = q.last_question_posted
 
@@ -110,7 +111,8 @@ class DailyCMD(commands.Cog):
             )
 
             async def on_submit(self, interaction: discord.Interaction):
-                q: database.BotData = database.BotData.select().where(database.BotData.id == 1).get()
+                row_id = get_bot_data_id()
+                q: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
                 await interaction.response.defer(thinking=True)
                 embed = discord.Embed(title="Question Suggestion",
                                       description=f"Requested by {interaction.user.mention}", color=0x18c927)

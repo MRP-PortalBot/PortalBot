@@ -23,6 +23,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from core import database
+from core.common import get_bot_data_id
 from core.logging_module import get_log
 from core.special_methods import on_app_command_error_, initialize_db, on_ready_, on_command_error_, on_command_, \
     before_invoke_
@@ -81,17 +82,18 @@ class PortalBot(commands.Bot):
     """
 
     def __init__(self, uptime: time.time):
-        #bot_info: database.BotData = database.BotData.select().where(
-            #database.BotData.id == 1).get()
+        row_id = get_bot_data_id()
+        bot_info: database.BotData = database.BotData.select().where(
+            database.BotData.id == row_id).get()
         super().__init__(
-            command_prefix=commands.when_mentioned_or("!"),
+            command_prefix=commands.when_mentioned_or(bot_info.prefix),
             intents=discord.Intents.all(),
             case_insensitive=True,
             tree_cls=PBCommandTree,
             status=discord.Status.online,
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name=f"over the Portal! | !help")
+                name=f"over the Portal! | {bot_info.prefix}help")
         )
         self.help_command = None
         #self.add_check(self.check)

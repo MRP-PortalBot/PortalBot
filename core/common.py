@@ -9,6 +9,7 @@ import requests
 import random
 
 from discord import ButtonStyle, ui, SelectOption
+from dotenv import load_dotenv
 
 from core import database
 from datetime import datetime
@@ -680,3 +681,12 @@ class QuestionSuggestionManager(discord.ui.View):
         await interaction.response.send_message("Operation Complete.", ephemeral=True)
 
 
+def get_bot_data_id():
+    load_dotenv()
+    os.getenv("bot_type")
+    key_value = {
+        "STABLE": 1,
+        "BETA": 2
+    }
+
+    return key_value[os.getenv("bot_type")]
