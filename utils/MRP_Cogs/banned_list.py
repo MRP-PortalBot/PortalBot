@@ -37,7 +37,10 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 
 client = gspread.authorize(creds)
 
-sheet = client.open("MRP Bannedlist Data").sheet1
+try:
+    sheet = client.open("MRP Bannedlist Data").sheet1
+except Exception as e:
+    _log.error(f"Error: {e}")
 # 9 Values to fill
 
 # Template on modfying spreadsheet
