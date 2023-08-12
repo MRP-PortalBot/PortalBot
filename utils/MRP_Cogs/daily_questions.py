@@ -29,11 +29,6 @@ class DailyCMD(commands.Cog):
         description="Configure the daily-question settings.",
     )
 
-    def get_by_index(self, index):
-        for i, t in enumerate(database.Question.select()):
-            if i + 1 == index:
-                return t
-
     @tasks.loop(hours=24)
     async def post_question(self):
         row_id = get_bot_data_id()
@@ -46,13 +41,14 @@ class DailyCMD(commands.Cog):
             question: database.Question = database.Question.select().where(
                 database.Question.usage == False
             ).order_by(fn.Rand()).limit(1).get()
-            question.usage = True
-            question.save()
-            embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓",
-                                  description=f"**{question.question}**",
-                                  color=0xb10d9f)
-            embed.set_footer(text=f"Question ID: {question.id}")
-            await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
+            if get_bot_data_id() == 1:
+                question.usage = True
+                question.save()
+                embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓",
+                                      description=f"**{question.question}**",
+                                      color=0xb10d9f)
+                embed.set_footer(text=f"Question ID: {question.id}")
+                await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
 
             # Update the last_question_posted time
             q.last_question_posted = datetime.now()

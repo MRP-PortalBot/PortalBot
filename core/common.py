@@ -731,3 +731,123 @@ class SuggestQuestionFromDQ(discord.ui.View):
             button: discord.ui.Button,
     ):
         await interaction.response.send_modal(SuggestModalNEW(self.bot))
+
+
+def return_realm_profile_modal(
+        bot,
+        realm_name: str,
+        emoji: str,
+        member_count: str,
+        community_duration: str,
+        world_duration: str,
+        reset_schedule: str
+):
+    class ApplyForNewRealmForm(ui.Modal, title="Realm Application"):
+        def __init__(self, bot, realm_name: str, type_of_realm: str, emoji: str, member_count: str,
+                     community_duration: str, world_duration: str, reset_schedule: str):
+            super().__init__(timeout=None)
+            self.bot = bot
+            self.realm_name = realm_name
+            self.type_of_realm = type_of_realm
+            self.emoji = emoji
+            self.member_count = member_count
+            self.community_duration = community_duration
+            self.world_duration = world_duration
+            self.reset_schedule = reset_schedule
+
+        short_description = ui.TextInput(
+            label="Short Description",
+            style=discord.TextStyle.short,
+            placeholder="Short description of the realm",
+            required=True
+        )
+
+        long_description = ui.TextInput(
+            label="Long Description",
+            style=discord.TextStyle.long,
+            placeholder="Long description of the realm",
+            required=True
+        )
+
+        application_process = ui.TextInput(
+            label="Application Process",
+            style=discord.TextStyle.long,
+            placeholder="Application process for the realm",
+            required=True
+        )
+
+        foreseeable_future = ui.TextInput(
+            label="Foreseeable Future",
+            style=discord.TextStyle.long,
+            placeholder="Will your Realm/Server have the ability to continue for the foreseeable future?",
+            required=True
+        )
+
+        admin_team = ui.TextInput(
+            label="Admin Team",
+            style=discord.TextStyle.long,
+            placeholder="Who is on your admin team and how long have they been with you?",
+            required=True
+        )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        log_channel = self.bot.get_channel(config['realmChannelResponse'])
+        admin = discord.utils.get(interaction.guild.roles, name="Admin")
+        q: database.RealmApplications = database.RealmApplications.create(
+            discord_id=interaction.user.id,
+            realm_name=self.realm_name,
+            type_of_realm=self.type_of_realm,
+            emoji=self.emoji,
+            member_found=self.member_count,
+            realm_age=self.community_duration,
+            world_age=self.world_duration,
+            reset_schedule=self.reset_schedule,
+            short_desc=self.short_description.value,
+            long_desc=self.long_description.value,
+            application_process=self.application_process.value,
+            foreseeable_future=self.foreseeable_future.value,
+            admin_team=self.admin_team.value)
+        q.save()
+        database.db.close()
+
+        embed = discord.Embed(title="Realm Application", description="__**Realm Owner:**__\n" +
+                                                                     interaction.user.mention + "\n============================================",
+                              color=0xb10d9f)
+        embed.set_thumbnail(
+            url="https://cdn.discordapp.com/attachments/588034623993413662/588413853667426315/Portal_Design.png")
+        embed.add_field(name="__**Realm Name**__",
+                        value=q.realm_name, inline=True)
+        embed.add_field(name="__**Realm or Server?**__",
+                        value=q.type_of_realm, inline=True)
+        embed.add_field(name="__**Emoji**__",
+                        value=q.emoji, inline=True)
+        embed.add_field(name="__**Short Description**__",
+                        value=q.short_desc, inline=False)
+        embed.add_field(name="__**Long Description**__",
+                        value=q.long_desc, inline=False)
+        embed.add_field(name="__**Application Process**__",
+                        value=q.application_process, inline=False)
+        embed.add_field(name="__**Current Member Count**__",
+                        value=q.member_count, inline=True)
+        embed.add_field(name="__**Age of Community**__",
+                        value=q.realm_age, inline=True)
+        embed.add_field(name="__**Age of Current World**__",
+                        value=q.world_age, inline=True)
+        embed.add_field(name="__**How often do you reset**__",
+                        value=q.reset_schedule, inline=True)
+        embed.add_field(name="__**Will your Realm/Server have the ability to continue for the foreseeable future?**__",
+                        value=q.foreseeable_future, inline=True)
+        embed.add_field(name="__**Members of the OP Team, and How long they have been an OP**__",
+                        value=q.admin_team, inline=False)
+        embed.add_field(name="__**Reaction Codes**__",
+                        value="Please react with the following codes to show your thoughts on this applicant.",
+                        inline=False)
+        embed.add_field(name="----💚----", value="Approved", inline=True)
+        embed.add_field(name="----💛----",
+                        value="More Time in Server", inline=True)
+        embed.add_field(name="----❤️----", value="Rejected", inline=True)
+        embed.set_footer(text="Realm Application #" + str(q.id) + " | " + datetime.now().strftime(r"%x"))
+        await log_channel.send(admin.mention)
+
+    return ApplyForNewRealmForm(bot, realm_name, type_of_realm, emoji, member_count, community_duration, world_duration,
+                                reset_schedule)

@@ -27,26 +27,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-async def random_rgb(ctx, seed=None):
-    if seed is not None:
-        random.seed(seed)
-
-    d = datetime.datetime.utcnow()
-    print (d)
-
-    d.hour
-    print (d.hour)
-
-    if d.hour == 17:
-        embed = discord.Embed(title="time stuff", description=d.hour, color=discord.Colour.from_rgb(random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255))())
-        await ctx.send(embed=embed)
-
-def get_quote():
-    response = requests.get("https://zenquotes.io/api/random")
-    json_data = json.loads(response.text)
-    quote = json_data[0]['q'] + " -" + json_data[0]['a']
-    return(quote)
-
 
 def insert_returns(body):
     # insert return stmt if the last expression is a expression statement

@@ -139,18 +139,52 @@ class PortalbotProfile(BaseModel):
 
 
 class RealmProfile(BaseModel):
-    """Stores Realm Profile Data here"""
-    entryid = AutoField()
-    RealmName = TextField()
-    RealmEmoji = TextField()
-    RealmLongDesc = TextField()
-    RealmShortDesc = TextField()
-    Realmaddons = TextField()
-    WorldAge = TextField()
-    PVP = TextField()
-    OnePlayerSleep = TextField()
-    RealmStyle = TextField()
-    Gamemode = TextField()
+    """Stores Realm Profile Data here
+
+    `entry_id`: AutoField()
+    Database Entry
+
+    `realm_name`: TextField()
+    Realm Name
+
+    `realm_emoji`: TextField()
+    Realm Emoji
+
+    `realm_long_desc`: TextField()
+    Realm Long Description
+
+    `realm_short_desc`: TextField()
+    Realm Short Description
+
+    `realm_addons`: TextField()
+    Realm Addons
+
+    `world_age`: TextField()
+    Realm World Age
+
+    `pvp`: BooleanField()
+    Realm PvP
+
+    `one_player_sleep`: BooleanField()
+    Realm One Player Sleep
+
+    `realm_style`: TextField()
+    Realm Style
+
+    `gamemode`: TextField()
+    Realm Gamemode
+    """
+    entry_id = AutoField()
+    realm_name = TextField()
+    realm_emoji = TextField()
+    realm_long_desc = TextField()
+    realm_short_desc = TextField()
+    realm_addons = TextField()
+    world_age = TextField()
+    pvp = BooleanField()
+    one_player_sleep = BooleanField()
+    realm_style = TextField()
+    gamemode = TextField()
 
 
 class Administrators(BaseModel):
@@ -258,7 +292,7 @@ class RealmApplications(BaseModel):
     short_desc = TextField()
     long_desc = TextField()
     application_process = TextField()
-    member_count = TextField()
+    member_count = IntegerField()
     realm_age = TextField()
     world_age = TextField()
     reset_schedule = TextField()
