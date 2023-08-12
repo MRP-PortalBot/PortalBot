@@ -355,16 +355,14 @@ class Me:
 
 
 def return_banishblacklistform_modal(bot,
-                                     sheet,
                                      user: discord.User,
                                      gamertag: str,
                                      originating_realm: str,
                                      type_of_ban: str):
     class BanishBlacklistForm(ui.Modal, title="Blacklist Form"):
-        def __init__(self, sheet, bot, user: discord.User, gamertag: str, originating_realm: str,
+        def __init__(self, bot, user: discord.User, gamertag: str, originating_realm: str,
                      type_of_ban: str):
             super().__init__(timeout=None)
-            self.sheet = sheet
             self.bot = bot
             self.user = user
             self.gamertag = gamertag
@@ -410,13 +408,6 @@ def return_banishblacklistform_modal(bot,
     async def on_submit(self, interaction: discord.Interaction):
         entry_id = (int(self.sheet.acell('A3').value) + 1)
         log_channel = self.bot.get_channel(config['bannedlistChannel'])
-        row = [
-            entry_id, interaction.user.display_name, self.discord_username.value,
-            self.user.id, self.gamertag, self.originating_realm, self.known_alts.value, self.reason.value,
-            self.date_of_ban.value,
-            self.ban_end_date.value
-        ]
-        self.sheet.insert_row(row, 3)
 
         database.db.connect(reuse_if_open=True)
         q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(
@@ -477,7 +468,7 @@ def return_banishblacklistform_modal(bot,
             ephemeral=True
         )
 
-    return BanishBlacklistForm(sheet, bot, user, gamertag, originating_realm, type_of_ban)
+    return BanishBlacklistForm(bot, user, gamertag, originating_realm, type_of_ban)
 
 
 def return_applyfornewrealm_modal(

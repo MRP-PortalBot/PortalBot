@@ -1,5 +1,4 @@
-import asyncio
-import random
+import math
 from datetime import datetime, timedelta
 
 import discord
@@ -14,49 +13,11 @@ from core.logging_module import get_log
 from main import PortalBot
 
 config, _ = load_config()
-import math
 
 # Counts current lines in a file.
 
 
 _log = get_log(__name__)
-
-
-def LineCount():
-    file = open("DailyQuestions.txt", "r")
-    line_count = 0
-    for line in file:
-        if line != "\n":
-            line_count += 1
-    file.close()
-    print(line_count)
-
-
-async def get_question(self):
-    send_channel = self.bot.get_channel(config['dqchannel'])
-    limit = int(database.Question.select().count())
-    print(str(limit) + "| getQuestion")
-    database.db.connect(reuse_if_open=True)
-    posted = 0
-    while (posted < 1):
-        Rnum = random.randint(1, limit)
-        print(str(Rnum))
-        q: database.Question = database.Question.select().where(
-            database.Question.id == Rnum).get()
-        print(q.id)
-        if q.usage is False or q.usage == "False":
-            q.usage = True
-            q.save()
-            posted = 2
-            print(posted)
-            embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓",
-                                  description=f"**{q.question}**",
-                                  color=0xb10d9f)
-            embed.set_footer(text=f"Question ID: {q.id}")
-            await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
-        else:
-            posted = 0
-            print(posted)
 
 
 class DailyCMD(commands.Cog):
@@ -84,7 +45,7 @@ class DailyCMD(commands.Cog):
         if datetime.now() - last_time_posted >= timedelta(hours=24):
             question: database.Question = database.Question.select().where(
                 database.Question.usage == False
-            ).order_by(fn.Random()).limit(1).get()
+            ).order_by(fn.Rand()).limit(1).get()
             question.usage = True
             question.save()
             embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓",
@@ -127,6 +88,7 @@ class DailyCMD(commands.Cog):
                 q.save()
 
                 await interaction.followup.send("Thank you for your suggestion!")
+
         await interaction.response.send_modal(SuggestModal(self.bot))
 
     @DQ.command(
@@ -205,7 +167,7 @@ class DailyCMD(commands.Cog):
             database.db.close()
 
     @DQ.command(description="List every question.")
-    async def list(self, interaction: discord.Interaction, page: int=1):
+    async def list(self, interaction: discord.Interaction, page: int = 1):
         """List all tags in the database"""
 
         def get_end(page_size: int):

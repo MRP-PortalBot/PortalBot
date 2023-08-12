@@ -1,9 +1,7 @@
-import logging
-from datetime import datetime
 from typing import Literal
 
 import discord
-from discord import CategoryChannel, app_commands
+from discord import app_commands
 from discord.ext import commands
 
 from core.logging_module import get_log
@@ -11,18 +9,11 @@ from core.logging_module import get_log
 _log = get_log(__name__)
 
 
-def solve(s):
-    a = s.split(' ')
-    for i in range(len(a)):
-        a[i] = a[i].capitalize()
-    return ' '.join(a)
-
-
 class OperatorCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command()
+    @app_commands.command(description="Manage your realm admins here.")
     @app_commands.describe(
         action="Whether to add or remove a Realm OP Role",
         user="The user to add or remove the role from",

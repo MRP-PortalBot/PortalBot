@@ -1,82 +1,18 @@
 import discord
 from discord.ext import commands
 
+from core import database
 from core.common import load_config
 from core.logging_module import get_log
 
 config, _ = load_config()
-import logging
-from core import database
 
 _log = get_log(__name__)
-# --------------------------------------------------
-# pip3 install gspread oauth2client
-
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-from datetime import datetime
-
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    'https://www.googleapis.com/auth/spreadsheets',
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive"
-]
-
-creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
-
-client = gspread.authorize(creds)
-
-try:
-    gtsheet = client.open("PortalbotProfile").sheet1
-    sheet = client.open("MRP Bannedlist Data").sheet1
-except Exception as e:
-    _log.error(f"Error: {e}")
-# 3 Values to fill
-
-# Template on modfying spreadsheet
-'''
-gtrow = ["1", "2", "3"]
-gtsheet.insert_row(row, 3)
-print("Done.")
-
-gtcell = sheet.cell(3,1).value
-print(cell)
-'''
-# -----------------------------------------------------
-
-entryidcol = 1
-discordcol = 2
-longidcol = 3
-tzonecol = 4
-xboxcol = 5
-psnidcol = 6
-nnidcol = 7
-pokemongocol = 8
-chesscol = 9
-
-IPlinks = [
-    "turtletest.com", "grabify.link", "lovebird.gutu", "dateing.club",
-    'otherhalf.life', 'shrekis.life', 'headshot.monster', 'gaming-at-my.best',
-    'progaming.monster', 'yourmy.monster', 'screenshare.host',
-    'imageshare.best', 'screenshot.best', 'gamingfun.me', 'catsnthing.com',
-    'mypic.icu', 'catsnthings.fun', 'curiouscat.club', 'joinmy.site',
-    'fortnitechat.site', 'fortnight.space', 'freegiftcards.co', 'stopify.co',
-    'leancoding.co', 'bit.ly', 'shorte.st', 'adf.lv', 'bc.vc', 'bit.do',
-    'soo.gd', '7.ly', '5.gp', 'tiny.cc', 'ouo.io', 'zzb.bz', 'adfoc.us',
-    'my.su', 'goo.gl'
-]
-discordLink = ['discord.gg']
-
-
-# -----------------------------------------------------
 
 
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-    #  Join Messages-----------------------------------------------------
 
     @commands.Cog.listener()
     async def on_member_join(ctx, self, member):
@@ -119,7 +55,7 @@ class Events(commands.Cog):
         finally:
             database.db.close()
 
-        # ----GSheets------------------------------------------------
+        """# ----GSheets------------------------------------------------
 
         try:
             usercell = gtsheet.find(longid, in_column=3)
@@ -130,8 +66,8 @@ class Events(commands.Cog):
             gtsheet.insert_row(row, 2)
         else:
             userrow = usercell.row
-            gtsheet.update_cell(userrow, discordcol, str(discordname))
-            gtsheet.update_cell(userrow, longidcol, str(longid))
+            gtsheet.update_cell(userrow, 2, str(discordname))
+            gtsheet.update_cell(userrow, 3, str(longid))"""
 
         # ------Welcome Message:---------
         if member.guild.id == 587495640502763521:

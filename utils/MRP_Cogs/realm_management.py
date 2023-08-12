@@ -1,53 +1,16 @@
 from typing import Literal
 
 import discord
-from discord.ext import commands
 from discord import app_commands
-import time
-from datetime import datetime
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-import asyncio
+from discord.ext import commands
 
 from core import database
 from core.checks import slash_is_bot_admin_3
-from core.common import load_config, return_applyfornewrealm_modal
-import asyncio
-import time
-from datetime import datetime
-
-import discord
-import gspread
-from discord.ext import commands
-from oauth2client.service_account import ServiceAccountCredentials
-
-from core.common import load_config
+from core.common import return_applyfornewrealm_modal
 from core.logging_module import get_log
 
-config, _ = load_config()
-i = 1
-time_convert = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 _log = get_log(__name__)
 
-# -------------------------------------------------------
-
-scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
-         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
-
-creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
-
-client = gspread.authorize(creds)
-
-try:
-    sheet = client.open(
-        "Minecraft Realm Portal Channel Application (Responses)").sheet1
-
-    sheet2 = client.open("MRPCommunityRealmApp").sheet1
-except Exception as e:
-    _log.error(f"Error: {e}")
-
-
-# -------------------------------------------------------
 
 def check_MRP():
     def predicate(ctx):
@@ -56,25 +19,11 @@ def check_MRP():
     return commands.check(predicate)
 
 
-def check_MGP():
-    def predicate(ctx):
-        return ctx.message.guild.id == 192052103017922567 or ctx.message.guild.id == 448488274562908170
-
-    return commands.check(predicate)
-
-
-def convert(time):
-    try:
-        return int(time[:-1]) * time_convert[time[-1]]
-    except:
-        return time
-
-
 class RealmCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command()
+    @app_commands.command(description="Create a new realm via an application.")
     @app_commands.describe(
         app_number="Application number that corresponds with the realm you're trying to create."
     )
@@ -140,7 +89,6 @@ class RealmCMD(commands.Cog):
         # This try statement is here incase we are testing this in the testing server as this channel does not appear in that server!
         if interaction.guild.id == 587495640502763521:
             channelrr = guild.get_channel(683454087206928435)
-            print(channelrr)
             await channelrr.send(
                 role.mention + "\n **Please agree to the rules to gain access to the Realm Owner Chats!**")
             perms12 = channelrr.overwrites_for(role)
@@ -230,7 +178,6 @@ class RealmCMD(commands.Cog):
         # This try statement is here incase we are testing this in the testing server as this channel does not appear in that server!
         if ctx.guild.id == 587495640502763521:
             channelrr = guild.get_channel(683454087206928435)
-            print(channelrr)
             await channelrr.send(
                 role.mention + "\n **Please agree to the rules to gain access to the Realm Owner Chats!**")
             perms12 = channelrr.overwrites_for(role)
@@ -266,7 +213,7 @@ class RealmCMD(commands.Cog):
             embed.set_thumbnail(url=user.avatar.url)
             await ctx.send(embed=embed)
 
-    @app_commands.command()
+    @app_commands.command(description="Looking to get your channel here? Apply for it here!")
     @app_commands.describe(
         realm_name="The name of your realm",
         emoji="The emoji you want to represent your realm",

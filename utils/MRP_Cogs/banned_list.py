@@ -1,116 +1,14 @@
-import asyncio
-import re
-from datetime import datetime
-from typing import List, Literal
+from typing import Literal
 
 import discord
-import gspread
-from discord.ext import commands
-from oauth2client.service_account import ServiceAccountCredentials
 from discord import app_commands
-from core.common import paginate_embed, return_banishblacklistform_modal
-from core.logging_module import get_log
+from discord.ext import commands
 
 from core import database
-import random
-
-
-def printlen(*args):
-    if not args:
-        return 0
-    value = sum(len(str(arg)) for arg in args) + len(args) - 1
-    return value + 300
-
+from core.common import return_banishblacklistform_modal
+from core.logging_module import get_log
 
 _log = get_log(__name__)
-# --------------------------------------------------
-# pip3 install gspread oauth2client
-
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    'https://www.googleapis.com/auth/spreadsheets',
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive"
-]
-
-creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
-
-client = gspread.authorize(creds)
-
-try:
-    sheet = client.open("MRP Bannedlist Data").sheet1
-except Exception as e:
-    _log.error(f"Error: {e}")
-# 9 Values to fill
-
-# Template on modfying spreadsheet
-'''
-row = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-sheet.insert_row(row, 3)
-print("Done.")
-
-cell = sheet.cell(3,1).value
-print(cell)
-'''
-entryidcol = 1
-banreportcol = 2
-discusercol = 3
-longIDcol = 4
-gamertagcol = 5
-bannedfromcol = 6
-knownaltscol = 7
-reasoncol = 8
-dateofbancol = 9
-bantypecol = 10
-banenddatecol = 11
-
-try:
-    gtsheet = client.open("Gamertag Data").sheet1
-except Exception as e:
-    _log.error(f"Error: {e}")
-# 3 Values to fill
-
-# Template on modfying spreadsheet
-'''
-gtrow = ["1", "2", "3"]
-gtsheet.insert_row(row, 3)
-print("Done.")
-
-gtcell = sheet.cell(3,1).value
-print(cell)
-'''
-
-
-# -----------------------------------------------------
-
-
-def solve(s):
-    a = s.split(' ')
-    for i in range(len(a)):
-        a[i] = a[i].capitalize()
-    return ' '.join(a)
-
-
-def random_rgb(seed=None):
-    if seed is not None:
-        random.seed(seed)
-    return discord.Colour.from_rgb(random.randrange(0, 255),
-                                   random.randrange(0, 255),
-                                   random.randrange(0, 255))
-
-
-Q1 = "User's Discord: "
-Q2 = "User's Discord Long ID: "
-Q3 = "User's Gamertag: "
-Q4 = "Banned from (realm): "
-Q5 = "Known Alts: "
-Q6 = "Reason for Ban: "
-Q7 = "Date of Incident"
-Q8 = "The User has faced a (Temporary/Permanent) ban: "
-Q9 = "If the ban is Temporary, the ban ends on: "
-
-QQ1 = "What should I open for you? \n >  **Options:** `Gamertag` / `Discord` / `Combined`"
-a_list = []
 
 
 class BannedlistCMD(commands.Cog):
@@ -118,7 +16,7 @@ class BannedlistCMD(commands.Cog):
         self.bot = bot
 
     BL = app_commands.Group(
-        name="blacklist",
+        name="banned-list",
         description="Manage the posted blacklist.",
     )
 
@@ -155,7 +53,7 @@ class BannedlistCMD(commands.Cog):
                 ephemeral=True)
             _log.exception(e)
             return
-        view = return_banishblacklistform_modal(self.bot, sheet, found_user, gamertag, originating_realm,
+        view = return_banishblacklistform_modal(self.bot, found_user, gamertag, originating_realm,
                                                 ban_type)
         await interaction.response.send_modal(view)
 
@@ -215,7 +113,7 @@ class BannedlistCMD(commands.Cog):
                 value=f"`{search_term}`'s query did not bring back any results!")
             await interaction.response.send_message(embed=e)
 
-    @BL.command(name="edit")
+    @BL.command(name="edit", description="Edit a banned list entry")
     @app_commands.checks.has_role("Realm OP")
     async def _edit(self, interaction: discord.Interaction, entry_id: int, modify: Literal[
         "Ban Reporter", "Discord Username", "Discord ID", "Gamertag", "Realm Banned from", "Known Alts", "Ban Reason", "Date of Incident", "Type of Ban", "Ban End Date"],
