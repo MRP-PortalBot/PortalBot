@@ -17,7 +17,7 @@ class BannedlistCMD(commands.Cog):
 
     BL = app_commands.Group(
         name="banned-list",
-        description="Manage the posted blacklist.",
+        description="Manage the posted bannedlist.",
     )
 
     @BL.command(
