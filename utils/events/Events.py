@@ -1,83 +1,18 @@
 import discord
 from discord.ext import commands
-from datetime import datetime, timezone
-import time
-import re
-import asyncio
-from discord import Embed
-import requests
+
+from core import database
 from core.common import load_config
+from core.logging_module import get_log
 
 config, _ = load_config()
-import logging
-from core import database, common
 
-logger = logging.getLogger(__name__)
-# --------------------------------------------------
-# pip3 install gspread oauth2client
-
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    'https://www.googleapis.com/auth/spreadsheets',
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive"
-]
-
-creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
-
-client = gspread.authorize(creds)
-
-gtsheet = client.open("PortalbotProfile").sheet1
-sheet = client.open("MRP Bannedlist Data").sheet1
-# 3 Values to fill
-
-# Template on modfying spreadsheet
-'''
-gtrow = ["1", "2", "3"]
-gtsheet.insert_row(row, 3)
-print("Done.")
-
-gtcell = sheet.cell(3,1).value
-print(cell)
-'''
-# -----------------------------------------------------
-
-entryidcol = 1
-discordcol = 2
-longidcol = 3
-tzonecol = 4
-xboxcol = 5
-psnidcol = 6
-nnidcol = 7
-pokemongocol = 8
-chesscol = 9
-
-IPlinks = [
-    "turtletest.com", "grabify.link", "lovebird.gutu", "dateing.club",
-    'otherhalf.life', 'shrekis.life', 'headshot.monster', 'gaming-at-my.best',
-    'progaming.monster', 'yourmy.monster', 'screenshare.host',
-    'imageshare.best', 'screenshot.best', 'gamingfun.me', 'catsnthing.com',
-    'mypic.icu', 'catsnthings.fun', 'curiouscat.club', 'joinmy.site',
-    'fortnitechat.site', 'fortnight.space', 'freegiftcards.co', 'stopify.co',
-    'leancoding.co', 'bit.ly', 'shorte.st', 'adf.lv', 'bc.vc', 'bit.do',
-    'soo.gd', '7.ly', '5.gp', 'tiny.cc', 'ouo.io', 'zzb.bz', 'adfoc.us',
-    'my.su', 'goo.gl'
-]
-discordLink = ['discord.gg']
-
-# -----------------------------------------------------
+_log = get_log(__name__)
 
 
 class Events(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("Events: Cog Loaded!")
-
-
-#  Join Messages-----------------------------------------------------
 
     @commands.Cog.listener()
     async def on_member_join(ctx, self, member):
@@ -89,15 +24,13 @@ class Events(commands.Cog):
         #    q: database.MRP_Blacklist_Data = database.MRP_Blacklist_Data.create(DiscUsername=answer1.content, DiscID = answer2.content, Gamertag = answer3.content, BannedFrom = answer4.content, KnownAlts = answer5.content , ReasonforBan = answer6.content, DateofIncident = answer7.content, TypeofBan = answer8.content, DatetheBanEnds = answer9.content, BanReason = author.name)
         #   q.save()
         #   database.db.close()
-        print(member)
         guild = member.guild
-        print(guild)
         channel = discord.utils.get(guild.channels, name="member-log")
         username = member
         longid = str(member.id)
         discordname = str(username.name + "#" + username.discriminator)
 
-        #----Database------------------------------------------------
+        # ----Database------------------------------------------------
 
         try:
             database.db.connect(reuse_if_open=True)
@@ -122,7 +55,7 @@ class Events(commands.Cog):
         finally:
             database.db.close()
 
-        #----GSheets------------------------------------------------
+        """# ----GSheets------------------------------------------------
 
         try:
             usercell = gtsheet.find(longid, in_column=3)
@@ -133,10 +66,10 @@ class Events(commands.Cog):
             gtsheet.insert_row(row, 2)
         else:
             userrow = usercell.row
-            gtsheet.update_cell(userrow, discordcol, str(discordname))
-            gtsheet.update_cell(userrow, longidcol, str(longid))
+            gtsheet.update_cell(userrow, 2, str(discordname))
+            gtsheet.update_cell(userrow, 3, str(longid))"""
 
-        #------Welcome Message:---------
+        # ------Welcome Message:---------
         if member.guild.id == 587495640502763521:
             guild = self.bot.get_guild(587495640502763521)
             channel = guild.get_channel(588813558486269956)
@@ -179,7 +112,7 @@ class Events(commands.Cog):
                 f"Unhandled Server: {member.display_name} | {member.guild.name}"
             )
 
-    @commands.Cog.listener()
+    """@commands.Cog.listener()
     async def on_message(self, message):
         msg = message.content
         message_content = message.content.strip().lower()
@@ -239,8 +172,8 @@ class Events(commands.Cog):
                     color=0xf05c07)
                 await channel.send(embed=embed2)
 
-        #await self.bot.process_commands(message)
+        #await self.bot.process_commands(message)"""
 
 
-def setup(bot):
-    bot.add_cog(Events(bot))
+async def setup(bot):
+    await bot.add_cog(Events(bot))

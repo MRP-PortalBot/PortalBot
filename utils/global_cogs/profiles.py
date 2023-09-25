@@ -1,24 +1,21 @@
-import discord
-from discord.ext import commands
-from datetime import datetime, timezone
-import time
-import re
 import asyncio
-from discord import Embed
-import requests
-from discord import File
-from core import database, common
-
-from PIL import Image, ImageDraw, ImageFont
 import io
-from urllib.request import urlopen
 import logging
+import re
 
-logger = logging.getLogger(__name__)
+import discord
+from PIL import Image, ImageDraw, ImageFont
+from discord import File
+from discord.ext import commands
+
+from core import database
+from core.logging_module import get_log
+
+_log = get_log(__name__)
 
 #---------------------------------------------------
 
-background_image = Image.open('./images/profilebackground2.png')
+background_image = Image.open('./core/images/profilebackground2.png')
 background_image = background_image.convert('RGBA')
 #fontfile = './fonts/gameria.ttf'
 
@@ -39,8 +36,11 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
 
 client = gspread.authorize(creds)
 
-profilesheet = client.open("PortalbotProfile").sheet1
-sheet = client.open("MRP Bannedlist Data").sheet1
+try:
+    profilesheet = client.open("PortalbotProfile").sheet1
+    sheet = client.open("MRP Bannedlist Data").sheet1
+except Exception as e:
+    _log.error(f"Error: {e}")
 # 3 Values to fill
 
 # Template on modfying spreadsheet
@@ -70,11 +70,9 @@ chesscol = 9
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("ProfileCMD: Cog Loaded!")
 
     @commands.group(invoke_without_command=True)
     async def profile(self, ctx, *, profile: discord.Member = None):
-        print(profile)
         databaseData = [
             database.PortalbotProfile.DiscordName,
             database.PortalbotProfile.DiscordLongID,
@@ -94,10 +92,8 @@ class ProfileCMD(commands.Cog):
 
         if profile == None:
             username = ctx.message.author
-            print(username)
         else:
             username = profile
-            print(username)
 
         aname = str(username.name)
         if username.nick == None:
@@ -106,7 +102,6 @@ class ProfileCMD(commands.Cog):
             anick = str(username.nick)
 
         longid = str(username.id)
-        print(longid)
         pfp = username.avatar.url
         profileembed = discord.Embed(title=anick + "'s Profile",
                                      description="=======================",
@@ -682,17 +677,14 @@ class ProfileCMD(commands.Cog):
 
     @profile.command()
     async def canvas(self, ctx, *, profile: discord.Member = None):
-        print(profile)
         author = ctx.message.author
         role = discord.utils.get(ctx.guild.roles, name="Realm OP")
         channel = ctx.message.channel
 
         if profile == None:
             username = ctx.message.author
-            print(username)
         else:
             username = profile
-            print(username)
 
         aname = str(username.name)
         if username.nick == None:
@@ -710,7 +702,6 @@ class ProfileCMD(commands.Cog):
         try:
             usercell = profilesheet.find(username_re, in_column=1)
         except:
-            print("User Not Found")
             noprofileembed = discord.Embed(
                 title="Sorry",
                 description=author.mention + "\n" +
@@ -718,8 +709,6 @@ class ProfileCMD(commands.Cog):
                 color=0x18c927)
             await ctx.send(embed=noprofileembed)
         else:
-            print("User Found!")
-
             userrow = usercell.row
             discordname = profilesheet.cell(userrow, discordcol).value
             longid = profilesheet.cell(userrow, longidcol).value
@@ -877,5 +866,5 @@ class ProfileCMD(commands.Cog):
             await ctx.send(file=File(buffer_output, 'myimage.png'))
 
 
-def setup(bot):
-    bot.add_cog(ProfileCMD(bot))
+async def setup(bot):
+    await bot.add_cog(ProfileCMD(bot))
