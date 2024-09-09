@@ -4,6 +4,16 @@ from discord.ext import commands
 from typing import Literal
 import discord
 
+from core import database
+from core.checks import (
+    slash_is_bot_admin_2,
+    slash_is_bot_admin_4,
+    slash_is_bot_admin_3,
+    slash_is_bot_admin,
+)
+
+load_dotenv()
+
 class AdminCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
