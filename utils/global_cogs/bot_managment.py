@@ -43,7 +43,7 @@ class CoreBotConfig(commands.Cog):
 
     @command()
     @slash_is_bot_admin_2
-    async def gitpull(
+    async def gitpull_old(
         self,
         interaction: discord.Interaction,
         # version: str,
