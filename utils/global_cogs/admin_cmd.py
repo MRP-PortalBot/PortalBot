@@ -12,8 +12,6 @@ from core.checks import (
     slash_is_bot_admin,
 )
 
-load_dotenv()
-
 class AdminCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
