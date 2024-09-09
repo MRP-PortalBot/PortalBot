@@ -110,9 +110,5 @@ class AdminCommands(commands.Cog):
         if sync_commands:
             await self.bot.tree.sync()
 
-# The get_extensions function must be defined elsewhere in your code
-def get_extensions():
-    return ["cogs.example", "cogs.another_cog"]
-
 async def setup(bot):
     await bot.add_cog(AdminCommands(bot))
