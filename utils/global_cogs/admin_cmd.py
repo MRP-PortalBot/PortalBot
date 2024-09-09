@@ -20,7 +20,7 @@ class AdminCommands(commands.Cog):
     @app_commands.command(name="gitpull_dev")
     @slash_is_bot_admin_2
     async def gitpull_dev(
-        self,
+	   self,
         interaction: discord.Interaction,
         mode: Literal["-a", "-c"] = "-a",  # Mode for action or cogs reload
         sync_commands: bool = False,       # Option to sync commands after pulling
@@ -33,7 +33,7 @@ class AdminCommands(commands.Cog):
 
         api_url = "https://control.sparkedhost.us/api/client/servers/fd90ffb0-108d-4e24-996a-dc9678174d76/command"
         headers = {
-            "Authorization": "Bearer ptlc_2jp6Kyd3f2pyPsTSDPNocqsmPXOGVTLP4l7z6mGUrjG",  # Replace with your actual API token
+            "Authorization": "Bearer YOUR_SECRET_TOKEN",  # Replace with your actual API token
             "Content-Type": "application/json"
         }
 
@@ -53,13 +53,20 @@ class AdminCommands(commands.Cog):
             await interaction.followup.send(f"⛔️ Unable to send command to SparkedHost!\n**Error:** {e}")
             return
 
-        # Step 2: Prepare the embed with the output
+        # Step 2: Split the output into chunks of 1024 characters (Discord's limit)
+        def split_output(output, chunk_size=1024):
+            return [output[i:i + chunk_size] for i in range(0, len(output), chunk_size)]
+
+        # Prepare the embed
         embed = discord.Embed(
             title="GitHub Local Reset",
             description="Executed git pull on the server via API",
             color=discord.Color.brand_green(),
         )
-        embed.add_field(name="API Response", value=f"```shell\n{output}\n```")
+
+        # Add each chunk of output as a field in the embed
+        for i, chunk in enumerate(split_output(output)):
+            embed.add_field(name=f"Part {i+1}", value=f"```shell\n{chunk}\n```", inline=False)
 
         # Step 3: Handle the mode of operation (-a for action, -c for cogs reload)
         if mode == "-a":
