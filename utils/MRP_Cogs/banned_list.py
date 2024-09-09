@@ -61,7 +61,7 @@ class BannedlistCMD(commands.Cog):
     @app_commands.describe(
         search_term="The term to search for in the banned list")
     @app_commands.checks.has_role("Realm OP")
-    async def _search(self, interaction: discord.Interaction, *, search_term: str):
+    async def search(self, interaction: discord.Interaction, *, search_term: str):
         databaseData = [
             database.MRP_Blacklist_Data.DiscUsername,
             database.MRP_Blacklist_Data.DiscID,
