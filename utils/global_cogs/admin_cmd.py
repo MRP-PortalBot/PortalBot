@@ -45,10 +45,16 @@ class AdminCommands(commands.Cog):
         # Step 1: Send API request to SparkedHost to pull changes
         try:
             response = requests.post(api_url, json=data, headers=headers)
+            
+            # Check if the response contains valid JSON
             if response.status_code == 200:
-                output = response.json().get("message", "No output from server.")
+                try:
+                    output = response.json().get("message", "No output from server.")
+                except ValueError:  # Catching JSON parsing error
+                    output = f"⚠️ Invalid JSON response received:\n{response.text}"
             else:
                 output = f"Error: {response.status_code} - {response.text}"
+
         except Exception as e:
             await interaction.followup.send(f"⛔️ Unable to send command to SparkedHost!\n**Error:** {e}")
             return
@@ -64,7 +70,7 @@ class AdminCommands(commands.Cog):
             color=discord.Color.brand_green(),
         )
 
-        # Add each chunk of output as a field in the embed, checking for the total character limit
+        # Add each chunk of output as a field in the embed
         total_chars = 0
         for i, chunk in enumerate(split_output(output)):
             total_chars += len(chunk)
