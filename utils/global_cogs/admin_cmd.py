@@ -22,7 +22,7 @@ class AdminCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="gitpull dev")
+    @app_commands.command(name="gitpull_dev")
     @slash_is_bot_admin_2
     async def gitpull_dev(
         self,
