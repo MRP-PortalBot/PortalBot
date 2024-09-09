@@ -20,7 +20,7 @@ class AdminCommands(commands.Cog):
     @app_commands.command(name="gitpull_dev")
     @slash_is_bot_admin_2
     async def gitpull_dev(
-	   self,
+        self,
         interaction: discord.Interaction,
         mode: Literal["-a", "-c"] = "-a",  # Mode for action or cogs reload
         sync_commands: bool = False,       # Option to sync commands after pulling
@@ -64,8 +64,13 @@ class AdminCommands(commands.Cog):
             color=discord.Color.brand_green(),
         )
 
-        # Add each chunk of output as a field in the embed
+        # Add each chunk of output as a field in the embed, checking for the total character limit
+        total_chars = 0
         for i, chunk in enumerate(split_output(output)):
+            total_chars += len(chunk)
+            if total_chars > 6000:  # Check for total embed size limit
+                await interaction.followup.send("⚠️ Output exceeds Discord's embed character limit. Some output has been truncated.")
+                break
             embed.add_field(name=f"Part {i+1}", value=f"```shell\n{chunk}\n```", inline=False)
 
         # Step 3: Handle the mode of operation (-a for action, -c for cogs reload)
