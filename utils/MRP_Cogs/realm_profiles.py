@@ -29,7 +29,6 @@ class RealmProfiles(commands.Cog):
     )
 
     @RP.command(description="View a Realm Profile")  # Registering under RP
-    @slash_owns_realm_channel
     async def view(self, interaction: discord.Interaction):
         """View your Realm Profile."""
         await interaction.response.send_message("Viewing your Realm Profile.")
