@@ -46,49 +46,26 @@ class AdminCommands(commands.Cog):
         # Step 1: Send API request to SparkedHost to pull changes
         try:
             response = requests.post(api_url, json=data, headers=headers)
-            
-            # Check if the response contains valid JSON
+
+            # Check if the response was successful
             if response.status_code == 200:
-                try:
-                    output = response.json().get("message", "No output from server.")
-                except ValueError:  # Catching JSON parsing error
-                    output = f"⚠️ Invalid JSON response received:\n{response.text}"
+                status = "✅ Success: Git pull executed."
             else:
-                output = f"Error: {response.status_code} - {response.text}"
+                status = f"❌ Failure: {response.status_code} - {response.text}"
 
         except Exception as e:
-            await interaction.followup.send(f"⛔️ Unable to send command to SparkedHost!\n**Error:** {e}")
-            return
+            status = f"⛔️ Unable to send command to SparkedHost!\n**Error:** {e}"
 
-        # Step 2: Split the output into chunks of 1024 characters (Discord's limit)
-        def split_output(output, chunk_size=1024):
-            return [output[i:i + chunk_size] for i in range(0, len(output), chunk_size)]
-
-        # Prepare the embed
+        # Step 2: Send the simplified embed with success or failure message
         embed = discord.Embed(
             title="GitHub Local Reset",
-            description="Executed git pull on the server via API",
-            color=discord.Color.brand_green(),
+            description=status,
+            color=discord.Color.green() if "Success" in status else discord.Color.red(),
         )
-
-        # Add each chunk of output as a field in the embed
-        total_chars = 0
-        for i, chunk in enumerate(split_output(output)):
-            total_chars += len(chunk)
-            if total_chars > 6000:  # Check for total embed size limit
-                await interaction.followup.send("⚠️ Output exceeds Discord's embed character limit. Some output has been truncated.")
-                break
-            embed.add_field(name=f"Part {i+1}", value=f"```shell\n{chunk}\n```", inline=False)
-
-        # Step 3: Handle the mode of operation (-a for action, -c for cogs reload)
-        if mode == "-a":
-            embed.set_footer(text="Attempting to restart the bot...")
-        elif mode == "-c":
-            embed.set_footer(text="Attempting to reload cogs...")
 
         await interaction.followup.send(embed=embed)
 
-        # Step 4: Handle specific modes (unsupported bot restart or cogs reload)
+        # Step 3: Handle mode-specific behavior (restart or reload)
         if mode == "-a":
             await interaction.followup.send("Bot restart is not supported on this server.")
             # Add logic for bot restart here if SparkedHost allows
@@ -110,7 +87,7 @@ class AdminCommands(commands.Cog):
                 )
                 await interaction.followup.send(embed=embed)
 
-        # Step 5: Optionally sync the bot commands
+        # Step 4: Optionally sync the bot commands
         if sync_commands:
             await self.bot.tree.sync()
 
