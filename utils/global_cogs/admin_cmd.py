@@ -33,6 +33,10 @@ class AdminCommands(commands.Cog):
         """
         Fetch and reset the bot's codebase from Git. Be careful: This can break things!
         """
+
+        # Defer the interaction response to avoid timeout
+        await interaction.response.defer()
+
         output = ""
         branch = "origin/dev"
 
@@ -47,7 +51,7 @@ class AdminCommands(commands.Cog):
             )
             output += p.stdout
         except subprocess.CalledProcessError as e:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"⛔️ Unable to pull the latest changes!\n**Error:**\n{e}"
             )
             return
@@ -63,7 +67,7 @@ class AdminCommands(commands.Cog):
             )
             output += p.stdout
         except subprocess.CalledProcessError as e:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"⛔️ Unable to apply changes!\n**Error:**\n{e}"
             )
             return
@@ -82,12 +86,11 @@ class AdminCommands(commands.Cog):
         elif mode == "-c":
             embed.set_footer(text="Attempting to reload cogs...")
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
         # Step 5: Handle specific modes (unsupported bot restart or cogs reload)
         if mode == "-a":
             await interaction.followup.send("Bot restart is not supported on this server.")
-            # This feature would depend on the host allowing restarts.
         elif mode == "-c":
             try:
                 embed = discord.Embed(
