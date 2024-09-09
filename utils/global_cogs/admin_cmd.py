@@ -33,7 +33,7 @@ class AdminCommands(commands.Cog):
 
         api_url = "https://control.sparkedhost.us/api/client/servers/fd90ffb0-108d-4e24-996a-dc9678174d76/command"
         headers = {
-            "Authorization": "Bearer YOUR_SECRET_TOKEN",  # Replace with your actual API token
+            "Authorization": "Bearer ptlc_bfSHIbFfRR4VJ7LornXjrg6IqiekjkFyS20YjNQd11V",  # Replace with your actual API token
             "Content-Type": "application/json"
         }
 
