@@ -1,4 +1,5 @@
 import requests
+import os
 import subprocess
 from discord import app_commands
 from discord.ext import commands
@@ -33,7 +34,7 @@ class AdminCommands(commands.Cog):
 
         api_url = "https://control.sparkedhost.us/api/client/servers/fd90ffb0-108d-4e24-996a-dc9678174d76/command"
         headers = {
-            "Authorization": "Bearer ptlc_bfSHIbFfRR4VJ7LornXjrg6IqiekjkFyS20YjNQd11V",  # Replace with your actual API token
+            "Authorization": "Bearer " + os.getenv('bearer_token'),  # Replace with your actual API token
             "Content-Type": "application/json"
         }
 
