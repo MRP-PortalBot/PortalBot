@@ -12,13 +12,19 @@ from core.checks import (
     slash_is_bot_admin,
 )
 
+import subprocess
+from discord import app_commands
+from discord.ext import commands
+from typing import Literal
+import discord
+
 class AdminCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="gitpull")
+    @app_commands.command(name="gitpull dev")
     @slash_is_bot_admin_2
-    async def gitpull(
+    async def gitpull_dev(
         self,
         interaction: discord.Interaction,
         mode: Literal["-a", "-c"] = "-a",  # Mode for action or cogs reload
@@ -28,12 +34,13 @@ class AdminCommands(commands.Cog):
         Fetch and reset the bot's codebase from Git. Be careful: This can break things!
         """
         output = ""
-        branch = "origin/main"
+        branch = "origin/dev"
 
-        # Step 1: Fetch the latest changes from the remote repository
+        # Step 1: Check if `.git` directory exists and pull the latest changes
         try:
             p = subprocess.run(
-                ["git", "fetch", "--all"],
+                "if [[ -d .git ]]; then git pull; fi",
+                shell=True,
                 text=True,
                 capture_output=True,
                 check=True,
@@ -41,14 +48,15 @@ class AdminCommands(commands.Cog):
             output += p.stdout
         except subprocess.CalledProcessError as e:
             await interaction.response.send_message(
-                f"⛔️ Unable to fetch the current repo header!\n**Error:**\n{e}"
+                f"⛔️ Unable to pull the latest changes!\n**Error:**\n{e}"
             )
             return
 
         # Step 2: Reset the local repository to the specified branch
         try:
             p = subprocess.run(
-                ["git", "reset", "--hard", branch],
+                f"git reset --hard {branch}",
+                shell=True,
                 text=True,
                 capture_output=True,
                 check=True,
