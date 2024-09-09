@@ -32,7 +32,7 @@ class AdminCommands(commands.Cog):
         # Defer the interaction to prevent timeout
         await interaction.response.defer()
 
-        api_url = "https://control.sparkedhost.us/api/client/servers/fd90ffb0-108d-4e24-996a-dc9678174d76/command"
+        api_url = "https://control.sparkedhost.us/api/client/servers/cb3b6722/command"
         headers = {
             "Authorization": "Bearer " + os.getenv('bearer_token'),  # Replace with your actual API token
             "Content-Type": "application/json"
