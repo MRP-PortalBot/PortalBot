@@ -2,6 +2,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord import Interaction
 from discord.app_commands.errors import CheckFailure
+from core.database import RealmProfile
 
 class RealmProfiles(commands.Cog):
     def __init__(self, bot):
