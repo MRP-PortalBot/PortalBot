@@ -3,6 +3,7 @@ name: Sync with Panel
 on:
   push:
     branches:
+      - main
       - dev
 
 jobs:
@@ -13,4 +14,4 @@ jobs:
         with:
           panel-url: ${{ secrets.PANEL_URL }}
           api-key: ${{ secrets.API_KEY }}
-          server-id: ${{ secrets.SERVER_ID_DEV }}
+          server-id: ${{ github.ref == 'refs/heads/main' && secrets.SERVER_ID_MAIN || secrets.SERVER_ID_DEV }}
