@@ -11,6 +11,6 @@ jobs:
     steps:
       - uses: hwalker928/ptero-gitsync@v1.0
         with:
-          panel-url: ${{ secrets.PANEL_URL }}
+          panel-url: ${{ secrets.PANEL_URL_DEV }}
           api-key: ${{ secrets.API_KEY }}
-          server-id: ${{ secrets.SERVER_ID }}
+          server-id: ${{ secrets.SERVER_ID_DEV }}
