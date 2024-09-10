@@ -13,10 +13,9 @@ class RealmProfiles(commands.Cog):
     )
 
     @RP.command(description="Configure a Realm Profile")
-    @slash_owns_realm_channel
     async def setup(
         self, interaction: Interaction,
-        realm_name: str = None,
+        realm_name: str,
         realm_emoji: str,
         pvp: bool,
         one_player_sleep: bool,
