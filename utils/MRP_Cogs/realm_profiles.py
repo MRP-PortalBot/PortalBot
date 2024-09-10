@@ -14,6 +14,34 @@ class RealmProfiles(commands.Cog):
         description="View/Configure your Realm Profile.",
     )
 
+    @RP.command(description="View a Realm Profile")
+    async def view(self, interaction: discord.Interaction, realm_name: str = None):
+        """View the details of a Realm Profile."""
+        # Use the provided realm_name or default to the channel name
+        realm_name = realm_name if realm_name else interaction.channel.name
+        
+        # Query the RealmProfile from the database
+        realm_profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
+
+        if realm_profile:
+            # Create an embed to display the profile information
+            embed = discord.Embed(
+                title=f"{realm_profile.realm_emoji} {realm_profile.realm_name} - Realm Profile",
+                color=discord.Color.blue()
+            )
+            embed.add_field(name="Realm Name", value=realm_profile.realm_name, inline=False)
+            embed.add_field(name="Description", value=realm_profile.realm_long_desc, inline=False)
+            embed.add_field(name="PvP", value="Enabled" if realm_profile.pvp else "Disabled", inline=True)
+            embed.add_field(name="One Player Sleep", value="Enabled" if realm_profile.one_player_sleep else "Disabled", inline=True)
+            embed.add_field(name="World Age", value=realm_profile.world_age, inline=True)
+            embed.add_field(name="Realm Style", value=realm_profile.realm_style, inline=True)
+            embed.add_field(name="Game Mode", value=realm_profile.gamemode, inline=True)
+
+            await interaction.response.send_message(embed=embed)
+        else:
+            # Send a message if no profile was found for the specified realm
+            await interaction.response.send_message(f"No profile found for realm '{realm_name}'", ephemeral=True)
+
     @RP.command(description="Configure a Realm Profile")
     async def setup(
         self, interaction: Interaction,
