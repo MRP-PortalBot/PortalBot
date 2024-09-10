@@ -1,0 +1,16 @@
+name: Sync with Panel
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hwalker928/ptero-gitsync@v1.0
+        with:
+          panel-url: ${{ secrets.PANEL_URL }}
+          api-key: ${{ secrets.API_KEY }}
+          server-id: ${{ secrets.SERVER_ID_DEV }}
