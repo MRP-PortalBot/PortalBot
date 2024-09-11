@@ -101,7 +101,7 @@ class ProfileCMD(commands.Cog):
 
     async def generate_profile_canvas(self, interaction: discord.Interaction, profile, avatar_url):
         """
-        Generates a profile canvas similar to the given image example.
+        Generates a profile canvas using data from the PortalbotProfile database.
         """
         # Define the canvas size
         WIDTH, HEIGHT = 740, 260
@@ -142,12 +142,23 @@ class ProfileCMD(commands.Cog):
             font = ImageFont.load_default()
             small_font = ImageFont.load_default()
 
-        # Username
-        username = profile.display_name
+        # Fetch profile data from the database
+        longid = str(profile.id)
+        try:
+            query = database.PortalbotProfile.get(database.PortalbotProfile.DiscordLongID == longid)
+        except database.PortalbotProfile.DoesNotExist:
+            await interaction.response.send_message("No profile found for this user.")
+            return
+
+        # Username and other profile data
+        username = query.DiscordName
+        rep_text = "+7 rep"  # Example reputation, you can update this dynamically if needed
+        score_text = f"Server Score: {query.ServerScore}" if hasattr(query, 'ServerScore') else "Server Score: N/A"
+
+        # Draw the username
         draw.text((PADDING + AVATAR_SIZE + 20, PADDING), username, font=font, fill=(255, 255, 255, 255))
 
         # Reputation section (e.g. "+7 rep")
-        rep_text = "+7 rep"
         rep_bg_color = (150, 150, 255, 255)  # Light blue for reputation background
         rep_box_x, rep_box_y = PADDING, PADDING + AVATAR_SIZE + 10
         draw.rounded_rectangle(
@@ -158,19 +169,18 @@ class ProfileCMD(commands.Cog):
         draw.text((rep_box_x + 10, rep_box_y + 10), rep_text, font=small_font, fill=(255, 255, 255, 255))
 
         # Server score
-        score_text = "Server Score: 118050"
         score_x = PADDING + AVATAR_SIZE + 20
         score_y = PADDING + 50
         draw.text((score_x, score_y), score_text, font=small_font, fill=(255, 255, 255, 255))
 
         # Level (e.g. "#4")
-        level_text = "#4"
+        level_text = "#4"  # Example level, you can update this dynamically if needed
         level_font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 60)
         level_x = WIDTH - PADDING - 80
         draw.text((level_x, PADDING), level_text, font=level_font, fill=(255, 255, 255, 255))
 
         # Draw a text box with "All roles earned"
-        all_roles_text = "All roles earned!"
+        all_roles_text = query.Role if hasattr(query, 'Role') else "All roles earned!"
         all_roles_x = score_x
         all_roles_y = score_y + 40
         draw.text((all_roles_x, all_roles_y), all_roles_text, font=small_font, fill=(200, 200, 200, 255))
