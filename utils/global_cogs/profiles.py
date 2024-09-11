@@ -136,8 +136,8 @@ class ProfileCMD(commands.Cog):
 
         # Fonts
         try:
-            font = ImageFont.truetype("arial.ttf", 40)  # System font for username
-            small_font = ImageFont.truetype("arial.ttf", 20)
+            font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 40)  # System font for username
+            small_font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 20)
         except IOError:
             font = ImageFont.load_default()
             small_font = ImageFont.load_default()
