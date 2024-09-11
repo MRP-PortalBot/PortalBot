@@ -120,8 +120,8 @@ class ProfileCMD(commands.Cog):
         image.paste(avatar_image, (50, 50), avatar_circle)
 
         # Fonts and Text Positions
-        font = ImageFont.truetype("./fonts/OpenSansEmoji.ttf", 40)  # Custom font for the profile name
-        small_font = ImageFont.truetype("./fonts/OpenSansEmoji.ttf", 20)
+        font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 40)  # Custom font for the profile name
+        small_font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 20)
 
         # Profile Info Text (Username, ID, etc.)
         draw.text((200, 50), profile.display_name, font=font, fill=(255, 255, 255, 255))  # Username
