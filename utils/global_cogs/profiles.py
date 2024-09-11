@@ -165,7 +165,7 @@ class ProfileCMD(commands.Cog):
 
         # Level (e.g. "#4")
         level_text = "#4"
-        level_font = ImageFont.truetype("arial.ttf", 60)
+        level_font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 60)
         level_x = WIDTH - PADDING - 80
         draw.text((level_x, PADDING), level_text, font=level_font, fill=(255, 255, 255, 255))
 
