@@ -104,7 +104,7 @@ class ProfileCMD(commands.Cog):
         Generates a profile canvas using the provided background image.
         """
         # Load the custom background image
-        background_image_path = '/core/images/profilebackground3.png'
+        background_image_path = './core/images/profilebackground3.png'
         background_image = Image.open(background_image_path).convert('RGBA')
 
         # Define the canvas size (keeping it the same as the background image)
