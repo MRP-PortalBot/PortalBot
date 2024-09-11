@@ -6,6 +6,7 @@ import discord
 from PIL import Image, ImageDraw, ImageFont
 from discord import File
 from discord.ext import commands
+from discord import app_commands
 from core import database
 from core.logging_module import get_log
 
@@ -14,44 +15,26 @@ _log = get_log(__name__)
 # Load the background image
 background_image = Image.open('./core/images/profilebackground2.png').convert('RGBA')
 
-# ------------------- Google Sheets Configuration -------------------
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    'https://www.googleapis.com/auth/spreadsheets',
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive"
-]
-
-creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
-client = gspread.authorize(creds)
-
-try:
-    profilesheet = client.open("PortalbotProfile").sheet1
-    sheet = client.open("MRP Bannedlist Data").sheet1
-except Exception as e:
-    _log.error(f"Error: {e}")
-
 # ------------------- Profile Command Cog -------------------
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.group(invoke_without_command=True)
-    async def profile(self, ctx, *, profile: discord.Member = None):
+    # Slash command to view a profile
+    @app_commands.command(name="profile", description="Displays the profile of a user.")
+    async def profile(self, interaction: discord.Interaction, profile: discord.Member = None):
         """
-        Displays the profile of a user. If no user is specified, displays the author's profile.
+        Slash command to display a profile.
+        If no user is specified, displays the author's profile.
         """
         if profile is None:
-            profile = ctx.author
+            profile = interaction.user
 
         profile_embed = await self.generate_profile_embed(profile)
         if profile_embed:
-            await ctx.send(embed=profile_embed)
+            await interaction.response.send_message(embed=profile_embed)
         else:
-            await ctx.send(f"No profile found for {profile.mention}")
+            await interaction.response.send_message(f"No profile found for {profile.mention}")
 
     async def generate_profile_embed(self, profile: discord.Member):
         """
@@ -94,43 +77,35 @@ class ProfileCMD(commands.Cog):
         else:
             return None
 
-    @profile.error
-    async def profile_error(self, ctx, error):
+    # Slash command to edit a profile (placeholder)
+    @app_commands.command(name="profile_edit", description="Allows the user to edit their profile.")
+    async def edit(self, interaction: discord.Interaction):
         """
-        Error handler for the profile command.
+        Slash command placeholder for editing profile information.
         """
-        if isinstance(error, commands.UserNotFound):
-            await ctx.send(f"Sorry, {ctx.author.mention}, no user by that name was found.")
-        else:
-            raise error
+        await interaction.response.send_message("Editing your profile... (placeholder for the edit command)")
 
-    @profile.command()
-    async def edit(self, ctx):
+    # Slash command to generate profile canvas
+    @app_commands.command(name="profile_canvas", description="Generates a profile image on a canvas.")
+    async def canvas(self, interaction: discord.Interaction, profile: discord.Member = None):
         """
-        Allows the user to edit their profile information.
-        """
-        await ctx.send("Editing your profile... (placeholder for the edit command)")
-
-    @profile.command()
-    async def canvas(self, ctx, *, profile: discord.Member = None):
-        """
-        Generates a profile image on a canvas.
+        Slash command to generate a profile image on a canvas.
         """
         if profile is None:
-            profile = ctx.author
+            profile = interaction.user
 
         avatar_url = profile.display_avatar.url
         profile_embed = await self.generate_profile_embed(profile)
 
         if profile_embed:
-            await ctx.send(embed=profile_embed)
+            await interaction.response.send_message(embed=profile_embed)
         else:
-            await ctx.send(f"No profile found for {profile.mention}")
+            await interaction.response.send_message(f"No profile found for {profile.mention}")
 
         # Avatar and Canvas Logic (using PIL)...
-        await self.generate_profile_canvas(ctx, profile, avatar_url)
+        await self.generate_profile_canvas(interaction, profile, avatar_url)
 
-    async def generate_profile_canvas(self, ctx, profile, avatar_url):
+    async def generate_profile_canvas(self, interaction: discord.Interaction, profile, avatar_url):
         """
         Generates a profile canvas with the user's avatar.
         """
@@ -153,7 +128,7 @@ class ProfileCMD(commands.Cog):
         image.save(buffer_output, format="PNG")
         buffer_output.seek(0)
 
-        await ctx.send(file=File(fp=buffer_output, filename="profile_canvas.png"))
+        await interaction.followup.send(file=File(fp=buffer_output, filename="profile_canvas.png"))
 
 # Set up the cog
 async def setup(bot):
