@@ -39,48 +39,45 @@ class ProfileCMD(commands.Cog):
     async def generate_profile_embed(self, profile: discord.Member):
         """
         Helper function to generate a fancy profile embed for a user.
+        This pulls data from the PortalbotProfile table in the database.
         """
-        longid = str(profile.id)
+        longid = str(profile.id)  # Get the user's Discord ID
         avatar_url = profile.display_avatar.url
 
-        # Query the profile from the database
-        query = database.PortalbotProfile.select().where(
-            database.PortalbotProfile.DiscordLongID == longid
-        )
-        
-        if query.exists():
-            profile_data = query.get()
-            
-            # Creating the embed with a custom color and footer
-            embed = discord.Embed(
-                title=f"{profile.display_name}'s Profile",
-                description=f"**Profile for {profile.display_name}**",
-                color=discord.Color.blurple()  # Fancy blurple color
-            )
-            embed.set_thumbnail(url=avatar_url)  # Set profile picture as thumbnail
-            embed.set_footer(text="Generated with PortalBot")  # Add a custom footer
-
-            # Use emojis to improve the field display
-            embed.add_field(name="👤 Discord Name", value=profile_data.DiscordName, inline=True)
-            embed.add_field(name="🆔 Long ID", value=profile_data.DiscordLongID, inline=True)
-
-            # Add profile fields dynamically with icons/emojis
-            if profile_data.Timezone != "None":
-                embed.add_field(name="🕓 Timezone", value=profile_data.Timezone, inline=False)
-            if profile_data.XBOX != "None":
-                embed.add_field(name="🎮 XBOX Gamertag", value=profile_data.XBOX, inline=False)
-            if profile_data.Playstation != "None":
-                embed.add_field(name="🎮 Playstation ID", value=profile_data.Playstation, inline=False)
-            if profile_data.Switch != "None":
-                embed.add_field(name="🎮 Switch Friend Code", value=profile_data.Switch, inline=False)
-            if profile_data.PokemonGo != "None":
-                embed.add_field(name="🕹️ Pokemon Go ID", value=profile_data.PokemonGo, inline=False)
-            if profile_data.Chessdotcom != "None":
-                embed.add_field(name="♟️ Chess.com ID", value=profile_data.Chessdotcom, inline=False)
-            
-            return embed
-        else:
+        # Query the profile from the PortalbotProfile database using Peewee
+        try:
+            query = database.PortalbotProfile.get(database.PortalbotProfile.DiscordLongID == longid)
+        except database.PortalbotProfile.DoesNotExist:
             return None
+        
+        # If profile exists, create a fancy embed
+        embed = discord.Embed(
+            title=f"{profile.display_name}'s Profile",
+            description=f"**Profile for {profile.display_name}**",
+            color=discord.Color.blurple()  # Fancy blurple color
+        )
+        embed.set_thumbnail(url=avatar_url)  # Set profile picture as thumbnail
+        embed.set_footer(text="Generated with PortalBot")  # Add a custom footer
+
+        # Use emojis to improve the field display
+        embed.add_field(name="👤 Discord Name", value=query.DiscordName, inline=True)
+        embed.add_field(name="🆔 Long ID", value=query.DiscordLongID, inline=True)
+
+        # Add profile fields dynamically with icons/emojis
+        if query.Timezone != "None":
+            embed.add_field(name="🕓 Timezone", value=query.Timezone, inline=False)
+        if query.XBOX != "None":
+            embed.add_field(name="🎮 XBOX Gamertag", value=query.XBOX, inline=False)
+        if query.Playstation != "None":
+            embed.add_field(name="🎮 Playstation ID", value=query.Playstation, inline=False)
+        if query.Switch != "None":
+            embed.add_field(name="🎮 Switch Friend Code", value=query.Switch, inline=False)
+        if query.PokemonGo != "None":
+            embed.add_field(name="🕹️ Pokemon Go ID", value=query.PokemonGo, inline=False)
+        if query.Chessdotcom != "None":
+            embed.add_field(name="♟️ Chess.com ID", value=query.Chessdotcom, inline=False)
+
+        return embed
 
     # Slash command to generate profile canvas as an image
     @app_commands.command(name="profile_canvas", description="Generates a profile image on a canvas.")
