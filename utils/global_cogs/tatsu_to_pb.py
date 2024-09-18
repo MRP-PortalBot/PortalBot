@@ -8,7 +8,7 @@ from core.common import load_config
 config, _ = load_config()
 
 # Initialize the API wrapper with your Tatsu API key
-wrapper = ApiWrapper(key="EeQlkBOyMi-wpTarZ98XYjS2pZscJ2TNfKEY")
+wrapper = ApiWrapper(key="EeQlkBOyMi-wpTarZ98XYjS2pZscJ2TNf")
 
 class TatsuScoreCog(commands.Cog):
     def __init__(self, bot):
