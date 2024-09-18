@@ -49,23 +49,28 @@ class TatsuScoreCog(commands.Cog):
             print(f"Error fetching Tatsu score for user {user_id}: {e}")
 
     @app_commands.command(name="update_scores")
-    async def update_all_scores(self, ctx):
+    async def update_all_scores(self, interaction: discord.Interaction):
         """
         Command to update all user scores in the current guild from Tatsu API.
         """
-        guild = ctx.guild
+        guild = interaction.guild
         MRPguild = self.bot.get_guild(config['MRP'])
+
+        if MRPguild is None:
+            await interaction.response.send_message("MRP guild not found. Please check if the bot is in the correct guild and that the ID is valid.")
+            return
+
         user_list = guild.members  # Fetch all members in the guild
         mrp_user_list = MRPguild.members
 
-        await ctx.send(f"Updating scores for {len(mrp_user_list)} members in {MRPguild.name}...")
+        await interaction.response.send_message(f"Updating scores for {len(mrp_user_list)} members in {MRPguild.name}...")
 
         for user in mrp_user_list:
             user_id = user.id
             user_name = user.display_name
             await self.fetch_and_store_scores(MRPguild.id, user_id, user_name)
 
-        await ctx.send(f"Scores updated for {len(user_list)} members.")
+        await interaction.followup.send(f"Scores updated for {len(user_list)} members.")
 
 # Adding the cog to the bot
 async def setup(bot):
