@@ -134,8 +134,8 @@ class PortalbotProfile(BaseModel):
     XBOX = TextField(default="None")
     Playstation = TextField(default="None")
     Switch = TextField(default="None")
-    PokemonGo = TextField(default="None")
-    Chessdotcom = TextField(default="None")
+    RealmsJoined = TextField(default="None")
+    RealmsAdmin = TextField(default="None")
 
 
 class RealmProfile(BaseModel):
@@ -301,6 +301,28 @@ class RealmApplications(BaseModel):
     timestamp = TimestampField()
 
 
+class ServerScores(BaseModel):
+    """
+    ServerScores:
+    Stores the score for each user in different servers.
+
+    `ScoreID`: AutoField()
+    Unique ID for each score entry.
+
+    `DiscordLongID`: Foreign key to the PortalbotProfile.
+    Link to the user profile.
+
+    `ServerID`: TextField()
+    The ID of the server where the score was achieved.
+
+    `Score`: IntegerField()
+    The score the user has in that particular server.
+    """
+    ScoreID = AutoField()
+    DiscordLongID = TextField()  # Foreign key to PortalbotProfile
+    ServerID = TextField()
+    Score = IntegerField()
+
 app = Flask(__name__)
 
 
@@ -325,6 +347,7 @@ tables = {
     "blacklist": MRP_Blacklist_Data,
     "profile": PortalbotProfile,
     "realmprofile": RealmProfile,
+    "serverscores": ServerScores,
     "administrators": Administrators,
     "questionsuggestionqueue": QuestionSuggestionQueue,
     "realmapplications": RealmApplications,
