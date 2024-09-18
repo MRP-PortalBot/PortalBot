@@ -89,7 +89,6 @@ class ProfileCMD(commands.Cog):
         if not interaction.response.is_done():
             await interaction.response.defer()  # Defer the response to allow time for processing
 
-
         # Load the custom background image
         background_image_path = './core/images/profilebackground3.png'
         background_image = Image.open(background_image_path).convert('RGBA')
@@ -142,9 +141,13 @@ class ProfileCMD(commands.Cog):
         shadow_color = (0, 0, 0, 200)  # Black with transparency
         text_color = (255, 255, 255, 255)  # White text
 
+        # Username text alignment (aligned with the avatar)
+        text_x = PADDING + AVATAR_SIZE + 20
+        text_y = PADDING
+
         # Draw the username shadow
-        draw.text((PADDING + AVATAR_SIZE + 20 + shadow_offset, PADDING + shadow_offset), username, font=font, fill=shadow_color)
-        draw.text((PADDING + AVATAR_SIZE + 20, PADDING), username, font=font, fill=text_color)
+        draw.text((text_x + shadow_offset, text_y + shadow_offset), username, font=font, fill=shadow_color)
+        draw.text((text_x, text_y), username, font=font, fill=text_color)
 
         # Reputation section (e.g. "+7 rep")
         rep_bg_color = (150, 150, 255, 255)  # Light blue for reputation background
@@ -157,14 +160,14 @@ class ProfileCMD(commands.Cog):
         draw.text((rep_box_x + 10 + shadow_offset, rep_box_y + 10 + shadow_offset), rep_text, font=small_font, fill=shadow_color)
         draw.text((rep_box_x + 10, rep_box_y + 10), rep_text, font=small_font, fill=text_color)
 
-        # Server score
-        score_x = PADDING + AVATAR_SIZE + 20
-        score_y = PADDING + 50
+        # Server score text
+        score_x = text_x
+        score_y = text_y + 50
         draw.text((score_x + shadow_offset, score_y + shadow_offset), score_text, font=small_font, fill=shadow_color)
         draw.text((score_x, score_y), score_text, font=small_font, fill=text_color)
 
-        # Level (e.g. "#4")
-        level_text = "#4"  # Example level, you can update this dynamically if needed
+        # Level text (e.g., "#4")
+        level_text = "#4"  # Example level
         level_font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 60)
         level_x = WIDTH - PADDING - 80
         draw.text((level_x + shadow_offset, PADDING + shadow_offset), level_text, font=level_font, fill=shadow_color)
@@ -183,6 +186,7 @@ class ProfileCMD(commands.Cog):
         buffer_output.seek(0)
 
         await interaction.followup.send(file=File(fp=buffer_output, filename="profile_card.png"))
+
 
 
 # Set up the cog
