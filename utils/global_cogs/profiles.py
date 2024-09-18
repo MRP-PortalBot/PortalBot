@@ -90,7 +90,7 @@ class ProfileCMD(commands.Cog):
             await interaction.response.defer()  # Defer the response to allow time for processing
 
         # Load the custom background image
-        background_image_path = '/mnt/data/profilebackground3.png'
+        background_image_path = './core/image/profilebackground3.png'
         background_image = Image.open(background_image_path).convert('RGBA')
 
         # Define the canvas size (keeping it the same as the background image)
