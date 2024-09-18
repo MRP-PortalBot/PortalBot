@@ -89,6 +89,7 @@ class ProfileCMD(commands.Cog):
         if not interaction.response.is_done():
             await interaction.response.defer()  # Defer the response to allow time for processing
 
+
         # Load the custom background image
         background_image_path = './core/images/profilebackground3.png'
         background_image = Image.open(background_image_path).convert('RGBA')
@@ -113,9 +114,7 @@ class ProfileCMD(commands.Cog):
         mask_draw.ellipse((0, 0, AVATAR_SIZE, AVATAR_SIZE), fill=255)
         
         # Paste the avatar with the circular mask
-        avatar_x = PADDING
-        avatar_y = PADDING
-        image.paste(avatar_image, (avatar_x, avatar_y), mask)
+        image.paste(avatar_image, (PADDING, PADDING), mask)
 
         # Fonts
         try:
@@ -138,37 +137,45 @@ class ProfileCMD(commands.Cog):
         rep_text = "+7 rep"  # Example reputation, you can update this dynamically if needed
         score_text = f"Server Score: {query.ServerScore}" if hasattr(query, 'ServerScore') else "Server Score: N/A"
 
-        # Define the new X position for the text (aligned with the avatar)
-        text_x = avatar_x + AVATAR_SIZE + 20  # Start after the avatar image with some padding
-        text_y = PADDING
+        # Add text shadow for better readability (shifted black text behind the main white text)
+        shadow_offset = 2
+        shadow_color = (0, 0, 0, 200)  # Black with transparency
+        text_color = (255, 255, 255, 255)  # White text
 
-        # Draw the username
-        draw.text((text_x, text_y), username, font=font, fill=(255, 255, 255, 255))
+        # Draw the username shadow
+        draw.text((PADDING + AVATAR_SIZE + 20 + shadow_offset, PADDING + shadow_offset), username, font=font, fill=shadow_color)
+        draw.text((PADDING + AVATAR_SIZE + 20, PADDING), username, font=font, fill=text_color)
 
         # Reputation section (e.g. "+7 rep")
         rep_bg_color = (150, 150, 255, 255)  # Light blue for reputation background
-        rep_box_x, rep_box_y = avatar_x, avatar_y + AVATAR_SIZE + 10
+        rep_box_x, rep_box_y = PADDING, PADDING + AVATAR_SIZE + 10
         draw.rounded_rectangle(
             [(rep_box_x, rep_box_y), (rep_box_x + REP_SIZE * 2, rep_box_y + REP_SIZE)],
             radius=10,
             fill=rep_bg_color
         )
-        draw.text((rep_box_x + 10, rep_box_y + 10), rep_text, font=small_font, fill=(255, 255, 255, 255))
+        draw.text((rep_box_x + 10 + shadow_offset, rep_box_y + 10 + shadow_offset), rep_text, font=small_font, fill=shadow_color)
+        draw.text((rep_box_x + 10, rep_box_y + 10), rep_text, font=small_font, fill=text_color)
 
         # Server score
-        score_y = text_y + 50
-        draw.text((text_x, score_y), score_text, font=small_font, fill=(255, 255, 255, 255))
+        score_x = PADDING + AVATAR_SIZE + 20
+        score_y = PADDING + 50
+        draw.text((score_x + shadow_offset, score_y + shadow_offset), score_text, font=small_font, fill=shadow_color)
+        draw.text((score_x, score_y), score_text, font=small_font, fill=text_color)
 
         # Level (e.g. "#4")
         level_text = "#4"  # Example level, you can update this dynamically if needed
         level_font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 60)
         level_x = WIDTH - PADDING - 80
-        draw.text((level_x, PADDING), level_text, font=level_font, fill=(255, 255, 255, 255))
+        draw.text((level_x + shadow_offset, PADDING + shadow_offset), level_text, font=level_font, fill=shadow_color)
+        draw.text((level_x, PADDING), level_text, font=level_font, fill=text_color)
 
         # Draw a text box with "All roles earned"
         all_roles_text = query.Role if hasattr(query, 'Role') else "All roles earned!"
+        all_roles_x = score_x
         all_roles_y = score_y + 40
-        draw.text((text_x, all_roles_y), all_roles_text, font=small_font, fill=(200, 200, 200, 255))
+        draw.text((all_roles_x + shadow_offset, all_roles_y + shadow_offset), all_roles_text, font=small_font, fill=shadow_color)
+        draw.text((all_roles_x, all_roles_y), all_roles_text, font=small_font, fill=text_color)
 
         # Save the image to a buffer
         buffer_output = io.BytesIO()
