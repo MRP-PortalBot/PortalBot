@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from tatsu.wrapper import ApiWrapper
-import database
+from core import database
 from core.common import load_config
 
 config, _ = load_config()
