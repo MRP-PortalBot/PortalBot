@@ -30,16 +30,16 @@ class ProfileCMD(commands.Cog):
         if profile is None:
             profile = interaction.user
 
-        profile_embed = await self.generate_profile_embed(profile)
+        profile_embed = await self.generate_profile_embed(profile, interaction.guild.id)  # Passing guild_id to fetch score
         if profile_embed:
             await interaction.response.send_message(embed=profile_embed)
         else:
             await interaction.response.send_message(f"No profile found for {profile.mention}")
 
-    async def generate_profile_embed(self, profile: discord.Member):
+    async def generate_profile_embed(self, profile: discord.Member, guild_id: int):
         """
         Helper function to generate a fancy profile embed for a user.
-        This pulls data from the PortalbotProfile table in the database.
+        This pulls data from the PortalbotProfile table in the database, along with the server score.
         """
         longid = str(profile.id)  # Get the user's Discord ID
         avatar_url = profile.display_avatar.url
@@ -49,7 +49,16 @@ class ProfileCMD(commands.Cog):
             query = database.PortalbotProfile.get(database.PortalbotProfile.DiscordLongID == longid)
         except database.PortalbotProfile.DoesNotExist:
             return None
+
+        # Query the user's server score from ServerScores
+        score_query = ServerScores.get_or_none(
+            (ServerScores.DiscordLongID == longid) &
+            (ServerScores.ServerID == str(guild_id))
+        )
         
+        # If the score entry exists, get the score, otherwise show "N/A"
+        server_score = score_query.Score if score_query else "N/A"
+
         # If profile exists, create a fancy embed
         embed = discord.Embed(
             title=f"{profile.display_name}'s Profile",
@@ -63,6 +72,9 @@ class ProfileCMD(commands.Cog):
         embed.add_field(name="👤 Discord Name", value=query.DiscordName, inline=True)
         embed.add_field(name="🆔 Long ID", value=query.DiscordLongID, inline=True)
 
+        # Add server score
+        embed.add_field(name="💬 Server Score", value=server_score, inline=False)
+
         # Add profile fields dynamically with icons/emojis
         if query.Timezone != "None":
             embed.add_field(name="🕓 Timezone", value=query.Timezone, inline=False)
@@ -72,12 +84,16 @@ class ProfileCMD(commands.Cog):
             embed.add_field(name="🎮 Playstation ID", value=query.Playstation, inline=False)
         if query.Switch != "None":
             embed.add_field(name="🎮 Switch Friend Code", value=query.Switch, inline=False)
-        if query.PokemonGo != "None":
-            embed.add_field(name="🕹️ Pokemon Go ID", value=query.PokemonGo, inline=False)
-        if query.Chessdotcom != "None":
-            embed.add_field(name="♟️ Chess.com ID", value=query.Chessdotcom, inline=False)
+        
+        # Add RealmsJoined and RealmsAdmin fields if they are not "None"
+        if query.RealmsJoined != "None":  # Make sure it's not empty or default value
+            embed.add_field(name="🏰 Member of Realms", value=query.RealmsJoined, inline=False)
+        if query.RealmsAdmin != "None":  # Same check for RealmsAdmin
+            embed.add_field(name="🛡️ Admin of Realms", value=query.RealmsAdmin, inline=False)
 
         return embed
+
+
 
     # Slash command to generate profile canvas as an image
     @app_commands.command(name="profile_canvas", description="Generates a profile image on a canvas.")
@@ -131,10 +147,18 @@ class ProfileCMD(commands.Cog):
             await interaction.response.send_message("No profile found for this user.")
             return
 
+        # Fetch server score
+        guild_id = str(interaction.guild_id)
+        score_query = ServerScores.get_or_none(
+            (ServerScores.DiscordLongID == longid) &
+            (ServerScores.ServerID == guild_id)
+        )
+        server_score = score_query.Score if score_query else "N/A"
+
         # Username and other profile data
         username = query.DiscordName
         rep_text = "+7 rep"  # Example reputation, you can update this dynamically if needed
-        score_text = f"Server Score: {query.ServerScore}" if hasattr(query, 'ServerScore') else "Server Score: N/A"
+        score_text = f"Server Score: {server_score}"
 
         # Add text shadow for better readability (shifted black text behind the main white text)
         shadow_offset = 2
@@ -160,25 +184,11 @@ class ProfileCMD(commands.Cog):
         draw.text((rep_box_x + 10 + shadow_offset, rep_box_y + 10 + shadow_offset), rep_text, font=small_font, fill=shadow_color)
         draw.text((rep_box_x + 10, rep_box_y + 10), rep_text, font=small_font, fill=text_color)
 
-        # Server score text
+        # Server score
         score_x = text_x
         score_y = text_y + 50
         draw.text((score_x + shadow_offset, score_y + shadow_offset), score_text, font=small_font, fill=shadow_color)
         draw.text((score_x, score_y), score_text, font=small_font, fill=text_color)
-
-        # Level text (e.g., "#4")
-        level_text = "#4"  # Example level
-        level_font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 60)
-        level_x = WIDTH - PADDING - 80
-        draw.text((level_x + shadow_offset, PADDING + shadow_offset), level_text, font=level_font, fill=shadow_color)
-        draw.text((level_x, PADDING), level_text, font=level_font, fill=text_color)
-
-        # Draw a text box with "All roles earned"
-        all_roles_text = query.Role if hasattr(query, 'Role') else "All roles earned!"
-        all_roles_x = score_x
-        all_roles_y = score_y + 40
-        draw.text((all_roles_x + shadow_offset, all_roles_y + shadow_offset), all_roles_text, font=small_font, fill=shadow_color)
-        draw.text((all_roles_x, all_roles_y), all_roles_text, font=small_font, fill=text_color)
 
         # Save the image to a buffer
         buffer_output = io.BytesIO()
@@ -186,6 +196,7 @@ class ProfileCMD(commands.Cog):
         buffer_output.seek(0)
 
         await interaction.followup.send(file=File(fp=buffer_output, filename="profile_card.png"))
+
 
 
 
