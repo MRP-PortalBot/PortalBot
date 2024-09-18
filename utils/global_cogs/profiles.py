@@ -177,7 +177,7 @@ class ProfileCMD(commands.Cog):
         image.save(buffer_output, format="PNG")
         buffer_output.seek(0)
 
-        await interaction.followup.send(file=File(fp=buffer_output, filename="profile_card.png"))
+        await interaction.response(file=File(fp=buffer_output, filename="profile_card.png"))
 
 
 # Set up the cog
