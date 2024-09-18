@@ -4,6 +4,7 @@ import json
 import os
 import subprocess
 import traceback
+import asyncio
 from datetime import datetime
 from difflib import get_close_matches
 from pathlib import Path
@@ -16,8 +17,10 @@ from discord import app_commands
 from discord.ext import commands
 
 from core import database
-from core.common import ConsoleColors, Colors, Others, QuestionSuggestionManager, get_bot_data_id
+from core.common import ConsoleColors, Colors, Others, QuestionSuggestionManager, get_bot_data_id, load_config
 from core.logging_module import get_log
+
+config, _ = load_config()
 
 if TYPE_CHECKING:
     from main import PortalBot
@@ -58,6 +61,12 @@ async def before_invoke_(ctx: commands.Context):
         )"""
 
 
+import os
+import subprocess
+import discord
+import asyncio
+from datetime import datetime
+
 async def on_ready_(bot: 'PortalBot'):
     now = datetime.now()
     row_id = get_bot_data_id()
@@ -78,21 +87,21 @@ async def on_ready_(bot: 'PortalBot'):
         databaseField = f"{ConsoleColors.OKGREEN}Selected Database: External ({IP}){ConsoleColors.ENDC}"
     else:
         databaseField = (
-            f"{ConsoleColors.FAIL}Selected Database: localhost{ConsoleColors.ENDC}\n{ConsoleColors.WARNING}WARNING: Not "
-            f"recommended to use SQLite.{ConsoleColors.ENDC} "
+            f"{ConsoleColors.FAIL}Selected Database: localhost{ConsoleColors.ENDC}\n"
+            f"{ConsoleColors.WARNING}WARNING: Not recommended to use SQLite.{ConsoleColors.ENDC}"
         )
 
     try:
-        p = subprocess.run(
+        # Run subprocess asynchronously
+        process = await asyncio.create_subprocess_shell(
             "git describe --always",
-            shell=True,
-            text=True,
-            capture_output=True,
-            check=True,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
-        output = p.stdout
-    except subprocess.CalledProcessError:
-        output = "ERROR"
+        stdout, _ = await process.communicate()
+        output = stdout.decode().strip() if stdout else "ERROR"
+    except Exception as e:
+        output = f"ERROR: {str(e)}"
 
     print(
         f"""
@@ -111,7 +120,7 @@ async def on_ready_(bot: 'PortalBot'):
             {databaseField}
 
             {ConsoleColors.OKCYAN}Current Time: {now}{ConsoleColors.ENDC}
-            {ConsoleColors.OKGREEN}Cogs, libraries, and views have successfully been initalized.{ConsoleColors.ENDC}
+            {ConsoleColors.OKGREEN}Cogs, libraries, and views have successfully been initialized.{ConsoleColors.ENDC}
             ==================================================
             {ConsoleColors.WARNING}Statistics{ConsoleColors.ENDC}
 
@@ -119,6 +128,14 @@ async def on_ready_(bot: 'PortalBot'):
             Members: {len(bot.users)}
             """
     )
+
+    guild = bot.get_guild(config['PBtest'])  # Replace with actual guild ID or logic
+    githubchannel = discord.utils.get(guild.channels, name="github-log")
+
+    if githubchannel:
+        await githubchannel.send("Github Synced, and bot is restarted")
+    else:
+        print(f"{ConsoleColors.FAIL}Error: 'github-log' channel not found!{ConsoleColors.ENDC}")
 
 
 async def on_command_error_(bot, ctx: commands.Context, error: Exception):
