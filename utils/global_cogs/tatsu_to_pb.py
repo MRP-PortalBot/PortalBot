@@ -55,6 +55,7 @@ class TatsuScoreCog(commands.Cog):
         """
         guild = interaction.guild
         MRPguild = self.bot.get_guild(config['MRP'])
+        print (str(MRPguild))
 
         if MRPguild is None:
             await interaction.response.send_message("MRP guild not found. Please check if the bot is in the correct guild and that the ID is valid.")
