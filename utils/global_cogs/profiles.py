@@ -50,6 +50,8 @@ class ProfileCMD(commands.Cog):
         except database.PortalbotProfile.DoesNotExist:
             return None
 
+        ServerScores = database.ServerScores
+
         # Query the user's server score from ServerScores
         score_query = ServerScores.get_or_none(
             (ServerScores.DiscordLongID == longid) &

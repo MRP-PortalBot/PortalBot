@@ -319,6 +319,7 @@ class ServerScores(BaseModel):
     The score the user has in that particular server.
     """
     ScoreID = AutoField()
+    DiscordName = TextField()
     DiscordLongID = TextField()  # Foreign key to PortalbotProfile
     ServerID = TextField()
     Score = IntegerField()
