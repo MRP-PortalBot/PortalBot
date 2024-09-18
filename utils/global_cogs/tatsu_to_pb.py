@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 from tatsu.wrapper import ApiWrapper
 from core import database
@@ -47,7 +48,7 @@ class TatsuScoreCog(commands.Cog):
         except Exception as e:
             print(f"Error fetching Tatsu score for user {user_id}: {e}")
 
-    @commands.command(name="update_scores")
+    @app_commands.command(name="update_scores")
     async def update_all_scores(self, ctx):
         """
         Command to update all user scores in the current guild from Tatsu API.
