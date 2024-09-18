@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from tatsu.wrapper import ApiWrapper
+import asyncio  # Import asyncio for sleep function
 from core import database
 from core.common import load_config
 
@@ -55,14 +56,13 @@ class TatsuScoreCog(commands.Cog):
         """
         guild = interaction.guild
         MRPguild = self.bot.get_guild(config['MRP'])
-        print (str(MRPguild))
+        print(str(MRPguild))
 
         if MRPguild is None:
             await interaction.response.send_message("MRP guild not found. Please check if the bot is in the correct guild and that the ID is valid.")
             return
 
-        user_list = guild.members  # Fetch all members in the guild
-        mrp_user_list = MRPguild.members
+        mrp_user_list = MRPguild.members  # Fetch all members in the guild
 
         await interaction.response.send_message(f"Updating scores for {len(mrp_user_list)} members in {MRPguild.name}...")
 
@@ -70,8 +70,9 @@ class TatsuScoreCog(commands.Cog):
             user_id = user.id
             user_name = user.display_name
             await self.fetch_and_store_scores(MRPguild.id, user_id, user_name)
+            await asyncio.sleep(1.1)  # Add a 1.1 second delay to avoid rate limits
 
-        await interaction.followup.send(f"Scores updated for {len(user_list)} members.")
+        await interaction.followup.send(f"Scores updated for {len(mrp_user_list)} members.")
 
 # Adding the cog to the bot
 async def setup(bot):
