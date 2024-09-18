@@ -81,30 +81,12 @@ class ProfileCMD(commands.Cog):
 
     # Slash command to generate profile canvas as an image
     @app_commands.command(name="profile_canvas", description="Generates a profile image on a canvas.")
-    async def canvas(self, interaction: discord.Interaction, profile: discord.Member = None):
-        """
-        Slash command to generate a profile image on a canvas using Pillow.
-        """
-        if profile is None:
-            profile = interaction.user
-
-        avatar_url = profile.display_avatar.url
-        profile_embed = await self.generate_profile_embed(profile)
-
-        if profile_embed:
-            await interaction.response.send_message(embed=profile_embed)
-        else:
-            await interaction.response.send_message(f"No profile found for {profile.mention}")
-
-        # Generate profile card as an image
-        await self.generate_profile_canvas(interaction, profile, avatar_url)
-
     async def generate_profile_canvas(self, interaction: discord.Interaction, profile, avatar_url):
         """
-        Generates a profile canvas using the provided background image.
+        Generates a profile canvas using the provided background image with improved text readability.
         """
         # Load the custom background image
-        background_image_path = './core/images/profilebackground3.png'
+        background_image_path = '/mnt/data/profilebackground3.png'
         background_image = Image.open(background_image_path).convert('RGBA')
 
         # Define the canvas size (keeping it the same as the background image)
@@ -150,8 +132,14 @@ class ProfileCMD(commands.Cog):
         rep_text = "+7 rep"  # Example reputation, you can update this dynamically if needed
         score_text = f"Server Score: {query.ServerScore}" if hasattr(query, 'ServerScore') else "Server Score: N/A"
 
-        # Draw the username
-        draw.text((PADDING + AVATAR_SIZE + 20, PADDING), username, font=font, fill=(255, 255, 255, 255))
+        # Add text shadow for better readability (shifted black text behind the main white text)
+        shadow_offset = 2
+        shadow_color = (0, 0, 0, 200)  # Black with transparency
+        text_color = (255, 255, 255, 255)  # White text
+
+        # Draw the username shadow
+        draw.text((PADDING + AVATAR_SIZE + 20 + shadow_offset, PADDING + shadow_offset), username, font=font, fill=shadow_color)
+        draw.text((PADDING + AVATAR_SIZE + 20, PADDING), username, font=font, fill=text_color)
 
         # Reputation section (e.g. "+7 rep")
         rep_bg_color = (150, 150, 255, 255)  # Light blue for reputation background
@@ -161,24 +149,28 @@ class ProfileCMD(commands.Cog):
             radius=10,
             fill=rep_bg_color
         )
-        draw.text((rep_box_x + 10, rep_box_y + 10), rep_text, font=small_font, fill=(255, 255, 255, 255))
+        draw.text((rep_box_x + 10 + shadow_offset, rep_box_y + 10 + shadow_offset), rep_text, font=small_font, fill=shadow_color)
+        draw.text((rep_box_x + 10, rep_box_y + 10), rep_text, font=small_font, fill=text_color)
 
         # Server score
         score_x = PADDING + AVATAR_SIZE + 20
         score_y = PADDING + 50
-        draw.text((score_x, score_y), score_text, font=small_font, fill=(255, 255, 255, 255))
+        draw.text((score_x + shadow_offset, score_y + shadow_offset), score_text, font=small_font, fill=shadow_color)
+        draw.text((score_x, score_y), score_text, font=small_font, fill=text_color)
 
         # Level (e.g. "#4")
         level_text = "#4"  # Example level, you can update this dynamically if needed
         level_font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 60)
         level_x = WIDTH - PADDING - 80
-        draw.text((level_x, PADDING), level_text, font=level_font, fill=(255, 255, 255, 255))
+        draw.text((level_x + shadow_offset, PADDING + shadow_offset), level_text, font=level_font, fill=shadow_color)
+        draw.text((level_x, PADDING), level_text, font=level_font, fill=text_color)
 
         # Draw a text box with "All roles earned"
         all_roles_text = query.Role if hasattr(query, 'Role') else "All roles earned!"
         all_roles_x = score_x
         all_roles_y = score_y + 40
-        draw.text((all_roles_x, all_roles_y), all_roles_text, font=small_font, fill=(200, 200, 200, 255))
+        draw.text((all_roles_x + shadow_offset, all_roles_y + shadow_offset), all_roles_text, font=small_font, fill=shadow_color)
+        draw.text((all_roles_x, all_roles_y), all_roles_text, font=small_font, fill=text_color)
 
         # Save the image to a buffer
         buffer_output = io.BytesIO()
