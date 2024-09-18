@@ -85,6 +85,11 @@ class ProfileCMD(commands.Cog):
         """
         Generates a profile canvas using the provided background image with improved text readability.
         """
+        # Ensure interaction response before follow-up
+        if not interaction.response.is_done():
+            await interaction.response.defer()  # Defer the response to allow time for processing
+
+
         # Load the custom background image
         background_image_path = './core/images/profilebackground3.png'
         background_image = Image.open(background_image_path).convert('RGBA')
@@ -177,7 +182,7 @@ class ProfileCMD(commands.Cog):
         image.save(buffer_output, format="PNG")
         buffer_output.seek(0)
 
-        await interaction.response(file=File(fp=buffer_output, filename="profile_card.png"))
+        await interaction.followup.send(file=File(fp=buffer_output, filename="profile_card.png"))
 
 
 # Set up the cog
