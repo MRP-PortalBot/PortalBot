@@ -81,12 +81,12 @@ class ProfileCMD(commands.Cog):
 
     # Slash command to generate profile canvas as an image
     @app_commands.command(name="profile_canvas", description="Generates a profile image on a canvas.")
-    async def generate_profile_canvas(self, interaction: discord.Interaction, profile: discord.Member, avatar_url: str):
+    async def generate_profile_canvas(self, interaction: discord.Interaction, profile: discord.Member):
         """
         Generates a profile canvas using the provided background image with improved text readability.
         """
         # Load the custom background image
-        background_image_path = '/mnt/data/profilebackground3.png'
+        background_image_path = './core/images/profilebackground3.png'
         background_image = Image.open(background_image_path).convert('RGBA')
 
         # Define the canvas size (keeping it the same as the background image)
