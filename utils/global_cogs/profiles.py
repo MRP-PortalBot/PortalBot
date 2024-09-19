@@ -25,7 +25,7 @@ class ProfileCMD(commands.Cog):
     SHADOW_COLOR = (0, 0, 0, 200)  # Black with transparency
     SHADOW_OFFSET = 2  # Shadow offset for text
 
-    @app_commands.command(name="profile_canvas", description="Generates a profile image on a canvas.")
+    @app_commands.command(name="profile", description="Generates a profile image.")
     async def generate_profile_canvas(self, interaction: discord.Interaction, profile: discord.Member = None):
         """
         Generates a profile canvas using the provided background image with improved text readability.

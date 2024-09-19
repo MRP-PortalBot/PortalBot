@@ -19,21 +19,7 @@ class Profile_EmbedCMD(commands.Cog):
         self.bot = bot
 
     # Slash command to view a profile with a fancy embed
-    @app_commands.command(name="profile", description="Displays the profile of a user.")
-    async def profile_embed(self, interaction: discord.Interaction, profile: discord.Member = None):
-        """
-        Slash command to display a profile in an enhanced embed format.
-        If no user is specified, displays the author's profile.
-        """
-        if profile is None:
-            profile = interaction.user
-
-        profile_embed = await self.generate_profile_embed(profile, interaction.guild.id)  # Passing guild_id to fetch score
-        if profile_embed:
-            await interaction.response.send_message(embed=profile_embed)
-        else:
-            await interaction.response.send_message(f"No profile found for {profile.mention}")
-
+    @app_commands.command(name="profile_embed", description="Displays the profile of a user.")
     async def generate_profile_embed(self, profile: discord.Member, guild_id: int):
         """
         Helper function to generate a fancy profile embed for a user.
@@ -55,15 +41,15 @@ class Profile_EmbedCMD(commands.Cog):
             (ServerScores.DiscordLongID == longid) &
             (ServerScores.ServerID == str(guild_id))
         )
-        
-        # Calculate level and progress
+
+        # If the score entry exists, get the score, otherwise show "N/A"
+        server_score = score_query.Score if score_query else "N/A"
+
+        # Calculate level and progress if server_score is valid
         if isinstance(server_score, int):
             level, progress = calculate_level(server_score)
         else:
             level, progress = 0, 0
-
-        # If the score entry exists, get the score, otherwise show "N/A"
-        server_score = score_query.Score if score_query else "N/A"
 
         # If profile exists, create a fancy embed
         embed = discord.Embed(
@@ -81,7 +67,7 @@ class Profile_EmbedCMD(commands.Cog):
         # Add server score
         embed.add_field(name="💬 Server Score", value=server_score, inline=False)
         embed.add_field(name="🎮 Level", value=f"Level {level}", inline=True)
-        embed.add_field(name="📈 % to Next Level", value=f"{progress}%", inline=True)
+        embed.add_field(name="📈 % to Next Level", value=f"{round(progress * 100, 2)}%", inline=True)
 
         # Add profile fields dynamically with icons/emojis
         if query.Timezone != "None":
@@ -92,7 +78,7 @@ class Profile_EmbedCMD(commands.Cog):
             embed.add_field(name="🎮 Playstation ID", value=query.Playstation, inline=False)
         if query.Switch != "None":
             embed.add_field(name="🎮 Switch Friend Code", value=query.Switch, inline=False)
-        
+
         # Add RealmsJoined and RealmsAdmin fields if they are not "None"
         if query.RealmsJoined != "None":  # Make sure it's not empty or default value
             embed.add_field(name="🏰 Member of Realms", value=query.RealmsJoined, inline=False)
@@ -100,6 +86,7 @@ class Profile_EmbedCMD(commands.Cog):
             embed.add_field(name="🛡️ Admin of Realms", value=query.RealmsAdmin, inline=False)
 
         return embed
+
 
 # Set up the cog
 async def setup(bot):
