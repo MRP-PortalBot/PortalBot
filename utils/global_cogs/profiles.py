@@ -149,6 +149,8 @@ class ProfileCMD(commands.Cog):
             await interaction.response.send_message("No profile found for this user.")
             return
 
+        ServerScores = database.ServerScores
+
         # Fetch server score
         guild_id = str(interaction.guild_id)
         score_query = ServerScores.get_or_none(

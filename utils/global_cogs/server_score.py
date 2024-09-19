@@ -26,6 +26,7 @@ class ScoreIncrement(commands.Cog):
             return  # Ignore bot messages
 
         user_id = str(message.author.id)
+        username = str(message.author.name)
         current_time = time.time()
 
         # Get the cooldown (in seconds) as a random value between 60 and 180 seconds
@@ -51,7 +52,8 @@ class ScoreIncrement(commands.Cog):
 
         except database.ServerScores.DoesNotExist:
             # If the user doesn't have a score record yet, create one
-            database.ServerScores.create(DiscordLongID=user_id,
+            database.ServerScores.create(DiscordName=username,
+                                         DiscordLongID=user_id,
                                          ServerID=str(message.guild.id),
                                          Score=score_increment)
 
