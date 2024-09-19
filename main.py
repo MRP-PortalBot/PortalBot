@@ -23,7 +23,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from core import database
-from core.common import get_bot_data_id
+from core.common_old import get_bot_data_id
 from core.logging_module import get_log
 from core.special_methods import on_app_command_error_, initialize_db, on_ready_, on_command_error_, on_command_, \
     before_invoke_

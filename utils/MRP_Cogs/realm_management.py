@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from core import database
 from core.checks import slash_is_bot_admin_3
-from core.common import return_applyfornewrealm_modal
+from core.common_old import return_applyfornewrealm_modal
 from core.logging_module import get_log
 
 _log = get_log(__name__)

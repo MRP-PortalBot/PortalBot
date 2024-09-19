@@ -8,7 +8,7 @@ import psutil
 from discord import app_commands
 from discord.ext import commands
 
-import core.common
+import core.common_old
 
 logger = logging.getLogger(__name__)
 

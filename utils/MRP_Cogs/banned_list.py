@@ -5,7 +5,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from core import database
-from core.common import return_banishblacklistform_modal
+from core.common_old import return_banishblacklistform_modal
 from core.logging_module import get_log
 
 _log = get_log(__name__)

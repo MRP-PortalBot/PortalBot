@@ -17,7 +17,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from core import database
-from core.common import ConsoleColors, Colors, Others, QuestionSuggestionManager, get_bot_data_id, load_config
+from core.common_old import ConsoleColors, Colors, Others, QuestionSuggestionManager, get_bot_data_id, load_config
 from core.logging_module import get_log
 
 config, _ = load_config()

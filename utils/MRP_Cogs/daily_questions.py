@@ -6,9 +6,9 @@ from discord import app_commands, ui
 from discord.ext import commands, tasks
 from peewee import fn
 
-from core import database, common
+from core import common_old, database
 from core.checks import slash_is_bot_admin_2
-from core.common import load_config, QuestionSuggestionManager, get_bot_data_id, SuggestQuestionFromDQ
+from core.common_old import load_config, QuestionSuggestionManager, get_bot_data_id, SuggestQuestionFromDQ
 from core.logging_module import get_log
 from main import PortalBot
 
@@ -186,7 +186,7 @@ class DailyCMD(commands.Cog):
             return embed
 
         embed = discord.Embed(title="Tag List")
-        embed = await common.paginate_embed(self.bot,
+        embed = await common_old.paginate_embed(self.bot,
                                             interaction,
                                             embed,
                                             populate_embed,

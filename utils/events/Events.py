@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from core import database
-from core.common import load_config
+from core.common_old import load_config
 from core.logging_module import get_log
 
 config, _ = load_config()
