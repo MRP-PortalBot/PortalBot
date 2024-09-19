@@ -5,7 +5,7 @@ from discord import File
 from discord.ext import commands
 from discord import app_commands
 from core import database
-from core.common import calculate_level  # Assuming this is moved to core.common
+from core.common import calculate_level  # Assuming this is in core.common
 
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
@@ -54,7 +54,7 @@ class ProfileCMD(commands.Cog):
         level, progress = self.calculate_progress(server_score)
 
         # Draw text and progress bar on the image
-        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress)
+        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress, query.RealmsAdmin)
 
         # Send the final image
         await self.send_image(interaction, image)
@@ -86,7 +86,7 @@ class ProfileCMD(commands.Cog):
             return None, None
 
         score_query = database.ServerScores.get_or_none(
-            (database.ServerScores.DiscordLongID == longid) &
+            (database.ServerScores.DiscordLongID == longid) & 
             (database.ServerScores.ServerID == str(guild_id))
         )
         server_score = score_query.Score if score_query else "N/A"
@@ -98,7 +98,7 @@ class ProfileCMD(commands.Cog):
             return calculate_level(server_score)
         return 0, 0
 
-    def draw_text_and_progress(self, image, username, server_score, level, progress):
+    def draw_text_and_progress(self, image, username, server_score, level, progress, realms_admin):
         """Draws the username, server score, and progress bar on the image."""
         draw = ImageDraw.Draw(image)
         font, small_font = self.load_fonts()
@@ -110,12 +110,16 @@ class ProfileCMD(commands.Cog):
         # Draw username and shadow
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
 
-        # Draw server score
-        score_text = f"Server Score: {server_score}"
+        # Server score
+        score_text = f"Server Score: {server_score} / {level * 1000 + 1000}"  # Example score formatting
         self.draw_text_with_shadow(draw, text_x, text_y + 50, score_text, small_font)
 
         # Draw progress bar
         self.draw_progress_bar(draw, text_x, text_y + 80, progress)
+
+        # Draw the next role field
+        next_role_text = f"Next Role: {realms_admin or 'Slime Divider'}"  # Example of next role
+        self.draw_text_with_shadow(draw, text_x, text_y + 110, next_role_text, small_font)
 
     def load_fonts(self):
         """Loads and returns the fonts for username and small text."""
