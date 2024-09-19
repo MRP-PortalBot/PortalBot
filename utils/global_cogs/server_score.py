@@ -56,6 +56,7 @@ class ScoreIncrement(commands.Cog):
             new_level, progress = calculate_level(server_score.Score)
 
             # Update the score, level, and progress
+            server_score.DiscordName = username
             server_score.Level = new_level
             server_score.Progress = progress
             server_score.save()
