@@ -323,6 +323,8 @@ class ServerScores(BaseModel):
     DiscordLongID = TextField()  # Foreign key to PortalbotProfile
     ServerID = TextField()
     Score = IntegerField()
+    Level = IntegerField(default=0)
+    Progress = IntegerField(default=0)
 
 app = Flask(__name__)
 

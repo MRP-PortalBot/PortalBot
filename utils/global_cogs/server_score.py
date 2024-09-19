@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from peewee import fn  # For using database functions like increment
 from core import database  # Your database module
 from core.logging_module import get_log
+from core.common import calculate_level  # Assuming you've moved it to core.common
 
 _log = get_log(__name__)
 
@@ -22,8 +23,8 @@ class ScoreIncrement(commands.Cog):
         Listener that increments score for each message sent by a user
         with a random point increment (10 to 30 points) and a cooldown of 1 to 3 minutes.
         """
-        if message.author.bot:
-            return  # Ignore bot messages
+        if message.author.bot or message.guild is None:
+            return  # Ignore messages from bots or DMs
 
         user_id = str(message.author.id)
         username = str(message.author.name)
@@ -45,17 +46,33 @@ class ScoreIncrement(commands.Cog):
 
         # Try to fetch the current score from the database
         try:
-            server_score = database.ServerScores.get(database.ServerScores.DiscordLongID == user_id,
-                                                     database.ServerScores.ServerID == str(message.guild.id))
+            server_score = database.ServerScores.get(
+                database.ServerScores.DiscordLongID == user_id,
+                database.ServerScores.ServerID == str(message.guild.id)
+            )
             server_score.Score += score_increment  # Increment the score
+
+            # **Calculate the new level and progress using your function**
+            new_level, progress = calculate_level(server_score.Score)
+
+            # Update the score, level, and progress
+            server_score.Level = new_level
+            server_score.Progress = progress
             server_score.save()
 
         except database.ServerScores.DoesNotExist:
             # If the user doesn't have a score record yet, create one
-            database.ServerScores.create(DiscordName=username,
-                                         DiscordLongID=user_id,
-                                         ServerID=str(message.guild.id),
-                                         Score=score_increment)
+            initial_score = score_increment
+            new_level, progress = calculate_level(initial_score)  # Calculate initial level and progress
+
+            database.ServerScores.create(
+                DiscordName=username,
+                DiscordLongID=user_id,
+                ServerID=str(message.guild.id),
+                Score=initial_score,
+                Level=new_level,
+                Progress=progress
+            )
 
         # Update the last_message_time dictionary with the current time
         last_message_time[user_id] = current_time
@@ -63,5 +80,6 @@ class ScoreIncrement(commands.Cog):
         # Optional: send a message or log the score increment
         await message.channel.send(f"{message.author.mention} earned {score_increment} points!")
 
+# Setup the cog
 async def setup(bot):
     await bot.add_cog(ScoreIncrement(bot))
