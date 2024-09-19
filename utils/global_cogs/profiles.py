@@ -182,10 +182,11 @@ class ProfileCMD(commands.Cog):
         shadow_color = (0, 0, 0, 200)  # Black with transparency
         text_color = (255, 255, 255, 255)  # White text
 
-        # Adjust position for name, score, and progress bar
-        double_padding = PADDING * 2
-        text_x = double_padding + AVATAR_SIZE  # Position name further right
-        score_x = text_x  # Align score under the name
+        # Define the distance between the avatar and the text
+        TEXT_EXTRA_PADDING = PADDING * 2  # Set the text to be double the distance away from the avatar
+
+        # Updated Username text alignment (shifted to the right)
+        text_x = PADDING + AVATAR_SIZE + TEXT_EXTRA_PADDING  # Double the distance between the avatar and the text
         text_y = PADDING
 
         # Draw the username shadow
@@ -193,29 +194,25 @@ class ProfileCMD(commands.Cog):
         draw.text((text_x, text_y), username, font=font, fill=text_color)
 
         # Server score
+        score_x = text_x  # Adjust the server score's x position to align with the username's x position
         score_y = text_y + 50
         draw.text((score_x + shadow_offset, score_y + shadow_offset), score_text, font=small_font, fill=shadow_color)
         draw.text((score_x, score_y), score_text, font=small_font, fill=text_color)
 
-        # Progress bar (same x position as score)
-        progress_bar_x = score_x
+        # Progress bar (placed after server score)
+        progress_bar_x = score_x  # Align progress bar with the text
         progress_bar_y = score_y + 30
 
-        # Progress bar properties
-        bar_width = 400  # Total width of the progress bar
-        bar_height = 20  # Height of the progress bar
-        filled_width = int(bar_width * progress)  # Filled portion of the bar
+        # Define constants for progress bar dimensions
+        BAR_WIDTH = WIDTH // 2  # For example, the bar takes up half of the total width of the card
+        BAR_HEIGHT = 20  # The height of the progress bar
 
-        # Draw progress bar background (unfilled portion)
-        draw.rounded_rectangle(
-            [(progress_bar_x, progress_bar_y), (progress_bar_x + bar_width, progress_bar_y + bar_height)],
-            fill=(50, 50, 50, 255)
-        )
-        # Draw filled portion of the progress bar
-        draw.rounded_rectangle(
-            [(progress_bar_x, progress_bar_y), (progress_bar_x + filled_width, progress_bar_y + bar_height)],
-            fill=(0, 255, 0, 255)  # Green fill for progress
-        )
+        # Draw the progress bar background
+        draw.rectangle([(progress_bar_x, progress_bar_y), (progress_bar_x + BAR_WIDTH, progress_bar_y + BAR_HEIGHT)], fill=(50, 50, 50, 255))
+
+        # Draw the progress bar filled section
+        filled_width = int(BAR_WIDTH * progress)
+        draw.rectangle([(progress_bar_x, progress_bar_y), (progress_bar_x + filled_width, progress_bar_y + BAR_HEIGHT)], fill=(0, 255, 0, 255))
 
         # Save the image to a buffer
         buffer_output = io.BytesIO()
