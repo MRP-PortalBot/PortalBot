@@ -1,224 +1,151 @@
-import asyncio
-import io
-import logging
-import re
 import discord
+import io
 from PIL import Image, ImageDraw, ImageFont
 from discord import File
 from discord.ext import commands
 from discord import app_commands
 from core import database
-from core.logging_module import get_log
-from core.common import calculate_level  # Import your helper function here
+from core.common import calculate_level  # Assuming this is moved to core.common
 
-_log = get_log(__name__)
-
-# Load the background image for the profile card
-background_image = Image.open('./core/images/profilebackground3.png').convert('RGBA')
-
-# ------------------- Profile Command Cog -------------------
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # Slash command to view a profile with a fancy embed
-    @app_commands.command(name="profile", description="Displays the profile of a user.")
-    async def profile(self, interaction: discord.Interaction, profile: discord.Member = None):
+    # Constants for easy updating
+    AVATAR_SIZE = 128
+    REP_SIZE = 64
+    PADDING = 20
+    TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
+
+    BAR_WIDTH = 400  # Progress bar width
+    BAR_HEIGHT = 20  # Progress bar height
+    FONT_PATH = "./core/fonts/OpenSansEmoji.ttf"
+    BACKGROUND_IMAGE_PATH = './core/images/profilebackground3.png'
+    TEXT_COLOR = (255, 255, 255, 255)
+    SHADOW_COLOR = (0, 0, 0, 200)  # Black with transparency
+    SHADOW_OFFSET = 2  # Shadow offset for text
+
+    @app_commands.command(name="profile_canvas", description="Generates a profile image on a canvas.")
+    async def generate_profile_canvas(self, interaction: discord.Interaction, profile: discord.Member = None):
         """
-        Slash command to display a profile in an enhanced embed format.
-        If no user is specified, displays the author's profile.
+        Generates a profile canvas using the provided background image with improved text readability.
         """
         if profile is None:
             profile = interaction.user
 
-        profile_embed = await self.generate_profile_embed(profile, interaction.guild.id)  # Passing guild_id to fetch score
-        if profile_embed:
-            await interaction.response.send_message(embed=profile_embed)
-        else:
-            await interaction.response.send_message(f"No profile found for {profile.mention}")
-
-    async def generate_profile_embed(self, profile: discord.Member, guild_id: int):
-        """
-        Helper function to generate a fancy profile embed for a user.
-        This pulls data from the PortalbotProfile table in the database, along with the server score.
-        """
-        longid = str(profile.id)  # Get the user's Discord ID
-        avatar_url = profile.display_avatar.url
-
-        # Query the profile from the PortalbotProfile database using Peewee
-        try:
-            query = database.PortalbotProfile.get(database.PortalbotProfile.DiscordLongID == longid)
-        except database.PortalbotProfile.DoesNotExist:
-            return None
-
-        ServerScores = database.ServerScores
-
-        # Query the user's server score from ServerScores
-        score_query = ServerScores.get_or_none(
-            (ServerScores.DiscordLongID == longid) &
-            (ServerScores.ServerID == str(guild_id))
-        )
-        
-        # Calculate level and progress
-        if isinstance(server_score, int):
-            level, progress = calculate_level(server_score)
-        else:
-            level, progress = 0, 0
-
-        # If the score entry exists, get the score, otherwise show "N/A"
-        server_score = score_query.Score if score_query else "N/A"
-
-        # If profile exists, create a fancy embed
-        embed = discord.Embed(
-            title=f"{profile.display_name}'s Profile",
-            description=f"**Profile for {profile.display_name}**",
-            color=discord.Color.blurple()  # Fancy blurple color
-        )
-        embed.set_thumbnail(url=avatar_url)  # Set profile picture as thumbnail
-        embed.set_footer(text="Generated with PortalBot")  # Add a custom footer
-
-        # Use emojis to improve the field display
-        embed.add_field(name="👤 Discord Name", value=query.DiscordName, inline=True)
-        embed.add_field(name="🆔 Long ID", value=query.DiscordLongID, inline=True)
-
-        # Add server score
-        embed.add_field(name="💬 Server Score", value=server_score, inline=False)
-        embed.add_field(name="🎮 Level", value=f"Level {level}", inline=True)
-        embed.add_field(name="📈 % to Next Level", value=f"{progress}%", inline=True)
-
-        # Add profile fields dynamically with icons/emojis
-        if query.Timezone != "None":
-            embed.add_field(name="🕓 Timezone", value=query.Timezone, inline=False)
-        if query.XBOX != "None":
-            embed.add_field(name="🎮 XBOX Gamertag", value=query.XBOX, inline=False)
-        if query.Playstation != "None":
-            embed.add_field(name="🎮 Playstation ID", value=query.Playstation, inline=False)
-        if query.Switch != "None":
-            embed.add_field(name="🎮 Switch Friend Code", value=query.Switch, inline=False)
-        
-        # Add RealmsJoined and RealmsAdmin fields if they are not "None"
-        if query.RealmsJoined != "None":  # Make sure it's not empty or default value
-            embed.add_field(name="🏰 Member of Realms", value=query.RealmsJoined, inline=False)
-        if query.RealmsAdmin != "None":  # Same check for RealmsAdmin
-            embed.add_field(name="🛡️ Admin of Realms", value=query.RealmsAdmin, inline=False)
-
-        return embed
-
-    # Slash command to generate profile canvas as an image
-    @app_commands.command(name="profile_canvas", description="Generates a profile image on a canvas.")
-    async def generate_profile_canvas(self, interaction: discord.Interaction, profile: discord.Member):
-        """
-        Generates a profile canvas using the provided background image with improved text readability.
-        """
         # Ensure interaction response before follow-up
         if not interaction.response.is_done():
-            await interaction.response.defer()  # Defer the response to allow time for processing
+            await interaction.response.defer()
 
-        # Load the custom background image
-        background_image_path = './core/images/profilebackground3.png'
-        background_image = Image.open(background_image_path).convert('RGBA')
+        # Load background and create base image
+        image = self.load_background_image()
 
-        # Define the canvas size (keeping it the same as the background image)
-        WIDTH, HEIGHT = background_image.size
-        AVATAR_SIZE = 128
-        REP_SIZE = 64
-        PADDING = 20
+        # Load and draw avatar
+        avatar_image = await self.load_avatar_image(profile)
+        self.draw_avatar(image, avatar_image)
 
-        # Create the base image using the custom background
-        image = background_image.copy()
-        draw = ImageDraw.Draw(image)
+        # Fetch profile data and score
+        query, server_score = self.fetch_profile_data(profile, interaction.guild_id)
+        if query is None:
+            await interaction.response.send_message("No profile found for this user.")
+            return
 
-        # Load and paste avatar
+        # Calculate level and progress
+        level, progress = self.calculate_progress(server_score)
+
+        # Draw text and progress bar on the image
+        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress)
+
+        # Send the final image
+        await self.send_image(interaction, image)
+
+    def load_background_image(self):
+        """Load and return the background image."""
+        background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert('RGBA')
+        return background_image.copy()
+
+    async def load_avatar_image(self, profile):
+        """Load and return the user's avatar image."""
         avatar_asset = await profile.display_avatar.read()
-        avatar_image = Image.open(io.BytesIO(avatar_asset)).resize((AVATAR_SIZE, AVATAR_SIZE))
+        avatar_image = Image.open(io.BytesIO(avatar_asset)).resize((self.AVATAR_SIZE, self.AVATAR_SIZE))
+        return avatar_image
 
-        # Create a circular mask for the avatar
-        mask = Image.new('L', (AVATAR_SIZE, AVATAR_SIZE), 0)
+    def draw_avatar(self, image, avatar_image):
+        """Draws the avatar onto the canvas with a circular mask."""
+        mask = Image.new('L', (self.AVATAR_SIZE, self.AVATAR_SIZE), 0)
         mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse((0, 0, AVATAR_SIZE, AVATAR_SIZE), fill=255)
-        
-        # Paste the avatar with the circular mask
-        image.paste(avatar_image, (PADDING, PADDING), mask)
+        mask_draw.ellipse((0, 0, self.AVATAR_SIZE, self.AVATAR_SIZE), fill=255)
+        image.paste(avatar_image, (self.PADDING, self.PADDING), mask)
 
-        # Fonts
-        try:
-            font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 40)  # System font for username
-            small_font = ImageFont.truetype("./core/fonts/OpenSansEmoji.ttf", 20)
-        except IOError:
-            font = ImageFont.load_default()
-            small_font = ImageFont.load_default()
-
-        # Fetch profile data from the database
+    def fetch_profile_data(self, profile, guild_id):
+        """Fetch profile data and score from the database."""
         longid = str(profile.id)
         try:
             query = database.PortalbotProfile.get(database.PortalbotProfile.DiscordLongID == longid)
         except database.PortalbotProfile.DoesNotExist:
-            await interaction.response.send_message("No profile found for this user.")
-            return
+            return None, None
 
-        ServerScores = database.ServerScores
-
-        # Fetch server score
-        guild_id = str(interaction.guild_id)
-        score_query = ServerScores.get_or_none(
-            (ServerScores.DiscordLongID == longid) &
-            (ServerScores.ServerID == guild_id)
+        score_query = database.ServerScores.get_or_none(
+            (database.ServerScores.DiscordLongID == longid) &
+            (database.ServerScores.ServerID == str(guild_id))
         )
         server_score = score_query.Score if score_query else "N/A"
+        return query, server_score
 
-        # Calculate level and progress
+    def calculate_progress(self, server_score):
+        """Calculate level and progress based on the server score."""
         if isinstance(server_score, int):
-            level, progress = calculate_level(server_score)
-        else:
-            level, progress = 0, 0
+            return calculate_level(server_score)
+        return 0, 0
 
-        # Username and other profile data
-        username = query.DiscordName
-        rep_text = "+7 rep"  # Example reputation, you can update this dynamically if needed
+    def draw_text_and_progress(self, image, username, server_score, level, progress):
+        """Draws the username, server score, and progress bar on the image."""
+        draw = ImageDraw.Draw(image)
+        font, small_font = self.load_fonts()
+
+        # Define coordinates for text and progress bar
+        text_x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
+        text_y = self.PADDING
+
+        # Draw username and shadow
+        self.draw_text_with_shadow(draw, text_x, text_y, username, font)
+
+        # Draw server score
         score_text = f"Server Score: {server_score}"
+        self.draw_text_with_shadow(draw, text_x, text_y + 50, score_text, small_font)
 
-        # Add text shadow for better readability (shifted black text behind the main white text)
-        shadow_offset = 2
-        shadow_color = (0, 0, 0, 200)  # Black with transparency
-        text_color = (255, 255, 255, 255)  # White text
+        # Draw progress bar
+        self.draw_progress_bar(draw, text_x, text_y + 80, progress)
 
-        # Define the distance between the avatar and the text
-        TEXT_EXTRA_PADDING = PADDING * 2  # Set the text to be double the distance away from the avatar
+    def load_fonts(self):
+        """Loads and returns the fonts for username and small text."""
+        try:
+            font = ImageFont.truetype(self.FONT_PATH, 40)
+            small_font = ImageFont.truetype(self.FONT_PATH, 20)
+        except IOError:
+            font = ImageFont.load_default()
+            small_font = ImageFont.load_default()
+        return font, small_font
 
-        # Updated Username text alignment (shifted to the right)
-        text_x = PADDING + AVATAR_SIZE + TEXT_EXTRA_PADDING  # Double the distance between the avatar and the text
-        text_y = PADDING
+    def draw_text_with_shadow(self, draw, x, y, text, font):
+        """Draw text with a shadow for better readability."""
+        draw.text((x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), text, font=font, fill=self.SHADOW_COLOR)
+        draw.text((x, y), text, font=font, fill=self.TEXT_COLOR)
 
-        # Draw the username shadow
-        draw.text((text_x + shadow_offset, text_y + shadow_offset), username, font=font, fill=shadow_color)
-        draw.text((text_x, text_y), username, font=font, fill=text_color)
-
-        # Server score
-        score_x = text_x  # Adjust the server score's x position to align with the username's x position
-        score_y = text_y + 50
-        draw.text((score_x + shadow_offset, score_y + shadow_offset), score_text, font=small_font, fill=shadow_color)
-        draw.text((score_x, score_y), score_text, font=small_font, fill=text_color)
-
-        # Progress bar (placed after server score)
-        progress_bar_x = score_x  # Align progress bar with the text
-        progress_bar_y = score_y + 30
-
-        # Define constants for progress bar dimensions
-        BAR_WIDTH = WIDTH // 2  # For example, the bar takes up half of the total width of the card
-        BAR_HEIGHT = 20  # The height of the progress bar
-
+    def draw_progress_bar(self, draw, x, y, progress):
+        """Draw the progress bar showing the level progress."""
         # Draw the progress bar background
-        draw.rectangle([(progress_bar_x, progress_bar_y), (progress_bar_x + BAR_WIDTH, progress_bar_y + BAR_HEIGHT)], fill=(50, 50, 50, 255))
+        draw.rectangle([(x, y), (x + self.BAR_WIDTH, y + self.BAR_HEIGHT)], fill=(50, 50, 50, 255))
 
-        # Draw the progress bar filled section
-        filled_width = int(BAR_WIDTH * progress)
-        draw.rectangle([(progress_bar_x, progress_bar_y), (progress_bar_x + filled_width, progress_bar_y + BAR_HEIGHT)], fill=(0, 255, 0, 255))
+        # Draw the progress fill
+        filled_width = int(self.BAR_WIDTH * progress)
+        draw.rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], fill=(0, 255, 0, 255))
 
-        # Save the image to a buffer
+    async def send_image(self, interaction, image):
+        """Save the image to a buffer and send it in the interaction response."""
         buffer_output = io.BytesIO()
         image.save(buffer_output, format="PNG")
         buffer_output.seek(0)
-
         await interaction.followup.send(file=File(fp=buffer_output, filename="profile_card.png"))
 
 # Set up the cog
