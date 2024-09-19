@@ -19,11 +19,14 @@ class ProfileCMD(commands.Cog):
 
     BAR_WIDTH = 400  # Progress bar width
     BAR_HEIGHT = 20  # Progress bar height
+    FLAG_SIZE = 32  # Size of the flag image
+
     FONT_PATH = "./core/fonts/OpenSansEmoji.ttf"
     BACKGROUND_IMAGE_PATH = './core/images/profilebackground3.png'
     TEXT_COLOR = (255, 255, 255, 255)
     SHADOW_COLOR = (0, 0, 0, 200)  # Black with transparency
     SHADOW_OFFSET = 2  # Shadow offset for text
+    FLAG_PATH = "./core/flags/"  # Folder containing country flags
 
     @app_commands.command(name="profile", description="Generates a profile image.")
     async def generate_profile_canvas(self, interaction: discord.Interaction, profile: discord.Member = None):
@@ -56,6 +59,9 @@ class ProfileCMD(commands.Cog):
         # Draw text and progress bar on the image
         self.draw_text_and_progress(image, profile.display_name, server_score, level, progress, query.RealmsAdmin)
 
+        # Load and draw region flag
+        self.draw_region_flag(image, query.Region)
+
         # Send the final image
         await self.send_image(interaction, image)
 
@@ -86,7 +92,7 @@ class ProfileCMD(commands.Cog):
             return None, None
 
         score_query = database.ServerScores.get_or_none(
-            (database.ServerScores.DiscordLongID == longid) & 
+            (database.ServerScores.DiscordLongID == longid) &
             (database.ServerScores.ServerID == str(guild_id))
         )
         server_score = score_query.Score if score_query else "N/A"
@@ -144,6 +150,18 @@ class ProfileCMD(commands.Cog):
         # Draw the progress fill
         filled_width = int(self.BAR_WIDTH * progress)
         draw.rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], fill=(0, 255, 0, 255))
+
+    def draw_region_flag(self, image, region_code):
+        """Draw the region flag on the image based on the user's region."""
+        if not region_code:
+            return  # No region provided
+
+        flag_path = f"{self.FLAG_PATH}{region_code.lower()}.svg"
+        try:
+            flag_image = Image.open(flag_path).resize((self.FLAG_SIZE, self.FLAG_SIZE))
+            image.paste(flag_image, (self.PADDING + 160, self.PADDING), flag_image)  # Adjust position as needed
+        except FileNotFoundError:
+            print(f"Flag image for region '{region_code}' not found.")
 
     async def send_image(self, interaction, image):
         """Save the image to a buffer and send it in the interaction response."""
