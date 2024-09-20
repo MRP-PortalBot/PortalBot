@@ -116,12 +116,14 @@ class ProfileCMD(commands.Cog):
         # Draw username and shadow
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
 
-        # Server score
-        score_text = f"Server Score: {server_score} / {level * 1000 + 1000}"  # Example score formatting
-        self.draw_text_with_shadow(draw, text_x, text_y + 50, score_text, small_font)
+        # Draw server score below the username
+        score_text = f"Server Score: {server_score}"
+        score_y = text_y + 50  # Offset from the username
+        self.draw_text_with_shadow(draw, text_x, score_y, score_text, small_font)
 
-        # Draw progress bar
-        self.draw_progress_bar(draw, text_x, text_y + 80, progress)
+        # Now draw the progress bar below the server score
+        progress_bar_y = score_y + 30  # Offset from the server score text
+        self.draw_progress_bar(draw, text_x, progress_bar_y, progress)
 
         # Draw the next role field
         next_role_text = f"Next Role: {realms_admin or 'Slime Divider'}"  # Example of next role
@@ -144,12 +146,26 @@ class ProfileCMD(commands.Cog):
 
     def draw_progress_bar(self, draw, x, y, progress):
         """Draw the progress bar showing the level progress."""
-        # Draw the progress bar background
-        draw.rectangle([(x, y), (x + self.BAR_WIDTH, y + self.BAR_HEIGHT)], fill=(50, 50, 50, 255))
+        # Define the colors for the background and the progress bar fill
+        background_color = (50, 50, 50, 255)  # Dark gray background
+        fill_color = (0, 255, 0, 255)         # Green for the filled part
+        bar_height = 20  # Adjust height if needed
+        bar_width = self.BAR_WIDTH  # Full width of the bar
 
-        # Draw the progress fill
-        filled_width = int(self.BAR_WIDTH * progress)
-        draw.rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], fill=(0, 255, 0, 255))
+        # Draw the background rectangle for the progress bar
+        draw.rectangle([(x, y), (x + bar_width, y + bar_height)], fill=background_color)
+
+        # Calculate the width of the filled portion based on progress
+        filled_width = int(bar_width * progress)
+        
+        # Draw the filled portion of the progress bar
+        if filled_width > 0:
+            draw.rectangle([(x, y), (x + filled_width, y + bar_height)], fill=fill_color)
+
+        # Optionally: Add a border or shadow effect to make the bar more visually distinct
+        border_color = (200, 200, 200, 255)  # Light gray for the border
+        draw.rectangle([(x, y), (x + bar_width, y + bar_height)], outline=border_color, width=2)
+
 
     def draw_region_flag(self, image, region_code):
         """Draw the region flag on the image based on the user's region."""
