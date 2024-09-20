@@ -60,7 +60,7 @@ class ProfileCMD(commands.Cog):
         self.draw_text_and_progress(image, profile.display_name, server_score, level, progress, query.RealmsAdmin)
 
         # Load and draw region flag
-        self.draw_region_flag(image, query.Region)
+        #self.draw_region_flag(image, query.Region)
 
         # Send the final image
         await self.send_image(interaction, image)
