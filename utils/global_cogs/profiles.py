@@ -167,17 +167,16 @@ class ProfileCMD(commands.Cog):
         draw.rectangle([(x, y), (x + bar_width, y + bar_height)], outline=border_color, width=2)
 
 
-    def draw_region_flag(self, image, region_code):
-        """Draw the region flag on the image based on the user's region."""
-        if not region_code:
-            return  # No region provided
-
-        flag_path = f"{self.FLAG_PATH}{region_code.lower()}.svg"
-        try:
-            flag_image = Image.open(flag_path).resize((self.FLAG_SIZE, self.FLAG_SIZE))
-            image.paste(flag_image, (self.PADDING + 160, self.PADDING), flag_image)  # Adjust position as needed
-        except FileNotFoundError:
-            print(f"Flag image for region '{region_code}' not found.")
+    #def draw_region_flag(self, image, region_code):
+    #    """Draw the region flag on the image based on the user's region."""
+     #   if not region_code:
+    #        return  # No region provided
+#
+ #       flag_path = f"{self.FLAG_PATH}{region_code.lower()}.svg"
+  #      try:
+   #         flag_image = Image.open(flag_path).resize((self.FLAG_SIZE, self.FLAG_SIZE))
+    #   except FileNotFoundError:
+     #       print(f"Flag image for region '{region_code}' not found.")
 
     async def send_image(self, interaction, image):
         """Save the image to a buffer and send it in the interaction response."""
