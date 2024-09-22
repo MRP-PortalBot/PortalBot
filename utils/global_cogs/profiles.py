@@ -185,11 +185,12 @@ class ProfileCMD(commands.Cog):
         # Draw the score text on the left
         draw.text((bar_start_x, y), score_text, font=font, fill=self.TEXT_COLOR)
 
-        # Calculate the width of the next level text
-        next_level_text_width = font.getsize(next_level_text)[0]
+        # Calculate the width of the next level text (Pillow update: Use textbbox)
+        next_level_text_width = draw.textbbox((0, 0), next_level_text, font=font)[2]  # Get width
 
         # Draw the next level text on the right
         draw.text((image_width - self.PADDING - next_level_text_width, y), next_level_text, font=font, fill=self.TEXT_COLOR)
+
 
 # Set up the cog
 async def setup(bot):
