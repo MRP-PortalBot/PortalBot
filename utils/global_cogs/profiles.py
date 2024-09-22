@@ -17,7 +17,6 @@ class ProfileCMD(commands.Cog):
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
 
     BAR_HEIGHT = 30  # Progress bar height
-    BAR_WIDTH = 400
     FONT_PATH = "./core/fonts/OpenSansEmoji.ttf"
     BACKGROUND_IMAGE_PATH = './core/images/profilebackground3.png'
     TEXT_COLOR = (255, 255, 255, 255)
@@ -113,7 +112,8 @@ class ProfileCMD(commands.Cog):
         progress_bar_y = text_y + 70  # Adjust this value for consistent padding
 
         # Draw progress bar
-        self.draw_progress_bar(draw, text_x, progress_bar_y, progress)
+        bar_width = image.width - text_x - self.PADDING
+        self.draw_progress_bar(draw, text_x, progress_bar_y, progress, bar_width)
 
         # Draw text under the progress bar (server score and next level)
         text_below_y = progress_bar_y + self.BAR_HEIGHT + 10  # Adjust for padding below the bar
@@ -138,13 +138,14 @@ class ProfileCMD(commands.Cog):
         draw.text((x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), text, font=font, fill=self.SHADOW_COLOR)
         draw.text((x, y), text, font=font, fill=self.TEXT_COLOR)
 
-    def draw_progress_bar(self, draw, x, y, progress):
+    def draw_progress_bar(self, draw, x, y, progress, bar_width):
         """Draw the progress bar showing the level progress."""
+
         # Draw the progress bar background
-        draw.rectangle([(x, y), (x + self.BAR_WIDTH, y + self.BAR_HEIGHT)], fill=(50, 50, 50, 255))
+        draw.rectangle([(x, y), (x + bar_width, y + self.BAR_HEIGHT)], fill=(50, 50, 50, 255))
 
         # Draw the progress fill
-        filled_width = int(self.BAR_WIDTH * progress)
+        filled_width = int(bar_width * progress)
         draw.rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], fill=(0, 255, 0, 255))
 
     def draw_text_below_progress_bar(self, draw, x, y, score_text, next_level_text, image_width, font):
