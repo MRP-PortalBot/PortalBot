@@ -153,8 +153,9 @@ class ProfileCMD(commands.Cog):
         # Draw the score text on the left
         draw.text((x, y), score_text, font=font, fill=self.TEXT_COLOR)
         
-        # Calculate the width of the next level text
-        next_level_width, _ = draw.textsize(next_level_text, font=font)
+        # Calculate the width of the next level text using `textbbox`
+        next_level_bbox = draw.textbbox((0, 0), next_level_text, font=font)
+        next_level_width = next_level_bbox[2] - next_level_bbox[0]  # Get the width from bbox
         
         # Draw the next level text on the right, justified
         draw.text((image_width - self.PADDING - next_level_width, y), next_level_text, font=font, fill=self.TEXT_COLOR)
