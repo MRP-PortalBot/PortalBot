@@ -146,19 +146,50 @@ class ProfileCMD(commands.Cog):
         filled_width = int(self.BAR_WIDTH * progress)
         draw.rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], fill=(0, 255, 0, 255))
 
-    def draw_text_below_progress_bar(self, draw, x, y, score_text, next_level_text, image_width, font):
-        """
-        Draws the score on the left and next level on the right, justified below the progress bar.
-        """
-        # Draw the score text on the left
-        draw.text((x, y), score_text, font=font, fill=self.TEXT_COLOR)
-        
-        # Calculate the width of the next level text using `textbbox`
-        next_level_bbox = draw.textbbox((0, 0), next_level_text, font=font)
-        next_level_width = next_level_bbox[2] - next_level_bbox[0]  # Get the width from bbox
-        
-        # Draw the next level text on the right, justified
-        draw.text((image_width - self.PADDING - next_level_width, y), next_level_text, font=font, fill=self.TEXT_COLOR)
+    def draw_text_and_progress(self, image, username, server_score, level, progress):
+        """Draws the username, server score, and progress bar on the image."""
+        draw = ImageDraw.Draw(image)
+        font, small_font = self.load_fonts()
+
+        # Define coordinates for text and progress bar
+        text_x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
+        text_y = self.PADDING
+
+        # Draw username and shadow
+        self.draw_text_with_shadow(draw, text_x, text_y, username, font)
+
+        # Define the position for the "Server Score" and "Next Level" texts
+        score_text = f"Server Score: {server_score}"
+        next_level_text = f"Next Level: {level + 1}"
+
+        # Draw the "Server Score" on the left
+        score_text_x = text_x
+        score_text_y = text_y + 50
+        self.draw_text_with_shadow(draw, score_text_x, score_text_y, score_text, small_font)
+
+        # Measure the width of "Next Level" and position it on the right
+        next_level_text_width, _ = small_font.getsize(next_level_text)
+        next_level_text_x = image.width - self.PADDING - next_level_text_width
+        next_level_text_y = score_text_y
+        self.draw_text_with_shadow(draw, next_level_text_x, next_level_text_y, next_level_text, small_font)
+
+        # Calculate the available width for the progress bar
+        progress_bar_x = score_text_x
+        progress_bar_y = score_text_y + 30
+        available_width = next_level_text_x - progress_bar_x - self.PADDING
+
+        # Draw the progress bar background
+        draw.rectangle(
+            [(progress_bar_x, progress_bar_y), (progress_bar_x + available_width, progress_bar_y + self.BAR_HEIGHT)],
+            fill=(50, 50, 50, 255)
+        )
+
+        # Draw the progress bar fill based on the progress percentage
+        filled_width = int(available_width * progress)
+        draw.rectangle(
+            [(progress_bar_x, progress_bar_y), (progress_bar_x + filled_width, progress_bar_y + self.BAR_HEIGHT)],
+            fill=(0, 255, 0, 255)
+        )
 
     async def send_image(self, interaction, image):
         """Save the image to a buffer and send it in the interaction response."""
