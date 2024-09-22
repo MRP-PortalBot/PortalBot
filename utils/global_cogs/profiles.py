@@ -191,13 +191,6 @@ class ProfileCMD(commands.Cog):
         # Draw the next level text on the right
         draw.text((image_width - self.PADDING - next_level_text_width, y), next_level_text, font=font, fill=self.TEXT_COLOR)
 
-    async def send_image(self, interaction, image):
-        """Save the image to a buffer and send it in the interaction response."""
-        buffer_output = io.BytesIO()
-        image.save(buffer_output, format="PNG")
-        buffer_output.seek(0)
-        await interaction.followup.send(file=File(fp=buffer_output, filename="profile_card.png"))
-
 # Set up the cog
 async def setup(bot):
     await bot.add_cog(ProfileCMD(bot))
