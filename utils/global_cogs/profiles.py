@@ -168,7 +168,7 @@ class ProfileCMD(commands.Cog):
         self.draw_text_with_shadow(draw, score_text_x, score_text_y, score_text, small_font)
 
         # Measure the width of "Next Level" and position it on the right
-        next_level_text_width, _ = small_font.getsize(next_level_text)
+        next_level_text_width = draw.textbbox((0, 0), next_level_text, font=small_font)[2]
         next_level_text_x = image.width - self.PADDING - next_level_text_width
         next_level_text_y = score_text_y
         self.draw_text_with_shadow(draw, next_level_text_x, next_level_text_y, next_level_text, small_font)
@@ -190,6 +190,7 @@ class ProfileCMD(commands.Cog):
             [(progress_bar_x, progress_bar_y), (progress_bar_x + filled_width, progress_bar_y + self.BAR_HEIGHT)],
             fill=(0, 255, 0, 255)
         )
+
 
     async def send_image(self, interaction, image):
         """Save the image to a buffer and send it in the interaction response."""
