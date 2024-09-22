@@ -140,8 +140,8 @@ class ProfileCMD(commands.Cog):
         draw.text((x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), text, font=font, fill=self.SHADOW_COLOR)
         draw.text((x, y), text, font=font, fill=self.TEXT_COLOR)
 
-    def draw_progress_bar(self, draw, x, y, progress, bar_width, current_score, next_level_score, font):
-        """Draw the progress bar showing the level progress with text centered inside the bar."""
+    def draw_progress_bar(self, draw, x, y, progress, bar_width, current_score, next_level_score):
+        """Draw the progress bar showing the level progress with text in the middle."""
 
         # Draw the progress bar background (with rounded corners)
         draw.rounded_rectangle([(x, y), (x + bar_width, y + self.BAR_HEIGHT)], radius=self.RADIUS, fill=(50, 50, 50, 255))
@@ -152,18 +152,27 @@ class ProfileCMD(commands.Cog):
         # Draw the filled portion of the progress bar (with rounded corners)
         draw.rounded_rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], radius=self.RADIUS, fill=(0, 255, 0, 255))
 
-        # Prepare progress text (current score / next level score)
+        # Load a smaller font for the text inside the progress bar
+        small_font = ImageFont.truetype(self.FONT_PATH, 25)  # Adjust the size as needed
+
+        # Text to display inside the progress bar
         progress_text = f"{current_score} / {next_level_score}"
 
-        # Calculate the size of the text
-        text_width, text_height = font.getbbox(progress_text)[2:]
+        # Calculate text size using getbbox() and position it in the center of the progress bar
+        text_bbox = small_font.getbbox(progress_text)
+        text_width, text_height = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
 
-        # Center the text horizontally and vertically within the progress bar
+        # Calculate the position to center the text inside the progress bar
         text_x = x + (bar_width - text_width) // 2  # Center horizontally within the progress bar width
+        
+        # Centering the text vertically within the bar
         text_y = y + (self.BAR_HEIGHT - text_height) // 2  # Center vertically within the progress bar height
 
+        # Draw the text in the center of the progress bar with shadow for readability
+        self.draw_text_with_shadow(draw, text_x, text_y, progress_text, small_font)
+
         # Draw the text on top of the progress bar
-        draw.text((text_x, text_y), progress_text, font=font, fill=self.TEXT_COLOR)
+        #draw.text((text_x, text_y), progress_text, font=font, fill=self.TEXT_COLOR)
 
     def draw_text_below_progress_bar(self, draw, x, y, score_text, next_level_text, image_width, font):
         """Draw text (Server Score and Next Level) below the progress bar."""
