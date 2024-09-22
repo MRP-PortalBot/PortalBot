@@ -149,7 +149,7 @@ class ProfileCMD(commands.Cog):
         filled_width = int(bar_width * progress)
 
         # Draw the filled portion of the progress bar (with rounded corners)
-        draw.rounded_rectangle([(x, y), (x + filled_width, y + BAR_HEIGHT)], radius=RADIUS, fill=(0, 255, 0, 255))
+        draw.rounded_rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], radius=self.RADIUS, fill=(0, 255, 0, 255))
 
     def draw_text_below_progress_bar(self, draw, x, y, score_text, next_level_text, image_width, font):
         """Draw text (Server Score and Next Level) below the progress bar."""
