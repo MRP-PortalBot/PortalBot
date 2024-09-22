@@ -153,7 +153,7 @@ class ProfileCMD(commands.Cog):
         draw.rounded_rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], radius=self.RADIUS, fill=(0, 255, 0, 255))
 
         # Load a smaller font for the text inside the progress bar
-        small_font = ImageFont.truetype(self.FONT_PATH, 20)  # Adjust the size as needed
+        small_font = ImageFont.truetype(self.FONT_PATH, 25)  # Adjust the size as needed
 
         # Text to display inside the progress bar
         progress_text = f"{current_score} / {next_level_score}"
@@ -164,6 +164,8 @@ class ProfileCMD(commands.Cog):
 
         # Calculate the position to center the text inside the progress bar
         text_x = x + (bar_width // 2) - (text_width // 2)
+        
+        # Centering the text vertically within the bar
         text_y = y + (self.BAR_HEIGHT // 2) - (text_height // 2)
 
         # Draw the text in the center of the progress bar with shadow for readability
