@@ -142,7 +142,7 @@ class ProfileCMD(commands.Cog):
 
     def draw_progress_bar(self, draw, x, y, progress, bar_width, current_score, next_level_score):
         """Draw the progress bar showing the level progress with text in the middle."""
-        
+
         # Draw the progress bar background (with rounded corners)
         draw.rounded_rectangle([(x, y), (x + bar_width, y + self.BAR_HEIGHT)], radius=self.RADIUS, fill=(50, 50, 50, 255))
 
@@ -158,15 +158,16 @@ class ProfileCMD(commands.Cog):
         # Text to display inside the progress bar
         progress_text = f"{current_score} / {next_level_score}"
 
-        # Calculate text size and position it in the center of the progress bar
-        text_width, text_height = small_font.getsize(progress_text)
+        # Calculate text size using getbbox() and position it in the center of the progress bar
+        text_bbox = small_font.getbbox(progress_text)
+        text_width, text_height = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
+
+        # Calculate the position to center the text inside the progress bar
         text_x = x + (bar_width // 2) - (text_width // 2)
         text_y = y + (self.BAR_HEIGHT // 2) - (text_height // 2)
 
         # Draw the text in the center of the progress bar with shadow for readability
         self.draw_text_with_shadow(draw, text_x, text_y, progress_text, small_font)
-
-
 
     def draw_text_below_progress_bar(self, draw, x, y, score_text, next_level_text, image_width, font):
         """Draw text (Server Score and Next Level) below the progress bar."""
