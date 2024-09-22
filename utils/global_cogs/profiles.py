@@ -5,7 +5,7 @@ from discord import File
 from discord.ext import commands
 from discord import app_commands
 from core import database
-from core.common import calculate_level  # Assuming this is moved to core.common
+from core.common import calculate_level
 
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
@@ -13,11 +13,9 @@ class ProfileCMD(commands.Cog):
 
     # Constants for easy updating
     AVATAR_SIZE = 128
-    REP_SIZE = 64
     PADDING = 20
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
 
-    BAR_WIDTH = 400  # Progress bar width
     BAR_HEIGHT = 20  # Progress bar height
     FONT_PATH = "./core/fonts/OpenSansEmoji.ttf"
     BACKGROUND_IMAGE_PATH = './core/images/profilebackground3.png'
@@ -103,23 +101,23 @@ class ProfileCMD(commands.Cog):
         draw = ImageDraw.Draw(image)
         font, small_font = self.load_fonts()
 
-        # Define coordinates for text and progress bar
+        # Define coordinates for progress bar and text below it
         text_x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
         text_y = self.PADDING
 
         # Draw username and shadow
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
 
-        # Draw server score
-        score_text = f"Server Score: {server_score}"
-        self.draw_text_with_shadow(draw, text_x, text_y + 50, score_text, small_font)
-
         # Draw progress bar
-        self.draw_progress_bar(draw, text_x, text_y + 80, progress)
+        bar_width = image.width - text_x - self.PADDING
+        progress_bar_y = text_y + 50
+        self.draw_progress_bar(draw, text_x, progress_bar_y, progress, bar_width)
 
-        # Draw score and next level below the progress bar
+        # Draw score and next level text below the progress bar with shadow
+        score_text = f"Server Score: {server_score}"
         next_level_text = f"Next Level: {level + 1}"
-        self.draw_text_below_progress_bar(draw, text_x, text_y + 110, score_text, next_level_text, image.width, small_font)
+        text_below_y = progress_bar_y + self.BAR_HEIGHT + 10
+        self.draw_text_below_progress_bar(draw, text_x, text_below_y, score_text, next_level_text, bar_width, small_font)
 
     def load_fonts(self):
         """Loads and returns the fonts for username and small text."""
@@ -136,25 +134,25 @@ class ProfileCMD(commands.Cog):
         draw.text((x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), text, font=font, fill=self.SHADOW_COLOR)
         draw.text((x, y), text, font=font, fill=self.TEXT_COLOR)
 
-    def draw_progress_bar(self, draw, x, y, progress):
+    def draw_progress_bar(self, draw, x, y, progress, bar_width):
         """Draw the progress bar showing the level progress."""
         # Draw the progress bar background
-        draw.rectangle([(x, y), (x + self.BAR_WIDTH, y + self.BAR_HEIGHT)], fill=(50, 50, 50, 255))
+        draw.rectangle([(x, y), (x + bar_width, y + self.BAR_HEIGHT)], fill=(50, 50, 50, 255))
 
         # Draw the progress fill
-        filled_width = int(self.BAR_WIDTH * progress)
+        filled_width = int(bar_width * progress)
         draw.rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], fill=(0, 255, 0, 255))
 
-    def draw_text_below_progress_bar(self, draw, bar_start_x, y, score_text, next_level_text, image_width, font):
-        """Draws server score and next level text below the progress bar, justified left and right."""
-        # Draw the score text on the left
-        draw.text((bar_start_x, y), score_text, font=font, fill=self.TEXT_COLOR)
+    def draw_text_below_progress_bar(self, draw, x, y, score_text, next_level_text, bar_width, font):
+        """Draws the server score and next level text below the progress bar with shadow."""
+        # Add shadow to both score and next level text
+        draw.text((x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), score_text, font=font, fill=self.SHADOW_COLOR)
+        draw.text((x, y), score_text, font=font, fill=self.TEXT_COLOR)
 
-        # Calculate the width of the next level text
-        next_level_text_width = draw.textbbox((0, 0), next_level_text, font=font)[2]  # Get width
-
-        # Draw the next level text on the right
-        draw.text((image_width - self.PADDING - next_level_text_width, y), next_level_text, font=font, fill=self.TEXT_COLOR)
+        next_level_text_width = font.getbbox(next_level_text)[2]  # Correctly measure text width
+        next_level_x = x + bar_width - next_level_text_width
+        draw.text((next_level_x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), next_level_text, font=font, fill=self.SHADOW_COLOR)
+        draw.text((next_level_x, y), next_level_text, font=font, fill=self.TEXT_COLOR)
 
     async def send_image(self, interaction, image):
         """Save the image to a buffer and send it in the interaction response."""
@@ -162,6 +160,7 @@ class ProfileCMD(commands.Cog):
         image.save(buffer_output, format="PNG")
         buffer_output.seek(0)
         await interaction.followup.send(file=File(fp=buffer_output, filename="profile_card.png"))
+
 
 # Set up the cog
 async def setup(bot):
