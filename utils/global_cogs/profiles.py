@@ -17,7 +17,7 @@ class ProfileCMD(commands.Cog):
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
 
     BAR_HEIGHT = 30  # Progress bar height
-    RADIUS = 10
+    RADIUS = 15  # Rounded corners radius for the progress bar
     FONT_PATH = "./core/fonts/OpenSansEmoji.ttf"
     BACKGROUND_IMAGE_PATH = './core/images/profilebackground3.png'
     TEXT_COLOR = (255, 255, 255, 255)
@@ -166,7 +166,6 @@ class ProfileCMD(commands.Cog):
         image.save(buffer_output, format="PNG")
         buffer_output.seek(0)
         await interaction.followup.send(file=File(fp=buffer_output, filename="profile_card.png"))
-
 
 # Set up the cog
 async def setup(bot):
