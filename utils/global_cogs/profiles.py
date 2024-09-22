@@ -110,17 +110,16 @@ class ProfileCMD(commands.Cog):
         # Draw username and shadow
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
 
-        # Draw progress bar
-        progress_bar_y = text_y + 50
-        self.draw_progress_bar(draw, text_x, progress_bar_y, progress)
-
-        # Define score and next level text
+        # Draw server score
         score_text = f"Server Score: {server_score}"
-        next_level_text = f"Next Level: {level + 1}"
+        self.draw_text_with_shadow(draw, text_x, text_y + 50, score_text, small_font)
 
-        # Draw the score on the left and next level on the right below the progress bar
-        text_below_y = progress_bar_y + 30  # Offset from the progress bar
-        self.draw_text_below_progress_bar(draw, text_x, text_below_y, score_text, next_level_text, image.width, small_font)
+        # Draw progress bar
+        self.draw_progress_bar(draw, text_x, text_y + 80, progress)
+
+        # Draw score and next level below the progress bar
+        next_level_text = f"Next Level: {level + 1}"
+        self.draw_text_below_progress_bar(draw, text_x, text_y + 110, score_text, next_level_text, image.width, small_font)
 
     def load_fonts(self):
         """Loads and returns the fonts for username and small text."""
@@ -146,51 +145,23 @@ class ProfileCMD(commands.Cog):
         filled_width = int(self.BAR_WIDTH * progress)
         draw.rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], fill=(0, 255, 0, 255))
 
-    def draw_text_and_progress(self, image, username, server_score, level, progress):
-        """Draws the username, server score, and progress bar on the image."""
-        draw = ImageDraw.Draw(image)
-        font, small_font = self.load_fonts()
-
-        # Define coordinates for text and progress bar
-        text_x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
-        text_y = self.PADDING
-
-        # Draw username and shadow
-        self.draw_text_with_shadow(draw, text_x, text_y, username, font)
-
-        # Progress bar size calculation (fills available space between score and next level)
-        bar_start_x = text_x
-        bar_end_x = image.width - self.PADDING - 150  # Adjusting for padding and next level text space
-        progress_bar_width = bar_end_x - bar_start_x  # Full width of the progress bar
-        bar_y = text_y + 80
-
-        # Draw the progress bar background
-        draw.rectangle([(bar_start_x, bar_y), (bar_end_x, bar_y + self.BAR_HEIGHT)], fill=(50, 50, 50, 255))
-
-        # Draw the progress fill
-        filled_width = int(progress_bar_width * progress)
-        draw.rectangle([(bar_start_x, bar_y), (bar_start_x + filled_width, bar_y + self.BAR_HEIGHT)], fill=(0, 255, 0, 255))
-
-        # Draw text below the progress bar: server score on the left, next level on the right
-        score_text = f"Server Score: {server_score}"
-        next_level_text = f"Next Level: {level}"
-
-        text_below_y = bar_y + 30  # Below the progress bar
-
-        # Draw server score on the left and next level on the right
-        self.draw_text_below_progress_bar(draw, bar_start_x, text_below_y, score_text, next_level_text, image.width, small_font)
-
     def draw_text_below_progress_bar(self, draw, bar_start_x, y, score_text, next_level_text, image_width, font):
         """Draws server score and next level text below the progress bar, justified left and right."""
         # Draw the score text on the left
         draw.text((bar_start_x, y), score_text, font=font, fill=self.TEXT_COLOR)
 
-        # Calculate the width of the next level text (Pillow update: Use textbbox)
+        # Calculate the width of the next level text
         next_level_text_width = draw.textbbox((0, 0), next_level_text, font=font)[2]  # Get width
 
         # Draw the next level text on the right
         draw.text((image_width - self.PADDING - next_level_text_width, y), next_level_text, font=font, fill=self.TEXT_COLOR)
 
+    async def send_image(self, interaction, image):
+        """Save the image to a buffer and send it in the interaction response."""
+        buffer_output = io.BytesIO()
+        image.save(buffer_output, format="PNG")
+        buffer_output.seek(0)
+        await interaction.followup.send(file=File(fp=buffer_output, filename="profile_card.png"))
 
 # Set up the cog
 async def setup(bot):
