@@ -101,23 +101,26 @@ class ProfileCMD(commands.Cog):
         draw = ImageDraw.Draw(image)
         font, small_font = self.load_fonts()
 
-        # Define coordinates for progress bar and text below it
+        # Define coordinates for text and progress bar
         text_x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
         text_y = self.PADDING
 
         # Draw username and shadow
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
 
-        # Draw progress bar
-        bar_width = image.width - text_x - self.PADDING
-        progress_bar_y = text_y + 50
-        self.draw_progress_bar(draw, text_x, progress_bar_y, progress, bar_width)
+        # Shift the progress bar downward by adjusting the text_y + value
+        progress_bar_y = text_y + 70  # Adjust this value for consistent padding
 
-        # Draw score and next level text below the progress bar with shadow
+        # Draw progress bar
+        self.draw_progress_bar(draw, text_x, progress_bar_y, progress)
+
+        # Draw text under the progress bar (server score and next level)
+        text_below_y = progress_bar_y + self.BAR_HEIGHT + 10  # Adjust for padding below the bar
         score_text = f"Server Score: {server_score}"
-        next_level_text = f"Next Level: {level + 1}"
-        text_below_y = progress_bar_y + self.BAR_HEIGHT + 10
-        self.draw_text_below_progress_bar(draw, text_x, text_below_y, score_text, next_level_text, bar_width, small_font)
+        next_level_text = f"Next Level: {level}"
+        
+        # Draw the text below the progress bar with shadow
+        self.draw_text_below_progress_bar(draw, text_x, text_below_y, score_text, next_level_text, image.width, small_font)
 
     def load_fonts(self):
         """Loads and returns the fonts for username and small text."""
@@ -134,25 +137,23 @@ class ProfileCMD(commands.Cog):
         draw.text((x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), text, font=font, fill=self.SHADOW_COLOR)
         draw.text((x, y), text, font=font, fill=self.TEXT_COLOR)
 
-    def draw_progress_bar(self, draw, x, y, progress, bar_width):
+    def draw_progress_bar(self, draw, x, y, progress):
         """Draw the progress bar showing the level progress."""
         # Draw the progress bar background
-        draw.rectangle([(x, y), (x + bar_width, y + self.BAR_HEIGHT)], fill=(50, 50, 50, 255))
+        draw.rectangle([(x, y), (x + self.BAR_WIDTH, y + self.BAR_HEIGHT)], fill=(50, 50, 50, 255))
 
         # Draw the progress fill
-        filled_width = int(bar_width * progress)
+        filled_width = int(self.BAR_WIDTH * progress)
         draw.rectangle([(x, y), (x + filled_width, y + self.BAR_HEIGHT)], fill=(0, 255, 0, 255))
 
-    def draw_text_below_progress_bar(self, draw, x, y, score_text, next_level_text, bar_width, font):
-        """Draws the server score and next level text below the progress bar with shadow."""
-        # Add shadow to both score and next level text
-        draw.text((x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), score_text, font=font, fill=self.SHADOW_COLOR)
-        draw.text((x, y), score_text, font=font, fill=self.TEXT_COLOR)
+    def draw_text_below_progress_bar(self, draw, x, y, score_text, next_level_text, image_width, font):
+        """Draw text (Server Score and Next Level) below the progress bar."""
+        # Draw Server Score text with shadow
+        self.draw_text_with_shadow(draw, x, y, score_text, font)
 
-        next_level_text_width = font.getbbox(next_level_text)[2]  # Correctly measure text width
-        next_level_x = x + bar_width - next_level_text_width
-        draw.text((next_level_x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), next_level_text, font=font, fill=self.SHADOW_COLOR)
-        draw.text((next_level_x, y), next_level_text, font=font, fill=self.TEXT_COLOR)
+        # Draw Next Level text on the right, justified to the right of the image
+        next_level_text_width = font.getbbox(next_level_text)[2]  # Using getbbox for text size
+        self.draw_text_with_shadow(draw, image_width - self.PADDING - next_level_text_width, y, next_level_text, font)
 
     async def send_image(self, interaction, image):
         """Save the image to a buffer and send it in the interaction response."""
