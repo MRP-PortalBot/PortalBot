@@ -109,7 +109,7 @@ class ProfileCMD(commands.Cog):
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
 
         # Shift the progress bar downward by adjusting the text_y + value
-        progress_bar_y = text_y + 70  # Adjust this value for consistent padding
+        progress_bar_y = text_y + 65  # Adjust this value for consistent padding
 
         # Draw progress bar
         bar_width = image.width - text_x - self.PADDING
