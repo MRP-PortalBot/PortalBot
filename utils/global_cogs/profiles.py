@@ -16,7 +16,8 @@ class ProfileCMD(commands.Cog):
     PADDING = 20
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
 
-    BAR_HEIGHT = 20  # Progress bar height
+    BAR_HEIGHT = 30  # Progress bar height
+    BAR_WIDTH = 400
     FONT_PATH = "./core/fonts/OpenSansEmoji.ttf"
     BACKGROUND_IMAGE_PATH = './core/images/profilebackground3.png'
     TEXT_COLOR = (255, 255, 255, 255)
