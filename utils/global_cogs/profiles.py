@@ -119,7 +119,7 @@ class ProfileCMD(commands.Cog):
 
         # Draw text under the progress bar (server score and next level)
         text_below_y = progress_bar_y + self.BAR_HEIGHT + 10  # Adjust for padding below the bar
-        score_text = f"Server Score ⬆️"
+        score_text = f"Server Score \u2934"
         next_level_text = f"Next Level Role: {level}"
         
         # Draw the text below the progress bar with shadow
