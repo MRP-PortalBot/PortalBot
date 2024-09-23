@@ -326,6 +326,32 @@ class ServerScores(BaseModel):
     Level = IntegerField(default=0)
     Progress = IntegerField(default=0)
 
+class LeveledRoles(BaseModel):
+    """
+    LeveledRoles:
+    Stores the roles and level thresholds for each server.
+
+    `RoleID`: AutoField()
+    Unique ID for each role entry.
+
+    `RoleName`: TextField()
+    The name of the role to be assigned.
+
+    `RoleID`: BigIntegerField()
+    The actual Discord Role ID (useful for assigning roles).
+
+    `ServerID`: TextField()
+    The ID of the server where this role is applicable.
+
+    `LevelThreshold`: IntegerField()
+    The level at which the role is assigned.
+    """
+    RoleID = AutoField()  # Unique ID for each role entry
+    RoleName = TextField()  # The name of the role to be assigned
+    RoleID = BigIntegerField()  # Discord Role ID for direct assignment
+    ServerID = TextField()  # ID of the server where the role is applicable
+    LevelThreshold = IntegerField()  # Level required to achieve this role
+
 app = Flask(__name__)
 
 
@@ -351,6 +377,7 @@ tables = {
     "profile": PortalbotProfile,
     "realmprofile": RealmProfile,
     "serverscores": ServerScores,
+    "serverscores": LeveledRoles,
     "administrators": Administrators,
     "questionsuggestionqueue": QuestionSuggestionQueue,
     "realmapplications": RealmApplications,
