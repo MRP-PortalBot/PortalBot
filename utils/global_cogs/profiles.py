@@ -158,16 +158,16 @@ class ProfileCMD(commands.Cog):
         # Text to display inside the progress bar
         progress_text = f"{current_score} / {next_level_score}"
 
-        # Calculate text size using getbbox() and position it in the center of the progress bar
+        # Calculate text size using getbbox()
         text_bbox = small_font.getbbox(progress_text)
         text_width, text_height = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
 
-        # Calculate the position to center the text inside the progress bar
+        # Calculate the position to center the text horizontally inside the progress bar
         text_x = x + (bar_width // 2) - (text_width // 2)
         
-        # Centering the text vertically within the bar
-        text_y = y + (self.BAR_HEIGHT // 2) - (text_height // 2)
-        print (text_y)
+        # Calculate the Y position to center text vertically in the bar (compensating for baseline shift)
+        ascent, descent = small_font.getmetrics()
+        text_y = y + (self.BAR_HEIGHT // 2) - ((ascent + descent) // 2)
 
         # Draw the text in the center of the progress bar with shadow for readability
         self.draw_text_with_shadow(draw, text_x, text_y, progress_text, small_font)
