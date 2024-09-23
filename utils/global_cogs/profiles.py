@@ -142,7 +142,7 @@ class ProfileCMD(commands.Cog):
         draw.text((x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), text, font=font, fill=self.SHADOW_COLOR)
         draw.text((x, y), text, font=font, fill=self.TEXT_COLOR)
 
-    def draw_progress_bar(self, draw, x, y, progress, bar_width, current_score, next_level_score):
+    def draw_progress_bar(self, draw, x, y, progress, bar_width, current_score, next_level_score, small_font):
         """Draw the progress bar showing the level progress with text in the middle."""
 
         # Draw the progress bar background (with rounded corners)
