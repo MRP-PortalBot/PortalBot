@@ -109,20 +109,18 @@ class ProfileCMD(commands.Cog):
         # Draw username and shadow
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
 
-        # Calculate next level score based on current level
-        next_level_score = (level + 1) ** 2 * 100  # Assuming levels increase quadratically
-
         # Shift the progress bar downward by adjusting the text_y + value
         progress_bar_y = text_y + 65  # Adjust this value for consistent padding
 
-        # Draw progress bar including font argument
+        # Draw progress bar
         bar_width = image.width - text_x - self.PADDING
-        self.draw_progress_bar(draw, text_x, progress_bar_y, progress, bar_width, server_score, next_level_score, small_font)
+        next_level_score = (level + 1) ** 2 * 100  # Example for calculating next level score
+        self.draw_progress_bar(draw, text_x, progress_bar_y, progress, bar_width, server_score, next_level_score)
 
         # Draw text under the progress bar (server score and next level)
         text_below_y = progress_bar_y + self.BAR_HEIGHT + 10  # Adjust for padding below the bar
         score_text = f"Server Score: {server_score}"
-        next_level_text = f"Next Level: {level + 1}"
+        next_level_text = f"Next Level: {level}"
         
         # Draw the text below the progress bar with shadow
         self.draw_text_below_progress_bar(draw, text_x, text_below_y, score_text, next_level_text, image.width, small_font)
@@ -142,7 +140,7 @@ class ProfileCMD(commands.Cog):
         draw.text((x + self.SHADOW_OFFSET, y + self.SHADOW_OFFSET), text, font=font, fill=self.SHADOW_COLOR)
         draw.text((x, y), text, font=font, fill=self.TEXT_COLOR)
 
-    def draw_progress_bar(self, draw, x, y, progress, bar_width, current_score, next_level_score, small_font):
+    def draw_progress_bar(self, draw, x, y, progress, bar_width, current_score, next_level_score):
         """Draw the progress bar showing the level progress with text in the middle."""
 
         # Draw the progress bar background (with rounded corners)
@@ -169,6 +167,7 @@ class ProfileCMD(commands.Cog):
         
         # Centering the text vertically within the bar
         text_y = y + (self.BAR_HEIGHT // 2) - (text_height // 2)
+        print (text_y)
 
         # Draw the text in the center of the progress bar with shadow for readability
         self.draw_text_with_shadow(draw, text_x, text_y, progress_text, small_font)
