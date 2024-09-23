@@ -175,3 +175,21 @@ def calculate_level(score: int) -> Tuple[int, float]:
     prev_level_score = level ** 2 * 100
     progress = (score - prev_level_score) / (next_level_score - prev_level_score)
     return level, progress
+
+def get_user_rank(server_id, user_id):
+    """
+    Get the rank of a user based on their score in a specific server.
+    """
+    query = (database.ServerScores
+             .select(database.ServerScores.DiscordLongID)
+             .where(database.ServerScores.ServerID == str(server_id))
+             .order_by(database.ServerScores.Score.desc()))  # Order by score (high to low)
+
+    # Find the user's position in the ranking
+    rank = 1
+    for entry in query:
+        if entry.DiscordLongID == str(user_id):
+            return rank  # Return the rank of the user
+        rank += 1
+
+    return None  # If user is not found

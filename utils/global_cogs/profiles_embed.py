@@ -10,6 +10,7 @@ from discord import app_commands
 from core import database
 from core.logging_module import get_log
 from core.common import calculate_level  # Import your helper function here
+from core.common import get_user_rank
 
 _log = get_log(__name__)
 
@@ -68,6 +69,9 @@ class Profile_EmbedCMD(commands.Cog):
         else:
             level, progress = 0, 0
 
+        # **Fetch user rank**
+        rank = get_user_rank(guild_id, profile.id)
+
         # If profile exists, create a fancy embed
         embed = discord.Embed(
             title=f"{profile.display_name}'s Profile",
@@ -85,6 +89,7 @@ class Profile_EmbedCMD(commands.Cog):
         embed.add_field(name="💬 Server Score", value=server_score, inline=False)
         embed.add_field(name="🎮 Level", value=f"Level {level}", inline=True)
         embed.add_field(name="📈 % to Next Level", value=f"{round(progress * 100, 2)}%", inline=True)
+        embed.add_field(name="🏆 Server Rank", value=rank, inline=False)
 
         # Add profile fields dynamically with icons/emojis
         if query.Timezone != "None":

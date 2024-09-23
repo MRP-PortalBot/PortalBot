@@ -6,6 +6,7 @@ from discord.ext import commands
 from discord import app_commands
 from core import database
 from core.common import calculate_level
+from core.common import get_user_rank
 
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
@@ -26,9 +27,6 @@ class ProfileCMD(commands.Cog):
 
     @app_commands.command(name="profile", description="Generates a profile image.")
     async def generate_profile_canvas(self, interaction: discord.Interaction, profile: discord.Member = None):
-        """
-        Generates a profile canvas using the provided background image with improved text readability.
-        """
         if profile is None:
             profile = interaction.user
 
@@ -52,8 +50,11 @@ class ProfileCMD(commands.Cog):
         # Calculate level and progress
         level, progress = self.calculate_progress(server_score)
 
+        # **Fetch user rank**
+        rank = get_user_rank(interaction.guild_id, profile.id)
+
         # Draw text and progress bar on the image
-        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress)
+        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress, rank)
 
         # Send the final image
         await self.send_image(interaction, image)
@@ -97,8 +98,8 @@ class ProfileCMD(commands.Cog):
             return calculate_level(server_score)
         return 0, 0
 
-    def draw_text_and_progress(self, image, username, server_score, level, progress):
-        """Draws the username, server score, and progress bar on the image."""
+    def draw_text_and_progress(self, image, username, server_score, level, progress, rank):
+        """Draws the username, server score, progress bar, and rank on the image."""
         draw = ImageDraw.Draw(image)
         font, small_font = self.load_fonts()
 
@@ -108,6 +109,12 @@ class ProfileCMD(commands.Cog):
 
         # Draw username and shadow
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
+
+        # Draw the user's rank
+        rank_text = f"Rank: #{rank}"
+        rank_x = image.width - self.PADDING - font.getbbox(rank_text)[2]
+        rank_y = text_y
+        self.draw_text_with_shadow(draw, rank_x, rank_y, rank_text, font)
 
         # Shift the progress bar downward by adjusting the text_y + value
         progress_bar_y = text_y + 65  # Adjust this value for consistent padding
