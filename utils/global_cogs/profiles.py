@@ -18,7 +18,7 @@ class ProfileCMD(commands.Cog):
 
     BAR_HEIGHT = 30  # Progress bar height
     RADIUS = 15  # Rounded corners radius for the progress bar
-    FONT_PATH = "./core/fonts/monocraft.ttf"
+    FONT_PATH = "./core/fonts/Monocraft.ttf"
     BACKGROUND_IMAGE_PATH = './core/images/profilebackground4.png'
     TEXT_COLOR = (255, 255, 255, 255)
     SHADOW_COLOR = (0, 0, 0, 200)  # Black with transparency
