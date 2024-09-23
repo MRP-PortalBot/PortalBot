@@ -42,7 +42,7 @@ class ProfileCMD(commands.Cog):
         self.draw_avatar(image, avatar_image)
 
         # Fetch profile data and score
-        query, server_score = self.fetch_profile_data(profile, interaction.guild_id)
+        query, server_score, next_role_name = self.fetch_profile_data(profile, interaction.guild_id)
         if query is None:
             await interaction.response.send_message("No profile found for this user.")
             return
@@ -54,7 +54,7 @@ class ProfileCMD(commands.Cog):
         rank = get_user_rank(interaction.guild_id, profile.id)
 
         # Draw text and progress bar on the image
-        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress, rank)
+        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress, rank, next_role_name)
 
         # Send the final image
         await self.send_image(interaction, image)
