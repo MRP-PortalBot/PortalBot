@@ -377,7 +377,7 @@ tables = {
     "profile": PortalbotProfile,
     "realmprofile": RealmProfile,
     "serverscores": ServerScores,
-    "serverscores": LeveledRoles,
+    "leveledroles": LeveledRoles,
     "administrators": Administrators,
     "questionsuggestionqueue": QuestionSuggestionQueue,
     "realmapplications": RealmApplications,
