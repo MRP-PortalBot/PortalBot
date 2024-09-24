@@ -114,7 +114,7 @@ class ProfileCMD(commands.Cog):
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
 
         # Draw the user's rank
-        rank_text = f"Rank: #{rank}"
+        rank_text = f"#{rank}"
         rank_x = image.width - self.PADDING - font.getbbox(rank_text)[2]
         rank_y = text_y
         self.draw_text_with_shadow(draw, rank_x, rank_y, rank_text, font)
