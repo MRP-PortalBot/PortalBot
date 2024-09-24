@@ -45,7 +45,7 @@ class ProfileCMD(commands.Cog):
         self.draw_avatar(image, avatar_image)
 
         # Fetch profile data and score
-        query, server_score = self.fetch_profile_data(profile, interaction.guild_id)
+        query, server_score, next_role_name = self.fetch_profile_data(profile, interaction.guild_id)
         if query is None:
             await interaction.response.send_message("No profile found for this user.")
             return
@@ -57,7 +57,7 @@ class ProfileCMD(commands.Cog):
         rank = get_user_rank(interaction.guild_id, profile.id)
 
         # Draw text and progress bar on the image
-        self.draw_text_and_progress(image, profile.name, server_score, level, progress, rank)
+        self.draw_text_and_progress(image, profile.name, server_score, level, progress, rank, next_role_name)
 
         # Send the final image
         await self.send_image(interaction, image)
@@ -93,7 +93,17 @@ class ProfileCMD(commands.Cog):
             (database.ServerScores.ServerID == str(guild_id))
         )
         server_score = score_query.Score if score_query else "N/A"
-        return query, server_score
+        current_level = score_query.Level if score_query else 0
+
+        # Query the next role based on the current level
+        next_role_query = database.LeveledRoles.select().where(
+            (database.LeveledRoles.ServerID == str(guild_id)) &
+            (database.LeveledRoles.LevelThreshold > current_level)
+        ).order_by(database.LeveledRoles.LevelThreshold.asc()).first()
+
+        next_role_name = next_role_query.RoleName if next_role_query else "None"
+
+        return query, server_score, next_role_name
 
     def calculate_progress(self, server_score):
         """Calculate level and progress based on the server score."""
@@ -130,10 +140,10 @@ class ProfileCMD(commands.Cog):
         # Draw text under the progress bar (server score and next level)
         text_below_y = progress_bar_y + self.BAR_HEIGHT + 10  # Adjust for padding below the bar
         score_text = f"Server Score \u2934"
-        next_level_text = f"Next Level Role: {level}"
+        next_role_text = f"Next Role: {next_role_name}"  # Display the next role's name
         
         # Draw the text below the progress bar with shadow
-        self.draw_text_below_progress_bar(draw, text_x, text_below_y, score_text, next_level_text, image.width, small_font)
+        self.draw_text_below_progress_bar(draw, text_x, text_below_y, score_text, next_role_text, image.width, small_font)
 
 
     def load_fonts(self):
@@ -183,14 +193,14 @@ class ProfileCMD(commands.Cog):
         # Draw the text in the center of the progress bar with shadow for readability
         self.draw_text_with_shadow(draw, text_x, text_y, progress_text, small_font)
 
-    def draw_text_below_progress_bar(self, draw, x, y, score_text, next_level_text, image_width, font):
+    def draw_text_below_progress_bar(self, draw, x, y, score_text, next_role_text, image_width, font):
         """Draw text (Server Score and Next Level) below the progress bar."""
         # Draw Server Score text with shadow
         self.draw_text_with_shadow(draw, x, y, score_text, font)
 
         # Draw Next Level text on the right, justified to the right of the image
-        next_level_text_width = font.getbbox(next_level_text)[2]  # Using getbbox for text size
-        self.draw_text_with_shadow(draw, image_width - self.PADDING - next_level_text_width, y, next_level_text, font)
+        next_level_text_width = font.getbbox(next_role_text)[2]  # Using getbbox for text size
+        self.draw_text_with_shadow(draw, image_width - self.PADDING - next_level_text_width, y, next_role_text, font)
 
     async def send_image(self, interaction, image):
         """Save the image to a buffer and send it in the interaction response."""
