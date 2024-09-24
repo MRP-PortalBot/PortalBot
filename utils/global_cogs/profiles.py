@@ -57,7 +57,7 @@ class ProfileCMD(commands.Cog):
         rank = get_user_rank(interaction.guild_id, profile.id)
 
         # Draw text and progress bar on the image
-        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress, rank)
+        self.draw_text_and_progress(image, profile.name, server_score, level, progress, rank)
 
         # Send the final image
         await self.send_image(interaction, image)
