@@ -27,6 +27,9 @@ class ProfileCMD(commands.Cog):
 
     @app_commands.command(name="profile", description="Generates a profile image.")
     async def generate_profile_canvas(self, interaction: discord.Interaction, profile: discord.Member = None):
+        """
+        Generates a profile canvas using the provided background image with improved text readability.
+        """
         if profile is None:
             profile = interaction.user
 
@@ -42,7 +45,7 @@ class ProfileCMD(commands.Cog):
         self.draw_avatar(image, avatar_image)
 
         # Fetch profile data and score
-        query, server_score, next_role_name = self.fetch_profile_data(profile, interaction.guild_id)
+        query, server_score = self.fetch_profile_data(profile, interaction.guild_id)
         if query is None:
             await interaction.response.send_message("No profile found for this user.")
             return
@@ -54,7 +57,7 @@ class ProfileCMD(commands.Cog):
         rank = get_user_rank(interaction.guild_id, profile.id)
 
         # Draw text and progress bar on the image
-        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress, rank, next_role_name)
+        self.draw_text_and_progress(image, profile.display_name, server_score, level, progress, rank)
 
         # Send the final image
         await self.send_image(interaction, image)
@@ -78,29 +81,19 @@ class ProfileCMD(commands.Cog):
         image.paste(avatar_image, (self.PADDING, self.PADDING), mask)
 
     def fetch_profile_data(self, profile, guild_id):
-        """Fetch profile data, server score, and next role based on the current level."""
+        """Fetch profile data and score from the database."""
         longid = str(profile.id)
         try:
             query = database.PortalbotProfile.get(database.PortalbotProfile.DiscordLongID == longid)
         except database.PortalbotProfile.DoesNotExist:
-            return None, None, None
+            return None, None
 
         score_query = database.ServerScores.get_or_none(
             (database.ServerScores.DiscordLongID == longid) &
             (database.ServerScores.ServerID == str(guild_id))
         )
         server_score = score_query.Score if score_query else "N/A"
-        current_level = score_query.Level if score_query else 0
-
-        # Query the next role based on the current level
-        next_role_query = database.LeveledRoles.select().where(
-            (database.LeveledRoles.ServerID == str(guild_id)) &
-            (database.LeveledRoles.LevelThreshold > current_level)
-        ).order_by(database.LeveledRoles.LevelThreshold.asc()).first()
-
-        next_role_name = next_role_query.RoleName if next_role_query else "None"
-
-        return query, server_score, next_role_name
+        return query, server_score
 
     def calculate_progress(self, server_score):
         """Calculate level and progress based on the server score."""
@@ -108,8 +101,8 @@ class ProfileCMD(commands.Cog):
             return calculate_level(server_score)
         return 0, 0
 
-    def draw_text_and_progress(self, image, username, server_score, current_level, progress, rank, next_role_name):
-        """Draws the username, server score, and progress bar with the next role on the image."""
+    def draw_text_and_progress(self, image, username, server_score, level, progress, rank):
+        """Draws the username, server score, progress bar, and rank on the image."""
         draw = ImageDraw.Draw(image)
         font, small_font = self.load_fonts()
 
@@ -120,21 +113,28 @@ class ProfileCMD(commands.Cog):
         # Draw username and shadow
         self.draw_text_with_shadow(draw, text_x, text_y, username, font)
 
+        # Draw the user's rank
+        rank_text = f"Rank: #{rank}"
+        rank_x = image.width - self.PADDING - font.getbbox(rank_text)[2]
+        rank_y = text_y
+        self.draw_text_with_shadow(draw, rank_x, rank_y, rank_text, font)
+
         # Shift the progress bar downward by adjusting the text_y + value
         progress_bar_y = text_y + 65  # Adjust this value for consistent padding
 
         # Draw progress bar
         bar_width = image.width - text_x - self.PADDING
-        next_level_score = (current_level + 1) ** 2 * 100  # Example for calculating next level score
+        next_level_score = (level + 1) ** 2 * 100  # Example for calculating next level score
         self.draw_progress_bar(draw, text_x, progress_bar_y, progress, bar_width, server_score, next_level_score)
 
-        # Draw text under the progress bar (server score and next role)
+        # Draw text under the progress bar (server score and next level)
         text_below_y = progress_bar_y + self.BAR_HEIGHT + 10  # Adjust for padding below the bar
-        score_text = f"Server Score: {server_score}"
-        next_role_text = f"Next Role: {next_role_name}"  # Display the next role's name
-
+        score_text = f"Server Score \u2934"
+        next_level_text = f"Next Level Role: {level}"
+        
         # Draw the text below the progress bar with shadow
-        self.draw_text_below_progress_bar(draw, text_x, text_below_y, score_text, next_role_text, image.width, small_font)
+        self.draw_text_below_progress_bar(draw, text_x, text_below_y, score_text, next_level_text, image.width, small_font)
+
 
     def load_fonts(self):
         """Loads and returns the fonts for username and small text."""
