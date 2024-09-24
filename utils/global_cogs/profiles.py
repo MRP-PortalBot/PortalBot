@@ -193,6 +193,9 @@ class ProfileCMD(commands.Cog):
         # Draw the text in the center of the progress bar with shadow for readability
         self.draw_text_with_shadow(draw, text_x, text_y, progress_text, small_font)
 
+        total_score_needed = sum((n ** 2) * 100 for n in range(1, 51))
+        print(total_score_needed)
+
     def draw_text_below_progress_bar(self, draw, x, y, score_text, next_role_text, image_width, font):
         """Draw text (Server Score and Next Level) below the progress bar."""
         # Draw Server Score text with shadow
