@@ -111,7 +111,7 @@ class ProfileCMD(commands.Cog):
             return calculate_level(server_score)
         return 0, 0
 
-    def draw_text_and_progress(self, image, username, server_score, level, progress, rank):
+    def draw_text_and_progress(self, image, username, server_score, level, progress, rank, next_role_name):
         """Draws the username, server score, progress bar, and rank on the image."""
         draw = ImageDraw.Draw(image)
         font, small_font = self.load_fonts()
