@@ -51,13 +51,13 @@ class ProfileCMD(commands.Cog):
             return
 
         # Calculate level and progress
-        level, progress = self.calculate_progress(server_score)
+        level, progress, next_level_score = self.calculate_progress(server_score)
 
         # **Fetch user rank**
         rank = get_user_rank(interaction.guild_id, profile.id)
 
         # Draw text and progress bar on the image
-        self.draw_text_and_progress(image, profile.name, server_score, level, progress, rank, next_role_name)
+        self.draw_text_and_progress(image, profile.name, server_score, level, progress, rank, next_level_score, next_role_name)
 
         # Send the final image
         await self.send_image(interaction, image)
@@ -111,7 +111,7 @@ class ProfileCMD(commands.Cog):
             return calculate_level(server_score)
         return 0, 0
 
-    def draw_text_and_progress(self, image, username, server_score, level, progress, rank, next_role_name):
+    def draw_text_and_progress(self, image, username, server_score, level, progress, rank, next_level_score, next_role_name):
         """Draws the username, server score, progress bar, and rank on the image."""
         draw = ImageDraw.Draw(image)
         font, small_font = self.load_fonts()
@@ -134,7 +134,6 @@ class ProfileCMD(commands.Cog):
 
         # Draw progress bar
         bar_width = image.width - text_x - self.PADDING
-        next_level_score = (level + 1) ** 2 * 100  # Example for calculating next level score
         self.draw_progress_bar(draw, text_x, progress_bar_y, progress, bar_width, server_score, next_level_score)
 
         # Draw text under the progress bar (server score and next level)
@@ -192,9 +191,6 @@ class ProfileCMD(commands.Cog):
 
         # Draw the text in the center of the progress bar with shadow for readability
         self.draw_text_with_shadow(draw, text_x, text_y, progress_text, small_font)
-
-        total_score_needed = sum((n ** 2) * 100 for n in range(1, 51))
-        print(total_score_needed)
 
     def draw_text_below_progress_bar(self, draw, x, y, score_text, next_role_text, image_width, font):
         """Draw text (Server Score and Next Level) below the progress bar."""

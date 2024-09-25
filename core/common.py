@@ -174,7 +174,7 @@ def calculate_level(score: int) -> Tuple[int, float]:
     next_level_score = (level + 1) ** 2 * 100
     prev_level_score = level ** 2 * 100
     progress = (score - prev_level_score) / (next_level_score - prev_level_score)
-    return level, progress
+    return level, progress, next_level_score
 
 def get_user_rank(server_id, user_id):
     """

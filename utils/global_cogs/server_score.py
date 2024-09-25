@@ -56,15 +56,15 @@ class ScoreIncrement(commands.Cog):
             server_score.Score += score_increment
 
             # Calculate the new level and progress using your function
-            new_level, progress = calculate_level(server_score.Score)
+            new_level, progress, next_level_score = calculate_level(server_score.Score)
             print (new_level)
-            print(progress)
+            print(next_level_score)
 
             # Update the score, level, and progress
             if username != server_score.DiscordName:
                 server_score.DiscordName = username
             server_score.Level = new_level
-            server_score.Progress = progress  # Store progress as percentage
+            server_score.Progress = next_level_score  # Store progress as percentage
             server_score.save()
 
             # Check if the user leveled up
@@ -83,7 +83,7 @@ class ScoreIncrement(commands.Cog):
         except database.ServerScores.DoesNotExist:
             # If the user doesn't have a score record yet, create one
             initial_score = score_increment
-            new_level, progress = calculate_level(initial_score)  # Calculate initial level and progress
+            new_level, progress, next_level_score = calculate_level(initial_score)  # Calculate initial level and progress
 
             database.ServerScores.create(
                 DiscordName=username,
@@ -91,7 +91,7 @@ class ScoreIncrement(commands.Cog):
                 ServerID=str(message.guild.id),
                 Score=initial_score,
                 Level=new_level,
-                Progress=progress
+                Progress=next_level_score
             )
 
         # Update the last_message_time dictionary with the current time
