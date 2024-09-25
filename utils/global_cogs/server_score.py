@@ -22,6 +22,7 @@ class ScoreIncrement(commands.Cog):
         """
         Listener that increments score for each message sent by a user
         with a random point increment (10 to 30 points) and a cooldown of 1 to 3 minutes.
+        Sends a level-up message when the user reaches a new level.
         """
         if message.author.bot or message.guild is None:
             return  # Ignore messages from bots or DMs
@@ -44,28 +45,54 @@ class ScoreIncrement(commands.Cog):
         # If cooldown has passed or it's the user's first message, update the score
         score_increment = random.randint(10, 30)
 
-        # Try to fetch the current score from the database
         try:
             server_score = database.ServerScores.get(
                 database.ServerScores.DiscordLongID == user_id,
                 database.ServerScores.ServerID == str(message.guild.id)
             )
-            server_score.Score += score_increment  # Increment the score
+            previous_level = server_score.Level  # Store the previous level
 
-            # **Calculate the new level and progress using your function**
+            # Increment the score
+            server_score.Score += score_increment
+
+            # Calculate the new level and progress using your function
             new_level, progress = calculate_level(server_score.Score)
+
+            # Calculate next level threshold
+            next_level_score = (new_level + 1) ** 2 * 100
+            current_level_score = new_level ** 2 * 100
+
+            # Calculate progress as percentage towards the next level
+            progress_percentage = ((server_score.Score - current_level_score) / (next_level_score - current_level_score)) * 100
 
             # Update the score, level, and progress
             if username != server_score.DiscordName:
                 server_score.DiscordName = username
             server_score.Level = new_level
-            server_score.Progress = progress
+            server_score.Progress = next_level_score  # Store progress as percentage
             server_score.save()
+
+            # Check if the user leveled up
+            if new_level > previous_level:
+                # Fetch the role for the new level (if using roles)
+                role_name = await self.get_role_for_level(new_level, message.guild)
+                if role_name:
+                    # Assign the role if it exists
+                    new_role = discord.utils.get(message.guild.roles, name=role_name)
+                    if new_role:
+                        await message.author.add_roles(new_role)
+
+                # Send the level-up message
+                await message.channel.send(f"🎉 {message.author.mention} has leveled up to **Level {new_level}**! Congrats!")
 
         except database.ServerScores.DoesNotExist:
             # If the user doesn't have a score record yet, create one
             initial_score = score_increment
             new_level, progress = calculate_level(initial_score)  # Calculate initial level and progress
+
+            # Store progress as percentage towards the next level
+            next_level_score = (new_level + 1) ** 2 * 100
+            progress_percentage = (initial_score / next_level_score) * 100
 
             database.ServerScores.create(
                 DiscordName=username,
@@ -73,7 +100,7 @@ class ScoreIncrement(commands.Cog):
                 ServerID=str(message.guild.id),
                 Score=initial_score,
                 Level=new_level,
-                Progress=progress
+                Progress=next_level_score
             )
 
         # Update the last_message_time dictionary with the current time
@@ -81,6 +108,17 @@ class ScoreIncrement(commands.Cog):
 
         # Optional: send a message or log the score increment
         await message.channel.send(f"{message.author.mention} earned {score_increment} points!")
+
+    async def get_role_for_level(self, level, guild):
+        """
+        Fetch the role name associated with the user's new level.
+        Assumes you have a `LeveledRoles` table that stores role names and levels.
+        """
+        try:
+            leveled_role = database.LeveledRoles.get(database.LeveledRoles.Level == level)
+            return leveled_role.RoleName if leveled_role else None
+        except database.LeveledRoles.DoesNotExist:
+            return None
 
 # Setup the cog
 async def setup(bot):
