@@ -57,6 +57,8 @@ class ScoreIncrement(commands.Cog):
 
             # Calculate the new level and progress using your function
             new_level, progress = calculate_level(server_score.Score)
+            print (new_level)
+            print(progress)
 
             # Update the score, level, and progress
             if username != server_score.DiscordName:
