@@ -102,13 +102,11 @@ class LeveledRolesCMD(commands.Cog):
             if not role:
                 # Create the role if it doesn't exist
                 role = await guild.create_role(name=role_name, color=role_color)
-                created_roles.append(role)
             else:
                 # Update the role color if it exists
                 await role.edit(color=role_color)
-                created_roles.append(role)
                 
-            created_roles[role] = level
+            created_roles.append((role, level)) 
 
             # Add the role to the leveled roles database
             database.LeveledRoles.get_or_create(
