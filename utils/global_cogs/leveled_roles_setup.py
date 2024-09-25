@@ -107,6 +107,8 @@ class LeveledRolesCMD(commands.Cog):
                 # Update the role color if it exists
                 await role.edit(color=role_color)
                 created_roles.append(role)
+                
+            created_roles[role] = level
 
             # Add the role to the leveled roles database
             database.LeveledRoles.get_or_create(
@@ -116,10 +118,11 @@ class LeveledRolesCMD(commands.Cog):
                 defaults={'RoleName': role_name}
             )
 
-        # Reorder roles: Highest level at the top, Just Spawned at the bottom
-        # Reverse sort by level
-        sorted_roles = sorted(created_roles, key=lambda r: [r.name, r.position], reverse=True)
-        await guild.edit_role_positions(positions={r: i + 1 for i, r in enumerate(sorted_roles)})
+        # Reorder roles by level, with highest level role at the top
+        sorted_roles = sorted(created_roles.items(), key=lambda item: item[1], reverse=True)
+        positions = {role: position for position, (role, _) in enumerate(sorted_roles, start=1)}
+
+        await guild.edit_role_positions(positions=positions)
 
     @app_commands.command(name="setup_roles", description="Create and order leveled roles.")
     async def setup_roles_command(self, interaction: discord.Interaction):
