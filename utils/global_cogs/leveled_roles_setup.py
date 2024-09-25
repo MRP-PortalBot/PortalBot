@@ -117,7 +117,7 @@ class LeveledRolesCMD(commands.Cog):
             )
 
         # Reorder roles by level, with highest level role at the top
-        sorted_roles = sorted(created_roles, key=lambda item: item[1], reverse=True)
+        sorted_roles = sorted(created_roles, key=lambda item: item[1], reverse=False)
         positions = {role: position for position, (role, _) in enumerate(sorted_roles, start=1)}
 
         await guild.edit_role_positions(positions=positions)
