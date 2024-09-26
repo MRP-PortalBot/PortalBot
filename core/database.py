@@ -1,7 +1,7 @@
 import logging
 import os
 from peewee import AutoField, Model, IntegerField, TextField, SqliteDatabase, BigIntegerField, BooleanField, TimestampField, \
-    MySQLDatabase, PooledMySQLDatabase
+    MySQLDatabase
 from flask import Flask
 from dotenv import load_dotenv
 
@@ -16,8 +16,8 @@ DB_password = os.getenv('database_password')
 DB_Database = os.getenv('database_schema')
 
 # db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
-#db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
-db = PooledMySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port), max_connections=32)
+db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
+#db = PooledMySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port), max_connections=32)
 
 _log = get_log(__name__)
 
@@ -361,7 +361,6 @@ app = Flask(__name__)
 @app.before_request
 def _db_connect():
     db.connect()
-
 
 # This hook ensures that the connection is closed when we've finished
 # processing the request.
