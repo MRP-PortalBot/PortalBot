@@ -160,6 +160,16 @@ class Others:
     
 class Me:
     TracebackChannel = 797193549992165456
+    
+def get_bot_data_id():
+    load_dotenv()
+    os.getenv("bot_type")
+    key_value = {
+        "STABLE": 1,
+        "BETA": 2
+    }
+
+    return key_value[os.getenv("bot_type")]
 
 # Function to Calculate Level Based on Score
 def calculate_level(score: int) -> Tuple[int, float, int]:
