@@ -1,3 +1,4 @@
+'''
 from pathlib import Path
 from types import CoroutineType
 from typing import Tuple, Union, List
@@ -527,4 +528,4 @@ def calculate_level(score):
     next_level_score = (level + 1) ** 2 * 100  # Points needed for next level
     prev_level_score = level ** 2 * 100  # Points needed for the current level
     progress = (score - prev_level_score) / (next_level_score - prev_level_score)  # Progress percentage
-    return level, progress
+    return level, progress'''
