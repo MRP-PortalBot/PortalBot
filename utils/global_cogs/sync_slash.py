@@ -14,8 +14,8 @@ from sentry_sdk import Hub
 from core import database
 from core.checks import is_botAdmin2
 from core.checks import is_botAdmin3
-from core.common_old import Colors, ButtonHandler
-from core.common_old import Others
+from core.common import Colors, ButtonHandler
+from core.common import Others
 from core.logging_module import get_log
 
 _log = get_log(__name__)
