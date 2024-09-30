@@ -1,374 +1,227 @@
 import logging
 import os
-from peewee import AutoField, Model, IntegerField, TextField, SqliteDatabase, BigIntegerField, BooleanField, TimestampField, \
-    MySQLDatabase
+from peewee import (
+    AutoField, Model, IntegerField, TextField, SqliteDatabase,
+    BigIntegerField, BooleanField, TimestampField, MySQLDatabase
+)
 from flask import Flask
 from dotenv import load_dotenv
 
 from core.logging_module import get_log
 
+# Load environment variables
 load_dotenv()
 
-DB_IP = os.getenv('database_ip')
-DB_Port = os.getenv('database_port')
-DB_user = os.getenv('database_username')
-DB_password = os.getenv('database_password')
-DB_Database = os.getenv('database_schema')
-
-# db = SqliteDatabase("data.db", pragmas={'foreign_keys': 1})
-db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port))
-#db = PooledMySQLDatabase(DB_Database, user=DB_user, password=DB_password,host=DB_IP, port=int(DB_Port), max_connections=32)
-
+# Set up logging
 _log = get_log(__name__)
 
+# Load database configurations from environment variables
+try:
+    DB_IP = os.getenv('database_ip', 'localhost')  # Default to localhost if not provided
+    DB_Port = os.getenv('database_port', '3306')  # Default MySQL port
+    DB_user = os.getenv('database_username')
+    DB_password = os.getenv('database_password')
+    DB_Database = os.getenv('database_schema')
 
+    if not all([DB_IP, DB_Port, DB_user, DB_password, DB_Database]):
+        raise ValueError("One or more required environment variables are missing.")
+except Exception as e:
+    _log.error(f"Error loading environment variables: {e}")
+    raise SystemExit(e)  # Exit the program if environment variables are missing
+
+# Set up MySQL database connection
+try:
+    db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password, host=DB_IP, port=int(DB_Port))
+    # Uncomment below if using a pooled database connection
+    # db = PooledMySQLDatabase(DB_Database, user=DB_user, password=DB_password, host=DB_IP, port=int(DB_Port), max_connections=32)
+except Exception as e:
+    _log.error(f"Error connecting to the database: {e}")
+    raise SystemExit(e)  # Exit the program if the database connection fails
+
+# Define function to iterate through tables and create them if necessary
 def iter_table(model_dict):
     """Iterates through a dictionary of tables, confirming they exist and creating them if necessary."""
-    for key in model_dict:
-        if not db.table_exists(key):
-            db.connect(reuse_if_open=True)
-            db.create_tables([model_dict[key]])
-            _log.debug(f"Created table '{key}'")
-            db.close()
-
+    for key, model in model_dict.items():
+        try:
+            if not db.table_exists(model):
+                db.connect(reuse_if_open=True)
+                db.create_tables([model])
+                _log.debug(f"Created table '{key}'")
+        except Exception as e:
+            _log.error(f"Error creating table {key}: {e}")
+        finally:
+            if not db.is_closed():
+                db.close()
 
 class BaseModel(Model):
     """Base Model class used for creating new tables."""
-
     class Meta:
         database = db
-
+        
+def handle_database_errors(func):
+    """Decorator for handling database errors."""
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            _log.error(f"Database error in {func.__name__}: {e}")
+    return wrapper
 
 class BotData(BaseModel):
     """
     BotData:
     Information used across the bot.
-
-    `id`: AutoField()
-    Database Entry ID (ALWAYS QUERY 1)
-
-    `last_question_posted`: DateTimeField()
-    Last time a question was posted
-
-    `persistent_views`: BooleanField()
-    Whether or not persistent views are enabled
-
-    `prefix`: TextField()
-    Bot prefix
-
-    `blacklist_response_channel`: BigIntegerField()
-    Channel ID for blacklist responses
-
-    `question_suggest_channel`: BigIntegerField()
-    Channel ID for question suggestions
-
-    `bot_spam_channel`: BigIntegerField()
-    Channel ID for bot spam
-
-    `realm_channel_response`: BigIntegerField()
-    Channel ID for realm channel responses
-
-    `bot_type`: TextField()
-    Bot type
-
-    `other_bot_id`: BigIntegerField()
-    Other bot ID
-
-    `bot_id`: BigIntegerField()
-    Bot ID
-
-    `server_id`: BigIntegerField()
-    Server ID
     """
-    id = AutoField()
-    last_question_posted = TextField(null=True)
-    persistent_views = BooleanField(default=False)
-    prefix = TextField(default=">")
-    blacklist_response_channel = BigIntegerField(default=0)
-    daily_question_channel = BigIntegerField(default=0)
-    question_suggest_channel = BigIntegerField(default=0)
-    bot_spam_channel = BigIntegerField(default=0)
-    realm_channel_response = BigIntegerField(default=0)
-    bot_type = TextField(default="Stable")
-    other_bot_id = BigIntegerField(default=0)
-    bot_id = BigIntegerField(default=0)
-    server_id = BigIntegerField(default=0)
-
+    id = AutoField()  # Database Entry ID (ALWAYS QUERY 1)
+    last_question_posted = TextField(null=True)  # Last time a question was posted
+    persistent_views = BooleanField(default=False)  # Whether or not persistent views are enabled
+    prefix = TextField(default=">")  # Bot prefix
+    blacklist_response_channel = BigIntegerField(default=0)  # Channel ID for blacklist responses
+    daily_question_channel = BigIntegerField(default=0)  # Channel ID for daily questions
+    question_suggest_channel = BigIntegerField(default=0)  # Channel ID for question suggestions
+    bot_spam_channel = BigIntegerField(default=0)  # Channel ID for bot spam
+    realm_channel_response = BigIntegerField(default=0)  # Channel ID for realm channel responses
+    bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
+    other_bot_id = BigIntegerField(default=0)  # Other bot ID (if linked)
+    bot_id = BigIntegerField(default=0)  # Discord Bot ID
+    server_id = BigIntegerField(default=0)  # Server ID where the bot is active
 
 
 class Tag(BaseModel):
     """Stores our tags accessed by the tag command."""
-    id = AutoField()
-    tag_name = TextField()
-    embed_title = TextField()
-    text = TextField()
+    id = AutoField()  # Tag entry ID
+    tag_name = TextField()  # Name of the tag
+    embed_title = TextField()  # Title of the embed associated with the tag
+    text = TextField()  # Tag text content
 
 
 class Question(BaseModel):
-    """Stores Questions for DailyQ here"""
-    id = AutoField()
-    question = TextField()
-    usage = TextField(default=False)
+    """Stores questions for DailyQ here."""
+    id = AutoField()  # Question entry ID
+    question = TextField()  # The question text
+    usage = TextField(default=False)  # Indicates if the question has been used
 
 
 class MRP_Blacklist_Data(BaseModel):
-    """Stores Blacklist Data here"""
-    entryid = AutoField()
-    BanReporter = TextField()
-    DiscUsername = TextField()
-    DiscID = TextField()
-    Gamertag = TextField()
-    BannedFrom = TextField()
-    KnownAlts = TextField()
-    ReasonforBan = TextField()
-    DateofIncident = TextField()
-    TypeofBan = TextField()
-    DatetheBanEnds = TextField()
+    """Stores Blacklist Data here."""
+    entryid = AutoField()  # Database Entry ID for blacklist
+    BanReporter = TextField()  # Who reported the ban
+    DiscUsername = TextField()  # Discord username of the banned user
+    DiscID = TextField()  # Discord ID of the banned user
+    Gamertag = TextField()  # Gamertag of the banned user
+    BannedFrom = TextField()  # Where the user is banned from
+    KnownAlts = TextField()  # Known alternative accounts
+    ReasonforBan = TextField()  # Reason for banning the user
+    DateofIncident = TextField()  # Date of the incident
+    TypeofBan = TextField()  # Type of ban imposed (e.g., temp, perm)
+    DatetheBanEnds = TextField()  # Date when the ban ends (if applicable)
 
 
 class PortalbotProfile(BaseModel):
-    """Stores Profile Data here"""
-    entryid = AutoField()
-    DiscordName = TextField()
-    DiscordLongID = TextField()
-    Timezone = TextField(default="None")
-    XBOX = TextField(default="None")
-    Playstation = TextField(default="None")
-    Switch = TextField(default="None")
-    RealmsJoined = TextField(default="None")
-    RealmsAdmin = TextField(default="None")
+    """Stores Profile Data here."""
+    entryid = AutoField()  # Profile entry ID
+    DiscordName = TextField()  # The Discord username
+    DiscordLongID = TextField()  # The Discord user ID
+    Timezone = TextField(default="None")  # The user's timezone
+    XBOX = TextField(default="None")  # Xbox Gamertag
+    Playstation = TextField(default="None")  # Playstation username
+    Switch = TextField(default="None")  # Nintendo Switch friend code
+    RealmsJoined = TextField(default="None")  # Number of realms the user has joined
+    RealmsAdmin = TextField(default="None")  # Whether the user is an admin of realms
 
 
 class RealmProfile(BaseModel):
-    """Stores Realm Profile Data here
-
-    `entry_id`: AutoField()
-    Database Entry
-
-    `realm_name`: TextField()
-    Realm Name
-
-    `realm_emoji`: TextField()
-    Realm Emoji
-
-    `realm_long_desc`: TextField()
-    Realm Long Description
-
-    `realm_short_desc`: TextField()
-    Realm Short Description
-
-    `realm_addons`: TextField()
-    Realm Addons
-
-    `world_age`: TextField()
-    Realm World Age
-
-    `pvp`: BooleanField()
-    Realm PvP
-
-    `one_player_sleep`: BooleanField()
-    Realm One Player Sleep
-
-    `realm_style`: TextField()
-    Realm Style
-
-    `gamemode`: TextField()
-    Realm Gamemode
-    """
-    entry_id = AutoField()
-    realm_name = TextField()
-    realm_emoji = TextField()
-    realm_long_desc = TextField()
-    realm_short_desc = TextField()
-    realm_addons = TextField()
-    world_age = TextField()
-    pvp = BooleanField()
-    one_player_sleep = BooleanField()
-    realm_style = TextField()
-    gamemode = TextField()
+    """Stores Realm Profile Data here."""
+    entry_id = AutoField()  # Database Entry ID for the realm
+    realm_name = TextField()  # Name of the realm
+    realm_emoji = TextField()  # Emoji associated with the realm
+    realm_long_desc = TextField()  # Long description of the realm
+    realm_short_desc = TextField()  # Short description of the realm
+    realm_addons = TextField()  # Addons or mods associated with the realm
+    world_age = TextField()  # Age of the world in the realm
+    pvp = BooleanField()  # PvP enabled or not
+    one_player_sleep = BooleanField()  # One player sleep enabled or not
+    realm_style = TextField()  # Realm style (e.g., survival, creative)
+    gamemode = TextField()  # Game mode (e.g., survival, adventure)
 
 
 class Administrators(BaseModel):
     """
     Administrators:
-    List of users who are whitelisted on the bot.
-
-    `id`: AutoField()
-    Database Entry
-
-    `discordID`: BigIntegerField()
-    Discord ID
-
-    `TierLevel`: IntegerField()
-    TIER LEVEL
-
-    1 - Bot Manager\n
-    2 - Admin\n
-    3 - Sudo Admin\n
-    4 - Owner
+    List of users whitelisted on the bot.
     """
-
-    id = AutoField()
-    discordID = BigIntegerField(unique=True)
-    TierLevel = IntegerField(default=1)
+    id = AutoField()  # Admin entry ID
+    discordID = BigIntegerField(unique=True)  # Discord ID of the administrator
+    TierLevel = IntegerField(default=1)  # Admin tier level (1-4)
 
 
 class QuestionSuggestionQueue(BaseModel):
-    """
-    QuestionSuggestionQueue:
-    List of users who have suggested questions for the bot.
-
-    `id`: AutoField()
-    Database Entry
-
-    `discord_id`: BigIntegerField()
-    Discord ID
-
-    `question`: TextField()
-    Question
-
-    `message_id`: BigIntegerField()
-    Message ID
-    """
-
-    id = AutoField()
-    discord_id = BigIntegerField()
-    question = TextField()
-    message_id = BigIntegerField()
+    """Stores users who suggested questions for the bot."""
+    id = AutoField()  # Suggestion entry ID
+    discord_id = BigIntegerField()  # Discord ID of the user
+    question = TextField()  # Suggested question
+    message_id = BigIntegerField()  # ID of the message containing the suggestion
 
 
 class RealmApplications(BaseModel):
-    """
-    RealmApplications:
-    List of users who have applied for a realm and their application details.
-
-    `id`: AutoField()
-    Database Entry
-
-    `discord_id`: BigIntegerField()
-    Discord ID
-
-    `realm_name`: TextField()
-    Realm Name
-
-    `type_of_realm`: TextField()
-    Realm Type
-
-    `emoji`: TextField()
-    Realm Emoji
-
-    `short_desc`: TextField()
-    Realm Short Description
-
-    `long_desc`: TextField()
-    Realm Long Description
-
-    `application_process`: TextField()
-    Realm Application Process
-
-    `member_count`: IntegerField()
-    Realm Member Count
-
-    `realm_age`: TextField()
-    Realm Age
-
-    `world_age`: TextField()
-    Realm World Age
-
-    `reset_schedule`: TextField()
-    Realm Reset Schedule
-
-    `foreseeable_future`: TextField()
-    Realm Foreseeable Future
-
-    `admin_team`: TextField()
-    Realm Admin Team
-    """
-    id = AutoField()
-    discord_id = BigIntegerField()
-    discord_name = TextField()
-    realm_name = TextField()
-    type_of_realm = TextField()
-    emoji = TextField()
-    short_desc = TextField()
-    long_desc = TextField()
-    application_process = TextField()
-    member_count = IntegerField()
-    realm_age = TextField()
-    world_age = TextField()
-    reset_schedule = TextField()
-    foreseeable_future = TextField()
-    admin_team = TextField()
-    timestamp = TimestampField()
+    """Stores users' realm applications."""
+    id = AutoField()  # Application entry ID
+    discord_id = BigIntegerField()  # Discord ID of the applicant
+    discord_name = TextField()  # Discord name of the applicant
+    realm_name = TextField()  # Realm name the user is applying to
+    type_of_realm = TextField()  # Type of realm
+    emoji = TextField()  # Emoji associated with the realm
+    short_desc = TextField()  # Short description of the realm
+    long_desc = TextField()  # Long description of the realm
+    application_process = TextField()  # Application process details
+    member_count = IntegerField()  # Current member count of the realm
+    realm_age = TextField()  # Age of the realm
+    world_age = TextField()  # Age of the world in the realm
+    reset_schedule = TextField()  # Realm reset schedule
+    foreseeable_future = TextField()  # Future plans for the realm
+    admin_team = TextField()  # List of realm administrators
+    timestamp = TimestampField()  # Timestamp of the application
 
 
 class ServerScores(BaseModel):
-    """
-    ServerScores:
-    Stores the score for each user in different servers.
+    """Stores the score for each user in different servers."""
+    ScoreID = AutoField()  # Unique ID for each score entry
+    DiscordName = TextField()  # User's Discord name
+    DiscordLongID = TextField()  # Discord user ID (foreign key to PortalbotProfile)
+    ServerID = TextField()  # Server ID where the score was achieved
+    Score = IntegerField()  # Score in the particular server
+    Level = IntegerField(default=0)  # Current level of the user
+    Progress = IntegerField(default=0)  # Progress toward the next level
 
-    `ScoreID`: AutoField()
-    Unique ID for each score entry.
-
-    `DiscordLongID`: Foreign key to the PortalbotProfile.
-    Link to the user profile.
-
-    `ServerID`: TextField()
-    The ID of the server where the score was achieved.
-
-    `Score`: IntegerField()
-    The score the user has in that particular server.
-    """
-    ScoreID = AutoField()
-    DiscordName = TextField()
-    DiscordLongID = TextField()  # Foreign key to PortalbotProfile
-    ServerID = TextField()
-    Score = IntegerField()
-    Level = IntegerField(default=0)
-    Progress = IntegerField(default=0)
 
 class LeveledRoles(BaseModel):
-    """
-    LeveledRoles:
-    Stores the roles and level thresholds for each server.
-
-    `RoleID`: AutoField()
-    Unique ID for each role entry.
-
-    `RoleName`: TextField()
-    The name of the role to be assigned.
-
-    `RoleID`: BigIntegerField()
-    The actual Discord Role ID (useful for assigning roles).
-
-    `ServerID`: TextField()
-    The ID of the server where this role is applicable.
-
-    `LevelThreshold`: IntegerField()
-    The level at which the role is assigned.
-    """
+    """Stores the roles and level thresholds for each server."""
     RoleID = AutoField()  # Unique ID for each role entry
-    RoleName = TextField()  # The name of the role to be assigned
-    RoleID = BigIntegerField()  # Discord Role ID for direct assignment
-    ServerID = TextField()  # ID of the server where the role is applicable
-    LevelThreshold = IntegerField()  # Level required to achieve this role
+    RoleName = TextField()  # Name of the role
+    RoleID = BigIntegerField()  # Discord Role ID for role assignment
+    ServerID = TextField()  # Server ID where the role is applicable
+    LevelThreshold = IntegerField()  # Level required to achieve the role
 
+
+# Flask app initialization
 app = Flask(__name__)
 
-
-# This hook ensures that a connection is opened to handle any queries
-# generated by the request.
+# Flask database hooks
 @app.before_request
 def _db_connect():
-    db.connect()
+    try:
+        if db.is_closed():
+            db.connect()
+    except Exception as e:
+        _log.error(f"Error connecting to the database before request: {e}")
 
-# This hook ensures that the connection is closed when we've finished
-# processing the request.
 @app.teardown_request
 def _db_close(exc):
-    if not db.is_closed():
-        db.close()
-
+    try:
+        if not db.is_closed():
+            db.close()
+    except Exception as e:
+        _log.error(f"Error closing the database after request: {e}")
 
 tables = {
     "tag": Tag,
@@ -383,4 +236,10 @@ tables = {
     "realmapplications": RealmApplications,
     "botdata": BotData
 }
-iter_table(tables)
+
+# Call the table creation function
+try:
+    iter_table(tables)
+except Exception as e:
+    _log.error(f"Error during table creation: {e}")
+    raise SystemExit(e)

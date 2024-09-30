@@ -1,11 +1,10 @@
 import os
 import re
-
 import discord
 from discord import app_commands
 from discord.ext import commands
-
 from core import database
+from peewee import DoesNotExist, OperationalError  # Add exception handling for peewee database errors
 
 # Predicate for command checks based on the admin level
 def predicate_LV(level):
@@ -16,8 +15,13 @@ def predicate_LV(level):
                 (database.Administrators.TierLevel >= level) & (database.Administrators.discordID == ctx.author.id)
             )
             return query.exists()
+        except OperationalError as e:
+            # Log or handle database connection issues
+            print(f"Database connection error: {e}")
+            return False
         finally:
-            database.db.close()
+            if not database.db.is_closed():
+                database.db.close()
     return inner
 
 # Create various admin-level check decorators
@@ -35,8 +39,13 @@ def slash_predicate_LV(level):
                 (database.Administrators.TierLevel >= level) & (database.Administrators.discordID == interaction.user.id)
             )
             return query.exists()
+        except OperationalError as e:
+            # Log or handle database connection issues
+            print(f"Database connection error: {e}")
+            return False
         finally:
-            database.db.close()
+            if not database.db.is_closed():
+                database.db.close()
     return app_commands.check(predicate)
 
 # Create various slash command admin-level check decorators
@@ -59,19 +68,28 @@ def owns_realm_channel(category_id=587627871216861244):
             )
             if query.exists():
                 return True
+        except OperationalError as e:
+            # Log or handle database connection issues
+            print(f"Database connection error: {e}")
+            return False
         finally:
-            database.db.close()
+            if not database.db.is_closed():
+                database.db.close()
 
         # Extract the realm name from the channel name (removing '-emoji')
-        realm_name = interaction.channel.name.rsplit('-', 1)[0]
-        role_name = f"{realm_name} OP"
+        try:
+            realm_name = interaction.channel.name.rsplit('-', 1)[0]
+            role_name = f"{realm_name} OP"
 
-        # Check if the user has the appropriate role
-        member = interaction.guild.get_member(interaction.user.id)
-        return any(role.name == role_name for role in member.roles)
+            # Check if the user has the appropriate role
+            member = interaction.guild.get_member(interaction.user.id)
+            return any(role.name == role_name for role in member.roles)
+        except AttributeError as e:
+            # Handle cases where the user has no roles or channel name doesn't match expected format
+            print(f"Error checking role ownership: {e}")
+            return False
 
     return app_commands.check(predicate)
 
 # Create the decorator for checking realm channel ownership
 slash_owns_realm_channel = owns_realm_channel()
-

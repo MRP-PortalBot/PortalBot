@@ -1,7 +1,10 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from core import database  # Assuming you have the database set up for leveled roles
+from core import database
+from core.logging_module import get_log
+
+_log = get_log(__name__)
 
 class LeveledRolesCMD(commands.Cog):
     def __init__(self, bot):
@@ -91,24 +94,26 @@ class LeveledRolesCMD(commands.Cog):
 			(80, "Ender Dragon Conqueror", "1919dc")
         ]
 
-        # Iterate over the roles and create them if they don't exist
+        # Cache existing roles to avoid multiple lookups
+        existing_roles = {role.name: role for role in guild.roles}
         created_roles = []
+
         for level, role_name, hex_color in roles_data:
-            # Convert hex to RGB
             role_color = discord.Color(int(hex_color, 16))
 
-            # Check if the role already exists
-            role = discord.utils.get(guild.roles, name=role_name)
+            role = existing_roles.get(role_name)
             if not role:
-                # Create the role if it doesn't exist
+                # Create role if it doesn't exist
+                _log.info(f"Creating role: {role_name}")
                 role = await guild.create_role(name=role_name, color=role_color)
-            else:
-                # Update the role color if it exists
+            elif role.color != role_color:
+                # Update role color only if it has changed
+                _log.info(f"Updating role color: {role_name}")
                 await role.edit(color=role_color)
-                
-            created_roles.append((role, level)) 
 
-            # Add the role to the leveled roles database
+            created_roles.append((role, level))
+
+            # Add or update the role in the database
             database.LeveledRoles.get_or_create(
                 RoleID=role.id,
                 LevelThreshold=level,
@@ -116,10 +121,12 @@ class LeveledRolesCMD(commands.Cog):
                 defaults={'RoleName': role_name}
             )
 
-        # Reorder roles by level, with highest level role at the top
-        sorted_roles = sorted(created_roles, key=lambda item: item[1], reverse=False)
+        # Sort roles by level (ascending)
+        sorted_roles = sorted(created_roles, key=lambda item: item[1])
         positions = {role: position for position, (role, _) in enumerate(sorted_roles, start=1)}
 
+        # Update role positions in reverse hierarchy (top-most level is higher in role hierarchy)
+        _log.info(f"Reordering roles in the guild")
         await guild.edit_role_positions(positions=positions)
 
     @app_commands.command(name="setup_roles", description="Create and order leveled roles.")
@@ -129,8 +136,13 @@ class LeveledRolesCMD(commands.Cog):
             await interaction.response.send_message("This command must be run in a server.")
             return
 
-        await self.create_and_order_roles(guild)
-        await interaction.response.send_message("Leveled roles have been set up and ordered.")
+        try:
+            await self.create_and_order_roles(guild)
+            await interaction.response.send_message("Leveled roles have been set up and ordered.")
+        except discord.Forbidden:
+            await interaction.response.send_message("I don't have permission to create or edit roles.")
+        except discord.HTTPException as e:
+            await interaction.response.send_message(f"An error occurred: {str(e)}")
 
 # Set up the cog
 async def setup(bot):
