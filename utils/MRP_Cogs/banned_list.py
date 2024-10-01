@@ -67,8 +67,11 @@ class BannedlistCMD(commands.Cog):
         view = return_banishblacklistform_modal(self.bot, found_user, gamertag, originating_realm, ban_type)
         await interaction.response.send_modal(view)
 
+    # Searching for a banned user with pagination
     @BL.command(description="Search the banned list")
-    @app_commands.describe(search_term="The term to search for in the banned list")
+    @app_commands.describe(
+        search_term="The term to search for in the banned list"
+    )
     @app_commands.checks.has_role("Realm OP")
     async def search(self, interaction: discord.Interaction, *, search_term: str):
         databaseData = [
@@ -84,72 +87,66 @@ class BannedlistCMD(commands.Cog):
             database.MRP_Blacklist_Data.entryid,
             database.MRP_Blacklist_Data.BanReporter
         ]
-
+        
+        # Collect all query results matching the search term
         results = []
-
         for data in databaseData:
-            query = database.MRP_Blacklist_Data.select().where(data.contains(search_term))
+            query = (database.MRP_Blacklist_Data.select().where(
+                data.contains(search_term)))
+            
             if query.exists():
-                for p in query:
-                    details = (
-                        f"Discord Username: {p.DiscUsername}\n"
-                        f"Discord ID: {p.DiscID}\n"
-                        f"Gamertag: {p.Gamertag}\n"
-                        f"Banned From: {p.BannedFrom}\n"
-                        f"Known Alts: {p.KnownAlts}\n"
-                        f"Ban Reason: {p.ReasonforBan}\n"
-                        f"Date of Ban: {p.DateofIncident}\n"
-                        f"Type of Ban: {p.TypeofBan}\n"
-                        f"Date the Ban Ends: {p.DatetheBanEnds}\n"
-                        f"Reported by: {p.BanReporter}\n"
-                        f"Entry ID: {p.entryid}\n"
-                    )
-                    results.append(details)
+                results.extend(query)
 
+        # If no results are found, send a 'No Results' message
         if not results:
-            embed = discord.Embed(
+            no_results_embed = discord.Embed(
                 title="Bannedlist Search",
-                description=f"Requested by {interaction.user.mention}",
+                description=f"Requested by: {interaction.user.mention}",
                 color=0x18c927
             )
-            embed.add_field(
+            no_results_embed.add_field(
                 name="No Results!",
-                value=f"`{search_term}` did not return any results!"
+                value=f"No results found for '{search_term}'!"
             )
-            await interaction.response.send_message(embed=embed)
+            await interaction.response.send_message(embed=no_results_embed)
             return
 
-        # Paginate the results
+        # Population function for each page
         async def populate_page(embed: discord.Embed, page: int):
-            """
-            Populate the embed for a specific page.
+            start_index = (page - 1) * 5  # Display 5 results per page
+            end_index = start_index + 5
+            page_results = results[start_index:end_index]
 
-            Args:
-                embed (discord.Embed): The base embed to update.
-                page (int): The current page number.
-            """
-            # Fetch data for the page (adjust this query to your use case)
-            data_for_page = database.MRP_Blacklist_Data.select().paginate(page, 1)  # Assuming 1 entry per page
-
-            # Create a new embed or update the passed embed
+            # Clear the embed fields for the new page
             embed.clear_fields()
-            
-            for data in data_for_page:
-                embed.add_field(
-                    name="Banned User",
-                    value=f"Discord Username: {data.DiscUsername}\nGamertag: {data.Gamertag}\n"
-                        f"Ban Reason: {data.ReasonforBan}\nDate of Incident: {data.DateofIncident}",
-                    inline=False
-                )
-                # Set the footer with the page and entry ID
-                embed.set_footer(text=f"Entry ID: {data.entryid} | Page {page}/{total_pages}")
+            for p in page_results:
+                embed.add_field(name="User's Discord", value=p.DiscUsername, inline=False)
+                embed.add_field(name="Discord ID", value=str(p.DiscID), inline=False)
+                embed.add_field(name="User's Gamertag", value=p.Gamertag, inline=False)
+                embed.add_field(name="Realm Banned from", value=p.BannedFrom, inline=False)
+                embed.add_field(name="Known Alts", value=p.KnownAlts, inline=False)
+                embed.add_field(name="Ban Reason", value=p.ReasonforBan, inline=False)
+                embed.add_field(name="Date of Incident", value=p.DateofIncident, inline=False)
+                embed.add_field(name="Type of Ban", value=p.TypeofBan, inline=False)
+                embed.add_field(name="Ban End Date", value=p.DatetheBanEnds, inline=False)
 
+            # Update the footer with the current page and entry ID
+            embed.set_footer(text=f"Entry ID: {p.entryid} | Page {page}/{total_pages}")
             return embed
 
+        # Determine total number of pages
+        total_pages = (len(results) + 4) // 5  # Round up for any remaining results
 
-        total_pages = len(results)
-        embed = discord.Embed(title="Banned List Results", color=discord.Color.green())
+        # Create the initial embed
+        embed = discord.Embed(
+            title="Banned User Information",
+            description=f"Requested by: {interaction.user.mention}",
+            color=0xb10d9f
+        )
+
+        # Start paginating the embed with the results
         await paginate_embed(self.bot, interaction, embed, populate_page, total_pages)
+
 
     @BL.command(name="edit", description="Edit a banned list entry")
     @app_commands.checks.has_role("Realm OP")
