@@ -5,7 +5,7 @@ from typing import Literal
 from discord import app_commands, ui
 from discord.ext import commands
 from core import database
-from core.common import return_banishblacklistform_modal, load_config
+from core.common import load_config
 from core.logging_module import get_log
 from core.pagination import paginate_embed 
 
