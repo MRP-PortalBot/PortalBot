@@ -19,7 +19,15 @@ class PaginatorView(ui.View):
     async def update_embed(self, interaction: discord.Interaction):
         """Helper function to update the embed."""
         self.embed = await self.population_func(self.embed, self.page)
-        await interaction.response.edit_message(embed=self.embed, view=self)
+
+        # Check if the interaction has already been responded to
+        if interaction.response.is_done():
+            # If already responded to, use edit_original_response
+            await interaction.edit_original_response(embed=self.embed, view=self)
+        else:
+            # Otherwise, send a new response
+            await interaction.response.edit_message(embed=self.embed, view=self)
+
 
     @ui.button(label="◀️", style=discord.ButtonStyle.primary, custom_id="back")
     async def back(self, interaction: discord.Interaction, button: ui.Button):
