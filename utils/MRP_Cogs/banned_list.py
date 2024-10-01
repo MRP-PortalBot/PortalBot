@@ -119,24 +119,38 @@ class BannedlistCMD(commands.Cog):
             return
 
         # Paginate the results
-        async def populate_page(embed, page):
-            embed.clear_fields()
-            embed.title = f"Bannedlist Search - Page {page}"
-            embed.description = f"Requested by {interaction.user.mention}"
-            embed.color = 0x18c927
-            self.embed.set_footer(text=f"Entry ID: {self.entry_id} | Page {self.page}/{self.total_pages}")
-            
-            start = (page - 1) * 1
-            end = start + 1
+        async def populate_page(embed: discord.Embed, page: int):
+            """
+            Populate the embed for a specific page.
 
-            for result in results[start:end]:
-                embed.add_field(name="Result", value=f"```{result[:1000]}```", inline=False)
+            Args:
+                embed (discord.Embed): The base embed to update.
+                page (int): The current page number.
+            """
+            # Fetch data for the page (adjust this query to your use case)
+            data_for_page = database.MRP_Blacklist_Data.select().paginate(page, 1)  # Assuming 1 entry per page
+
+            # Create a new embed or update the passed embed
+            embed.clear_fields()
+            
+            for data in data_for_page:
+                embed.add_field(
+                    name="Banned User",
+                    value=f"Discord Username: {data.DiscUsername}\nGamertag: {data.Gamertag}\n"
+                        f"Ban Reason: {data.ReasonforBan}\nDate of Incident: {data.DateofIncident}",
+                    inline=False
+                )
+
+            # Set the footer with the page and entry ID
+            embed.set_footer(text=f"Entry ID: {data.entryid} | Page {page}/{total_pages}")
 
             return embed
 
+
         total_pages = len(results)
-        embed = discord.Embed()
+        embed = discord.Embed(title="Banned List Results", color=discord.Color.green())
         await paginate_embed(self.bot, interaction, embed, populate_page, total_pages)
+
 
 
 
