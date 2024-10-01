@@ -85,6 +85,8 @@ class BannedlistCMD(commands.Cog):
         ]
         ResultsGiven = False
 
+        await interaction.response.defer(thinking=True)  # Defer the response to avoid timeout
+
         for data in databaseData:
             query = database.MRP_Blacklist_Data.select().where(data.contains(search_term))
             if query.exists():
@@ -95,6 +97,7 @@ class BannedlistCMD(commands.Cog):
                         color=0x18c927
                     )
 
+                    # Create a details string
                     details = (
                         f"Discord Username: {p.DiscUsername}\n"
                         f"Discord ID: {p.DiscID}\n"
@@ -108,17 +111,17 @@ class BannedlistCMD(commands.Cog):
                         f"Reported by: {p.BanReporter}\n"
                     )
 
-                    # Split details into parts of up to 1024 characters to avoid exceeding the embed field limit
-                    details_parts = [details[i:i + 1024] for i in range(0, len(details), 1024)]
+                    # Split the details string into chunks of 1000 characters or less
+                    details_parts = [details[i:i + 1000] for i in range(0, len(details), 1000)]
                     for idx, part in enumerate(details_parts):
-                        e.add_field(name=f"Details {idx + 1}", value=f"```{part}```", inline=False)
+                        e.add_field(name=f"Details (Part {idx + 1})", value=f"```{part}```", inline=False)
 
                     e.set_footer(text=f"Querying from MRP_Bannedlist_Data | Entry ID: {p.entryid}")
 
                     if ResultsGiven:
                         await interaction.followup.send(embed=e)
                     else:
-                        await interaction.response.send_message(embed=e)
+                        await interaction.followup.send(embed=e)
                         ResultsGiven = True
 
         if not ResultsGiven:
@@ -131,7 +134,8 @@ class BannedlistCMD(commands.Cog):
                 name="No Results!",
                 value=f"`{search_term}`'s query did not bring back any results!"
             )
-            await interaction.response.send_message(embed=e)
+            await interaction.followup.send(embed=e)
+
 
 
 
