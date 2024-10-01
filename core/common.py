@@ -1,17 +1,23 @@
 import asyncio
-import discord
 import json
 import os
 import random
 from typing import Tuple, Union, List
 from pathlib import Path
-from discord import ButtonStyle, ui, SelectOption
 from dotenv import load_dotenv
-from core import database
 from datetime import datetime
+
+# Importing discord modules
+import discord
+from discord import ButtonStyle, ui, SelectOption
+
+# Importing core modules
+from core import database
 from core.logging_module import get_log
 
+# Setting up logger
 _log = get_log(__name__)
+
 
 
 # Loading Configuration Functions
@@ -217,138 +223,126 @@ def get_user_rank(server_id, user_id):
 
 
 
+import discord
+from discord import ui
+from core import database
+from core.logging_module import get_log
 
+_log = get_log(__name__)
 
+# Disabled View for questions that have been processed
+class DisabledQuestionSuggestionManager(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.value = None
+
+    @discord.ui.button(label="Add Question", style=discord.ButtonStyle.green, emoji="✅", custom_id="persistent_view:qsm_add_question", disabled=True)
+    async def add_question(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
+
+    @discord.ui.button(label="Discard Question", style=discord.ButtonStyle.red, emoji="❌", custom_id="persistent_view:qsm_discard_question", disabled=True)
+    async def discard_question(self, interaction: discord.Interaction, button: discord.ui.Button):
+        pass
+
+# Active View for managing question suggestions
 class QuestionSuggestionManager(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         self.value = None
 
-    @discord.ui.button(
-        label="Add Question",
-        style=discord.ButtonStyle.green,
-        emoji="✅",
-        custom_id="persistent_view:qsm_add_question"
-    )
-    async def add_question(
-            self,
-            interaction: discord.Interaction,
-            button: discord.ui.Button,
-    ):
-        q: database.QuestionSuggestionQueue = database.QuestionSuggestionQueue.select().where(database.QuestionSuggestionQueue.message_id == interaction.message.id).get()
+    @discord.ui.button(label="Add Question", style=discord.ButtonStyle.green, emoji="✅", custom_id="persistent_view:qsm_add_question")
+    async def add_question(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Fetch the question data and move it to the main question database
+        try:
+            q = database.QuestionSuggestionQueue.get(database.QuestionSuggestionQueue.message_id == interaction.message.id)
+            new_question = database.Question.create(question=q.question, usage=False)
+            q.delete_instance()
 
-        move_to: database.Question = database.Question.create(
-            question=q.question,
-            usage=False
-        )
-        move_to.save()
-        q.delete_instance()
+            # Update embed and disable view
+            embed = discord.Embed(title="Question Suggestion", description="This question has been added to the database!", color=discord.Color.green())
+            embed.add_field(name="Question", value=q.question)
+            embed.add_field(name="Added By", value=interaction.user.mention)
+            embed.set_footer(text=f"Question ID: {new_question.id}")
+            await interaction.message.edit(embed=embed, view=DisabledQuestionSuggestionManager())
 
-        new_embed = discord.Embed(
-            title="Question Suggestion",
-            description="This question has been added to the database!",
-            color=discord.Color.green()
-        )
-        new_embed.add_field(name="Question", value=q.question)
-        new_embed.add_field(name="Added By", value=interaction.user.mention)
-        new_embed.set_footer(text=f"Question ID: {move_to.id}")
-        await interaction.message.edit(embed=new_embed, view=DisabledQuestionSuggestionManager())
-        await interaction.response.send_message("Operation Complete.", ephemeral=True)
+            await interaction.response.send_message("Operation Complete.", ephemeral=True)
+        except Exception as e:
+            _log.exception("Error adding question: %s", e)
+            await interaction.response.send_message("An error occurred.", ephemeral=True)
 
-    @discord.ui.button(label="Discard Question", style=discord.ButtonStyle.red, emoji="❌",  custom_id="persistent_view:qsm_discard_question")
+    @discord.ui.button(label="Discard Question", style=discord.ButtonStyle.red, emoji="❌", custom_id="persistent_view:qsm_discard_question")
     async def discard_question(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Disable both buttons
-        for child in self.children:
-            child.disabled = True
+        # Disable both buttons and discard the question
+        try:
+            q = database.QuestionSuggestionQueue.get(database.QuestionSuggestionQueue.message_id == interaction.message.id)
+            q.delete_instance()
 
-        q: database.QuestionSuggestionQueue = database.QuestionSuggestionQueue.select().where(database.QuestionSuggestionQueue.message_id == interaction.message.id).get()
-        q.delete_instance()
+            # Update embed and disable view
+            embed = discord.Embed(title="Question Suggestion", description="This question has been discarded!", color=discord.Color.red())
+            embed.add_field(name="Question", value=q.question)
+            embed.add_field(name="Discarded By", value=interaction.user.mention)
+            embed.set_footer(text=f"Question ID: {q.id}")
+            await interaction.message.edit(embed=embed, view=DisabledQuestionSuggestionManager())
 
-        new_embed = discord.Embed(
-            title="Question Suggestion",
-            description="This question has been discarded!",
-            color=discord.Color.red()
-        )
-        new_embed.add_field(name="Question", value=q.question)
-        new_embed.add_field(name="Discarded By", value=interaction.user.mention)
-        new_embed.set_footer(text=f"Question ID: {q.id}")
-        await interaction.message.edit(embed=new_embed, view=DisabledQuestionSuggestionManager())
-        await interaction.response.send_message("Operation Complete.", ephemeral=True)
+            await interaction.response.send_message("Operation Complete.", ephemeral=True)
+        except Exception as e:
+            _log.exception("Error discarding question: %s", e)
+            await interaction.response.send_message("An error occurred.", ephemeral=True)
 
-
-def get_bot_data_id():
-    load_dotenv()
-    os.getenv("bot_type")
-    key_value = {
-        "STABLE": 1,
-        "BETA": 2
-    }
-
-    return key_value[os.getenv("bot_type")]
-
-
+# Modal for submitting a new question
 class SuggestModalNEW(discord.ui.Modal, title="Suggest a Question"):
     def __init__(self, bot):
         super().__init__(timeout=None)
         self.bot = bot
 
-    short_description = ui.TextInput(
-        label="Daily Question",
-        style=discord.TextStyle.long,
-        required=True
-    )
+    short_description = ui.TextInput(label="Daily Question", style=discord.TextStyle.long, required=True)
 
     async def on_submit(self, interaction: discord.Interaction):
-        row_id = get_bot_data_id()
-        q: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
-        await interaction.response.defer(thinking=True)
-        embed = discord.Embed(title="Question Suggestion",
-                              description=f"Requested by {interaction.user.mention}", color=0x18c927)
-        embed.add_field(name="Question:", value=f"{self.short_description.value}")
-        log_channel = await self.bot.fetch_channel(777987716008509490)
-        msg = await log_channel.send(embed=embed, view=QuestionSuggestionManager())
-        q: database.QuestionSuggestionQueue = database.QuestionSuggestionQueue.create(
-            question=self.short_description.value,
-            discord_id=interaction.user.id,
-            message_id=msg.id,
-        )
-        q.save()
+        try:
+            # Save the question to the suggestion queue
+            q = database.QuestionSuggestionQueue.create(
+                question=self.short_description.value,
+                discord_id=interaction.user.id,
+                message_id=None  # Message ID will be added after logging
+            )
 
-        await interaction.followup.send("Thank you for your suggestion!")
+            # Create embed and log the question suggestion
+            embed = discord.Embed(title="Question Suggestion", description=f"Requested by {interaction.user.mention}", color=0x18c927)
+            embed.add_field(name="Question", value=self.short_description.value)
+            log_channel = await self.bot.fetch_channel(777987716008509490)
+            msg = await log_channel.send(embed=embed, view=QuestionSuggestionManager())
+            q.message_id = msg.id
+            q.save()
 
+            await interaction.followup.send("Thank you for your suggestion!")
+        except Exception as e:
+            _log.exception("Error submitting question: %s", e)
+            await interaction.followup.send("An error occurred while submitting your suggestion.", ephemeral=True)
 
+# View for users to submit a new question
 class SuggestQuestionFromDQ(discord.ui.View):
     def __init__(self, bot):
         super().__init__(timeout=None)
-        self.value = None
         self.bot = bot
 
-    @discord.ui.button(
-        label="Suggest a Question!",
-        style=discord.ButtonStyle.blurple,
-        emoji="📝",
-        custom_id="persistent_view:qsm_sug_question",
-    )
-    async def add_question(
-            self,
-            interaction: discord.Interaction,
-            button: discord.ui.Button,
-    ):
+    @discord.ui.button(label="Suggest a Question!", style=discord.ButtonStyle.blurple, emoji="📝", custom_id="persistent_view:qsm_sug_question")
+    async def suggest_question(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(SuggestModalNEW(self.bot))
 
 
-def return_realm_profile_modal(
-        bot,
-        realm_name: str,
-        emoji: str,
-        member_count: str,
-        community_duration: str,
-        world_duration: str,
-        reset_schedule: str
+
+def return_applyfornewrealm_modal(
+    bot,
+    realm_name: str,
+    type_of_realm: str,
+    emoji: str,
+    member_count: str,
+    community_duration: str,
+    world_duration: str,
+    reset_schedule: str
 ):
     class ApplyForNewRealmForm(ui.Modal, title="Realm Application"):
-        def __init__(self, bot, realm_name: str, type_of_realm: str, emoji: str, member_count: str,
-                     community_duration: str, world_duration: str, reset_schedule: str):
+        def __init__(self):
             super().__init__(timeout=None)
             self.bot = bot
             self.realm_name = realm_name
@@ -359,99 +353,102 @@ def return_realm_profile_modal(
             self.world_duration = world_duration
             self.reset_schedule = reset_schedule
 
-        short_description = ui.TextInput(
-            label="Short Description",
-            style=discord.TextStyle.short,
-            placeholder="Short description of the realm",
-            required=True
-        )
+            # Define form inputs
+            self.short_description = ui.TextInput(
+                label="Short Description",
+                style=discord.TextStyle.short,
+                placeholder="Short description of the realm",
+                required=True
+            )
 
-        long_description = ui.TextInput(
-            label="Long Description",
-            style=discord.TextStyle.long,
-            placeholder="Long description of the realm",
-            required=True
-        )
+            self.long_description = ui.TextInput(
+                label="Long Description",
+                style=discord.TextStyle.long,
+                placeholder="Long description of the realm",
+                required=True
+            )
 
-        application_process = ui.TextInput(
-            label="Application Process",
-            style=discord.TextStyle.long,
-            placeholder="Application process for the realm",
-            required=True
-        )
+            self.application_process = ui.TextInput(
+                label="Application Process",
+                style=discord.TextStyle.long,
+                placeholder="Application process for the realm",
+                required=True
+            )
 
-        foreseeable_future = ui.TextInput(
-            label="Foreseeable Future",
-            style=discord.TextStyle.long,
-            placeholder="Will your Realm/Server have the ability to continue for the foreseeable future?",
-            required=True
-        )
+            self.foreseeable_future = ui.TextInput(
+                label="Foreseeable Future",
+                style=discord.TextStyle.long,
+                placeholder="Will your Realm/Server have the ability to continue for the foreseeable future?",
+                required=True
+            )
 
-        admin_team = ui.TextInput(
-            label="Admin Team",
-            style=discord.TextStyle.long,
-            placeholder="Who is on your admin team and how long have they been with you?",
-            required=True
-        )
+            self.admin_team = ui.TextInput(
+                label="Admin Team",
+                style=discord.TextStyle.long,
+                placeholder="Who is on your admin team and how long have they been with you?",
+                required=True
+            )
 
-    async def on_submit(self, interaction: discord.Interaction):
-        log_channel = self.bot.get_channel(config['realmChannelResponse'])
-        admin = discord.utils.get(interaction.guild.roles, name="Admin")
-        q: database.RealmApplications = database.RealmApplications.create(
-            discord_id=interaction.user.id,
-            realm_name=self.realm_name,
-            type_of_realm=self.type_of_realm,
-            emoji=self.emoji,
-            member_found=self.member_count,
-            realm_age=self.community_duration,
-            world_age=self.world_duration,
-            reset_schedule=self.reset_schedule,
-            short_desc=self.short_description.value,
-            long_desc=self.long_description.value,
-            application_process=self.application_process.value,
-            foreseeable_future=self.foreseeable_future.value,
-            admin_team=self.admin_team.value)
-        q.save()
-        database.db.close()
+        async def on_submit(self, interaction: discord.Interaction):
+            try:
+                await self.save_realm_application(interaction)
+                embed = self.create_application_embed(interaction.user, interaction.guild)
+                log_channel = self.bot.get_channel(config['realmChannelResponse'])
+                admin_role = discord.utils.get(interaction.guild.roles, name="Admin")
 
-        embed = discord.Embed(title="Realm Application", description="__**Realm Owner:**__\n" +
-                                                                     interaction.user.mention + "\n============================================",
-                              color=0xb10d9f)
-        embed.set_thumbnail(
-            url="https://cdn.discordapp.com/attachments/588034623993413662/588413853667426315/Portal_Design.png")
-        embed.add_field(name="__**Realm Name**__",
-                        value=q.realm_name, inline=True)
-        embed.add_field(name="__**Realm or Server?**__",
-                        value=q.type_of_realm, inline=True)
-        embed.add_field(name="__**Emoji**__",
-                        value=q.emoji, inline=True)
-        embed.add_field(name="__**Short Description**__",
-                        value=q.short_desc, inline=False)
-        embed.add_field(name="__**Long Description**__",
-                        value=q.long_desc, inline=False)
-        embed.add_field(name="__**Application Process**__",
-                        value=q.application_process, inline=False)
-        embed.add_field(name="__**Current Member Count**__",
-                        value=q.member_count, inline=True)
-        embed.add_field(name="__**Age of Community**__",
-                        value=q.realm_age, inline=True)
-        embed.add_field(name="__**Age of Current World**__",
-                        value=q.world_age, inline=True)
-        embed.add_field(name="__**How often do you reset**__",
-                        value=q.reset_schedule, inline=True)
-        embed.add_field(name="__**Will your Realm/Server have the ability to continue for the foreseeable future?**__",
-                        value=q.foreseeable_future, inline=True)
-        embed.add_field(name="__**Members of the OP Team, and How long they have been an OP**__",
-                        value=q.admin_team, inline=False)
-        embed.add_field(name="__**Reaction Codes**__",
-                        value="Please react with the following codes to show your thoughts on this applicant.",
-                        inline=False)
-        embed.add_field(name="----💚----", value="Approved", inline=True)
-        embed.add_field(name="----💛----",
-                        value="More Time in Server", inline=True)
-        embed.add_field(name="----❤️----", value="Rejected", inline=True)
-        embed.set_footer(text="Realm Application #" + str(q.id) + " | " + datetime.now().strftime(r"%x"))
-        await log_channel.send(admin.mention)
+                # Send embed to the log channel
+                await log_channel.send(content=admin_role.mention, embed=embed)
 
-    return ApplyForNewRealmForm(bot, realm_name, type_of_realm, emoji, member_count, community_duration, world_duration,
-                                reset_schedule)
+                # Confirmation response to the user
+                await interaction.response.send_message("Realm application submitted successfully!", ephemeral=True)
+
+            except Exception as e:
+                _log.error(f"Error submitting realm application: {e}")
+                await interaction.response.send_message("An error occurred while submitting your application.", ephemeral=True)
+
+        async def save_realm_application(self, interaction: discord.Interaction):
+            """Save the realm application to the database."""
+            q = database.RealmApplications.create(
+                discord_id=interaction.user.id,
+                realm_name=self.realm_name,
+                type_of_realm=self.type_of_realm,
+                emoji=self.emoji,
+                member_count=self.member_count,
+                realm_age=self.community_duration,
+                world_age=self.world_duration,
+                reset_schedule=self.reset_schedule,
+                short_desc=self.short_description.value,
+                long_desc=self.long_description.value,
+                application_process=self.application_process.value,
+                foreseeable_future=self.foreseeable_future.value,
+                admin_team=self.admin_team.value
+            )
+            q.save()
+
+        def create_application_embed(self, user, guild):
+            """Create the embed message for the application."""
+            embed = discord.Embed(
+                title="Realm Application",
+                description=f"__**Realm Owner:**__\n{user.mention}\n============================================",
+                color=0xb10d9f
+            )
+            embed.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/588034623993413662/588413853667426315/Portal_Design.png"
+            )
+            embed.add_field(name="__**Realm Name**__", value=self.realm_name, inline=True)
+            embed.add_field(name="__**Realm or Server?**__", value=self.type_of_realm, inline=True)
+            embed.add_field(name="__**Emoji**__", value=self.emoji, inline=True)
+            embed.add_field(name="__**Short Description**__", value=self.short_description.value, inline=False)
+            embed.add_field(name="__**Long Description**__", value=self.long_description.value, inline=False)
+            embed.add_field(name="__**Application Process**__", value=self.application_process.value, inline=False)
+            embed.add_field(name="__**Current Member Count**__", value=self.member_count, inline=True)
+            embed.add_field(name="__**Age of Community**__", value=self.community_duration, inline=True)
+            embed.add_field(name="__**Age of Current World**__", value=self.world_duration, inline=True)
+            embed.add_field(name="__**Reset Schedule**__", value=self.reset_schedule, inline=True)
+            embed.add_field(name="__**Foreseeable Future**__", value=self.foreseeable_future.value, inline=True)
+            embed.add_field(name="__**Admin Team**__", value=self.admin_team.value, inline=False)
+            embed.add_field(name="__**Reaction Codes**__", value="React with 💚 for Approved, 💛 for More Time, ❤️ for Rejected", inline=False)
+            embed.set_footer(text=f"Realm Application #{self.realm_name} | Submitted on {datetime.now().strftime('%Y-%m-%d')}")
+            return embed
+
+    return ApplyForNewRealmForm()
