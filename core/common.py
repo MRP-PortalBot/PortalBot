@@ -222,14 +222,6 @@ def get_user_rank(server_id, user_id):
     return None  # If user is not found
 
 
-
-import discord
-from discord import ui
-from core import database
-from core.logging_module import get_log
-
-_log = get_log(__name__)
-
 # Disabled View for questions that have been processed
 class DisabledQuestionSuggestionManager(discord.ui.View):
     def __init__(self):
@@ -452,3 +444,108 @@ def return_applyfornewrealm_modal(
             return embed
 
     return ApplyForNewRealmForm()
+
+def return_banishblacklistform_modal(bot, user: discord.User, gamertag: str, originating_realm: str, type_of_ban: str):
+    class BanishBlacklistForm(ui.Modal, title="Blacklist Form"):
+        def __init__(self, bot, user: discord.User, gamertag: str, originating_realm: str, type_of_ban: str):
+            super().__init__(timeout=None)
+            self.bot = bot
+            self.user = user
+            self.gamertag = gamertag
+            self.originating_realm = originating_realm
+            self.type_of_ban = type_of_ban
+
+        # Input fields
+        discord_username = ui.TextInput(
+            label="Banished User's Username",
+            style=discord.TextStyle.short,
+            default=user.name,
+            required=True
+        )
+
+        known_alts = ui.TextInput(
+            label="Known Alts",
+            style=discord.TextStyle.long,
+            placeholder="Separate each alt with a comma",
+            required=True
+        )
+
+        reason = ui.TextInput(
+            label="Reason",
+            style=discord.TextStyle.long,
+            placeholder="Reason for ban",
+            required=True
+        )
+
+        date_of_ban = ui.TextInput(
+            label="Date of Ban",
+            style=discord.TextStyle.short,
+            placeholder="Date of ban",
+            required=True
+        )
+
+        ban_end_date = ui.TextInput(
+            label="Ban End Date",
+            style=discord.TextStyle.short,
+            placeholder="Leave blank if permanent",
+            default="Permanent",
+            required=False
+        )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        # Error handling for database operations
+        try:
+            # Get new entry ID (example assumes entry ID is from Google Sheets)
+            entry_id = int(self.sheet.acell('A3').value) + 1  # If using a different method for entry ID, adjust this
+
+            # Log channel for the report
+            log_channel = self.bot.get_channel(config['bannedlistChannel'])
+
+            # Connect to the database and add the ban report
+            database.db.connect(reuse_if_open=True)
+            q = database.MRP_Blacklist_Data.create(
+                BanReporter=interaction.user.display_name,
+                DiscUsername=self.discord_username.value,
+                DiscID=self.user.id,
+                Gamertag=self.gamertag,
+                BannedFrom=self.originating_realm,
+                KnownAlts=self.known_alts.value,
+                ReasonforBan=self.reason.value,
+                DateofIncident=self.date_of_ban.value,
+                TypeofBan=self.type_of_ban,
+                DatetheBanEnds=self.ban_end_date.value
+            )
+            q.save()
+            database.db.close()
+
+            # Create and send embed report
+            bannedlist_embed = discord.Embed(
+                title="Bannedlist Report",
+                description=f"Sent by: {interaction.user.mention}",
+                color=0xb10d9f
+            )
+            bannedlist_embed.add_field(name="User's Discord", value=self.discord_username.value, inline=False)
+            bannedlist_embed.add_field(name="Discord ID", value=str(self.user.id), inline=False)
+            bannedlist_embed.add_field(name="User's Gamertag", value=self.gamertag, inline=False)
+            bannedlist_embed.add_field(name="Realm Banned from", value=self.originating_realm, inline=False)
+            bannedlist_embed.add_field(name="Known Alts", value=self.known_alts.value, inline=False)
+            bannedlist_embed.add_field(name="Ban Reason", value=self.reason.value, inline=False)
+            bannedlist_embed.add_field(name="Date of Incident", value=self.date_of_ban.value, inline=False)
+            bannedlist_embed.add_field(name="Type of Ban", value=self.type_of_ban, inline=False)
+            bannedlist_embed.add_field(name="Ban End Date", value=self.ban_end_date.value, inline=False)
+
+            # Add timestamp
+            timestamp = datetime.now()
+            bannedlist_embed.set_footer(
+                text=f"{interaction.guild.name} | Date: {timestamp.strftime('%x')} | ID: {entry_id}"
+            )
+            
+            await log_channel.send(embed=bannedlist_embed)
+            await interaction.response.send_message("Your report has been submitted!", ephemeral=True)
+
+        except Exception as e:
+            # Log the error and notify the user
+            _log.error(f"Error submitting blacklist form: {e}")
+            await interaction.response.send_message("An error occurred while submitting the report.", ephemeral=True)
+
+    return BanishBlacklistForm(bot, user, gamertag, originating_realm, type_of_ban)
