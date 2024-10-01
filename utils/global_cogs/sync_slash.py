@@ -23,10 +23,20 @@ class BackupRegularCommands(commands.Cog):
     async def handle_confirmation(self, ctx: commands.Context, description: str) -> str:
         """Helper function to handle confirmation with buttons."""
         view = ui.View(timeout=30)
-        confirm_button = ButtonHandler(style=ButtonStyle.green, label="Confirm", emoji="✅", button_user=ctx.author)
-        cancel_button = ButtonHandler(style=ButtonStyle.red, label="Cancel", emoji="❌", button_user=ctx.author)
-        view.add_item(confirm_button)
-        view.add_item(cancel_button)
+        button_confirm = ButtonHandler(
+            style=ButtonStyle.green,
+            label="Confirm",
+            emoji="✅",
+            button_user=ctx.author,  # button_user is passed correctly now
+        )
+        button_cancel = ButtonHandler(
+            style=ButtonStyle.red,
+            label="Cancel",
+            emoji="❌",
+            button_user=ctx.author
+        )
+        view.add_item(button_confirm)
+        view.add_item(button_cancel)
 
         embed_confirm = discord.Embed(title="Sync Confirmation", description=description, color=discord.Color.gold())
         message_confirm = await ctx.send(embed=embed_confirm, view=view)

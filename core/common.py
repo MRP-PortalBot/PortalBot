@@ -109,44 +109,22 @@ class ButtonHandler(ui.Button):
     """
     Handler for adding a Button to a specific message and invoking a custom coroutine on click.
     """
-    def __init__(self, label: str, allowed_user: discord.User = None, action: callable = None, **kwargs):
-        """
-        Initialize the button with the specified label and parameters.
-
-        Args:
-            label (str): The label of the button.
-            allowed_user (discord.User, optional): The user who is allowed to interact with the button. Defaults to None.
-            action (callable, optional): The coroutine function to be called when the button is clicked. Defaults to None.
-        """
-        self.allowed_user = allowed_user
-        self.action = action
+    def __init__(self, label: str, button_user=None, coroutine=None, **kwargs):
+        self.button_user = button_user
+        self.coroutine = coroutine
         self.view_response = None
-        super().__init__(label=label, **kwargs)
+        super().__init__(label=label, **kwargs)  # Pass the remaining kwargs to the parent class
 
     async def callback(self, interaction: discord.Interaction):
-        """
-        The callback function triggered when the button is clicked.
+        # Check if the interaction is from the correct user
+        if self.button_user is None or interaction.user == self.button_user:
+            self.view_response = self.label if self.custom_id is None else self.custom_id
+            if self.coroutine:
+                await self.coroutine(interaction, self.view)
+        else:
+            _log.warning(f"Unauthorized button interaction by {interaction.user}")
+            await interaction.response.send_message("You are not authorized to use this button.", ephemeral=True)
 
-        Args:
-            interaction (discord.Interaction): The interaction object for the button press.
-        """
-        try:
-            if self.allowed_user is None or interaction.user == self.allowed_user:
-                # Capture the button response based on its label or custom ID
-                self.view_response = self.label if self.custom_id is None else self.custom_id
-                if self.action:
-                    # Invoke the provided coroutine (action)
-                    await self.action(interaction, self.view)
-            else:
-                _log.warning(f"Unauthorized button interaction by {interaction.user}")
-                await interaction.response.send_message(
-                    "You are not authorized to use this button.", ephemeral=True
-                )
-        except Exception as e:
-            _log.error(f"Error in ButtonHandler callback: {e}")
-            await interaction.response.send_message(
-                "An error occurred while processing your action.", ephemeral=True
-            )
 
 # Console Colors for Logging Output
 class ConsoleColors:
