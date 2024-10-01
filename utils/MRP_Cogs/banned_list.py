@@ -121,15 +121,16 @@ class BannedlistCMD(commands.Cog):
             embed.clear_fields()
 
             # Add the current user's data
-            embed.add_field(name="User's Discord", value=page_result.DiscUsername, inline=False)
-            embed.add_field(name="Discord ID", value=str(page_result.DiscID), inline=False)
-            embed.add_field(name="User's Gamertag", value=page_result.Gamertag, inline=False)
-            embed.add_field(name="Realm Banned From", value=page_result.BannedFrom, inline=False)
-            embed.add_field(name="Known Alts", value=page_result.KnownAlts, inline=False)
-            embed.add_field(name="Ban Reason", value=page_result.ReasonforBan, inline=False)
-            embed.add_field(name="Date of Incident", value=page_result.DateofIncident, inline=False)
-            embed.add_field(name="Type of Ban", value=page_result.TypeofBan, inline=False)
-            embed.add_field(name="Ban End Date", value=page_result.DatetheBanEnds, inline=False)
+            embed.add_field(name="🔹 Discord Username", value=f"`{page_result.DiscUsername}`", inline=True)
+            embed.add_field(name="🔹 Discord ID", value=f"`{page_result.DiscID}`", inline=True)
+            embed.add_field(name="🎮 Gamertag", value=f"`{page_result.Gamertag}`", inline=True)
+            embed.add_field(name="🏰 Realm Banned From", value=f"`{page_result.BannedFrom}`", inline=True)
+            embed.add_field(name="👥 Known Alts", value=f"`{page_result.KnownAlts}`", inline=True)
+            embed.add_field(name="⚠️ Ban Reason", value=f"`{page_result.ReasonforBan}`", inline=False)
+            embed.add_field(name="📅 Date of Incident", value=f"`{page_result.DateofIncident}`", inline=True)
+            embed.add_field(name="⏳ Type of Ban", value=f"`{page_result.TypeofBan}`", inline=True)
+            embed.add_field(name="⌛ Ban End Date", value=f"`{page_result.DatetheBanEnds if page_result.DatetheBanEnds else 'Permanent'}`", inline=True)
+
 
             # Update the footer with the current page and entry ID
             embed.set_footer(text=f"Entry ID: {page_result.entryid} | Page {page}/{total_pages}")
@@ -137,7 +138,7 @@ class BannedlistCMD(commands.Cog):
             return embed
 
         # Determine total number of pages
-        total_pages = (len(results) + 4) // 5  # Round up for any remaining results
+        total_pages = len(results)
 
         # Create the initial embed
         embed = discord.Embed(
