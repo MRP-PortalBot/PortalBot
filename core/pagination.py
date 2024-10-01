@@ -1,3 +1,6 @@
+import discord
+from discord import ui
+
 class PaginatorView(ui.View):
     def __init__(self, bot: discord.Client, interaction: discord.Interaction, embed: discord.Embed,
                  population_func, total_pages: int, page: int = 1):
