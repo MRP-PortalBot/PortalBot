@@ -6,6 +6,7 @@ from discord.ext import commands
 from core import database
 from core.common import return_banishblacklistform_modal
 from core.logging_module import get_log
+from core.pagination import paginate_embed 
 
 _log = get_log(__name__)
 
@@ -83,21 +84,13 @@ class BannedlistCMD(commands.Cog):
             database.MRP_Blacklist_Data.entryid,
             database.MRP_Blacklist_Data.BanReporter
         ]
-        ResultsGiven = False
 
-        await interaction.response.defer(thinking=True)  # Defer the response to avoid timeout
+        results = []
 
         for data in databaseData:
             query = database.MRP_Blacklist_Data.select().where(data.contains(search_term))
             if query.exists():
                 for p in query:
-                    e = discord.Embed(
-                        title="Bannedlist Search",
-                        description=f"Requested by {interaction.user.mention}",
-                        color=0x18c927
-                    )
-
-                    # Create a details string
                     details = (
                         f"Discord Username: {p.DiscUsername}\n"
                         f"Discord ID: {p.DiscID}\n"
@@ -110,31 +103,39 @@ class BannedlistCMD(commands.Cog):
                         f"Date the Ban Ends: {p.DatetheBanEnds}\n"
                         f"Reported by: {p.BanReporter}\n"
                     )
+                    results.append(details)
 
-                    # Split the details string into chunks of 1000 characters or less
-                    details_parts = [details[i:i + 1000] for i in range(0, len(details), 1000)]
-                    for idx, part in enumerate(details_parts):
-                        e.add_field(name=f"Details (Part {idx + 1})", value=f"```{part}```", inline=False)
-
-                    e.set_footer(text=f"Querying from MRP_Bannedlist_Data | Entry ID: {p.entryid}")
-
-                    if ResultsGiven:
-                        await interaction.followup.send(embed=e)
-                    else:
-                        await interaction.followup.send(embed=e)
-                        ResultsGiven = True
-
-        if not ResultsGiven:
-            e = discord.Embed(
+        if not results:
+            embed = discord.Embed(
                 title="Bannedlist Search",
                 description=f"Requested by {interaction.user.mention}",
                 color=0x18c927
             )
-            e.add_field(
+            embed.add_field(
                 name="No Results!",
-                value=f"`{search_term}`'s query did not bring back any results!"
+                value=f"`{search_term}` did not return any results!"
             )
-            await interaction.followup.send(embed=e)
+            await interaction.response.send_message(embed=embed)
+            return
+
+        # Paginate the results
+        async def populate_page(embed, page):
+            embed.clear_fields()
+            embed.title = f"Bannedlist Search - Page {page}"
+            embed.description = f"Requested by {interaction.user.mention}"
+            embed.color = 0x18c927
+
+            start = (page - 1) * 1
+            end = start + 1
+
+            for result in results[start:end]:
+                embed.add_field(name="Result", value=f"```{result[:1000]}```", inline=False)
+
+            return embed
+
+        total_pages = len(results)
+        embed = discord.Embed()
+        await paginate_embed(self.bot, interaction, embed, populate_page, total_pages)
 
 
 
