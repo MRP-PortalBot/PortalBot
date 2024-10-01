@@ -95,7 +95,6 @@ class BannedlistCMD(commands.Cog):
                         color=0x18c927
                     )
 
-                    # Prepare fields and split if necessary
                     details = (f"Discord Username: {p.DiscUsername}\n"
                             f"Discord ID: {p.DiscID}\n"
                             f"Gamertag: {p.Gamertag}\n"
@@ -107,13 +106,10 @@ class BannedlistCMD(commands.Cog):
                             f"Date the Ban Ends: {p.DatetheBanEnds}\n"
                             f"Reported by: {p.BanReporter}\n")
 
-                    # Split details if length exceeds 1024 characters
-                    if len(details) > 1024:
-                        details_parts = [details[i:i+1024] for i in range(0, len(details), 1024)]
-                        for index, part in enumerate(details_parts, start=1):
-                            e.add_field(name=f"Results Part {index}:", value=f"```{part}```", inline=False)
-                    else:
-                        e.add_field(name="Results:", value=f"```{details}```", inline=False)
+                    # Split details into chunks of 1024 or less
+                    details_parts = [details[i:i+1024] for i in range(0, len(details), 1024)]
+                    for index, part in enumerate(details_parts, start=1):
+                        e.add_field(name=f"Details Part {index}:", value=f"```{part}```", inline=False)
 
                     e.set_footer(text=f"Querying from MRP_Bannedlist_Data | Entry ID: {p.entryid}")
                     if ResultsGiven:
@@ -133,6 +129,7 @@ class BannedlistCMD(commands.Cog):
                 value=f"`{search_term}`'s query did not bring back any results!"
             )
             await interaction.response.send_message(embed=e)
+
 
 
 
