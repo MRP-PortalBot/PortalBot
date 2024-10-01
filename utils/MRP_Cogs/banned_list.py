@@ -95,23 +95,26 @@ class BannedlistCMD(commands.Cog):
                         color=0x18c927
                     )
 
-                    details = (f"Discord Username: {p.DiscUsername}\n"
-                            f"Discord ID: {p.DiscID}\n"
-                            f"Gamertag: {p.Gamertag}\n"
-                            f"Banned From: {p.BannedFrom}\n"
-                            f"Known Alts: {p.KnownAlts}\n"
-                            f"Ban Reason: {p.ReasonforBan}\n"
-                            f"Date of Ban: {p.DateofIncident}\n"
-                            f"Type of Ban: {p.TypeofBan}\n"
-                            f"Date the Ban Ends: {p.DatetheBanEnds}\n"
-                            f"Reported by: {p.BanReporter}\n")
+                    details = (
+                        f"Discord Username: {p.DiscUsername}\n"
+                        f"Discord ID: {p.DiscID}\n"
+                        f"Gamertag: {p.Gamertag}\n"
+                        f"Banned From: {p.BannedFrom}\n"
+                        f"Known Alts: {p.KnownAlts}\n"
+                        f"Ban Reason: {p.ReasonforBan}\n"
+                        f"Date of Ban: {p.DateofIncident}\n"
+                        f"Type of Ban: {p.TypeofBan}\n"
+                        f"Date the Ban Ends: {p.DatetheBanEnds}\n"
+                        f"Reported by: {p.BanReporter}\n"
+                    )
 
-                    # Split details into chunks of 1024 or less
-                    details_parts = [details[i:i+1024] for i in range(0, len(details), 1024)]
-                    for index, part in enumerate(details_parts, start=1):
-                        e.add_field(name=f"Details Part {index}:", value=f"```{part}```", inline=False)
+                    # Split details into parts of up to 1024 characters to avoid exceeding the embed field limit
+                    details_parts = [details[i:i + 1024] for i in range(0, len(details), 1024)]
+                    for idx, part in enumerate(details_parts):
+                        e.add_field(name=f"Details {idx + 1}", value=f"```{part}```", inline=False)
 
                     e.set_footer(text=f"Querying from MRP_Bannedlist_Data | Entry ID: {p.entryid}")
+
                     if ResultsGiven:
                         await interaction.followup.send(embed=e)
                     else:
@@ -129,6 +132,7 @@ class BannedlistCMD(commands.Cog):
                 value=f"`{search_term}`'s query did not bring back any results!"
             )
             await interaction.response.send_message(embed=e)
+
 
 
 
