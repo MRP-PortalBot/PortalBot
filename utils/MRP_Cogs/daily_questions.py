@@ -6,7 +6,7 @@ from discord import app_commands, ui
 from discord.ext import commands, tasks
 from peewee import fn
 
-from core import common_old, database
+from core import common, database
 from core.checks import slash_is_bot_admin_2
 from core.common import load_config, QuestionSuggestionManager, get_bot_data_id, SuggestQuestionFromDQ
 from core.logging_module import get_log
