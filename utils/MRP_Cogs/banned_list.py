@@ -102,6 +102,7 @@ class BannedlistCMD(commands.Cog):
                         f"Type of Ban: {p.TypeofBan}\n"
                         f"Date the Ban Ends: {p.DatetheBanEnds}\n"
                         f"Reported by: {p.BanReporter}\n"
+                        f"Entry ID: {p.entryid}\n"
                     )
                     results.append(details)
 
@@ -140,9 +141,8 @@ class BannedlistCMD(commands.Cog):
                         f"Ban Reason: {data.ReasonforBan}\nDate of Incident: {data.DateofIncident}",
                     inline=False
                 )
-
-            # Set the footer with the page and entry ID
-            embed.set_footer(text=f"Entry ID: {data.entryid} | Page {page}/{total_pages}")
+                # Set the footer with the page and entry ID
+                embed.set_footer(text=f"Entry ID: {data.entryid} | Page {page}/{total_pages}")
 
             return embed
 
