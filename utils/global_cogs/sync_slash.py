@@ -56,7 +56,6 @@ class BackupRegularCommands(commands.Cog):
     ):
         if isinstance(action, discord.Guild):
             guild = action
-
             embed_processing = discord.Embed(
                 color=discord.Color.gold(),
                 title="Sync",
@@ -73,68 +72,56 @@ class BackupRegularCommands(commands.Cog):
             )
             await message_sync.edit(embed=embed_done)
 
-        elif action == "global" or action == "all":
-            # Defer interaction to avoid timeout
-            await ctx.defer() 
+        elif action in ["global", "all"]:
+            await ctx.defer()  # Defer the response to prevent interaction failure
 
+            # Create a View with Confirm and Cancel buttons
             view = ui.View(timeout=30)
-            button_confirm = ButtonHandler(
-                style=ButtonStyle.green,
-                label="Confirm",
-                emoji="✅",
-                button_user=ctx.author,
-            )
-            button_cancel = ButtonHandler(
-                style=ButtonStyle.red, label="Cancel", emoji="❌", button_user=ctx.author
-            )
-            view.add_item(button_confirm)
-            view.add_item(button_cancel)
+            confirm_button = ui.Button(style=discord.ButtonStyle.green, label="Confirm", emoji="✅")
+            cancel_button = ui.Button(style=discord.ButtonStyle.red, label="Cancel", emoji="❌")
+
+            async def confirm_button_callback(interaction: discord.Interaction):
+                await interaction.response.edit_message(embed=discord.Embed(
+                    color=discord.Color.gold(),
+                    title="Sync",
+                    description=f"Syncing {action} commands... This may take a while."
+                ), view=None)
+                
+                # Perform the sync based on the action
+                if action == "global":
+                    await self.bot.tree.sync()  # Sync globally
+                else:
+                    for guild in self.bot.guilds:
+                        await self.bot.tree.sync(guild=discord.Object(guild.id))
+
+                await interaction.followup.send(embed=discord.Embed(
+                    color=discord.Color.green(),
+                    title="Sync",
+                    description=f"Successfully synced slash commands {action}!"
+                ))
+
+            async def cancel_button_callback(interaction: discord.Interaction):
+                await interaction.response.edit_message(embed=discord.Embed(
+                    color=Colors.red,
+                    title="Sync",
+                    description="Sync canceled."
+                ), view=None)
+
+            # Add callbacks to buttons
+            confirm_button.callback = confirm_button_callback
+            cancel_button.callback = cancel_button_callback
+
+            # Add buttons to the view
+            view.add_item(confirm_button)
+            view.add_item(cancel_button)
 
             embed_confirm = discord.Embed(
                 color=discord.Color.gold(),
                 title="Sync Confirmation",
                 description=f"Are you sure you want to sync globally? This may take up to 1 hour." if action == "global" else "Are you sure you want to sync all local guild commands?",
             )
-            message_confirm = await ctx.send(embed=embed_confirm, view=view)
+            await ctx.send(embed=embed_confirm, view=view)
 
-            timeout = await view.wait()
-            if not timeout:
-                if view.value == "Confirm":
-
-                    embed_processing = discord.Embed(
-                        color=discord.Color.gold(),
-                        title="Sync",
-                        description=f"Syncing slash commands {action}..."
-                        f"\nThis may take a while.",
-                    )
-                    await message_confirm.edit(embed=embed_processing, view=None)
-
-                    if action == "global":
-                        await self.bot.tree.sync()
-                    else:
-                        for guild in self.bot.guilds:
-                            await self.bot.tree.sync(guild=discord.Object(guild.id))
-
-                    embed_processing = discord.Embed(
-                        color=discord.Color.green(),
-                        title="Sync",
-                        description=f"Successfully synced slash commands {action}!",
-                    )
-                    await message_confirm.edit(embed=embed_processing)
-
-                elif view.value == "Cancel":
-                    embed_cancel = discord.Embed(
-                        color=Colors.red, title="Sync", description="Sync canceled."
-                    )
-                    await message_confirm.edit(embed=embed_cancel, view=None)
-
-            else:
-                embed_timeout = discord.Embed(
-                    color=Colors.red,
-                    title="Sync",
-                    description="Sync canceled due to timeout.",
-                )
-                await message_confirm.edit(embed=embed_timeout, view=None)
 
 
 
