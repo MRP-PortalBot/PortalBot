@@ -49,7 +49,7 @@ class BannedlistCMD(commands.Cog):
     ):
         """Add a person to the banned list"""
         try:
-            found_user = await self.bot.fetch_user(int(discord_id))
+            found_user = await self.bot.fetch_user(discord_id)
         except discord.NotFound:
             await interaction.response.send_message(
                 "The Discord ID you provided is invalid!",
