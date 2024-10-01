@@ -70,39 +70,54 @@ class BannedlistCMD(commands.Cog):
     @app_commands.describe(search_term="The term to search for in the banned list")
     @app_commands.checks.has_role("Realm OP")
     async def search(self, interaction: discord.Interaction, *, search_term: str):
-        # Search multiple fields with a single query
-        query = (database.MRP_Blacklist_Data
-                 .select()
-                 .where(
-                    (database.MRP_Blacklist_Data.DiscUsername.contains(search_term)) |
-                    (database.MRP_Blacklist_Data.DiscID.contains(search_term)) |
-                    (database.MRP_Blacklist_Data.Gamertag.contains(search_term))
-                 ))
+        databaseData = [
+            database.MRP_Blacklist_Data.DiscUsername,
+            database.MRP_Blacklist_Data.DiscID,
+            database.MRP_Blacklist_Data.Gamertag,
+            database.MRP_Blacklist_Data.BannedFrom,
+            database.MRP_Blacklist_Data.KnownAlts,
+            database.MRP_Blacklist_Data.ReasonforBan,
+            database.MRP_Blacklist_Data.DateofIncident,
+            database.MRP_Blacklist_Data.TypeofBan,
+            database.MRP_Blacklist_Data.DatetheBanEnds,
+            database.MRP_Blacklist_Data.entryid,
+            database.MRP_Blacklist_Data.BanReporter
+        ]
+        ResultsGiven = False
 
-        if query.exists():
-            for p in query:
-                e = self.create_embed(
-                    title="Bannedlist Search",
-                    description=f"Requested by {interaction.user.mention}"
-                )
-                e.add_field(
-                    name="Results:",
-                    value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\n"
-                          f"Gamertag: {p.Gamertag}\nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\n"
-                          f"Ban Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\n"
-                          f"Type of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\n"
-                          f"Reported by: {p.BanReporter}\n```",
-                    inline=False
-                )
-                e.set_footer(text=f"Querying from MRP_Bannedlist_Data | Entry ID: {p.entryid}")
-                await interaction.followup.send(embed=e)
-        else:
-            e = self.create_embed(
+        for data in databaseData:
+            query = database.MRP_Blacklist_Data.select().where(data.contains(search_term))
+            if query.exists():
+                for p in query:
+                    e = discord.Embed(
+                        title="Bannedlist Search",
+                        description=f"Requested by {interaction.user.mention}",
+                        color=0x18c927
+                    )
+                    e.add_field(
+                        name="Results:",
+                        value=f"```autohotkey\nDiscord Username: {p.DiscUsername}\nDiscord ID: {p.DiscID}\nGamertag: {p.Gamertag}\nBanned From: {p.BannedFrom}\nKnown Alts: {p.KnownAlts}\nBan Reason: {p.ReasonforBan}\nDate of Ban: {p.DateofIncident}\nType of Ban: {p.TypeofBan}\nDate the Ban Ends: {p.DatetheBanEnds}\nReported by: {p.BanReporter}\n```",
+                        inline=False
+                    )
+                    e.set_footer(text=f"Querying from MRP_Bannedlist_Data | Entry ID: {p.entryid}")
+                    if ResultsGiven:
+                        await interaction.followup.send(embed=e)
+                    else:
+                        await interaction.response.send_message(embed=e)
+                        ResultsGiven = True
+
+        if not ResultsGiven:
+            e = discord.Embed(
                 title="Bannedlist Search",
-                description=f"Requested by {interaction.user.mention}"
+                description=f"Requested by {interaction.user.mention}",
+                color=0x18c927
             )
-            e.add_field(name="No Results!", value=f"`{search_term}`'s query did not return any results!")
+            e.add_field(
+                name="No Results!",
+                value=f"`{search_term}`'s query did not bring back any results!"
+            )
             await interaction.response.send_message(embed=e)
+
 
     @BL.command(name="edit", description="Edit a banned list entry")
     @app_commands.checks.has_role("Realm OP")
