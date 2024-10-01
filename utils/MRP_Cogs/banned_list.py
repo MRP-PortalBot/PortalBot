@@ -111,27 +111,29 @@ class BannedlistCMD(commands.Cog):
             await interaction.response.send_message(embed=no_results_embed)
             return
 
-        # Population function for each page
+        # Paginating banned user data search results (1 user per page)
         async def populate_page(embed: discord.Embed, page: int):
-            start_index = (page - 1) * 5  # Display 5 results per page
-            end_index = start_index + 5
-            page_results = results[start_index:end_index]
+            # Calculate the index for the current page (1 user per page)
+            index = page - 1
+            page_result = results[index]
 
-            # Clear the embed fields for the new page
+            # Clear previous fields in the embed
             embed.clear_fields()
-            for p in page_results:
-                embed.add_field(name="User's Discord", value=p.DiscUsername, inline=False)
-                embed.add_field(name="Discord ID", value=str(p.DiscID), inline=False)
-                embed.add_field(name="User's Gamertag", value=p.Gamertag, inline=False)
-                embed.add_field(name="Realm Banned from", value=p.BannedFrom, inline=False)
-                embed.add_field(name="Known Alts", value=p.KnownAlts, inline=False)
-                embed.add_field(name="Ban Reason", value=p.ReasonforBan, inline=False)
-                embed.add_field(name="Date of Incident", value=p.DateofIncident, inline=False)
-                embed.add_field(name="Type of Ban", value=p.TypeofBan, inline=False)
-                embed.add_field(name="Ban End Date", value=p.DatetheBanEnds, inline=False)
+
+            # Add the current user's data
+            embed.add_field(name="User's Discord", value=page_result.DiscUsername, inline=False)
+            embed.add_field(name="Discord ID", value=str(page_result.DiscID), inline=False)
+            embed.add_field(name="User's Gamertag", value=page_result.Gamertag, inline=False)
+            embed.add_field(name="Realm Banned From", value=page_result.BannedFrom, inline=False)
+            embed.add_field(name="Known Alts", value=page_result.KnownAlts, inline=False)
+            embed.add_field(name="Ban Reason", value=page_result.ReasonforBan, inline=False)
+            embed.add_field(name="Date of Incident", value=page_result.DateofIncident, inline=False)
+            embed.add_field(name="Type of Ban", value=page_result.TypeofBan, inline=False)
+            embed.add_field(name="Ban End Date", value=page_result.DatetheBanEnds, inline=False)
 
             # Update the footer with the current page and entry ID
-            embed.set_footer(text=f"Entry ID: {p.entryid} | Page {page}/{total_pages}")
+            embed.set_footer(text=f"Entry ID: {page_result.entryid} | Page {page}/{total_pages}")
+
             return embed
 
         # Determine total number of pages
