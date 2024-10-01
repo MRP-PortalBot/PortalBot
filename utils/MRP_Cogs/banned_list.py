@@ -151,12 +151,6 @@ class BannedlistCMD(commands.Cog):
         embed = discord.Embed(title="Banned List Results", color=discord.Color.green())
         await paginate_embed(self.bot, interaction, embed, populate_page, total_pages)
 
-
-
-
-
-
-
     @BL.command(name="edit", description="Edit a banned list entry")
     @app_commands.checks.has_role("Realm OP")
     async def _edit(self, interaction: discord.Interaction, entry_id: int, modify: Literal[
