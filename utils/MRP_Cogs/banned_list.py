@@ -124,7 +124,8 @@ class BannedlistCMD(commands.Cog):
             embed.title = f"Bannedlist Search - Page {page}"
             embed.description = f"Requested by {interaction.user.mention}"
             embed.color = 0x18c927
-
+            self.embed.set_footer(text=f"Entry ID: {self.entry_id} | Page {self.page}/{self.total_pages}")
+            
             start = (page - 1) * 1
             end = start + 1
 
