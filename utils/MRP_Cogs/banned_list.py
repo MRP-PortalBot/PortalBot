@@ -140,13 +140,13 @@ class BannedlistCMD(commands.Cog):
                 """Helper function to send the embed to the log channel."""
                 if log_channel:
                     await log_channel.send(embed=embed)
-                    await interaction.response.send_message(
+                    await interaction.followup.send(
                         "Banned User Added Succesfully", ephemeral=True
                     )
                     _log.info("Submission process completed successfully.")
                 else:
                     _log.warning("Log channel not found!")
-                    await interaction.response.send_message(
+                    await interaction.followup.send(
                         "An Error Occured, Try Again", ephemeral=True
                     )
 
@@ -158,6 +158,9 @@ class BannedlistCMD(commands.Cog):
                         "Starting the submission process for user: %s",
                         self.discord_username.value,
                     )
+
+                    # Defer response early to avoid timeouts
+                    await interaction.response.defer()
 
                     # Get log channel for the report
                     log_channel = self.bot.get_channel(config["bannedlistChannel"])
@@ -206,7 +209,7 @@ class BannedlistCMD(commands.Cog):
                 except Exception as e:
                     # Log the error and notify the user
                     _log.error("Error occurred during submission: %s", str(e))
-                    await interaction.response.send_message(
+                    await interaction.followup.send(
                         "An error occurred while submitting the report.", ephemeral=True
                     )
 
