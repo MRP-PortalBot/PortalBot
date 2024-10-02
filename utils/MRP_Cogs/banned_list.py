@@ -150,10 +150,6 @@ class BannedlistCMD(commands.Cog):
                         self.discord_username.value,
                     )
 
-                    # Simulate getting new entry ID from Google Sheets or other method
-                    entry_id = int(self.sheet.acell("A3").value) + 1
-                    _log.debug("Generated entry ID: %d", entry_id)
-
                     # Get log channel for the report
                     log_channel = self.bot.get_channel(config["bannedlistChannel"])
                     if not log_channel:
