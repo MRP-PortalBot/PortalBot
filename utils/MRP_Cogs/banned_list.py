@@ -177,6 +177,8 @@ class BannedlistCMD(commands.Cog):
                         self.discord_username.value,
                     )
 
+                    entry_id = q.entryid
+
                     # Create a more refined embed report
                     bannedlist_embed = self.create_ban_embed(entry_id, interaction)
 
