@@ -244,21 +244,18 @@ class BannedlistCMD(commands.Cog):
                     )
 
                     entry_id = q.entryid
+                    user_data = q
 
                     # Create a more refined embed report
-                    bannedlist_embed = create_ban_embed(entry_id, interaction)
+                    bannedlist_embed = create_ban_embed(
+                        entry_id, interaction, user_data, config
+                    )
 
                     # Send the embed report to the log channel
                     _log.info("Sending embed report to log channel...")
                     await send_to_log_channel(
                         interaction, log_channel, bannedlist_embed
                     )
-
-                    """# Acknowledge the user that submission was successful
-                    await interaction.response.send_message(
-                        "Your report has been submitted!", ephemeral=True
-                    )
-                    _log.info("Submission process completed successfully.")"""
 
                 except Exception as e:
                     # Log the error and notify the user
