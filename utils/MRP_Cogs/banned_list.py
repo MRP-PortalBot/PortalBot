@@ -244,7 +244,18 @@ class BannedlistCMD(commands.Cog):
                     )
 
                     entry_id = q.entryid
-                    user_data = q
+
+                    user_data = {
+                        "discord_username": self.discord_username.value,
+                        "disc_id": self.user.id,
+                        "gamertag": self.gamertag,
+                        "originating_realm": self.originating_realm,
+                        "known_alts": self.known_alts.value,
+                        "reason_for_ban": self.reason.value,
+                        "date_of_ban": self.date_of_ban.value,
+                        "type_of_ban": self.type_of_ban,
+                        "ban_end_date": self.ban_end_date.value,
+                    }
 
                     # Create a more refined embed report
                     bannedlist_embed = create_ban_embed(
