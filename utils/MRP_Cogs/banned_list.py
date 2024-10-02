@@ -37,13 +37,6 @@ class BannedlistCMD(commands.Cog):
         _log.exception(message)
         await interaction.response.send_message(message, ephemeral=True)
 
-    async def send_to_log_channel(self, log_channel, embed):
-        """Helper function to send the embed to the log channel."""
-        if log_channel:
-            await log_channel.send(embed=embed)
-        else:
-            _log.warning("Log channel not found!")
-
     async def fetch_user(self, interaction: discord.Interaction, discord_id: str):
         """Attempts to fetch a Discord user by ID and handles any errors."""
         try:
@@ -140,6 +133,21 @@ class BannedlistCMD(commands.Cog):
                 default="Permanent",
                 required=False,
             )
+
+            async def send_to_log_channel(
+                self, interaction: discord.Interaction, log_channel, embed
+            ):
+                """Helper function to send the embed to the log channel."""
+                if log_channel:
+                    await log_channel.send(embed=embed)
+                    await interaction.response.send_message(
+                        "Banned User Added Succesfully", ephemeral=True
+                    )
+                else:
+                    _log.warning("Log channel not found!")
+                    await interaction.response.send_message(
+                        "An Error Occured, Try Again", ephemeral=True
+                    )
 
             async def on_submit(self, interaction: discord.Interaction):
                 """Handles form submission for banishing users."""
