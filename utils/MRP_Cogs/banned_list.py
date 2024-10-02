@@ -7,7 +7,7 @@ from discord.ext import commands
 from core import database
 from core.common import load_config
 from core.logging_module import get_log
-from core.pagination import paginate_embed 
+from core.pagination import paginate_embed
 
 # Load configuration
 config, _ = load_config()
@@ -84,60 +84,68 @@ class BannedlistCMD(commands.Cog):
         view = return_banishblacklistform_modal(self.bot, found_user, gamertag, originating_realm, ban_type)
         await interaction.response.send_modal(view)
 
-def return_banishblacklistform_modal(bot, user: discord.User, gamertag: str, originating_realm: str, type_of_ban: str):
-    class BanishBlacklistForm(ui.Modal, title="Blacklist Form"):
-        def __init__(self, bot, user: discord.User, gamertag: str, originating_realm: str, type_of_ban: str):
-            super().__init__(timeout=None)
-            self.bot = bot
-            self.user = user
-            self.gamertag = gamertag
-            self.originating_realm = originating_realm
-            self.type_of_ban = type_of_ban
+        def return_banishblacklistform_modal(bot, user: discord.User, gamertag: str, originating_realm: str, type_of_ban: str):
+            class BanishBlacklistForm(ui.Modal, title="Blacklist Form"):
+                def __init__(self, bot, user: discord.User, gamertag: str, originating_realm: str, type_of_ban: str):
+                    super().__init__(timeout=None)
+                    self.bot = bot
+                    self.user = user
+                    self.gamertag = gamertag
+                    self.originating_realm = originating_realm
+                    self.type_of_ban = type_of_ban
 
-        # Input fields
-        discord_username = ui.TextInput(
-            label="Banished User's Username",
-            style=discord.TextStyle.short,
-            default=user.name,
-            required=True
-        )
-        known_alts = ui.TextInput(
-            label="Known Alts",
-            style=discord.TextStyle.long,
-            placeholder="Separate each alt with a comma",
-            required=True
-        )
-        reason = ui.TextInput(
-            label="Reason",
-            style=discord.TextStyle.long,
-            placeholder="Reason for ban",
-            required=True
-        )
-        date_of_ban = ui.TextInput(
-            label="Date of Ban",
-            style=discord.TextStyle.short,
-            placeholder="Date of ban",
-            required=True
-        )
-        ban_end_date = ui.TextInput(
-            label="Ban End Date",
-            style=discord.TextStyle.short,
-            placeholder="Leave blank if permanent",
-            default="Permanent",
-            required=False
-        )
+                # Input fields
+                discord_username = ui.TextInput(
+                    label="Banished User's Username",
+                    style=discord.TextStyle.short,
+                    default=user.name,
+                    required=True
+                )
+                known_alts = ui.TextInput(
+                    label="Known Alts",
+                    style=discord.TextStyle.long,
+                    placeholder="Separate each alt with a comma",
+                    required=True
+                )
+                reason = ui.TextInput(
+                    label="Reason",
+                    style=discord.TextStyle.long,
+                    placeholder="Reason for ban",
+                    required=True
+                )
+                date_of_ban = ui.TextInput(
+                    label="Date of Ban",
+                    style=discord.TextStyle.short,
+                    placeholder="Date of ban",
+                    required=True
+                )
+                ban_end_date = ui.TextInput(
+                    label="Ban End Date",
+                    style=discord.TextStyle.short,
+                    placeholder="Leave blank if permanent",
+                    default="Permanent",
+                    required=False
+                )
 
     async def on_submit(self, interaction: discord.Interaction):
         """Handles form submission for banishing users."""
         try:
-            # Simulate getting new entry ID
-            entry_id = int(self.sheet.acell('A3').value) + 1
+            # Log the start of the submission process
+            _log.info("Starting the submission process for user: %s", self.discord_username.value)
 
-            # Get log channel and connect to the database
+            # Simulate getting new entry ID from Google Sheets or other method
+            entry_id = int(self.sheet.acell('A3').value) + 1
+            _log.debug("Generated entry ID: %d", entry_id)
+
+            # Get log channel for the report
             log_channel = self.bot.get_channel(config['bannedlistChannel'])
+            if not log_channel:
+                raise ValueError("Log channel not found!")
+
+            # Connect to the database and add the ban report
+            _log.info("Connecting to the database...")
             database.db.connect(reuse_if_open=True)
 
-            # Create a new blacklist entry in the database
             q = database.MRP_Blacklist_Data.create(
                 BanReporter=interaction.user.display_name,
                 DiscUsername=self.discord_username.value,
@@ -151,18 +159,29 @@ def return_banishblacklistform_modal(bot, user: discord.User, gamertag: str, ori
                 DatetheBanEnds=self.ban_end_date.value
             )
             q.save()
+            _log.info("Ban report for user %s saved successfully.", self.discord_username.value)
 
-            # Create and send the embed report
+            # Create a more refined embed report
             bannedlist_embed = self.create_ban_embed(entry_id, interaction)
+
+            # Send the embed report to the log channel
+            _log.info("Sending embed report to log channel...")
             await self.send_to_log_channel(log_channel, bannedlist_embed)
 
+            # Acknowledge the user that submission was successful
             await interaction.response.send_message("Your report has been submitted!", ephemeral=True)
+            _log.info("Submission process completed successfully.")
 
         except Exception as e:
-            await self.log_error(interaction, f"Error submitting blacklist form: {e}")
+            # Log the error and notify the user
+            _log.error("Error occurred during submission: %s", str(e))
+            await interaction.response.send_message("An error occurred while submitting the report.", ephemeral=True)
 
         finally:
-            database.db.close()
+            # Close the database connection
+            if not database.db.is_closed():
+                database.db.close()
+            _log.debug("Database connection closed.")
 
     def create_ban_embed(self, entry_id, interaction: discord.Interaction) -> discord.Embed:
         """Creates the embed report for the banned user."""
@@ -190,6 +209,7 @@ def return_banishblacklistform_modal(bot, user: discord.User, gamertag: str, ori
         return embed
 
     return BanishBlacklistForm(bot, user, gamertag, originating_realm, type_of_ban)
+
 
 
 
