@@ -16,6 +16,76 @@ config, _ = load_config()
 _log = get_log(__name__)
 
 
+# Helper function to create the embed
+def create_ban_embed(entry_id, interaction, user_data, config) -> discord.Embed:
+    """Creates the embed report for the banned user."""
+    embed = discord.Embed(
+        title=f"🚫 Banned User Report - {user_data['discord_username']}",
+        description=f"This user has been added to the banned list.",
+        color=discord.Color.red(),
+        timestamp=datetime.datetime.now(),
+    )
+    embed.set_thumbnail(
+        url=config.get(
+            "ban_image_url",
+            "https://cdn.discordapp.com/attachments/788873229136560140/1290737175666888875/no_entry.png",
+        )
+    )
+    embed.add_field(
+        name="🔹 Discord Username",
+        value=f"`{user_data['discord_username']}`",
+        inline=True,
+    )
+    embed.add_field(
+        name="🔹 Discord ID", value=f"`{user_data['disc_id']}`", inline=True
+    )
+    embed.add_field(name="🎮 Gamertag", value=f"`{user_data['gamertag']}`", inline=True)
+    embed.add_field(
+        name="🏰 Realm Banned From",
+        value=f"`{user_data['originating_realm']}`",
+        inline=True,
+    )
+    embed.add_field(
+        name="👥 Known Alts", value=f"`{user_data['known_alts']}`", inline=True
+    )
+    embed.add_field(
+        name="⚠️ Ban Reason", value=f"`{user_data['reason_for_ban']}`", inline=False
+    )
+    embed.add_field(
+        name="📅 Date of Incident",
+        value=f"`{user_data['date_of_ban']}`",
+        inline=True,
+    )
+    embed.add_field(
+        name="⏳ Type of Ban", value=f"`{user_data['type_of_ban']}`", inline=True
+    )
+    embed.add_field(
+        name="⌛ Ban End Date",
+        value=f"`{user_data['ban_end_date'] or 'Permanent'}`",
+        inline=True,
+    )
+
+    embed.set_footer(
+        text=f"Entry ID: {entry_id} | Reported by {interaction.user.display_name}",
+        icon_url=(interaction.user.avatar.url if interaction.user.avatar else None),
+    )
+    return embed
+
+
+# Helper function to send embed to the log channel
+async def send_to_log_channel(interaction, log_channel, embed):
+    """Helper function to send the embed to the log channel."""
+    if log_channel:
+        await log_channel.send(embed=embed)
+        await interaction.followup.send(
+            "Banned User Added Successfully", ephemeral=True
+        )
+        _log.info("Submission process completed successfully.")
+    else:
+        _log.warning("Log channel not found!")
+        await interaction.followup.send("An Error Occurred, Try Again", ephemeral=True)
+
+
 class BannedlistCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -134,22 +204,6 @@ class BannedlistCMD(commands.Cog):
                 required=False,
             )
 
-            async def send_to_log_channel(
-                self, interaction: discord.Interaction, log_channel, embed
-            ):
-                """Helper function to send the embed to the log channel."""
-                if log_channel:
-                    await log_channel.send(embed=embed)
-                    await interaction.followup.send(
-                        "Banned User Added Succesfully", ephemeral=True
-                    )
-                    _log.info("Submission process completed successfully.")
-                else:
-                    _log.warning("Log channel not found!")
-                    await interaction.followup.send(
-                        "An Error Occured, Try Again", ephemeral=True
-                    )
-
             async def on_submit(self, interaction: discord.Interaction):
                 """Handles form submission for banishing users."""
                 try:
@@ -192,11 +246,11 @@ class BannedlistCMD(commands.Cog):
                     entry_id = q.entryid
 
                     # Create a more refined embed report
-                    bannedlist_embed = self.create_ban_embed(entry_id, interaction)
+                    bannedlist_embed = create_ban_embed(entry_id, interaction)
 
                     # Send the embed report to the log channel
                     _log.info("Sending embed report to log channel...")
-                    await self.send_to_log_channel(
+                    await send_to_log_channel(
                         interaction, log_channel, bannedlist_embed
                     )
 
@@ -218,68 +272,6 @@ class BannedlistCMD(commands.Cog):
                     if not database.db.is_closed():
                         database.db.close()
                     _log.debug("Database connection closed.")
-
-            def create_ban_embed(
-                self, entry_id, interaction: discord.Interaction
-            ) -> discord.Embed:
-                """Creates the embed report for the banned user."""
-                embed = discord.Embed(
-                    title=f"🚫 Banned User Report - {self.discord_username.value}",
-                    description=f"This user has been added to the banned list.",
-                    color=discord.Color.red(),
-                    timestamp=datetime.datetime.now(),
-                )
-                embed.set_thumbnail(
-                    url=config.get(
-                        "ban_image_url",
-                        "https://cdn.discordapp.com/attachments/788873229136560140/1290737175666888875/no_entry.png",
-                    )
-                )
-                embed.add_field(
-                    name="🔹 Discord Username",
-                    value=f"`{self.discord_username.value}`",
-                    inline=True,
-                )
-                embed.add_field(
-                    name="🔹 Discord ID", value=f"`{self.user.id}`", inline=True
-                )
-                embed.add_field(
-                    name="🎮 Gamertag", value=f"`{self.gamertag}`", inline=True
-                )
-                embed.add_field(
-                    name="🏰 Realm Banned From",
-                    value=f"`{self.originating_realm}`",
-                    inline=True,
-                )
-                embed.add_field(
-                    name="👥 Known Alts",
-                    value=f"`{self.known_alts.value}`",
-                    inline=True,
-                )
-                embed.add_field(
-                    name="⚠️ Ban Reason", value=f"`{self.reason.value}`", inline=False
-                )
-                embed.add_field(
-                    name="📅 Date of Incident",
-                    value=f"`{self.date_of_ban.value}`",
-                    inline=True,
-                )
-                embed.add_field(
-                    name="⏳ Type of Ban", value=f"`{self.type_of_ban}`", inline=True
-                )
-                embed.add_field(
-                    name="⌛ Ban End Date",
-                    value=f"`{self.ban_end_date.value or 'Permanent'}`",
-                    inline=True,
-                )
-
-                embed.set_footer(
-                    text=f"Entry ID: {entry_id} | Reported by {interaction.user.display_name}",
-                    icon_url=(
-                        interaction.user.avatar.url if interaction.user.avatar else None
-                    ),
-                )
-                return embed
 
         return BanishBlacklistForm(bot, user, gamertag, originating_realm, type_of_ban)
 
