@@ -143,6 +143,7 @@ class BannedlistCMD(commands.Cog):
                     await interaction.response.send_message(
                         "Banned User Added Succesfully", ephemeral=True
                     )
+                    _log.info("Submission process completed successfully.")
                 else:
                     _log.warning("Log channel not found!")
                     await interaction.response.send_message(
@@ -192,13 +193,15 @@ class BannedlistCMD(commands.Cog):
 
                     # Send the embed report to the log channel
                     _log.info("Sending embed report to log channel...")
-                    await self.send_to_log_channel(log_channel, bannedlist_embed)
+                    await self.send_to_log_channel(
+                        interaction, log_channel, bannedlist_embed
+                    )
 
-                    # Acknowledge the user that submission was successful
+                    """# Acknowledge the user that submission was successful
                     await interaction.response.send_message(
                         "Your report has been submitted!", ephemeral=True
                     )
-                    _log.info("Submission process completed successfully.")
+                    _log.info("Submission process completed successfully.")"""
 
                 except Exception as e:
                     # Log the error and notify the user
