@@ -1,5 +1,5 @@
 import discord
-from discord import app_commands
+from discord import app_commands, ui
 from discord.ext import commands
 
 
@@ -7,79 +7,74 @@ class HelpCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(description="Reference to documentation")
     async def help(self, interaction: discord.Interaction):
-        embed = discord.Embed(
-            title="Help Menu",
-            description="Here are the available commands organized by category:",
-            color=discord.Color.blue(),
-        )
+        all_commands = [
+            {"name": "/help", "description": "Displays this help message."},
+            {"name": "/ping", "description": "Check the bot's latency."},
+            # Add more commands here...
+        ]
 
-        # General commands
-        embed.add_field(
-            name="**General Commands**",
-            value="Basic bot interaction and system monitoring commands.",
-            inline=False,
-        )
-        embed.add_field(
-            name="`/help`",
-            value="Displays this help message.\n*Usage:* `/help`",
-            inline=False,
-        )
-        embed.add_field(
-            name="`/ping`",
-            value="Check the bot's latency and system resource usage.\n*Usage:* `/ping`",
-            inline=False,
-        )
+        # Helper function to create paginated embeds
+        async def paginate_embed(page: int, per_page: int = 25):
+            start = (page - 1) * per_page
+            end = start + per_page
+            embed = discord.Embed(
+                title="Help Menu",
+                description="Commands available:",
+                color=discord.Color.blue(),
+            )
 
-        # Banned list commands
-        embed.add_field(
-            name="**Banned List Commands**",
-            value="Manage and query the banned list.",
-            inline=False,
-        )
-        embed.add_field(
-            name="`/banned-list post`",
-            value="Add a person to the banned list.\n*Usage:* `/banned-list post [discord_id] [gamertag] [originating_realm] [ban_type]`",
-            inline=False,
-        )
-        embed.add_field(
-            name="`/banned-list search <term>`",
-            value="Search for a user in the banned list.\n*Usage:* `/banned-list search [term]`",
-            inline=False,
-        )
-        embed.add_field(
-            name="`/banned-list edit <entry_id> <field> <new_value>`",
-            value="Edit an entry in the banned list.\n*Usage:* `/banned-list edit [entry_id] [field] [new_value]`",
-            inline=False,
-        )
+            for cmd in all_commands[start:end]:
+                embed.add_field(
+                    name=cmd["name"], value=cmd["description"], inline=False
+                )
 
-        # Dynamically generate help for other cogs
-        for cog_name, cog in self.bot.cogs.items():
-            if cog_name not in ["HelpCMD"]:  # Skip the help command itself
-                cog_commands = [
-                    cmd
-                    for cmd in cog.get_app_commands()
-                    if isinstance(cmd, app_commands.Command)
-                ]
-                if cog_commands:
-                    embed.add_field(
-                        name=f"**{cog_name} Commands**",
-                        value=f"Commands under the `{cog_name}` module.",
-                        inline=False,
-                    )
-                    for command in cog_commands:
-                        embed.add_field(
-                            name=f"`/{command.name}`",
-                            value=f"{command.description}\n*Usage:* `/{command.name} [parameters]`",
-                            inline=False,
-                        )
+            total_pages = (len(all_commands) + per_page - 1) // per_page
+            embed.set_footer(text=f"Page {page}/{total_pages}")
 
-        embed.set_footer(
-            text=f"Requested by {interaction.user}",
-            icon_url=interaction.user.avatar.url,
-        )
-        await interaction.response.send_message(embed=embed)
+            return embed
+
+        # Initial embed
+        current_page = 1
+        embed = await paginate_embed(current_page)
+
+        # Create the button view for navigation
+        class PaginatorView(ui.View):
+            def __init__(
+                self, interaction: discord.Interaction, page: int, total_pages: int
+            ):
+                super().__init__(timeout=60)
+                self.interaction = interaction
+                self.page = page
+                self.total_pages = total_pages
+
+                # Disable back button if on the first page
+                self.children[0].disabled = self.page == 1
+                # Disable next button if on the last page
+                self.children[1].disabled = self.page == self.total_pages
+
+            @ui.button(label="◀️", style=discord.ButtonStyle.primary)
+            async def previous_page(
+                self, interaction: discord.Interaction, button: ui.Button
+            ):
+                if self.page > 1:
+                    self.page -= 1
+                    embed = await paginate_embed(self.page)
+                    await interaction.response.edit_message(embed=embed, view=self)
+
+            @ui.button(label="▶️", style=discord.ButtonStyle.primary)
+            async def next_page(
+                self, interaction: discord.Interaction, button: ui.Button
+            ):
+                if self.page < self.total_pages:
+                    self.page += 1
+                    embed = await paginate_embed(self.page)
+                    await interaction.response.edit_message(embed=embed, view=self)
+
+        total_pages = (len(all_commands) + 24) // 25
+        view = PaginatorView(interaction, current_page, total_pages)
+
+        await interaction.response.send_message(embed=embed, view=view)
 
 
 async def setup(bot):
