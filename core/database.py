@@ -1,8 +1,15 @@
 import logging
 import os
 from peewee import (
-    AutoField, Model, IntegerField, TextField, SqliteDatabase,
-    BigIntegerField, BooleanField, TimestampField, MySQLDatabase
+    AutoField,
+    Model,
+    IntegerField,
+    TextField,
+    SqliteDatabase,
+    BigIntegerField,
+    BooleanField,
+    TimestampField,
+    MySQLDatabase,
 )
 from flask import Flask
 from dotenv import load_dotenv
@@ -17,11 +24,13 @@ _log = get_log(__name__)
 
 # Load database configurations from environment variables
 try:
-    DB_IP = os.getenv('database_ip', 'localhost')  # Default to localhost if not provided
-    DB_Port = os.getenv('database_port', '3306')  # Default MySQL port
-    DB_user = os.getenv('database_username')
-    DB_password = os.getenv('database_password')
-    DB_Database = os.getenv('database_schema')
+    DB_IP = os.getenv(
+        "database_ip", "localhost"
+    )  # Default to localhost if not provided
+    DB_Port = os.getenv("database_port", "3306")  # Default MySQL port
+    DB_user = os.getenv("database_username")
+    DB_password = os.getenv("database_password")
+    DB_Database = os.getenv("database_schema")
 
     if not all([DB_IP, DB_Port, DB_user, DB_password, DB_Database]):
         raise ValueError("One or more required environment variables are missing.")
@@ -31,12 +40,15 @@ except Exception as e:
 
 # Set up MySQL database connection
 try:
-    db = MySQLDatabase(DB_Database, user=DB_user, password=DB_password, host=DB_IP, port=int(DB_Port))
+    db = MySQLDatabase(
+        DB_Database, user=DB_user, password=DB_password, host=DB_IP, port=int(DB_Port)
+    )
     # Uncomment below if using a pooled database connection
-    # db = PooledMySQLDatabase(DB_Database, user=DB_user, password=DB_password, host=DB_IP, port=int(DB_Port), max_connections=32)
+    # db = PooledMySQLDatabase(DB_Database, user=DB_user, password=DB_password, host=DB_IP, port=int(DB_Port), max_connections=32, stale_timeout=300,)
 except Exception as e:
     _log.error(f"Error connecting to the database: {e}")
     raise SystemExit(e)  # Exit the program if the database connection fails
+
 
 # Define function to iterate through tables and create them if necessary
 def iter_table(model_dict):
@@ -53,34 +65,51 @@ def iter_table(model_dict):
             if not db.is_closed():
                 db.close()
 
+
 class BaseModel(Model):
     """Base Model class used for creating new tables."""
+
     class Meta:
         database = db
-        
+
+
 def handle_database_errors(func):
     """Decorator for handling database errors."""
+
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as e:
             _log.error(f"Database error in {func.__name__}: {e}")
+
     return wrapper
+
 
 class BotData(BaseModel):
     """
     BotData:
     Information used across the bot.
     """
+
     id = AutoField()  # Database Entry ID (ALWAYS QUERY 1)
     last_question_posted = TextField(null=True)  # Last time a question was posted
-    persistent_views = BooleanField(default=False)  # Whether or not persistent views are enabled
+    persistent_views = BooleanField(
+        default=False
+    )  # Whether or not persistent views are enabled
     prefix = TextField(default=">")  # Bot prefix
-    blacklist_response_channel = BigIntegerField(default=0)  # Channel ID for blacklist responses
-    daily_question_channel = BigIntegerField(default=0)  # Channel ID for daily questions
-    question_suggest_channel = BigIntegerField(default=0)  # Channel ID for question suggestions
+    blacklist_response_channel = BigIntegerField(
+        default=0
+    )  # Channel ID for blacklist responses
+    daily_question_channel = BigIntegerField(
+        default=0
+    )  # Channel ID for daily questions
+    question_suggest_channel = BigIntegerField(
+        default=0
+    )  # Channel ID for question suggestions
     bot_spam_channel = BigIntegerField(default=0)  # Channel ID for bot spam
-    realm_channel_response = BigIntegerField(default=0)  # Channel ID for realm channel responses
+    realm_channel_response = BigIntegerField(
+        default=0
+    )  # Channel ID for realm channel responses
     bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
     other_bot_id = BigIntegerField(default=0)  # Other bot ID (if linked)
     bot_id = BigIntegerField(default=0)  # Discord Bot ID
@@ -89,6 +118,7 @@ class BotData(BaseModel):
 
 class Tag(BaseModel):
     """Stores our tags accessed by the tag command."""
+
     id = AutoField()  # Tag entry ID
     tag_name = TextField()  # Name of the tag
     embed_title = TextField()  # Title of the embed associated with the tag
@@ -97,6 +127,7 @@ class Tag(BaseModel):
 
 class Question(BaseModel):
     """Stores questions for DailyQ here."""
+
     id = AutoField()  # Question entry ID
     question = TextField()  # The question text
     usage = TextField(default=False)  # Indicates if the question has been used
@@ -104,6 +135,7 @@ class Question(BaseModel):
 
 class MRP_Blacklist_Data(BaseModel):
     """Stores Blacklist Data here."""
+
     entryid = AutoField()  # Database Entry ID for blacklist
     BanReporter = TextField()  # Who reported the ban
     DiscUsername = TextField()  # Discord username of the banned user
@@ -119,6 +151,7 @@ class MRP_Blacklist_Data(BaseModel):
 
 class PortalbotProfile(BaseModel):
     """Stores Profile Data here."""
+
     entryid = AutoField()  # Profile entry ID
     DiscordName = TextField()  # The Discord username
     DiscordLongID = TextField()  # The Discord user ID
@@ -132,6 +165,7 @@ class PortalbotProfile(BaseModel):
 
 class RealmProfile(BaseModel):
     """Stores Realm Profile Data here."""
+
     entry_id = AutoField()  # Database Entry ID for the realm
     realm_name = TextField()  # Name of the realm
     realm_emoji = TextField()  # Emoji associated with the realm
@@ -150,6 +184,7 @@ class Administrators(BaseModel):
     Administrators:
     List of users whitelisted on the bot.
     """
+
     id = AutoField()  # Admin entry ID
     discordID = BigIntegerField(unique=True)  # Discord ID of the administrator
     TierLevel = IntegerField(default=1)  # Admin tier level (1-4)
@@ -157,6 +192,7 @@ class Administrators(BaseModel):
 
 class QuestionSuggestionQueue(BaseModel):
     """Stores users who suggested questions for the bot."""
+
     id = AutoField()  # Suggestion entry ID
     discord_id = BigIntegerField()  # Discord ID of the user
     question = TextField()  # Suggested question
@@ -165,6 +201,7 @@ class QuestionSuggestionQueue(BaseModel):
 
 class RealmApplications(BaseModel):
     """Stores users' realm applications."""
+
     id = AutoField()  # Application entry ID
     discord_id = BigIntegerField()  # Discord ID of the applicant
     discord_name = TextField()  # Discord name of the applicant
@@ -185,6 +222,7 @@ class RealmApplications(BaseModel):
 
 class ServerScores(BaseModel):
     """Stores the score for each user in different servers."""
+
     ScoreID = AutoField()  # Unique ID for each score entry
     DiscordName = TextField()  # User's Discord name
     DiscordLongID = TextField()  # Discord user ID (foreign key to PortalbotProfile)
@@ -196,6 +234,7 @@ class ServerScores(BaseModel):
 
 class LeveledRoles(BaseModel):
     """Stores the roles and level thresholds for each server."""
+
     RoleID = AutoField()  # Unique ID for each role entry
     RoleName = TextField()  # Name of the role
     RoleID = BigIntegerField()  # Discord Role ID for role assignment
@@ -206,6 +245,7 @@ class LeveledRoles(BaseModel):
 # Flask app initialization
 app = Flask(__name__)
 
+
 # Flask database hooks
 @app.before_request
 def _db_connect():
@@ -215,6 +255,7 @@ def _db_connect():
     except Exception as e:
         _log.error(f"Error connecting to the database before request: {e}")
 
+
 @app.teardown_request
 def _db_close(exc):
     try:
@@ -222,6 +263,7 @@ def _db_close(exc):
             db.close()
     except Exception as e:
         _log.error(f"Error closing the database after request: {e}")
+
 
 tables = {
     "tag": Tag,
@@ -234,7 +276,7 @@ tables = {
     "administrators": Administrators,
     "questionsuggestionqueue": QuestionSuggestionQueue,
     "realmapplications": RealmApplications,
-    "botdata": BotData
+    "botdata": BotData,
 }
 
 # Call the table creation function
