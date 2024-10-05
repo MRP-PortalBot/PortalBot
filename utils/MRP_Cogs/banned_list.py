@@ -195,7 +195,7 @@ class BannedlistCMD(commands.Cog):
                 style=discord.TextStyle.short,
                 placeholder="Date of ban",
                 default=datetime.datetime.now().strftime(
-                    "%Y-%m-%d"
+                    "%d-%m-%Y"
                 ),  # Set today's date as default in YYYY-MM-DD format
                 required=True,
             )
@@ -453,10 +453,10 @@ class BannedlistCMD(commands.Cog):
         # Additional validation for specific fields (e.g., dates, IDs)
         if modify == "Date of Incident" or modify == "Ban End Date":
             try:
-                datetime.datetime.strptime(new_value, "%Y-%m-%d")
+                datetime.datetime.strptime(new_value, "%d-%m-%Y")
             except ValueError:
                 await interaction.response.send_message(
-                    "Invalid date format. Use YYYY-MM-DD.", ephemeral=True
+                    "Invalid date format. Use MM-DD-YYYY.", ephemeral=True
                 )
                 return
 
