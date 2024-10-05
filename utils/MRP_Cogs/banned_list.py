@@ -444,6 +444,9 @@ class BannedlistCMD(commands.Cog):
             )
             return
 
+        # Get the old value for comparison
+        old_value = getattr(query, field_mapping[modify])
+
         # Additional validation for specific fields (e.g., dates, IDs)
         if modify == "Date of Incident" or modify == "Ban End Date":
             try:
@@ -460,9 +463,9 @@ class BannedlistCMD(commands.Cog):
         # Save the updated record
         query.save()
 
-        # Send a detailed success message
+        # Send a detailed success message with old and new values
         await interaction.response.send_message(
-            f"Successfully updated **{modify}** to **{new_value}** for Entry ID: {entry_id}.",
+            f"Successfully updated **{modify}** from **{old_value}** to **{new_value}** for Entry ID: {entry_id}.",
             ephemeral=True,
         )
 
