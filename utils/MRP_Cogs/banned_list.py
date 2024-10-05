@@ -194,6 +194,9 @@ class BannedlistCMD(commands.Cog):
                 label="Date of Ban",
                 style=discord.TextStyle.short,
                 placeholder="Date of ban",
+                default=datetime.datetime.now().strftime(
+                    "%Y-%m-%d"
+                ),  # Set today's date as default in YYYY-MM-DD format
                 required=True,
             )
             ban_end_date = ui.TextInput(
