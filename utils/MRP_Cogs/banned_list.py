@@ -411,13 +411,19 @@ class BannedlistCMD(commands.Cog):
         ],
         new_value: str,
     ):
+        # Fetch the entry from the database
         query = database.MRP_Blacklist_Data.get_or_none(
             database.MRP_Blacklist_Data.entryid == entry_id
         )
+
+        # Check if the entry exists
         if not query:
-            await interaction.response.send_message("Invalid Entry ID", ephemeral=True)
+            await interaction.response.send_message(
+                "Invalid Entry ID. Please check the ID and try again.", ephemeral=True
+            )
             return
 
+        # Field Mapping for the attribute to update
         field_mapping = {
             "Ban Reporter": "BanReporter",
             "Discord Username": "DiscUsername",
@@ -431,11 +437,34 @@ class BannedlistCMD(commands.Cog):
             "Ban End Date": "DatetheBanEnds",
         }
 
+        # Check if the field to modify exists in the mapping
+        if modify not in field_mapping:
+            await interaction.response.send_message(
+                "Invalid field selection.", ephemeral=True
+            )
+            return
+
+        # Additional validation for specific fields (e.g., dates, IDs)
+        if modify == "Date of Incident" or modify == "Ban End Date":
+            try:
+                datetime.datetime.strptime(new_value, "%Y-%m-%d")
+            except ValueError:
+                await interaction.response.send_message(
+                    "Invalid date format. Use YYYY-MM-DD.", ephemeral=True
+                )
+                return
+
         # Dynamically update the selected field
         setattr(query, field_mapping[modify], new_value)
+
+        # Save the updated record
         query.save()
 
-        await interaction.response.send_message(f"Modified {modify} to {new_value}.")
+        # Send a detailed success message
+        await interaction.response.send_message(
+            f"Successfully updated **{modify}** to **{new_value}** for Entry ID: {entry_id}.",
+            ephemeral=True,
+        )
 
 
 async def setup(bot):
