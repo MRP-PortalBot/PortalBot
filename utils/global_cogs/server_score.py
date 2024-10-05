@@ -13,6 +13,7 @@ _log = get_log(__name__)
 # Create a dictionary to store the last message timestamp for each user
 last_message_time = {}
 
+
 class ScoreIncrement(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -46,9 +47,10 @@ class ScoreIncrement(commands.Cog):
         score_increment = random.randint(10, 30)
 
         try:
+            database.db.connect(reuse_if_open=True)
             server_score = database.ServerScores.get(
                 database.ServerScores.DiscordLongID == user_id,
-                database.ServerScores.ServerID == str(message.guild.id)
+                database.ServerScores.ServerID == str(message.guild.id),
             )
             previous_level = server_score.Level  # Store the previous level
 
@@ -57,7 +59,7 @@ class ScoreIncrement(commands.Cog):
 
             # Calculate the new level and progress using your function
             new_level, progress, next_level_score = calculate_level(server_score.Score)
-            print (new_level)
+            print(new_level)
             print(next_level_score)
 
             # Update the score, level, and progress
@@ -78,12 +80,16 @@ class ScoreIncrement(commands.Cog):
                         await message.author.add_roles(new_role)
 
                 # Send the level-up message
-                await message.channel.send(f"🎉 {message.author.mention} has leveled up to **Level {new_level}**! Congrats!")
+                await message.channel.send(
+                    f"🎉 {message.author.mention} has leveled up to **Level {new_level}**! Congrats!"
+                )
 
         except database.ServerScores.DoesNotExist:
             # If the user doesn't have a score record yet, create one
             initial_score = score_increment
-            new_level, progress, next_level_score = calculate_level(initial_score)  # Calculate initial level and progress
+            new_level, progress, next_level_score = calculate_level(
+                initial_score
+            )  # Calculate initial level and progress
 
             database.ServerScores.create(
                 DiscordName=username,
@@ -91,14 +97,22 @@ class ScoreIncrement(commands.Cog):
                 ServerID=str(message.guild.id),
                 Score=initial_score,
                 Level=new_level,
-                Progress=next_level_score
+                Progress=next_level_score,
             )
+
+        finally:
+            # Close the database connection
+            if not database.db.is_closed():
+                database.db.close()
+            _log.debug("Database connection closed.")
 
         # Update the last_message_time dictionary with the current time
         last_message_time[user_id] = current_time
 
         # Optional: send a message or log the score increment
-        await message.channel.send(f"{message.author.mention} earned {score_increment} points!")
+        await message.channel.send(
+            f"{message.author.mention} earned {score_increment} points!"
+        )
 
     async def get_role_for_level(self, level, guild):
         """
@@ -106,10 +120,19 @@ class ScoreIncrement(commands.Cog):
         Assumes you have a `LeveledRoles` table that stores role names and levels.
         """
         try:
-            leveled_role = database.LeveledRoles.get(database.LeveledRoles.Level == level)
+            database.db.connect(reuse_if_open=True)
+            leveled_role = database.LeveledRoles.get(
+                database.LeveledRoles.Level == level
+            )
             return leveled_role.RoleName if leveled_role else None
         except database.LeveledRoles.DoesNotExist:
             return None
+        finally:
+            # Close the database connection
+            if not database.db.is_closed():
+                database.db.close()
+            _log.debug("Database connection closed.")
+
 
 # Setup the cog
 async def setup(bot):
