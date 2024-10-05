@@ -7,11 +7,12 @@ class HelpCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @app_commands.command(description="Displays this help message")
     async def help(self, interaction: discord.Interaction):
         all_commands = [
             {"name": "/help", "description": "Displays this help message."},
             {"name": "/ping", "description": "Check the bot's latency."},
-            # Add more commands here...
+            # Add more commands from your bot here...
         ]
 
         # Helper function to create paginated embeds
@@ -77,5 +78,6 @@ class HelpCMD(commands.Cog):
         await interaction.response.send_message(embed=embed, view=view)
 
 
+# Setup the cog
 async def setup(bot):
     await bot.add_cog(HelpCMD(bot))
