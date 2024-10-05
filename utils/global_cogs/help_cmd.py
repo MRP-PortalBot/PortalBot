@@ -82,50 +82,43 @@ class HelpCMD(commands.Cog):
 
     @app_commands.command(description="Display the help menu.")
     async def help(self, interaction: discord.Interaction):
+        # Grouping commands from different categories
         command_groups = [
             (
                 "Banned List Commands",
                 [
-                    app_commands.Command(
-                        name="post", description="Post a new ban entry."
-                    ),
-                    app_commands.Command(
-                        name="edit", description="Edit an existing ban entry."
-                    ),
-                    app_commands.Command(
-                        name="search", description="Search the banned list."
-                    ),
+                    self.bot.tree.get_command("post"),
+                    self.bot.tree.get_command("edit"),
+                    self.bot.tree.get_command("search"),
                 ],
             ),
             (
                 "General Commands",
                 [
-                    app_commands.Command(
-                        name="ping", description="Ping the bot to check latency."
-                    ),
-                    app_commands.Command(
-                        name="uptime", description="Check the bot's uptime."
-                    ),
+                    self.bot.tree.get_command("ping"),
+                    self.bot.tree.get_command("uptime"),
                 ],
             ),
             # Add more categories and commands as necessary
         ]
 
+        # Create an initial embed
         embed = discord.Embed(
             title="Help Menu",
             description="Use the buttons below to navigate through the commands",
             color=discord.Color.blurple(),
         )
 
-        # Display the first page
+        # Show the first page of commands
         for category, commands in command_groups[:5]:
             command_list = "\n".join(
-                [f"/{cmd.name} - {cmd.description}" for cmd in commands]
+                [f"/{cmd.name} - {cmd.description}" for cmd in commands if cmd]
             )
             embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
 
         embed.set_footer(text="Page 1/{}".format((len(command_groups) + 4) // 5))
 
+        # Send the initial embed and attach the paginator view
         view = HelpPaginator(self.bot, interaction, command_groups)
         await interaction.response.send_message(embed=embed, view=view)
 
