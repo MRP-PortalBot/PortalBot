@@ -28,30 +28,21 @@ class HelpCMD(commands.Cog):
             return 0
 
     # Help Command
-    @app_commands.command(description="Reference to documentation")
+    @app_commands.command(description="Show help for all commands")
     async def help(self, interaction: discord.Interaction):
-        logger.info(f"Help command called by {interaction.user}")
-
-        line_count = 0
-        for file in Path("utils").glob("**/*.py"):
-            if "!" in file.name or "DEV" in file.name:
-                continue
-            line_count += self.count_lines_in_file(file)
-
-        line_count += self.count_lines_in_file("./main.py")
-        formatted_line_count = f"{line_count:,}"
-
         embed = discord.Embed(
-            color=discord.Color.purple(),
-            title="Hey, I'm PortalBot, MRP’s very own mascot! 👋",
-            description=f"\n`Coded in {formatted_line_count} lines`\n\n"
-            f"Read the documentation here: [PortalBot Docs](https://brave-bongo-a8b.notion.site/PortalBot-Help-Commands-9f482fe2d19545aa9d497bb1f3c18b84)",
+            title="Help Menu",
+            description="Here are the available commands:",
+            color=discord.Color.blue(),
         )
-        embed.set_footer(
-            text=f"Requested by {interaction.user}",
-            icon_url=interaction.user.avatar.url,
+        embed.add_field(
+            name="/ping",
+            value="Get the bot's latency and system resource usage.",
+            inline=False,
         )
-
+        embed.add_field(
+            name="/help", value="Get help on how to use the bot.", inline=False
+        )
         await interaction.response.send_message(embed=embed)
 
     # Ping Command
