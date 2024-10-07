@@ -7,25 +7,23 @@ from core.logging_module import get_log
 _log = get_log(__name__)
 
 
-# Decorator to manage database connection
-def with_db_connection(func):
-    """Decorator to manage database connection open/close."""
-
-    async def wrapper(*args, **kwargs):
-        if database.db.is_closed():
-            database.db.connect(reuse_if_open=True)
-        try:
-            return await func(*args, **kwargs)
-        finally:
-            if not database.db.is_closed():
-                database.db.close()
-
-    return wrapper
-
-
 class LeveledRoles(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    def with_db_connection(func):
+        """Decorator to manage database connection open/close."""
+
+        async def wrapper(self, *args, **kwargs):
+            if database.db.is_closed():
+                database.db.connect(reuse_if_open=True)
+            try:
+                return await func(self, *args, **kwargs)
+            finally:
+                if not database.db.is_closed():
+                    database.db.close()
+
+        return wrapper
 
     @with_db_connection
     async def assign_role_based_on_level(
@@ -114,10 +112,12 @@ class LeveledRoles(commands.Cog):
             )
 
     @commands.Cog.listener()
-    @with_db_connection
     async def on_message(self, message: discord.Message):
+        """
+        Listener that checks if a user's level has changed and assigns the correct role based on the new level.
+        """
         if message.author.bot:
-            return
+            return  # Ignore bot messages
 
         member = message.author
         guild_id = message.guild.id
