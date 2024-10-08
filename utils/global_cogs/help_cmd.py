@@ -19,64 +19,57 @@ class HelpPaginator(ui.View):
             len(self.command_groups) + self.per_page - 1
         ) // self.per_page
 
-        # Disable previous button at the start
-        self.previous.disabled = True
-
-        # Disable next button if there's only one page
+        # Initial button states
+        self.first.disabled = self.page == 0
+        self.previous.disabled = self.page == 0
         self.next.disabled = self.page >= self.total_pages - 1
+        self.last.disabled = self.page >= self.total_pages - 1
 
     async def update_embed(self):
         """Helper function to update the embed."""
-        # Calculate the total number of pages
-        total_pages = self.total_pages
+        embed = discord.Embed(
+            title="Help Menu",
+            description="Use the buttons below to navigate through the commands",
+            color=discord.Color.blurple(),
+        )
 
-        # Check if only one page exists
-        if total_pages == 1:
-            self.first.disabled = True
-            self.previous.disabled = True
-            self.next.disabled = True
-            self.last.disabled = True
-        else:
-            # Enable or disable buttons based on current page
-            self.first.disabled = self.current_page == 1
-            self.previous.disabled = self.current_page == 1
-            self.next.disabled = self.current_page == total_pages
-            self.last.disabled = self.current_page == total_pages
+        start = self.page * self.per_page
+        end = start + self.per_page
+        for category, commands in self.command_groups[start:end]:
+            command_list = "\n".join(
+                [f"/{cmd.name} - {cmd.description}" for cmd in commands]
+            )
+            embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
 
-        # Update and display the embed
-        embed = await self.populate_embed()
+        embed.set_footer(text=f"Page {self.page + 1}/{self.total_pages}")
         await self.interaction.edit_original_response(embed=embed, view=self)
+
+        # Update button states
+        self.first.disabled = self.page == 0
+        self.previous.disabled = self.page == 0
+        self.next.disabled = self.page >= self.total_pages - 1
+        self.last.disabled = self.page >= self.total_pages - 1
 
     @ui.button(label="⏮️ First", style=discord.ButtonStyle.green)
     async def first(self, interaction: discord.Interaction, button: ui.Button):
         self.page = 0
-        self.previous.disabled = True
-        self.next.disabled = False
         await self.update_embed()
 
     @ui.button(label="◀️ Previous", style=discord.ButtonStyle.blurple)
     async def previous(self, interaction: discord.Interaction, button: ui.Button):
         if self.page > 0:
             self.page -= 1
-            self.next.disabled = False
-        if self.page == 0:
-            self.previous.disabled = True
         await self.update_embed()
 
     @ui.button(label="▶️ Next", style=discord.ButtonStyle.blurple)
     async def next(self, interaction: discord.Interaction, button: ui.Button):
         if self.page < self.total_pages - 1:
             self.page += 1
-            self.previous.disabled = False
-        if self.page >= self.total_pages - 1:
-            self.next.disabled = True
         await self.update_embed()
 
     @ui.button(label="⏭️ Last", style=discord.ButtonStyle.green)
     async def last(self, interaction: discord.Interaction, button: ui.Button):
         self.page = self.total_pages - 1
-        self.previous.disabled = False
-        self.next.disabled = True
         await self.update_embed()
 
 
@@ -103,7 +96,6 @@ class HelpCMD(commands.Cog):
                     self.bot.tree.get_command("uptime"),
                 ],
             ),
-            # Add more categories and commands as necessary
         ]
 
         # Create an initial embed
