@@ -2,6 +2,8 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime
+import discord # type: ignore
+from discord.errors import ConnectionClosed # type: ignore
 
 
 class ColourFormatter(logging.Formatter):
