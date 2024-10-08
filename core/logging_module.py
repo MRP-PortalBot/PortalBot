@@ -2,8 +2,9 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime
-import discord # type: ignore
-from discord.errors import ConnectionClosed # type: ignore
+import discord  # type: ignore
+from discord.errors import ConnectionClosed  # type: ignore
+import sys
 
 
 class ColourFormatter(logging.Formatter):
@@ -76,6 +77,22 @@ def get_log(name: str, level: int = logging.DEBUG) -> logging.Logger:
         logger.addHandler(file_handler)
 
     return logger
+
+
+# Exception handler to log uncaught exceptions
+_log = get_log(__name__)
+
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        # Call the default exception handler for KeyboardInterrupts
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    _log.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+
+# Set the global exception hook
+sys.excepthook = handle_exception
 
 
 class MyBot(discord.Client):

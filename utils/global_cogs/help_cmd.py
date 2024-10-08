@@ -112,7 +112,11 @@ class HelpCMD(commands.Cog):
         # Show the first page of commands
         for category, commands in command_groups[:5]:
             command_list = "\n".join(
-                [f"/{cmd.name} - {cmd.description}" for cmd in commands if cmd]
+                [
+                    f"/{cmd.name} - {cmd.description}"
+                    for cmd in commands
+                    if cmd and cmd.name
+                ]
             )
             embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
 
