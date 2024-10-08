@@ -36,7 +36,11 @@ class HelpPaginator(ui.View):
         end = start + self.per_page
         for category, commands in self.command_groups[start:end]:
             command_list = "\n".join(
-                [f"/{cmd.name} - {cmd.description}" for cmd in commands]
+                [
+                    f"/{cmd.name} - {cmd.description}"
+                    for cmd in commands
+                    if cmd is not None
+                ]
             )
             embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
 
