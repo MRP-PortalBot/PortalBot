@@ -26,25 +26,25 @@ class HelpPaginator(ui.View):
         self.next.disabled = self.page >= self.total_pages - 1
 
     async def update_embed(self):
-        embed = discord.Embed(
-            title="Help Menu",
-            description="Use the buttons below to navigate through the commands",
-            color=discord.Color.blurple(),
-        )
+        """Helper function to update the embed."""
+        # Calculate the total number of pages
+        total_pages = self.total_pages
 
-        start = self.page * self.per_page
-        end = start + self.per_page
-        for category, commands in self.command_groups[start:end]:
-            command_list = "\n".join(
-                [
-                    f"/{cmd.name} - {cmd.description}"
-                    for cmd in commands
-                    if cmd is not None
-                ]
-            )
-            embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
+        # Check if only one page exists
+        if total_pages == 1:
+            self.first.disabled = True
+            self.previous.disabled = True
+            self.next.disabled = True
+            self.last.disabled = True
+        else:
+            # Enable or disable buttons based on current page
+            self.first.disabled = self.current_page == 1
+            self.previous.disabled = self.current_page == 1
+            self.next.disabled = self.current_page == total_pages
+            self.last.disabled = self.current_page == total_pages
 
-        embed.set_footer(text=f"Page {self.page + 1}/{self.total_pages}")
+        # Update and display the embed
+        embed = await self.populate_embed()
         await self.interaction.edit_original_response(embed=embed, view=self)
 
     @ui.button(label="⏮️ First", style=discord.ButtonStyle.green)
