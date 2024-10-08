@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands, ui
+from core.logging_module import get_log  # Import your logging module
 
 
 class HelpPaginator(ui.View):
@@ -76,18 +77,22 @@ class HelpPaginator(ui.View):
 class HelpCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self._log = get_log(__name__)  # Initialize the logger
 
     @app_commands.command(description="Display the help menu.")
     async def help(self, interaction: discord.Interaction):
+        # Fetch commands from the banned list group
+        bl_group = self.bot.tree.get_command("banned-list")
+        bl_commands = bl_group.commands if bl_group else []
+
+        # Log the fetched banned list commands for debugging
+        self._log.info(f"Available commands in banned-list group: {bl_commands}")
+
         # Grouping commands from different categories
         command_groups = [
             (
                 "Banned List Commands",
-                [
-                    self.bot.tree.get_command("post"),
-                    self.bot.tree.get_command("edit"),
-                    self.bot.tree.get_command("search"),
-                ],
+                bl_commands,  # Include the banned list group commands
             ),
             (
                 "General Commands",
@@ -96,6 +101,7 @@ class HelpCMD(commands.Cog):
                     self.bot.tree.get_command("uptime"),
                 ],
             ),
+            # Add more categories and commands as necessary
         ]
 
         # Create an initial embed
@@ -121,6 +127,10 @@ class HelpCMD(commands.Cog):
         # Send the initial embed and attach the paginator view
         view = HelpPaginator(self.bot, interaction, command_groups)
         await interaction.response.send_message(embed=embed, view=view)
+
+
+async def setup(bot):
+    await bot.add_cog(HelpCMD(bot))
 
 
 async def setup(bot):
