@@ -5,18 +5,13 @@ import discord
 from discord import app_commands, ui
 from discord.ext import commands, tasks
 from peewee import fn
-
-from core import common, database
-from core.checks import slash_is_bot_admin_2
-from core.common import load_config, QuestionSuggestionManager, get_bot_data_id, SuggestQuestionFromDQ
-from core.logging_module import get_log
+from core import common, database, checks
+from core.common import load_config, get_bot_data_id, SuggestQuestionFromDQ
+from core.pagination import paginate_embed
+from core.common import load_config
 from main import PortalBot
 
 config, _ = load_config()
-
-# Counts current lines in a file.
-
-
 _log = get_log(__name__)
 
 
@@ -32,27 +27,40 @@ class DailyCMD(commands.Cog):
     @tasks.loop(hours=24)
     async def post_question(self):
         row_id = get_bot_data_id()
-        q: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
+        q: database.BotData = database.BotData.get_by_id(row_id)
         send_channel = self.bot.get_channel(q.daily_question_channel)
         last_time_posted = q.last_question_posted
 
-        # Check if it's been 24 hours since the last question was posted
         if datetime.now() - last_time_posted >= timedelta(hours=24):
-            question: database.Question = database.Question.select().where(
-                database.Question.usage == False
-            ).order_by(fn.Rand()).limit(1).get()
-            if get_bot_data_id() == 1:
+            try:
+                question: database.Question = (
+                    database.Question.select()
+                    .where(database.Question.usage == False)
+                    .order_by(fn.Rand())
+                    .get()
+                )
+
                 question.usage = True
                 question.save()
-                embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓",
-                                      description=f"**{question.question}**",
-                                      color=0xb10d9f)
-                embed.set_footer(text=f"Question ID: {question.id}")
-                await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
 
-            # Update the last_question_posted time
-            q.last_question_posted = datetime.now()
-            q.save()
+                embed = discord.Embed(
+                    title="❓ QUESTION OF THE DAY ❓",
+                    description=f"**{question.question}**",
+                    color=0xB10D9F,
+                )
+                embed.set_footer(text=f"Question ID: {question.id}")
+                await send_channel.send(
+                    embed=embed, view=SuggestQuestionFromDQ(self.bot)
+                )
+
+                q.last_question_posted = datetime.now()
+                q.save()
+
+            except database.DoesNotExist:
+                _log.error("No questions available to post.")
+                await send_channel.send("No new questions available for today.")
+            except Exception as e:
+                _log.error(f"Error in posting question: {e}")
 
     @DQ.command()
     async def suggest(self, interaction: discord.Interaction):
@@ -62,136 +70,132 @@ class DailyCMD(commands.Cog):
                 self.bot = bot
 
             short_description = ui.TextInput(
-                label="Daily Question",
-                style=discord.TextStyle.long,
-                required=True
+                label="Daily Question", style=discord.TextStyle.long, required=True
             )
 
             async def on_submit(self, interaction: discord.Interaction):
                 row_id = get_bot_data_id()
-                q: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
+                q: database.BotData = database.BotData.get_by_id(row_id)
                 await interaction.response.defer(thinking=True)
-                embed = discord.Embed(title="Question Suggestion",
-                                      description=f"Requested by {interaction.user.mention}", color=0x18c927)
-                embed.add_field(name="Question:", value=f"{self.short_description.value}")
+                embed = discord.Embed(
+                    title="Question Suggestion",
+                    description=f"Requested by {interaction.user.mention}",
+                    color=0x18C927,
+                )
+                embed.add_field(
+                    name="Question:", value=f"{self.short_description.value}"
+                )
                 log_channel = await self.bot.fetch_channel(777987716008509490)
-                msg = await log_channel.send(embed=embed, view=QuestionSuggestionManager())
-                q: database.QuestionSuggestionQueue = database.QuestionSuggestionQueue.create(
+                msg = await log_channel.send(
+                    embed=embed, view=SuggestQuestionFromDQ(self.bot)
+                )
+                database.QuestionSuggestionQueue.create(
                     question=self.short_description.value,
                     discord_id=interaction.user.id,
                     message_id=msg.id,
                 )
-                q.save()
 
                 await interaction.followup.send("Thank you for your suggestion!")
 
         await interaction.response.send_modal(SuggestModal(self.bot))
 
-    @DQ.command(
-        name="repeat",
-        description="Repeat a daily question by id number",
-    )
-    @slash_is_bot_admin_2
+    @DQ.command(name="repeat", description="Repeat a daily question by id number")
+    @checks.slash_is_bot_admin_2
     async def repeatq(self, interaction: discord.Interaction, number: int):
-        """Activate a question"""
-        q: database.Question = database.Question.select().where(
-            database.Question.id == number).get()
-        embed = discord.Embed(title="❓ QUESTION OF THE DAY ❓",
-                              description=f"**{q.question}**",
-                              color=0xb10d9f)
-        embed.set_footer(text=f"Question ID: {q.id}")
-        await interaction.response.send_message(embed=embed)
-
-    """@DQ.command(name="use", description="Use a question")
-    async def _activate(self, interaction: discord.Interaction):
-        limit = int(database.Question.select().count())
-        q: database.Question = database.Question.select().where(
-            database.Question.usage == True).count()
-        print(f"{str(limit)}: limit\n{str(q)}: true count")
-        if limit == q:
-            query = database.Question.select().where(
-                database.Question.usage == True)
-            for question in query:
-                question.usage = False
-                question.save()
-        await get_question(self)"""
+        try:
+            q: database.Question = database.Question.get_by_id(number)
+            embed = discord.Embed(
+                title="❓ QUESTION OF THE DAY ❓",
+                description=f"**{q.question}**",
+                color=0xB10D9F,
+            )
+            embed.set_footer(text=f"Question ID: {q.id}")
+            await interaction.response.send_message(embed=embed)
+        except database.DoesNotExist:
+            await interaction.response.send_message("Question not found.")
+        except Exception as e:
+            _log.error(f"Error in repeating question: {e}")
+            await interaction.response.send_message("An error occurred.")
 
     @DQ.command(description="Modify a question!")
-    @slash_is_bot_admin_2
+    @checks.slash_is_bot_admin_2
     async def modify(self, interaction: discord.Interaction, id: int, question: str):
-        """Modify a question!"""
         try:
-            if id != None:
-                database.db.connect(reuse_if_open=True)
-                q: database.Question = database.Question.select().where(
-                    database.Question.id == id).get()
-                q.question = question
-                q.save()
-                await interaction.response.send_message(f"{q.question} has been modified successfully.")
+            q: database.Question = database.Question.get_by_id(id)
+            q.question = question
+            q.save()
+            await interaction.response.send_message(
+                f"Question {id} has been modified successfully."
+            )
         except database.DoesNotExist:
-            await interaction.response.send_message("ERROR: This question does not exist!")
-        finally:
-            database.db.close()
+            await interaction.response.send_message(
+                "ERROR: This question does not exist!"
+            )
+        except Exception as e:
+            _log.error(f"Error modifying question: {e}")
+            await interaction.response.send_message(
+                "An error occurred while modifying the question."
+            )
 
     @DQ.command(description="Add a question!")
-    @slash_is_bot_admin_2
+    @checks.slash_is_bot_admin_2
     async def new(self, interaction: discord.Interaction, question: str):
-        """Add a question!"""
         try:
-            database.db.connect(reuse_if_open=True)
-            q: database.Question = database.Question.create(question=question)
+            q = database.Question.create(question=question)
             q.save()
-            await interaction.response.send_message(f"{q.question} has been added successfully.")
+            await interaction.response.send_message(
+                f"Question '{question}' has been added successfully."
+            )
         except database.IntegrityError:
             await interaction.response.send_message("That question is already taken!")
-        finally:
-            database.db.close()
+        except Exception as e:
+            _log.error(f"Error adding new question: {e}")
+            await interaction.response.send_message(
+                "An error occurred while adding the question."
+            )
 
     @DQ.command(description="Delete a question!")
-    @slash_is_bot_admin_2
+    @checks.slash_is_bot_admin_2
     async def delete(self, interaction: discord.Interaction, id: int):
-        """Delete a tag"""
         try:
-            database.db.connect(reuse_if_open=True)
-            q: database.Question = database.Question.select().where(
-                database.Question.id == id).get()
+            q: database.Question = database.Question.get_by_id(id)
             q.delete_instance()
-            await interaction.response.send_message(f"{q.question} has been deleted.")
+            await interaction.response.send_message(
+                f"Question {q.question} has been deleted."
+            )
         except database.DoesNotExist:
-            await interaction.response.send_message("Question not found, please try again.")
-        finally:
-            database.db.close()
+            await interaction.response.send_message("Question not found.")
+        except Exception as e:
+            _log.error(f"Error deleting question: {e}")
+            await interaction.response.send_message(
+                "An error occurred while deleting the question."
+            )
 
     @DQ.command(description="List every question.")
     async def list(self, interaction: discord.Interaction, page: int = 1):
         """List all tags in the database"""
 
-        def get_end(page_size: int):
-            database.db.connect(reuse_if_open=True)
-            q: int = database.Question.select().count()
-            return math.ceil(q / 10)
+        def get_total_pages(page_size: int) -> int:
+            total_questions = database.Question.select().count()
+            return math.ceil(total_questions / page_size)
 
         async def populate_embed(embed: discord.Embed, page: int):
             """Used to populate the embed in listtag command"""
-            q_list = ""
             embed.clear_fields()
-            database.db.connect(reuse_if_open=True)
-            if database.Question.select().count() == 0:
-                q_list = "No questions found"
-            for i, q in enumerate(database.Question.select().paginate(
-                    page, 10)):
-                q_list += f"{i + 1 + (10 * (page - 1))}. {q.question}\n"
-            embed.add_field(name=f"Page {page}", value=q_list)
-            database.db.close()
+            questions = database.Question.select().paginate(page, 10)
+            if not questions.exists():
+                embed.add_field(name="No Questions", value="No questions found.")
+            else:
+                q_list = "\n".join([f"{q.id}. {q.question}" for q in questions])
+                embed.add_field(name=f"Page {page}", value=q_list)
+
             return embed
 
-        embed = discord.Embed(title="Tag List")
-        embed = await common_old.paginate_embed(self.bot,
-                                            interaction,
-                                            embed,
-                                            populate_embed,
-                                            get_end(10),
-                                            page=page)
+        total_pages = get_total_pages(10)
+        embed = discord.Embed(title="Question List")
+        await paginate_embed(
+            self.bot, interaction, embed, populate_embed, total_pages, page
+        )
 
 
 async def setup(bot):
