@@ -9,6 +9,7 @@ from core import common, database, checks
 from core.common import load_config, get_bot_data_id, SuggestQuestionFromDQ
 from core.pagination import paginate_embed
 from core.common import load_config
+from core.logging_module import get_log
 from main import PortalBot
 
 config, _ = load_config()
