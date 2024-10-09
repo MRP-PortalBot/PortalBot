@@ -58,22 +58,23 @@ def get_log(name: str, level: int = logging.DEBUG) -> logging.Logger:
         stream_formatter = ColourFormatter()
         stream_handler = logging.StreamHandler()
         stream_handler.setFormatter(stream_formatter)
+        stream_handler.setLevel(logging.DEBUG)  # Ensure all logs show in the console
         logger.addHandler(stream_handler)
 
-        # File Handler without colour for persistent logs, named by current date
+        # File Handler without colour for persistent logs
         file_formatter = logging.Formatter(
             "%(asctime)s [%(levelname)s] %(name)s: %(message)s", "%Y-%m-%d %H:%M:%S"
         )
-        # Determine the path for log storage (inside core/logs folder)
-        log_dir = os.path.join("core", "logs")
+        log_dir = "core/logs"
         os.makedirs(log_dir, exist_ok=True)
 
-        # Use the current date for the log file name
-        current_date = datetime.now().strftime("%Y-%m-%d")
-        file_path = os.path.join(log_dir, f"{current_date}.log")
-
-        file_handler = logging.FileHandler(file_path)
+        # Log file name based on the current date
+        file_name = datetime.now().strftime("%Y-%m-%d.log")
+        file_handler = logging.FileHandler(f"{log_dir}/{file_name}")
         file_handler.setFormatter(file_formatter)
+        file_handler.setLevel(
+            logging.ERROR
+        )  # Set to capture only ERROR and above in file
         logger.addHandler(file_handler)
 
     return logger
