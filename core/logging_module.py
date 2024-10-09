@@ -73,7 +73,7 @@ def get_log(name: str, level: int = logging.DEBUG) -> logging.Logger:
         file_handler = logging.FileHandler(f"{log_dir}/{file_name}")
         file_handler.setFormatter(file_formatter)
         file_handler.setLevel(
-            logging.ERROR
+            logging.DEBUG
         )  # Set to capture only ERROR and above in file
         logger.addHandler(file_handler)
 
