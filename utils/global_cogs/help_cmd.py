@@ -84,15 +84,21 @@ class HelpCMD(commands.Cog):
         # Fetch commands from the banned list group
         bl_group = self.bot.tree.get_command("banned-list")
         bl_commands = bl_group.commands if bl_group else []
+        dq_group = self.bot.tree.get_command("daily-question")
+        dq_commands = dq_group.commands if dq_group else []
 
         # Log the fetched banned list commands for debugging
-        self._log.info(f"Available commands in banned-list group: {bl_commands}")
+        self._log.info(f"Available commands in banned-list group: {dq_commands}")
 
         # Grouping commands from different categories
         command_groups = [
             (
                 "Banned List Commands",
                 bl_commands,  # Include the banned list group commands
+            ),
+            (
+                "Daily Question Commands",
+                dq_commands,  # Include the daily question group commands
             ),
             (
                 "General Commands",
