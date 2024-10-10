@@ -146,11 +146,12 @@ class CoreBotConfig(commands.Cog):
         try:
             database.db.connect(reuse_if_open=True)
             q, created = database.Administrators.get_or_create(
-                discordID=user.id, defaults={"TierLevel": level}
+                discordID=user.id, discord_name=user.name, defaults={"TierLevel": level}
             )
 
             if not created:
                 q.TierLevel = level
+                q.discord_name = user.name
                 q.save()
 
             embed = discord.Embed(
