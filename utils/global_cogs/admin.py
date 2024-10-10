@@ -4,6 +4,7 @@ from discord import app_commands
 from discord.ext import commands
 from pathlib import Path
 from core import database
+from core.checks import slash_is_bot_admin_4
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class AdminCMD(commands.Cog):
     @Admin.command(
         name="requestdb", description="Request the database file for manual inspection"
     )
-    @app_commands.checks.has_role("Bot Manager")
+    @slash_is_bot_admin_4
     async def requestdb(self, interaction: discord.Interaction):
         """Request the database file for manual inspection."""
         try:
@@ -43,7 +44,7 @@ class AdminCMD(commands.Cog):
 
     # Command to delete the database file
     @Admin.command(name="deletedb", description="Delete the database file")
-    @app_commands.checks.has_role("Bot Manager")
+    @slash_is_bot_admin_4
     async def deletedb(self, interaction: discord.Interaction):
         """Delete the database file."""
         try:
@@ -73,7 +74,7 @@ class AdminCMD(commands.Cog):
     @Admin.command(
         name="replacedb", description="Replace the database file with attachment"
     )
-    @app_commands.checks.has_role("Bot Manager")
+    @slash_is_bot_admin_4
     async def replacedb(self, interaction: discord.Interaction):
         """Replace the database file with an attachment."""
         try:
