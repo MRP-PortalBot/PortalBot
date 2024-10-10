@@ -92,7 +92,8 @@ class BotData(BaseModel):
     """
 
     id = AutoField()  # Database Entry ID (ALWAYS QUERY 1)
-    last_question_posted = TextField(null=True)  # Last time a question was posted
+    last_question_posted = TextField(null=True)  # Last question that was posted
+    last_question_posted_time = TextField(null=True)  # Last time a question was posted
     persistent_views = BooleanField(
         default=False
     )  # Whether or not persistent views are enabled

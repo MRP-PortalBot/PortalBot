@@ -1,5 +1,7 @@
 import math
 from datetime import datetime, timedelta
+import asyncio
+import pytz
 
 import discord
 from discord import app_commands, ui
@@ -8,60 +10,107 @@ from peewee import fn
 from core import common, database, checks
 from core.common import load_config, get_bot_data_id, SuggestQuestionFromDQ
 from core.pagination import paginate_embed
-from core.common import load_config
 from core.logging_module import get_log
 from main import PortalBot
+
 
 config, _ = load_config()
 _log = get_log(__name__)
 
 
+def get_seconds_until(target_time):
+    """Returns the number of seconds until the next occurrence of the target_time."""
+    now = datetime.now(pytz.timezone("America/Chicago"))
+    target = now.replace(
+        hour=target_time.hour, minute=target_time.minute, second=0, microsecond=0
+    )
+
+    if target < now:
+        target += timedelta(
+            days=1
+        )  # If the target time is earlier today, move it to tomorrow
+
+    return (target - now).total_seconds()
+
+
 class DailyCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.post_question.start()
 
     DQ = app_commands.Group(
         name="daily-question",
         description="Configure the daily-question settings.",
     )
 
-    @tasks.loop(hours=24)
+    @tasks.loop(hours=24)  # This loop will be rescheduled manually
     async def post_question(self):
+        while True:
+            # First post at 10:00 AM CST
+            await self.wait_until_time(10, 0)  # Wait until 10:00 AM
+            await self.send_daily_question()
+
+            # Second post at 6:00 PM CST
+            await self.wait_until_time(18, 0)  # Wait until 6:00 PM
+            await self.send_daily_question()
+
+    async def wait_until_time(self, hour, minute):
+        """Waits until the next occurrence of the given hour and minute in CST."""
+        now = datetime.now(pytz.timezone("America/Chicago"))
+        target_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+        if target_time < now:
+            target_time += timedelta(
+                days=1
+            )  # If the time has already passed today, schedule for tomorrow
+
+        seconds_until_target = (target_time - now).total_seconds()
+        await asyncio.sleep(seconds_until_target)
+
+    async def send_daily_question(self):
+        """Send a daily question to the configured channel and store the question ID."""
         row_id = get_bot_data_id()
-        q: database.BotData = database.BotData.get_by_id(row_id)
+        q: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
         send_channel = self.bot.get_channel(q.daily_question_channel)
-        last_time_posted = q.last_question_posted
 
-        if datetime.now() - last_time_posted >= timedelta(hours=24):
-            try:
-                question: database.Question = (
-                    database.Question.select()
-                    .where(database.Question.usage == False)
-                    .order_by(fn.Rand())
-                    .get()
-                )
+        # Check if all questions have been used (i.e., usage is True)
+        unused_questions_count = database.Question.select().where(
+            database.Question.usage == False
+        ).count()
 
-                question.usage = True
-                question.save()
+        if unused_questions_count == 0:
+            # Reset all questions to unused (usage = False) if all have been used
+            database.Question.update(usage=False).execute()
+            _log.info("All questions were used, resetting all to unused.")
 
-                embed = discord.Embed(
-                    title="❓ QUESTION OF THE DAY ❓",
-                    description=f"**{question.question}**",
-                    color=0xB10D9F,
-                )
-                embed.set_footer(text=f"Question ID: {question.id}")
-                await send_channel.send(
-                    embed=embed, view=SuggestQuestionFromDQ(self.bot)
-                )
+        # Now, select a random unused question
+        question: database.Question = database.Question.select().where(
+            database.Question.usage == False
+        ).order_by(fn.Rand()).limit(1).get()
 
-                q.last_question_posted = datetime.now()
-                q.save()
+        # Mark the selected question as used
+        question.usage = True
+        question.save()
 
-            except database.DoesNotExist:
-                _log.error("No questions available to post.")
-                await send_channel.send("No new questions available for today.")
-            except Exception as e:
-                _log.error(f"Error in posting question: {e}")
+        # Create and send the embed for the daily question
+        embed = discord.Embed(
+            title="❓ QUESTION OF THE DAY ❓",
+            description=f"**{question.question}**",
+            color=0xb10d9f
+        )
+        embed.set_footer(text=f"Question ID: {question.id}")
+        await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
+
+        # Update the last_question_posted to store the question's ID
+        # Update the last_question_posted_time to store the current time
+        q.last_question_posted = question.id
+        q.last_question_posted_time = datetime.now(pytz.timezone("America/Chicago"))
+        q.save()
+
+
+    @post_question.before_loop
+    async def before_post_question(self):
+        await self.bot.wait_until_ready()  # Ensure the bot is ready before starting the task
 
     @DQ.command()
     async def suggest(self, interaction: discord.Interaction):
@@ -100,23 +149,46 @@ class DailyCMD(commands.Cog):
 
         await interaction.response.send_modal(SuggestModal(self.bot))
 
-    @DQ.command(name="repeat", description="Repeat a daily question by id number")
+    @DQ.command(name="repeat", description="Repeat the most recent daily question.")
     @checks.slash_is_bot_admin_2
-    async def repeatq(self, interaction: discord.Interaction, number: int):
+    async def repeatq(self, interaction: discord.Interaction):
+        """Repeat the most recent daily question based on the last_question_posted."""
         try:
-            q: database.Question = database.Question.get_by_id(number)
+            _log.info(f"{interaction.user} triggered the repeat command.")
+            
+            row_id = get_bot_data_id()
+            _log.debug(f"Retrieved bot data row ID: {row_id}")
+
+            # Fetch the bot data to get the last posted question's ID
+            bot_data: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
+            last_question_id = bot_data.last_question_posted
+            _log.debug(f"Retrieved last_question_posted: {last_question_id}")
+
+            if not last_question_id:
+                _log.warning("No last_question_posted found.")
+                await interaction.response.send_message("No recent question found.")
+                return
+
+            # Fetch the question from the database using the stored ID
+            question: database.Question = database.Question.get_by_id(last_question_id)
+            _log.info(f"Repeating question ID: {last_question_id}, Question: {question.question}")
+
+            # Create and send the embed for the repeated question
             embed = discord.Embed(
                 title="❓ QUESTION OF THE DAY ❓",
-                description=f"**{q.question}**",
+                description=f"**{question.question}**",
                 color=0xB10D9F,
             )
-            embed.set_footer(text=f"Question ID: {q.id}")
+            embed.set_footer(text=f"Question ID: {question.id}")
             await interaction.response.send_message(embed=embed)
+            _log.info(f"Sent the repeated question to {interaction.user}.")
+
         except database.DoesNotExist:
+            _log.error(f"No question found for last_question_posted ID: {last_question_id}.")
             await interaction.response.send_message("Question not found.")
         except Exception as e:
-            _log.error(f"Error in repeating question: {e}")
-            await interaction.response.send_message("An error occurred.")
+            _log.error(f"Error in repeating question: {e}", exc_info=True)
+            await interaction.response.send_message("An error occurred while repeating the question.")
 
     @DQ.command(description="Modify a question!")
     @checks.slash_is_bot_admin_2
