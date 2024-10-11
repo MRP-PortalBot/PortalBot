@@ -162,7 +162,7 @@ class HelpCMD(commands.Cog):
                 ephemeral=True,
             )
 
-    # Admin help command with color coding based on admin level
+    # Admin help command with color coding based on admin level and a key
     @help_group.command(description="Display the admin help menu.")
     async def admin(self, interaction: discord.Interaction):
         try:
@@ -187,8 +187,19 @@ class HelpCMD(commands.Cog):
                         name=f"🔹 {category} - Admin Level {admin_level}",
                         value=f"/{cmd.name} - {cmd.description}",
                         inline=False,
-                        color=level_color,
                     )
+
+            # Add a key to explain what each color means
+            embed.add_field(
+                name="Admin Levels Key",
+                value=(
+                    f"🟩 **Level 1**: Basic admin privileges\n"
+                    f"🟨 **Level 2**: Elevated admin privileges\n"
+                    f"🟧 **Level 3**: High admin privileges\n"
+                    f"🟥 **Level 4**: Full admin privileges"
+                ),
+                inline=False,
+            )
 
             embed.set_footer(text="Page 1/{}".format((len(command_groups) + 4) // 5))
             view = HelpPaginator(self.bot, interaction, command_groups)
