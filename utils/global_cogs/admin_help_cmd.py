@@ -31,7 +31,7 @@ class AdminHelpCMD(commands.Cog):
             admin_level_3_cmds = []
             admin_level_4_cmds = []
 
-            # Map check functions to levels
+            # Map known check function names to admin level lists
             check_level_map = {
                 "slash_is_bot_admin_4": admin_level_4_cmds,
                 "slash_is_bot_admin_3": admin_level_3_cmds,
@@ -46,16 +46,48 @@ class AdminHelpCMD(commands.Cog):
                 command_checks = getattr(command, "checks", [])
                 _log.debug(f"Command checks: {command_checks}")
 
-                # Identify and assign the command to the appropriate admin level list
+                # Try to categorize the command into the appropriate admin level
                 assigned = False
                 for check in command_checks:
                     check_name = check.__name__
+                    _log.debug(f"Checking check: {check_name}")
+
+                    # If it's one of the known check levels, assign it
                     if check_name in check_level_map:
                         check_level_map[check_name].append(
                             f"/{command.name} - {command.description}"
                         )
                         assigned = True
                         break  # Exit loop once assigned to a level
+
+                    # Check for custom predicate_LV checks by inspecting the predicate name
+                    if check_name == "predicate_LV":
+                        # We can access the admin level from the closure function
+                        admin_level = check.__closure__[
+                            0
+                        ].cell_contents  # Assuming it's in the closure
+                        _log.debug(
+                            f"Detected custom predicate_LV with level: {admin_level}"
+                        )
+
+                        if admin_level == 1:
+                            admin_level_1_cmds.append(
+                                f"/{command.name} - {command.description}"
+                            )
+                        elif admin_level == 2:
+                            admin_level_2_cmds.append(
+                                f"/{command.name} - {command.description}"
+                            )
+                        elif admin_level == 3:
+                            admin_level_3_cmds.append(
+                                f"/{command.name} - {command.description}"
+                            )
+                        elif admin_level == 4:
+                            admin_level_4_cmds.append(
+                                f"/{command.name} - {command.description}"
+                            )
+                        assigned = True
+                        break
 
                 if not assigned:
                     _log.debug(
