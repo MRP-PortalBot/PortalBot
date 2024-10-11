@@ -33,40 +33,37 @@ class AdminHelpCMD(commands.Cog):
 
             # Iterate over all commands in the bot
             for command in self.bot.tree.walk_commands():
-                # Check the level for each command based on the checks applied
-                if hasattr(command, "checks"):
-                    # Check for level 4 (Owners)
-                    if any(
-                        check == slash_is_bot_admin_4.predicate
-                        for check in command.checks
-                    ):
-                        admin_level_4_cmds.append(
-                            f"/{command.name} - {command.description}"
-                        )
-                    # Check for level 3 (Bot Managers)
-                    elif any(
-                        check == slash_is_bot_admin_3.predicate
-                        for check in command.checks
-                    ):
-                        admin_level_3_cmds.append(
-                            f"/{command.name} - {command.description}"
-                        )
-                    # Check for level 2 (Administrators)
-                    elif any(
-                        check == slash_is_bot_admin_2.predicate
-                        for check in command.checks
-                    ):
-                        admin_level_2_cmds.append(
-                            f"/{command.name} - {command.description}"
-                        )
-                    # Check for level 1 (Moderators)
-                    elif any(
-                        check == slash_is_bot_admin_1.predicate
-                        for check in command.checks
-                    ):
-                        admin_level_1_cmds.append(
-                            f"/{command.name} - {command.description}"
-                        )
+                # Get the checks for the command
+                command_checks = getattr(command, "checks", [])
+
+                # Check for level 4 (Owners)
+                if any(
+                    check.__name__ == "slash_is_bot_admin_4" for check in command_checks
+                ):
+                    admin_level_4_cmds.append(
+                        f"/{command.name} - {command.description}"
+                    )
+                # Check for level 3 (Bot Managers)
+                elif any(
+                    check.__name__ == "slash_is_bot_admin_3" for check in command_checks
+                ):
+                    admin_level_3_cmds.append(
+                        f"/{command.name} - {command.description}"
+                    )
+                # Check for level 2 (Administrators)
+                elif any(
+                    check.__name__ == "slash_is_bot_admin_2" for check in command_checks
+                ):
+                    admin_level_2_cmds.append(
+                        f"/{command.name} - {command.description}"
+                    )
+                # Check for level 1 (Moderators)
+                elif any(
+                    check.__name__ == "slash_is_bot_admin_1" for check in command_checks
+                ):
+                    admin_level_1_cmds.append(
+                        f"/{command.name} - {command.description}"
+                    )
 
             # Create the embed for displaying the commands
             embed = discord.Embed(
