@@ -1,12 +1,6 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from core.checks import (
-    slash_is_bot_admin_1,
-    slash_is_bot_admin_2,
-    slash_is_bot_admin_3,
-    slash_is_bot_admin_4,
-)
 from core.logging_module import get_log
 
 _log = get_log(__name__)
@@ -20,7 +14,7 @@ class AdminHelpCMD(commands.Cog):
         name="help_admin",
         description="Shows admin-only commands grouped by permission level.",
     )
-    @slash_is_bot_admin_1  # Only admins with permit level 1 or higher can use this
+    @commands.has_permissions(administrator=True)
     async def help_admin(self, interaction: discord.Interaction):
         try:
             _log.info(f"{interaction.user} requested the admin help command.")
@@ -31,14 +25,6 @@ class AdminHelpCMD(commands.Cog):
             admin_level_3_cmds = []
             admin_level_4_cmds = []
 
-            # Map known check function names to admin level lists
-            check_level_map = {
-                "slash_is_bot_admin_4": admin_level_4_cmds,
-                "slash_is_bot_admin_3": admin_level_3_cmds,
-                "slash_is_bot_admin_2": admin_level_2_cmds,
-                "slash_is_bot_admin_1": admin_level_1_cmds,
-            }
-
             # Iterate over all app commands in the bot
             for command in self.bot.tree.walk_commands():
                 _log.debug(f"Checking command: {command.name}")
@@ -47,31 +33,42 @@ class AdminHelpCMD(commands.Cog):
                 command_checks = getattr(command, "checks", [])
                 _log.debug(f"Command checks: {command_checks}")
 
+                # Flag to check if the command has been assigned
                 assigned = False
+
                 for check in command_checks:
-                    check_func = (
-                        check.__closure__[0].cell_contents
-                        if check.__closure__
-                        else None
-                    )
-                    _log.debug(f"Check Func is: {check_func}")
+                    # Get the closure of the check function and extract the admin level
+                    if check.__closure__:
+                        for closure_cell in check.__closure__:
+                            check_value = closure_cell.cell_contents
+                            if isinstance(check_value, int):  # Detect admin level
+                                _log.debug(f"Detected admin level: {check_value}")
 
-                    # Safely inspect the closure contents to ensure it's callable
-                    if callable(check_func):
-                        check_name = check_func.__name__
-                        _log.debug(f"Detected check function: {check_name}")
-
-                        # If it's one of the known check levels, assign it
-                        if check_name in check_level_map:
-                            check_level_map[check_name].append(
-                                f"/{command.name} - {command.description}"
-                            )
-                            assigned = True
-                            break  # Exit loop once assigned to a level
-                    else:
-                        _log.debug(
-                            f"Non-function object found in closure: {check_func}"
-                        )
+                                # Assign command to the correct permission level list
+                                if check_value == 1:
+                                    admin_level_1_cmds.append(
+                                        f"/{command.name} - {command.description}"
+                                    )
+                                    assigned = True
+                                    break
+                                elif check_value == 2:
+                                    admin_level_2_cmds.append(
+                                        f"/{command.name} - {command.description}"
+                                    )
+                                    assigned = True
+                                    break
+                                elif check_value == 3:
+                                    admin_level_3_cmds.append(
+                                        f"/{command.name} - {command.description}"
+                                    )
+                                    assigned = True
+                                    break
+                                elif check_value == 4:
+                                    admin_level_4_cmds.append(
+                                        f"/{command.name} - {command.description}"
+                                    )
+                                    assigned = True
+                                    break
 
                 if not assigned:
                     _log.debug(
