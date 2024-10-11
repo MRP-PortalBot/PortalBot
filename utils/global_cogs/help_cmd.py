@@ -29,21 +29,23 @@ class HelpPaginator(ui.View):
         self.last.disabled = self.page >= self.total_pages - 1
 
     async def update_embed(self):
-        """Helper function to update the embed."""
         try:
             embed = discord.Embed(
-                title="Help Menu",
-                description="Use the buttons below to navigate through the commands",
+                title="Admin Help Menu",
+                description="Use the buttons below to navigate through the admin commands",
                 color=discord.Color.blurple(),
             )
 
             start = self.page * self.per_page
             end = start + self.per_page
-            for category, commands in self.command_groups[start:end]:
+            for category, commands_info in self.command_groups[start:end]:
+                category_name, commands, color = commands_info
                 command_list = "\n".join(
                     [f"/{cmd.name} - {cmd.description}" for cmd in commands if cmd]
                 )
-                embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
+                embed.add_field(
+                    name=f"🔹 {category_name}", value=command_list, inline=False
+                )
 
             embed.set_footer(text=f"Page {self.page + 1}/{self.total_pages}")
             await self.interaction.edit_original_response(embed=embed, view=self)
@@ -84,7 +86,6 @@ class HelpCMD(commands.Cog):
         self.bot = bot
         self._log = get_log(__name__)
 
-    # Define the command group "help"
     help_group = app_commands.Group(
         name="help",
         description="Help commands",
@@ -94,7 +95,6 @@ class HelpCMD(commands.Cog):
         categorized_commands = {}
         for command in self.bot.tree.walk_commands():
             command_checks = getattr(command, "checks", [])
-            is_admin_command = False
             admin_level = None
 
             for check in command_checks:
@@ -102,13 +102,12 @@ class HelpCMD(commands.Cog):
                     for closure_cell in check.__closure__:
                         check_value = closure_cell.cell_contents
                         if isinstance(check_value, int):
-                            is_admin_command = True
-                            admin_level = check_value  # Capture the admin level
+                            admin_level = check_value
                             break
 
-            if admin_only and not is_admin_command:
+            if admin_only and admin_level is None:
                 continue
-            if not admin_only and is_admin_command:
+            if not admin_only and admin_level is not None:
                 continue
 
             parent_name = command.parent.name if command.parent else "General"
@@ -162,41 +161,47 @@ class HelpCMD(commands.Cog):
                 ephemeral=True,
             )
 
-    # Admin help command with color coding based on admin level and a key
+    # Admin help command
     @help_group.command(description="Display the admin help menu.")
     async def admin(self, interaction: discord.Interaction):
         try:
             self._log.info(f"{interaction.user} requested the admin help command.")
             categorized_commands = self.categorize_commands(admin_only=True)
-            command_groups = [
-                (category, commands_list)
-                for category, commands_list in categorized_commands.items()
-            ]
+            command_groups = []
+
+            # Admin levels to color mapping
+            level_colors = {
+                1: discord.Color.green(),
+                2: discord.Color.gold(),
+                3: discord.Color.orange(),
+                4: discord.Color.red(),
+            }
+
+            for category, commands_list in categorized_commands.items():
+                for command, level in commands_list:
+                    color = level_colors.get(level, discord.Color.default())
+                    command_groups.append((category, [command], color))
 
             embed = discord.Embed(
                 title="Admin Help Menu",
                 description="Use the buttons below to navigate through the admin commands",
-                color=discord.Color.red(),
+                color=discord.Color.blurple(),
             )
 
-            for category, commands in command_groups[:5]:
-                for cmd, admin_level in commands:
-                    # Color the embed according to admin level
-                    level_color = self.get_level_color(admin_level)
-                    embed.add_field(
-                        name=f"🔹 {category} - Admin Level {admin_level}",
-                        value=f"/{cmd.name} - {cmd.description}",
-                        inline=False,
-                    )
+            for category, commands, color in command_groups[:5]:
+                command_list = "\n".join(
+                    [f"/{cmd.name} - {cmd.description}" for cmd in commands]
+                )
+                embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
 
-            # Add a key to explain what each color means
+            # Add the color-coded admin levels key at the bottom
             embed.add_field(
                 name="Admin Levels Key",
                 value=(
-                    f"🟩 **Level 1**: Basic admin privileges\n"
-                    f"🟨 **Level 2**: Elevated admin privileges\n"
-                    f"🟧 **Level 3**: High admin privileges\n"
-                    f"🟥 **Level 4**: Full admin privileges"
+                    "🟩 **Level 1**: Basic admin privileges\n"
+                    "🟨 **Level 2**: Elevated admin privileges\n"
+                    "🟧 **Level 3**: High admin privileges\n"
+                    "🟥 **Level 4**: Full admin privileges"
                 ),
                 inline=False,
             )
