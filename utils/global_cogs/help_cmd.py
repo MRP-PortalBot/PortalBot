@@ -29,23 +29,21 @@ class HelpPaginator(ui.View):
         self.last.disabled = self.page >= self.total_pages - 1
 
     async def update_embed(self):
+        """Helper function to update the embed."""
         try:
             embed = discord.Embed(
-                title="Admin Help Menu",
-                description="Use the buttons below to navigate through the admin commands",
+                title="Help Menu",
+                description="Use the buttons below to navigate through the commands",
                 color=discord.Color.blurple(),
             )
 
             start = self.page * self.per_page
             end = start + self.per_page
-            for category, commands_info in self.command_groups[start:end]:
-                category_name, commands, color = commands_info
+            for category, commands in self.command_groups[start:end]:
                 command_list = "\n".join(
                     [f"/{cmd.name} - {cmd.description}" for cmd in commands if cmd]
                 )
-                embed.add_field(
-                    name=f"🔹 {category_name}", value=command_list, inline=False
-                )
+                embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
 
             embed.set_footer(text=f"Page {self.page + 1}/{self.total_pages}")
             await self.interaction.edit_original_response(embed=embed, view=self)
@@ -86,6 +84,7 @@ class HelpCMD(commands.Cog):
         self.bot = bot
         self._log = get_log(__name__)
 
+    # Define the command group "help"
     help_group = app_commands.Group(
         name="help",
         description="Help commands",
@@ -95,6 +94,7 @@ class HelpCMD(commands.Cog):
         categorized_commands = {}
         for command in self.bot.tree.walk_commands():
             command_checks = getattr(command, "checks", [])
+            is_admin_command = False
             admin_level = None
 
             for check in command_checks:
@@ -102,12 +102,13 @@ class HelpCMD(commands.Cog):
                     for closure_cell in check.__closure__:
                         check_value = closure_cell.cell_contents
                         if isinstance(check_value, int):
-                            admin_level = check_value
+                            is_admin_command = True
+                            admin_level = check_value  # Capture the admin level
                             break
 
-            if admin_only and admin_level is None:
+            if admin_only and not is_admin_command:
                 continue
-            if not admin_only and admin_level is not None:
+            if not admin_only and is_admin_command:
                 continue
 
             parent_name = command.parent.name if command.parent else "General"
@@ -171,15 +172,17 @@ class HelpCMD(commands.Cog):
 
             # Admin levels to color mapping
             level_colors = {
-                1: discord.Color.green(),
-                2: discord.Color.gold(),
-                3: discord.Color.orange(),
-                4: discord.Color.red(),
+                1: "🟩",  # Basic admin privileges
+                2: "🟨",  # Elevated admin privileges
+                3: "🟧",  # High admin privileges
+                4: "🟥",  # Full admin privileges
             }
 
             for category, commands_list in categorized_commands.items():
                 for command, level in commands_list:
-                    color = level_colors.get(level, discord.Color.default())
+                    color = level_colors.get(
+                        level, "⚪"
+                    )  # Default to white if no level is found
                     command_groups.append((category, [command], color))
 
             embed = discord.Embed(
@@ -190,7 +193,7 @@ class HelpCMD(commands.Cog):
 
             for category, commands, color in command_groups[:5]:
                 command_list = "\n".join(
-                    [f"/{cmd.name} - {cmd.description}" for cmd in commands]
+                    [f"{color} /{cmd.name} - {cmd.description}" for cmd in commands]
                 )
                 embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
 
