@@ -39,6 +39,14 @@ class AdminHelpCMD(commands.Cog):
                 "slash_is_bot_admin_1": admin_level_1_cmds,
             }
 
+            # Helper function to find the original check name
+            def get_check_name(check):
+                if hasattr(check, "__name__"):
+                    return check.__name__
+                elif hasattr(check, "__qualname__"):
+                    return check.__qualname__
+                return None
+
             # Iterate over all app commands in the bot
             for command in self.bot.tree.walk_commands():
                 _log.debug(f"Checking command: {command.name}")
@@ -49,7 +57,7 @@ class AdminHelpCMD(commands.Cog):
 
                 assigned = False
                 for check in command_checks:
-                    check_name = check.__name__
+                    check_name = get_check_name(check)
                     _log.debug(f"Checking check: {check_name}")
 
                     # If it's one of the known check levels, assign it
