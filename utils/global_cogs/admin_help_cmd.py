@@ -43,10 +43,10 @@ class AdminHelpCMD(commands.Cog):
             for command in self.bot.tree.walk_commands():
                 _log.debug(f"Checking command: {command.name}")
 
+                # Check the command's checks to categorize by permission level
                 command_checks = getattr(command, "checks", [])
                 _log.debug(f"Command checks: {command_checks}")
 
-                # Try to categorize the command into the appropriate admin level
                 assigned = False
                 for check in command_checks:
                     check_name = check.__name__
@@ -59,35 +59,6 @@ class AdminHelpCMD(commands.Cog):
                         )
                         assigned = True
                         break  # Exit loop once assigned to a level
-
-                    # Check for custom predicate_LV checks by inspecting the predicate name
-                    if check_name == "predicate_LV":
-                        # We can access the admin level from the closure function
-                        admin_level = check.__closure__[
-                            0
-                        ].cell_contents  # Assuming it's in the closure
-                        _log.debug(
-                            f"Detected custom predicate_LV with level: {admin_level}"
-                        )
-
-                        if admin_level == 1:
-                            admin_level_1_cmds.append(
-                                f"/{command.name} - {command.description}"
-                            )
-                        elif admin_level == 2:
-                            admin_level_2_cmds.append(
-                                f"/{command.name} - {command.description}"
-                            )
-                        elif admin_level == 3:
-                            admin_level_3_cmds.append(
-                                f"/{command.name} - {command.description}"
-                            )
-                        elif admin_level == 4:
-                            admin_level_4_cmds.append(
-                                f"/{command.name} - {command.description}"
-                            )
-                        assigned = True
-                        break
 
                 if not assigned:
                     _log.debug(
