@@ -49,16 +49,23 @@ class AdminHelpCMD(commands.Cog):
 
                 assigned = False
                 for check in command_checks:
-                    check_name = check.__qualname__
-                    _log.debug(f"Checking check: {check_name}")
+                    # Explore the closure of the check function
+                    check_func = (
+                        check.__closure__[0].cell_contents
+                        if check.__closure__
+                        else None
+                    )
+                    if check_func:
+                        check_name = check_func.__name__
+                        _log.debug(f"Detected check function: {check_name}")
 
-                    # If it's one of the known check levels, assign it
-                    if check_name in check_level_map:
-                        check_level_map[check_name].append(
-                            f"/{command.name} - {command.description}"
-                        )
-                        assigned = True
-                        break  # Exit loop once assigned to a level
+                        # If it's one of the known check levels, assign it
+                        if check_name in check_level_map:
+                            check_level_map[check_name].append(
+                                f"/{command.name} - {command.description}"
+                            )
+                            assigned = True
+                            break  # Exit loop once assigned to a level
 
                 if not assigned:
                     _log.debug(
