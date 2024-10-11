@@ -34,6 +34,9 @@ class AdminHelpCMD(commands.Cog):
             # Helper function to collect commands
             def collect_commands(cmds):
                 for cmd in cmds:
+                    _log.debug(
+                        f"Checking command: {cmd.name}"
+                    )  # Log the command being processed
                     if isinstance(cmd, app_commands.Command):
                         # Check the command's checks using __name__
                         check_names = [c.__name__ for c in cmd.checks]
@@ -53,6 +56,12 @@ class AdminHelpCMD(commands.Cog):
             # Collect commands from the bot
             collect_commands(self.bot.tree.walk_commands())
 
+            # Log the collected commands
+            _log.debug(f"Admin Level 1 Commands: {admin_level_1_cmds}")
+            _log.debug(f"Admin Level 2 Commands: {admin_level_2_cmds}")
+            _log.debug(f"Admin Level 3 Commands: {admin_level_3_cmds}")
+            _log.debug(f"Admin Level 4 Commands: {admin_level_4_cmds}")
+
             embed = discord.Embed(
                 title="Admin Commands",
                 description="These are the available admin commands based on their permission levels.",
@@ -68,7 +77,8 @@ class AdminHelpCMD(commands.Cog):
                             f"/{cmd.name} - {cmd.description}"
                             for cmd in admin_level_4_cmds
                         ]
-                    ),
+                    )
+                    or "No commands available",
                     inline=False,
                 )
             if admin_level_3_cmds:
@@ -79,7 +89,8 @@ class AdminHelpCMD(commands.Cog):
                             f"/{cmd.name} - {cmd.description}"
                             for cmd in admin_level_3_cmds
                         ]
-                    ),
+                    )
+                    or "No commands available",
                     inline=False,
                 )
             if admin_level_2_cmds:
@@ -90,7 +101,8 @@ class AdminHelpCMD(commands.Cog):
                             f"/{cmd.name} - {cmd.description}"
                             for cmd in admin_level_2_cmds
                         ]
-                    ),
+                    )
+                    or "No commands available",
                     inline=False,
                 )
             if admin_level_1_cmds:
@@ -101,7 +113,8 @@ class AdminHelpCMD(commands.Cog):
                             f"/{cmd.name} - {cmd.description}"
                             for cmd in admin_level_1_cmds
                         ]
-                    ),
+                    )
+                    or "No commands available",
                     inline=False,
                 )
 
