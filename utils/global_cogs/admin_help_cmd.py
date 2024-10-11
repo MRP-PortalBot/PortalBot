@@ -31,6 +31,14 @@ class AdminHelpCMD(commands.Cog):
             admin_level_3_cmds = []
             admin_level_4_cmds = []
 
+            # Map check functions to levels
+            check_level_map = {
+                "slash_is_bot_admin_4": admin_level_4_cmds,
+                "slash_is_bot_admin_3": admin_level_3_cmds,
+                "slash_is_bot_admin_2": admin_level_2_cmds,
+                "slash_is_bot_admin_1": admin_level_1_cmds,
+            }
+
             # Iterate over all app commands in the bot
             for command in self.bot.tree.walk_commands():
                 _log.debug(f"Checking command: {command.name}")
@@ -38,30 +46,20 @@ class AdminHelpCMD(commands.Cog):
                 command_checks = getattr(command, "checks", [])
                 _log.debug(f"Command checks: {command_checks}")
 
-                # Sort commands based on checks
-                if any(
-                    check.__name__ == "slash_is_bot_admin_4" for check in command_checks
-                ):
-                    admin_level_4_cmds.append(
-                        f"/{command.name} - {command.description}"
-                    )
-                elif any(
-                    check.__name__ == "slash_is_bot_admin_3" for check in command_checks
-                ):
-                    admin_level_3_cmds.append(
-                        f"/{command.name} - {command.description}"
-                    )
-                elif any(
-                    check.__name__ == "slash_is_bot_admin_2" for check in command_checks
-                ):
-                    admin_level_2_cmds.append(
-                        f"/{command.name} - {command.description}"
-                    )
-                elif any(
-                    check.__name__ == "slash_is_bot_admin_1" for check in command_checks
-                ):
-                    admin_level_1_cmds.append(
-                        f"/{command.name} - {command.description}"
+                # Identify and assign the command to the appropriate admin level list
+                assigned = False
+                for check in command_checks:
+                    check_name = check.__name__
+                    if check_name in check_level_map:
+                        check_level_map[check_name].append(
+                            f"/{command.name} - {command.description}"
+                        )
+                        assigned = True
+                        break  # Exit loop once assigned to a level
+
+                if not assigned:
+                    _log.debug(
+                        f"Command {command.name} does not have a recognized admin check."
                     )
 
             # Create the embed for displaying the commands
