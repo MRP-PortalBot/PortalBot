@@ -1,5 +1,79 @@
 import discord
 from discord.ext import commands
+from core.logging_module import get_log
+
+_log = get_log(__name__)
+
+
+class HelpCMD(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(
+        name="help",
+        description="Shows all available commands categorized by their groups.",
+    )
+    async def help_command(self, ctx: commands.Context):
+        try:
+            _log.info(f"{ctx.author} requested the help command.")
+
+            # Dictionary to group commands by their categories
+            categorized_commands = {}
+
+            # Iterate over all commands in the bot
+            for command in self.bot.commands:
+
+                # Check if the command has admin checks; if so, ignore it
+                command_checks = getattr(command, "checks", [])
+                is_admin_command = False
+                for check in command_checks:
+                    if check.__closure__:
+                        for closure_cell in check.__closure__:
+                            check_value = closure_cell.cell_contents
+                            if isinstance(check_value, int):  # Skip admin commands
+                                is_admin_command = True
+                                break
+
+                # If not an admin command, categorize by group
+                if not is_admin_command:
+                    command_group = command.cog_name or "Ungrouped"
+                    if command_group not in categorized_commands:
+                        categorized_commands[command_group] = []
+                    categorized_commands[command_group].append(
+                        f"{command.name} - {command.help or 'No description'}"
+                    )
+
+            # Create the embed for displaying the commands
+            embed = discord.Embed(
+                title="Available Commands",
+                description="Here are all the available commands categorized by their groups.",
+                color=discord.Color.blue(),
+            )
+
+            # Add a field for each command category
+            for group, commands_list in categorized_commands.items():
+                embed.add_field(
+                    name=f"{group} Commands:",
+                    value="\n".join(commands_list),
+                    inline=False,
+                )
+
+            if not categorized_commands:
+                embed.description = "No non-admin commands found."
+
+            await ctx.send(embed=embed)
+
+        except Exception as e:
+            _log.error(f"Error in help command: {e}", exc_info=True)
+            await ctx.send("An error occurred while fetching the commands.")
+
+
+async def setup(bot):
+    await bot.add_cog(HelpCMD(bot))
+
+
+'''import discord
+from discord.ext import commands
 from discord import app_commands, ui
 from core.logging_module import get_log  # Import your logging module
 
@@ -136,4 +210,4 @@ class HelpCMD(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(HelpCMD(bot))
+    await bot.add_cog(HelpCMD(bot))'''
