@@ -146,16 +146,16 @@ class CoreBotConfig(commands.Cog):
         try:
             database.db.connect(reuse_if_open=True)
 
-            # Try to get the admin entry, if it exists
-            q, created = database.Administrators.get_or_create(
-                discordID=user.id, discord_name=user.name, defaults={"TierLevel": level}
+            # Try to fetch the existing admin entry
+            query = database.Administrators.get_or_none(
+                database.Administrators.discordID == user.id
             )
 
-            if not created:
-                # If the entry already exists, update the TierLevel
-                q.TierLevel = level
-                q.discord_name = user.name
-                q.save()
+            if query:
+                # If the user already exists, update their TierLevel
+                query.TierLevel = level
+                query.discord_name = user.name
+                query.save()
                 _log.info(f"Updated permit level for {user.name} to {level}.")
                 embed = discord.Embed(
                     title="Successfully Updated User!",
@@ -163,7 +163,11 @@ class CoreBotConfig(commands.Cog):
                     color=discord.Color.gold(),
                 )
             else:
-                # New entry was created
+                # If no entry exists, create a new one
+                q = database.Administrators.create(
+                    discordID=user.id, discord_name=user.name, TierLevel=level
+                )
+                q.save()
                 _log.info(
                     f"Added {user.name} to the database with permit level {level}."
                 )
