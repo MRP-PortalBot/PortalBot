@@ -27,11 +27,9 @@ class AdminHelpCMD(commands.Cog):
 
             # Iterate over all app commands in the bot
             for command in self.bot.tree.walk_commands():
-                _log.debug(f"Checking command: {command.name}")
 
                 # Check the command's checks to categorize by permission level
                 command_checks = getattr(command, "checks", [])
-                _log.debug(f"Command checks: {command_checks}")
 
                 # Flag to check if the command has been assigned
                 assigned = False
@@ -42,7 +40,6 @@ class AdminHelpCMD(commands.Cog):
                         for closure_cell in check.__closure__:
                             check_value = closure_cell.cell_contents
                             if isinstance(check_value, int):  # Detect admin level
-                                _log.debug(f"Detected admin level: {check_value}")
 
                                 # Assign command to the correct permission level list
                                 if check_value == 1:
@@ -69,11 +66,6 @@ class AdminHelpCMD(commands.Cog):
                                     )
                                     assigned = True
                                     break
-
-                if not assigned:
-                    _log.debug(
-                        f"Command {command.name} does not have a recognized admin check."
-                    )
 
             # Create the embed for displaying the commands
             embed = discord.Embed(
