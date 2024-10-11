@@ -1,4 +1,4 @@
-import discord
+"""import discord
 from discord import app_commands
 from discord.ext import commands
 from core.logging_module import get_log
@@ -118,4 +118,4 @@ class AdminHelpCMD(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(AdminHelpCMD(bot))
+    await bot.add_cog(AdminHelpCMD(bot))"""
