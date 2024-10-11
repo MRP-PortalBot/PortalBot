@@ -5,7 +5,7 @@ from core.checks import (
     slash_is_bot_admin_2,
     slash_is_bot_admin_3,
     slash_is_bot_admin_4,
-    is_botAdmin,
+    slash_is_bot_admin,
 )
 from core.logging_module import get_log
 
