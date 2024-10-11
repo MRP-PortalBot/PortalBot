@@ -35,40 +35,57 @@ class AdminHelpCMD(commands.Cog):
             def collect_commands(cmds):
                 for cmd in cmds:
                     _log.debug(
-                        f"Checking command: {cmd.name}"
+                        f"Checking command: {cmd.name} of type {type(cmd)}"
                     )  # Log the command being processed
-                    if isinstance(cmd, app_commands.Command):
-                        # Check the command's checks using __name__
-                        check_names = [c.__name__ for c in cmd.checks]
 
-                        if "slash_is_bot_admin" in check_names:
-                            admin_level_1_cmds.append(cmd)
-                        elif "slash_is_bot_admin_2" in check_names:
-                            admin_level_2_cmds.append(cmd)
-                        elif "slash_is_bot_admin_3" in check_names:
-                            admin_level_3_cmds.append(cmd)
-                        elif "slash_is_bot_admin_4" in check_names:
-                            admin_level_4_cmds.append(cmd)
+                    if isinstance(cmd, app_commands.Command):
+                        _log.debug(f"Command '{cmd.name}' has checks: {cmd.checks}")
+
+                        # Iterate over the command's checks and assign it based on its level
+                        for check in cmd.checks:
+                            _log.debug(
+                                f"Evaluating check for command '{cmd.name}': {check}"
+                            )
+
+                            if check.__name__ == "slash_is_bot_admin":
+                                admin_level_1_cmds.append(cmd)
+                            elif check.__name__ == "slash_is_bot_admin_2":
+                                admin_level_2_cmds.append(cmd)
+                            elif check.__name__ == "slash_is_bot_admin_3":
+                                admin_level_3_cmds.append(cmd)
+                            elif check.__name__ == "slash_is_bot_admin_4":
+                                admin_level_4_cmds.append(cmd)
+
                     elif isinstance(cmd, app_commands.Group):
+                        _log.debug(f"Entering command group: {cmd.name}")
                         # Recursively collect commands from groups
                         collect_commands(cmd.commands)
 
             # Collect commands from the bot
             collect_commands(self.bot.tree.walk_commands())
 
-            # Log the collected commands
-            _log.debug(f"Admin Level 1 Commands: {admin_level_1_cmds}")
-            _log.debug(f"Admin Level 2 Commands: {admin_level_2_cmds}")
-            _log.debug(f"Admin Level 3 Commands: {admin_level_3_cmds}")
-            _log.debug(f"Admin Level 4 Commands: {admin_level_4_cmds}")
+            # Log the collected commands for each level
+            _log.debug(
+                f"Admin Level 1 Commands: {[cmd.name for cmd in admin_level_1_cmds]}"
+            )
+            _log.debug(
+                f"Admin Level 2 Commands: {[cmd.name for cmd in admin_level_2_cmds]}"
+            )
+            _log.debug(
+                f"Admin Level 3 Commands: {[cmd.name for cmd in admin_level_3_cmds]}"
+            )
+            _log.debug(
+                f"Admin Level 4 Commands: {[cmd.name for cmd in admin_level_4_cmds]}"
+            )
 
+            # Create the embed for displaying the commands
             embed = discord.Embed(
                 title="Admin Commands",
-                description="These are the available admin commands based on their permission levels.",
+                description="These are the available admin commands grouped by permission level.",
                 color=discord.Color.purple(),
             )
 
-            # Populate commands for each permit level
+            # Add fields to the embed based on each admin level
             if admin_level_4_cmds:
                 embed.add_field(
                     name="Permit Level 4 - Owners:",
