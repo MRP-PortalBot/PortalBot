@@ -145,29 +145,44 @@ class CoreBotConfig(commands.Cog):
     ):
         try:
             database.db.connect(reuse_if_open=True)
+
+            # Try to get the admin entry, if it exists
             q, created = database.Administrators.get_or_create(
                 discordID=user.id, discord_name=user.name, defaults={"TierLevel": level}
             )
 
             if not created:
+                # If the entry already exists, update the TierLevel
                 q.TierLevel = level
                 q.discord_name = user.name
                 q.save()
+                _log.info(f"Updated permit level for {user.name} to {level}.")
+                embed = discord.Embed(
+                    title="Successfully Updated User!",
+                    description=f"{user.name}'s permit level has been updated to `{level}`.",
+                    color=discord.Color.gold(),
+                )
+            else:
+                # New entry was created
+                _log.info(
+                    f"Added {user.name} to the database with permit level {level}."
+                )
+                embed = discord.Embed(
+                    title="Successfully Added User!",
+                    description=f"{user.name} has been added successfully with permit level `{level}`.",
+                    color=discord.Color.gold(),
+                )
 
-            embed = discord.Embed(
-                title="Successfully Added User!",
-                description=f"{user.name} has been added successfully with permit level `{str(level)}`.",
-                color=discord.Color.gold(),
-            )
-            _log.info(
-                f"User {user.name} added/updated with permit level {level} by {interaction.user}."
-            )
             await interaction.response.send_message(embed=embed)
+
         except Exception as e:
-            _log.error(f"Error adding user to the Bot Administrators list: {e}")
-            await interaction.response.send_message(
-                "An error occurred while adding the user.", ephemeral=True
+            _log.error(
+                f"Error adding/updating user in the Bot Administrators list: {e}"
             )
+            await interaction.response.send_message(
+                "An error occurred while adding/updating the user.", ephemeral=True
+            )
+
         finally:
             if not database.db.is_closed():
                 database.db.close()
