@@ -188,7 +188,7 @@ class Administrators(BaseModel):
 
     id = AutoField()  # Admin entry ID
     discordID = BigIntegerField(unique=True)  # Discord ID of the administrator
-    discordID = TextField  # Discord Name of the administrator
+    discord_name = TextField()  # Discord Name of the administrator
     TierLevel = IntegerField(default=1)  # Admin tier level (1-4)
 
 
@@ -197,6 +197,7 @@ class QuestionSuggestionQueue(BaseModel):
 
     id = AutoField()  # Suggestion entry ID
     discord_id = BigIntegerField()  # Discord ID of the user
+    discord_name = TextField()  # Discord Name of the user
     question = TextField()  # Suggested question
     message_id = BigIntegerField()  # ID of the message containing the suggestion
 
