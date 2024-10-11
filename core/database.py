@@ -188,6 +188,7 @@ class Administrators(BaseModel):
 
     id = AutoField()  # Admin entry ID
     discordID = BigIntegerField(unique=True)  # Discord ID of the administrator
+    discordID = TextField  # Discord Name of the administrator
     TierLevel = IntegerField(default=1)  # Admin tier level (1-4)
 
 
