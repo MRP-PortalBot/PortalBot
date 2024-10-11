@@ -1,132 +1,108 @@
+import os
+import re
 import discord
 from discord import app_commands
 from discord.ext import commands
-from core.checks import (
-    slash_is_bot_admin_1,
-    slash_is_bot_admin_2,
-    slash_is_bot_admin_3,
-    slash_is_bot_admin_4,
-)
-from core.logging_module import get_log
+from core import database
+from peewee import (
+    DoesNotExist,
+    OperationalError,
+)  # Add exception handling for peewee database errors
 
-_log = get_log(__name__)
+# Predicate for command checks based on the admin level
+import logging
+from discord import app_commands
+from discord.ext import commands
+from peewee import OperationalError
+from core import database
+
+_log = logging.getLogger(__name__)
 
 
-class AdminHelpCMD(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+def predicate_LV(level):
+    """Unified predicate for both command and slash-command admin level checks."""
 
-    @app_commands.command(
-        name="help_admin",
-        description="Shows admin-only commands grouped by permission level.",
-    )
-    @slash_is_bot_admin_1  # Only admins with permit level 1 or higher can use this
-    async def help_admin(self, interaction: discord.Interaction):
+    def inner(ctx_or_interaction) -> bool:
+        user_id = (
+            ctx_or_interaction.author.id
+            if isinstance(ctx_or_interaction, commands.Context)
+            else ctx_or_interaction.user.id
+        )
         try:
-            _log.info(f"{interaction.user} requested the admin help command.")
-
-            # Create lists to group commands based on permission levels
-            admin_level_1_cmds = []
-            admin_level_2_cmds = []
-            admin_level_3_cmds = []
-            admin_level_4_cmds = []
-
-            # Map known check function names to admin level lists
-            check_level_map = {
-                "slash_is_bot_admin_4": admin_level_4_cmds,
-                "slash_is_bot_admin_3": admin_level_3_cmds,
-                "slash_is_bot_admin_2": admin_level_2_cmds,
-                "slash_is_bot_admin_1": admin_level_1_cmds,
-            }
-
-            # Iterate over all app commands in the bot
-            for command in self.bot.tree.walk_commands():
-                _log.debug(f"Checking command: {command.name}")
-
-                # Check the command's checks to categorize by permission level
-                command_checks = getattr(command, "checks", [])
-                _log.debug(f"Command checks: {command_checks}")
-
-                assigned = False
-                for check in command_checks:
-                    check_func = (
-                        check.__closure__[0].cell_contents
-                        if check.__closure__
-                        else None
-                    )
-                    _log.debug(f"Check Func is: {check_func}")
-
-                    # Safely inspect the closure contents to ensure it's callable
-                    if callable(check_func):
-                        check_name = check_func.__name__
-                        _log.debug(f"Detected check function: {check_name}")
-
-                        # If it's one of the known check levels, assign it
-                        if check_name in check_level_map:
-                            check_level_map[check_name].append(
-                                f"/{command.name} - {command.description}"
-                            )
-                            assigned = True
-                            break  # Exit loop once assigned to a level
-                    else:
-                        _log.debug(
-                            f"Non-function object found in closure: {check_func}"
-                        )
-
-                if not assigned:
-                    _log.debug(
-                        f"Command {command.name} does not have a recognized admin check."
-                    )
-
-            # Create the embed for displaying the commands
-            embed = discord.Embed(
-                title="Admin Commands",
-                description="These are the available admin commands grouped by permission level.",
-                color=discord.Color.purple(),
+            database.db.connect(reuse_if_open=True)
+            query = database.Administrators.select().where(
+                (database.Administrators.TierLevel >= level)
+                & (database.Administrators.discordID == user_id)
             )
-
-            # Add fields to the embed based on each admin level
-            if admin_level_4_cmds:
-                embed.add_field(
-                    name="Permit Level 4 - Owners:",
-                    value="\n".join(admin_level_4_cmds),
-                    inline=False,
+            if query.exists():
+                _log.info(f"User {user_id} has sufficient admin level {level} access.")
+                return True
+            else:
+                _log.warning(
+                    f"User {user_id} does not have sufficient admin level {level} access."
                 )
-            if admin_level_3_cmds:
-                embed.add_field(
-                    name="Permit Level 3 - Bot Managers:",
-                    value="\n".join(admin_level_3_cmds),
-                    inline=False,
-                )
-            if admin_level_2_cmds:
-                embed.add_field(
-                    name="Permit Level 2 - Administrators:",
-                    value="\n".join(admin_level_2_cmds),
-                    inline=False,
-                )
-            if admin_level_1_cmds:
-                embed.add_field(
-                    name="Permit Level 1 - Moderators:",
-                    value="\n".join(admin_level_1_cmds),
-                    inline=False,
-                )
+                return False
+        except OperationalError as e:
+            _log.error(f"Database connection error: {e}")
+            return False
+        finally:
+            if not database.db.is_closed():
+                database.db.close()
+                _log.debug("Database connection closed.")
 
-            if not (
-                admin_level_1_cmds
-                or admin_level_2_cmds
-                or admin_level_3_cmds
-                or admin_level_4_cmds
-            ):
-                embed.description = "No admin commands found."
+    return inner
 
-            await interaction.response.send_message(embed=embed)
 
-        except Exception as e:
-            _log.error(f"Error in help_admin command: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "An error occurred while fetching the admin commands.", ephemeral=True
+# Create various admin-level check decorators for both command and slash commands
+is_bot_Admin_1 = commands.check(predicate_LV(1))
+is_bot_Admin_2 = commands.check(predicate_LV(2))
+is_bot_Admin_3 = commands.check(predicate_LV(3))
+is_bot_Admin_4 = commands.check(predicate_LV(4))
+
+slash_is_bot_admin_1 = app_commands.check(predicate_LV(1))
+slash_is_bot_admin_2 = app_commands.check(predicate_LV(2))
+slash_is_bot_admin_3 = app_commands.check(predicate_LV(3))
+slash_is_bot_admin_4 = app_commands.check(predicate_LV(4))
+
+
+# Predicate for owning a realm channel
+def owns_realm_channel(category_id=587627871216861244):
+    def predicate(interaction: discord.Interaction) -> bool:
+        if interaction.channel.category_id != category_id:
+            return False
+
+        try:
+            database.db.connect(reuse_if_open=True)
+            # Check if the user has a level 3 or above admin tier
+            query = database.Administrators.select().where(
+                (database.Administrators.TierLevel >= 3)
+                & (database.Administrators.discordID == interaction.user.id)
             )
+            if query.exists():
+                return True
+        except OperationalError as e:
+            # Log or handle database connection issues
+            print(f"Database connection error: {e}")
+            return False
+        finally:
+            if not database.db.is_closed():
+                database.db.close()
+
+        # Extract the realm name from the channel name (removing '-emoji')
+        try:
+            realm_name = interaction.channel.name.rsplit("-", 1)[0]
+            role_name = f"{realm_name} OP"
+
+            # Check if the user has the appropriate role
+            member = interaction.guild.get_member(interaction.user.id)
+            return any(role.name == role_name for role in member.roles)
+        except AttributeError as e:
+            # Handle cases where the user has no roles or channel name doesn't match expected format
+            print(f"Error checking role ownership: {e}")
+            return False
+
+    return app_commands.check(predicate)
 
 
-async def setup(bot):
-    await bot.add_cog(AdminHelpCMD(bot))
+# Create the decorator for checking realm channel ownership
+slash_owns_realm_channel = owns_realm_channel()

@@ -49,13 +49,15 @@ class AdminHelpCMD(commands.Cog):
 
                 assigned = False
                 for check in command_checks:
-                    # Explore the closure of the check function
                     check_func = (
                         check.__closure__[0].cell_contents
                         if check.__closure__
                         else None
                     )
-                    if check_func:
+                    _log.debug(f"Check Func is: {check_func}")
+
+                    # Safely inspect the closure contents to ensure it's callable
+                    if callable(check_func):
                         check_name = check_func.__name__
                         _log.debug(f"Detected check function: {check_name}")
 
@@ -66,6 +68,10 @@ class AdminHelpCMD(commands.Cog):
                             )
                             assigned = True
                             break  # Exit loop once assigned to a level
+                    else:
+                        _log.debug(
+                            f"Non-function object found in closure: {check_func}"
+                        )
 
                 if not assigned:
                     _log.debug(
