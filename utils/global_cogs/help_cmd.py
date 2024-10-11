@@ -102,11 +102,11 @@ class HelpCMD(commands.Cog):
             if is_admin_command:
                 continue
 
-            # Categorize commands by their group (cog_name)
-            category_name = command.cog_name or "General"
-            if category_name not in categorized_commands:
-                categorized_commands[category_name] = []
-            categorized_commands[category_name].append(command)
+            # Use parent (grouping of commands) instead of cog_name
+            parent_name = command.parent.name if command.parent else "General"
+            if parent_name not in categorized_commands:
+                categorized_commands[parent_name] = []
+            categorized_commands[parent_name].append(command)
 
         # Convert dictionary to list of tuples for pagination
         for category, commands_list in categorized_commands.items():
