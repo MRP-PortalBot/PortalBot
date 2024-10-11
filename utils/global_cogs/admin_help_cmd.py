@@ -31,15 +31,25 @@ class AdminHelpCMD(commands.Cog):
             admin_level_3_cmds = []
             admin_level_4_cmds = []
 
-            for cmd in self.bot.tree.walk_commands():
-                if any(c.name == "slash_is_bot_admin" for c in cmd.checks):
-                    admin_level_1_cmds.append(cmd)
-                elif any(c.name == "slash_is_bot_admin_2" for c in cmd.checks):
-                    admin_level_2_cmds.append(cmd)
-                elif any(c.name == "slash_is_bot_admin_3" for c in cmd.checks):
-                    admin_level_3_cmds.append(cmd)
-                elif any(c.name == "slash_is_bot_admin_4" for c in cmd.checks):
-                    admin_level_4_cmds.append(cmd)
+            # Helper function to collect commands
+            def collect_commands(cmds):
+                for cmd in cmds:
+                    if isinstance(cmd, app_commands.Command):
+                        # Check the command's checks
+                        if any(c.func == slash_is_bot_admin for c in cmd.checks):
+                            admin_level_1_cmds.append(cmd)
+                        elif any(c.func == slash_is_bot_admin_2 for c in cmd.checks):
+                            admin_level_2_cmds.append(cmd)
+                        elif any(c.func == slash_is_bot_admin_3 for c in cmd.checks):
+                            admin_level_3_cmds.append(cmd)
+                        elif any(c.func == slash_is_bot_admin_4 for c in cmd.checks):
+                            admin_level_4_cmds.append(cmd)
+                    elif isinstance(cmd, app_commands.Group):
+                        # Recursively collect commands from groups
+                        collect_commands(cmd.commands)
+
+            # Collect commands from the bot
+            collect_commands(self.bot.tree.walk_commands())
 
             embed = discord.Embed(
                 title="Admin Commands",
