@@ -31,33 +31,32 @@ class AdminHelpCMD(commands.Cog):
             admin_level_3_cmds = []
             admin_level_4_cmds = []
 
-            # Iterate over all commands in the bot
+            # Iterate over all app commands in the bot
             for command in self.bot.tree.walk_commands():
-                # Get the checks for the command
-                command_checks = getattr(command, "checks", [])
+                _log.debug(f"Checking command: {command.name}")
 
-                # Check for level 4 (Owners)
+                command_checks = getattr(command, "checks", [])
+                _log.debug(f"Command checks: {command_checks}")
+
+                # Sort commands based on checks
                 if any(
                     check.__name__ == "slash_is_bot_admin_4" for check in command_checks
                 ):
                     admin_level_4_cmds.append(
                         f"/{command.name} - {command.description}"
                     )
-                # Check for level 3 (Bot Managers)
                 elif any(
                     check.__name__ == "slash_is_bot_admin_3" for check in command_checks
                 ):
                     admin_level_3_cmds.append(
                         f"/{command.name} - {command.description}"
                     )
-                # Check for level 2 (Administrators)
                 elif any(
                     check.__name__ == "slash_is_bot_admin_2" for check in command_checks
                 ):
                     admin_level_2_cmds.append(
                         f"/{command.name} - {command.description}"
                     )
-                # Check for level 1 (Moderators)
                 elif any(
                     check.__name__ == "slash_is_bot_admin_1" for check in command_checks
                 ):
@@ -109,7 +108,7 @@ class AdminHelpCMD(commands.Cog):
             await interaction.response.send_message(embed=embed)
 
         except Exception as e:
-            _log.error(f"Error in help_admin command: {e}")
+            _log.error(f"Error in help_admin command: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred while fetching the admin commands.", ephemeral=True
             )
