@@ -14,7 +14,7 @@ from core.checks import (
     slash_is_bot_admin_2,
     slash_is_bot_admin_4,
     slash_is_bot_admin_3,
-    slash_is_bot_admin,
+    slash_is_bot_admin_1,
 )
 
 load_dotenv()
@@ -62,7 +62,7 @@ class CoreBotConfig(commands.Cog):
         return admin_list
 
     @PM.command(description="Lists all permit levels and users.")
-    @slash_is_bot_admin
+    @slash_is_bot_admin_1
     async def list(self, interaction: discord.Interaction):
         try:
             _log.info(f"User {interaction.user} requested the permit list")

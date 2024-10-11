@@ -54,12 +54,12 @@ def predicate_LV(level):
 
 
 # Create various admin-level check decorators for both command and slash commands
-is_bot_Admin = commands.check(predicate_LV(1))
+is_bot_Admin_1 = commands.check(predicate_LV(1))
 is_bot_Admin_2 = commands.check(predicate_LV(2))
 is_bot_Admin_3 = commands.check(predicate_LV(3))
 is_bot_Admin_4 = commands.check(predicate_LV(4))
 
-slash_is_bot_admin = app_commands.check(predicate_LV(1))
+slash_is_bot_admin_1 = app_commands.check(predicate_LV(1))
 slash_is_bot_admin_2 = app_commands.check(predicate_LV(2))
 slash_is_bot_admin_3 = app_commands.check(predicate_LV(3))
 slash_is_bot_admin_4 = app_commands.check(predicate_LV(4))
