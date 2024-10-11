@@ -20,7 +20,7 @@ class AdminHelpCMD(commands.Cog):
         name="help_admin",
         description="Shows admin-only commands grouped by permission level.",
     )
-    @is_botAdmin  # Only admins with permit level 1 or higher can use this
+    @slash_is_bot_admin  # Only admins with permit level 1 or higher can use this
     async def help_admin(self, interaction: discord.Interaction):
         try:
             _log.info(f"{interaction.user} requested the admin help command.")
