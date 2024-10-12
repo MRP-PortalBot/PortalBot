@@ -84,7 +84,6 @@ class HelpCMD(commands.Cog):
         self.bot = bot
         self._log = get_log(__name__)
 
-    # Define the command group "help"
     help_group = app_commands.Group(
         name="help",
         description="Help commands",
@@ -167,11 +166,6 @@ class HelpCMD(commands.Cog):
             self._log.info(f"{interaction.user} requested the admin help command.")
             categorized_commands = self.categorize_commands(admin_only=True)
 
-            # Flatten the categorized commands into a single group
-            combined_commands = []
-            for category, commands_list in categorized_commands.items():
-                combined_commands.extend(commands_list)
-
             # Admin levels to color mapping
             level_colors = {
                 1: "🟩",  # Basic admin privileges
@@ -182,21 +176,21 @@ class HelpCMD(commands.Cog):
 
             embed = discord.Embed(
                 title="Admin Help Menu",
-                description="All admin commands categorized by their level.",
+                description="Admin commands grouped by their command category, color-coded by admin level.",
                 color=discord.Color.red(),
             )
 
-            # Create a list of admin commands with color-coded boxes
-            command_list = "\n".join(
-                f"{level_colors.get(level, '⚪')} /{cmd.name} - {cmd.description}"
-                for cmd, level in combined_commands
-            )
-
-            embed.add_field(
-                name="🔹 Admin Commands",
-                value=command_list if command_list else "No admin commands available.",
-                inline=False,
-            )
+            # Loop through the command groups and display commands within each group
+            for category, commands in categorized_commands.items():
+                command_list = "\n".join(
+                    f"{level_colors.get(level, '⚪')} /{cmd.name} - {cmd.description}"
+                    for cmd, level in commands
+                )
+                embed.add_field(
+                    name=f"🔹 {category}",
+                    value=command_list if command_list else "No commands available.",
+                    inline=False,
+                )
 
             # Add the color-coded admin levels key at the bottom
             embed.add_field(
