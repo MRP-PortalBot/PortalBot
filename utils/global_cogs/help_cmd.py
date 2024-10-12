@@ -94,7 +94,6 @@ class HelpCMD(commands.Cog):
         categorized_commands = {}
         for command in self.bot.tree.walk_commands():
             command_checks = getattr(command, "checks", [])
-            is_admin_command = False
             admin_level = None
 
             for check in command_checks:
@@ -102,13 +101,12 @@ class HelpCMD(commands.Cog):
                     for closure_cell in check.__closure__:
                         check_value = closure_cell.cell_contents
                         if isinstance(check_value, int):
-                            is_admin_command = True
-                            admin_level = check_value  # Capture the admin level
+                            admin_level = check_value
                             break
 
-            if admin_only and not is_admin_command:
+            if admin_only and admin_level is None:
                 continue
-            if not admin_only and is_admin_command:
+            if not admin_only and admin_level is not None:
                 continue
 
             parent_name = command.parent.name if command.parent else "General"
@@ -168,7 +166,11 @@ class HelpCMD(commands.Cog):
         try:
             self._log.info(f"{interaction.user} requested the admin help command.")
             categorized_commands = self.categorize_commands(admin_only=True)
-            command_groups = []
+
+            # Flatten the categorized commands into a single group
+            combined_commands = []
+            for category, commands_list in categorized_commands.items():
+                combined_commands.extend(commands_list)
 
             # Admin levels to color mapping
             level_colors = {
@@ -178,24 +180,23 @@ class HelpCMD(commands.Cog):
                 4: "🟥",  # Full admin privileges
             }
 
-            for category, commands_list in categorized_commands.items():
-                for command, level in commands_list:
-                    color = level_colors.get(
-                        level, "⚪"
-                    )  # Default to white if no level is found
-                    command_groups.append((category, [command], color))
-
             embed = discord.Embed(
                 title="Admin Help Menu",
-                description="Use the buttons below to navigate through the admin commands",
-                color=discord.Color.blurple(),
+                description="All admin commands categorized by their level.",
+                color=discord.Color.red(),
             )
 
-            for category, commands, color in command_groups[:5]:
-                command_list = "\n".join(
-                    [f"{color} /{cmd.name} - {cmd.description}" for cmd in commands]
-                )
-                embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
+            # Create a list of admin commands with color-coded boxes
+            command_list = "\n".join(
+                f"{level_colors.get(level, '⚪')} /{cmd.name} - {cmd.description}"
+                for cmd, level in combined_commands
+            )
+
+            embed.add_field(
+                name="🔹 Admin Commands",
+                value=command_list if command_list else "No admin commands available.",
+                inline=False,
+            )
 
             # Add the color-coded admin levels key at the bottom
             embed.add_field(
@@ -209,9 +210,7 @@ class HelpCMD(commands.Cog):
                 inline=False,
             )
 
-            embed.set_footer(text="Page 1/{}".format((len(command_groups) + 4) // 5))
-            view = HelpPaginator(self.bot, interaction, command_groups)
-            await interaction.response.send_message(embed=embed, view=view)
+            await interaction.response.send_message(embed=embed)
 
         except Exception as e:
             self._log.error(f"Error in admin help command: {e}")
