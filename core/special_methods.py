@@ -268,35 +268,20 @@ async def on_command_error_(bot, ctx: commands.Context, error: Exception):
     raise error
 
 
-# Helper function to create a Gist and return the URL
-async def _create_gist(exception_msg: str) -> str:
-    try:
-        GITHUB_API = "https://api.github.com/gists"
-        API_TOKEN = os.getenv("github_gist")
-        headers = {"Authorization": f"token {API_TOKEN}"}
-        payload = {
-            "description": "PortalBot Traceback",
-            "public": True,
-            "files": {"error.txt": {"content": exception_msg}},
-        }
-        res = requests.post(GITHUB_API, headers=headers, data=json.dumps(payload))
-        res.raise_for_status()
-        gist_id = res.json()["id"]
-        return f"https://gist.github.com/{gist_id}"
-    except Exception as e:
-        _log.error(f"Error creating Gist: {str(e)}", exc_info=True)
-        return None
-
-
 async def on_app_command_error_(
     bot: "PortalBot",
     interaction: discord.Interaction,
     error: app_commands.AppCommandError,
 ):
-    # Capture traceback and format the exception
+    """
+    Handles errors that occur during the execution of app commands.
+    """
+    # Capture and format the traceback
     tb = error.__traceback__
     etype = type(error)
     exception_msg = "".join(traceback.format_exception(etype, error, tb, chain=True))
+
+    _log.error(f"Error in command '{interaction.command}': {exception_msg}")
 
     # Command on Cooldown
     if isinstance(error, app_commands.CommandOnCooldown):
@@ -308,17 +293,24 @@ async def on_app_command_error_(
             description=cooldown_msg,
             color=discord.Color.red(),
         )
+        _log.info(
+            f"Command {interaction.command} is on cooldown for user {interaction.user.id}: {cooldown_msg}"
+        )
         await _send_response(interaction, embed)
         return
 
     # Command Check Failure
     if isinstance(error, app_commands.CheckFailure):
         failure_msg = "You cannot run this command!"
+        _log.warning(
+            f"Check failure for user {interaction.user.id} on command {interaction.command}"
+        )
         await _send_response(interaction, failure_msg, ephemeral=True)
         return
 
     # Command Not Found
     if isinstance(error, app_commands.CommandNotFound):
+        _log.error(f"Command {interaction.command} not found.")
         await interaction.response.send_message(
             f"Command /{interaction.command.name} not found."
         )
@@ -328,10 +320,10 @@ async def on_app_command_error_(
     gist_url = await _create_gist(exception_msg)
     await _notify_error(interaction, error, gist_url)
 
-    raise error
+    raise error  # Re-raise the error after handling
 
 
-# Helper function to send responses, handling both response and followup cases
+# Helper function to send responses, handling both response and follow-up cases
 async def _send_response(
     interaction: discord.Interaction,
     content: Union[discord.Embed, str],
@@ -345,10 +337,10 @@ async def _send_response(
                 content=content, ephemeral=ephemeral
             )
     except Exception as e:
-        _log.error(f"Error sending response: {e}")
+        _log.error(f"Error sending response to user {interaction.user.id}: {e}")
 
 
-# Helper function to create a Gist and return the URL
+# Reusing the previous helper function to create a Gist and return the URL
 async def _create_gist(exception_msg: str) -> str:
     try:
         GITHUB_API = "https://api.github.com/gists"
@@ -361,7 +353,9 @@ async def _create_gist(exception_msg: str) -> str:
         }
         res = requests.post(GITHUB_API, headers=headers, data=json.dumps(payload))
         res.raise_for_status()
-        return f"https://gist.github.com/{res.json()['id']}"
+        gist_id = res.json()["id"]
+        _log.info(f"Created Gist for error: https://gist.github.com/{gist_id}")
+        return f"https://gist.github.com/{gist_id}"
     except Exception as e:
         _log.error(f"Error creating Gist: {e}")
         return "Unable to create Gist"
@@ -389,6 +383,7 @@ async def _notify_error(
             value="Please double check your command. The developers have been notified and are investigating the issue.",
         )
         error_embed.set_footer(text="Submit a bug report or feedback below!")
+        _log.warning(f"User {interaction.user.id} encountered an error: {error}")
         await _send_response(interaction, error_embed)
     else:
         admin_embed = discord.Embed(
@@ -396,8 +391,12 @@ async def _notify_error(
             description="An error occurred in PortalBot. Traceback details have been attached below.",
             color=discord.Color.red(),
         )
-        admin_embed.add_field(name="GIST URL", value=gist_url)
+        if gist_url:
+            admin_embed.add_field(name="GIST URL", value=gist_url)
         admin_embed.set_footer(text=f"Error: {str(error)}")
+        _log.error(
+            f"Admin {interaction.user.id} encountered an error: {error} (Gist URL: {gist_url})"
+        )
         await _send_response(interaction, admin_embed)
 
 
@@ -405,23 +404,32 @@ async def on_command_(bot: "PortalBot", ctx: commands.Context):
     # List of commands that should bypass the message
     bypass_commands = {"sync", "ping", "kill", "jsk", "py", "jishaku"}
 
+    # Log the command that was invoked
+    _log.info(f"User {ctx.author} invoked command: {ctx.command.name}")
+
     # Return early if the command is in the bypass list
     if ctx.command.name in bypass_commands:
+        _log.info(f"Command {ctx.command.name} is in the bypass list, no message sent.")
         return
 
     # Notify user that this command is deprecated and suggest the slash equivalent
-    await ctx.reply(
-        f"❌ The command `{ctx.command.name}` is deprecated. Please use the slash command `/{ctx.command.name}` instead."
-    )
+    deprecated_msg = f"❌ The command `{ctx.command.name}` is deprecated. Please use the slash command `/{ctx.command.name}` instead."
+    _log.info(f"Sending deprecated message to user {ctx.author}: {deprecated_msg}")
+
+    await ctx.reply(deprecated_msg)
 
 
 def initialize_db(bot):
     """
-    Initializes the database, and creates the needed table data if they don't exist.
+    Initializes the database and creates the needed table data if they don't exist.
     """
     try:
+        # Log the start of the database initialization
+        _log.info("Initializing database...")
+
         # Ensure the database is connected
         database.db.connect(reuse_if_open=True)
+        _log.info("Database connected successfully.")
 
         # Fetch the bot data row based on the unique ID
         row_id = get_bot_data_id()
@@ -435,7 +443,7 @@ def initialize_db(bot):
         # Check if Administrator entries exist, and create them if not
         if database.Administrators.select().count() == 0:
             _create_administrators(bot.owner_ids)
-            _log.info("Created Administrator entries.")
+            _log.info("Created Administrator entries for bot owners.")
 
     except Exception as e:
         _log.error(f"Error during database initialization: {e}")
@@ -443,10 +451,12 @@ def initialize_db(bot):
         # Always close the database connection
         if not database.db.is_closed():
             database.db.close()
+            _log.info("Database connection closed.")
 
 
 def _create_bot_data():
     """Creates the initial BotData entry."""
+    _log.info("Creating initial BotData entry in the database.")
     database.BotData.create(
         prefix=">",
         persistent_views=False,
@@ -456,11 +466,18 @@ def _create_bot_data():
         realm_channel_response=588408514796322816,
         server_id=587495640502763521,
     )
+    _log.info("Initial BotData entry created successfully.")
 
 
 def _create_administrators(owner_ids):
     """Creates Administrator entries based on the bot owner IDs."""
+    _log.info(f"Creating Administrator entries for bot owner IDs: {owner_ids}.")
+
     for owner_id in owner_ids:
         database.Administrators.create(discordID=owner_id, TierLevel=4)
-    # Ensure specific admin entry
-    database.Administrators.create(discordID=409152798609899530, TierLevel=4)
+        _log.info(f"Administrator entry created for owner ID: {owner_id}.")
+
+    # Ensure specific admin entry is created
+    specific_admin_id = 306070011028439041
+    database.Administrators.create(discordID=specific_admin_id, TierLevel=4)
+    _log.info(f"Administrator entry created for specific ID: {specific_admin_id}.")
