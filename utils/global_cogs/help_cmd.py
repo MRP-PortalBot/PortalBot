@@ -256,7 +256,9 @@ class HelpCMD(commands.Cog):
 
             for category, commands in command_groups[:5]:
                 command_list = "\n".join(
-                    [f"/{cmd.name} - {cmd.description}" for cmd in commands]
+                    [
+                        f"/{cmd.name} - {cmd.description}" for cmd, _ in commands
+                    ]  # Unpack the tuple here
                 )
                 embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
 
