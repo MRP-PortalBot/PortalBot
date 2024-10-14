@@ -120,6 +120,7 @@ class HelpCMD(commands.Cog):
         categorized_commands = {}
         for command in self.bot.tree.walk_commands():
             command_checks = getattr(command, "checks", [])
+            _log.info(command_checks)
             is_operator_command = False
 
             for check in command_checks:
