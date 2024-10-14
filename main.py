@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 from pygit2 import Repository, GIT_DESCRIBE_TAGS
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
+from requests.exceptions import HTTPError
 
 from core import database
 from core.common import get_bot_data_id
@@ -65,19 +66,32 @@ try:
         )
 
     _log.info("Attempting to authenticate with Xbox Live...")
-    xbox.client.authenticate(
+
+    response = xbox.client.authenticate(
         login=login,
         password=password,
-        # Add twofactor_code or refresh_token here if necessary
     )
+
+    _log.debug(f"Raw Xbox API response: {response}")
+
+    # Check if the response is None or invalid
+    if response is None or not isinstance(response, dict):
+        raise ValueError("Invalid or empty response received from Xbox API.")
+
     _log.info("Authenticated with Xbox successfully.")
 
-except ValueError as ve:
-    _log.critical(f"Authentication failed: {ve}")
-except Exception as e:
+except json.JSONDecodeError as json_err:
+    _log.critical(f"Authentication failed: Invalid JSON response: {json_err}")
+except HTTPError as http_err:
+    _log.critical(f"HTTP error occurred: {http_err}")
+except ValueError as val_err:
+    _log.critical(f"Authentication failed: {val_err}")
+except AttributeError as attr_err:
     _log.critical(
-        f"ERROR: Unable to authenticate with Xbox! Exception: {type(e).__name__} | Details: {e}"
+        f"ERROR: Unable to authenticate with Xbox! Exception: {attr_err} | Details: {attr_err}"
     )
+except Exception as e:
+    _log.critical(f"Unexpected error occurred during Xbox authentication: {e}")
 
 
 # Function to dynamically load extensions (cogs)
