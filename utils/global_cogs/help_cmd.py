@@ -116,51 +116,50 @@ class HelpCMD(commands.Cog):
 
         return categorized_commands
 
+    def categorize_operator_commands(self):
+        categorized_commands = {}
 
-def categorize_operator_commands(self):
-    categorized_commands = {}
+        for command in self.bot.tree.walk_commands():
+            command_checks = getattr(command, "checks", [])
+            is_operator_command = False
 
-    for command in self.bot.tree.walk_commands():
-        command_checks = getattr(command, "checks", [])
-        is_operator_command = False
+            # Loop through each check in the command
+            for check in command_checks:
+                if check.__closure__:
+                    for closure_cell in check.__closure__:
+                        check_value = closure_cell.cell_contents
 
-        # Loop through each check in the command
-        for check in command_checks:
-            if check.__closure__:
-                for closure_cell in check.__closure__:
-                    check_value = closure_cell.cell_contents
+                        # Log the value being checked for debugging
+                        _log.info(
+                            f"Checking command: {command.name} with check value: {check_value}"
+                        )
 
-                    # Log the value being checked for debugging
-                    _log.info(
-                        f"Checking command: {command.name} with check value: {check_value}"
-                    )
+                        # Check if it matches the specific decorators
+                        if check_value in [slash_is_realm_op, slash_owns_realm_channel]:
+                            is_operator_command = True
+                            break
 
-                    # Check if it matches the specific decorators
-                    if check_value in [slash_is_realm_op, slash_owns_realm_channel]:
-                        is_operator_command = True
-                        break
+                        # Check if it matches roles like "Moderator" or "Realm OP"
+                        if isinstance(check_value, str) and check_value in [
+                            "Realm OP",
+                            "Moderator",
+                        ]:
+                            is_operator_command = True
+                            break
 
-                    # Check if it matches roles like "Moderator" or "Realm OP"
-                    if isinstance(check_value, str) and check_value in [
-                        "Realm OP",
-                        "Moderator",
-                    ]:
-                        is_operator_command = True
-                        break
+                        # If realm-specific OP roles, such as "{realm_name} OP"
+                        if isinstance(check_value, str) and check_value.endswith(" OP"):
+                            is_operator_command = True
+                            break
 
-                    # If realm-specific OP roles, such as "{realm_name} OP"
-                    if isinstance(check_value, str) and check_value.endswith(" OP"):
-                        is_operator_command = True
-                        break
+            # If the command is operator-level, categorize it
+            if is_operator_command:
+                parent_name = command.parent.name if command.parent else "General"
+                if parent_name not in categorized_commands:
+                    categorized_commands[parent_name] = []
+                categorized_commands[parent_name].append(command)
 
-        # If the command is operator-level, categorize it
-        if is_operator_command:
-            parent_name = command.parent.name if command.parent else "General"
-            if parent_name not in categorized_commands:
-                categorized_commands[parent_name] = []
-            categorized_commands[parent_name].append(command)
-
-    return categorized_commands
+        return categorized_commands
 
     # Helper method to assign color based on admin level
     def get_level_color(self, admin_level):
