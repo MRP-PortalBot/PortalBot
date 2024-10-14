@@ -108,10 +108,6 @@ class HelpCMD(commands.Cog):
                         if isinstance(check_value, int):
                             admin_level = check_value
 
-                        # Detect operator-level commands (like Realm OP or Moderator)
-                        if check_value in [slash_is_realm_op, slash_owns_realm_channel]:
-                            is_operator_command = True
-
                         if isinstance(check_value, str) and check_value in [
                             "Realm OP",
                             "Moderator",
