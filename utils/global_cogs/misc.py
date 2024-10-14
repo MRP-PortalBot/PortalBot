@@ -9,6 +9,7 @@ from pathlib import Path
 import discord
 from discord import app_commands
 from discord.ext import commands
+from core.checks import slash_is_bot_admin_1
 
 from core import database
 
@@ -25,13 +26,14 @@ rules = [
     ":nine: **Discord Terms of Service apply!** You must be at least **13** years old.",
 ]
 
+# Logger setup
 logger = logging.getLogger(__name__)
 
 
 class MiscCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("MiscCMD: Cog Loaded!")
+        logger.info("MiscCMD Cog Loaded")
 
     ##======================================================Slash Commands===========================================================
 
@@ -44,7 +46,7 @@ class MiscCMD(commands.Cog):
         user="The user whose nickname you want to change",
         channel="The channel with the emoji in the name",
     )
-    @app_commands.checks.has_role("Moderator")
+    @slash_is_bot_admin_1
     async def nick(
         self,
         interaction: discord.Interaction,
@@ -54,30 +56,36 @@ class MiscCMD(commands.Cog):
         """Slash command to change a user's nickname based on the channel's emoji."""
         try:
             logger.info(
-                f"{interaction.user} is attempting to change the nickname of {user}"
+                f"{interaction.user} initiated nickname change for {user.display_name} using channel {channel.name}"
             )
             name = user.display_name
             channel_parts = channel.name.split("-")
 
+            # Determine the emoji and realm format based on the channel name
             if len(channel_parts) == 2:  # realm-emoji format
                 realm, emoji = channel_parts
             else:  # realm-name-emoji format
                 realm, emoji = channel_parts[0], channel_parts[-1]
 
+            # Update user's nickname with the emoji
             await user.edit(nick=f"{name} {emoji}")
             await interaction.response.send_message(
                 f"Changed {user.mention}'s nickname!"
             )
+            logger.info(
+                f"Successfully changed {user.display_name}'s nickname to {name} {emoji}"
+            )
 
         except Exception as e:
-            logger.error(f"Error in changing nickname: {e}")
+            logger.error(f"Error in changing nickname for {user.display_name}: {e}")
             await interaction.response.send_message(
-                f"An error occurred while changing the nickname.", ephemeral=True
+                "An error occurred while changing the nickname.", ephemeral=True
             )
 
     # Rule Command [INT]
     @app_commands.command(name="rule", description="Sends out MRP Server Rules")
     async def rule(self, interaction: discord.Interaction, number: int = None):
+        """Send the requested server rule."""
         try:
             if 1 <= number <= len(rules):
                 await interaction.response.send_message(rules[number - 1])
@@ -86,10 +94,13 @@ class MiscCMD(commands.Cog):
                 await interaction.response.send_message(
                     f"Please choose a valid rule number between 1 and {len(rules)}."
                 )
+                logger.warning(
+                    f"Invalid rule number {number} requested by {interaction.user}"
+                )
         except Exception as e:
             logger.error(f"Error in rule command: {e}")
             await interaction.response.send_message(
-                "An error occurred while fetching the rule."
+                "An error occurred while fetching the rule.", ephemeral=True
             )
 
     # Ping Command
@@ -97,7 +108,7 @@ class MiscCMD(commands.Cog):
     async def ping(self, interaction: discord.Interaction):
         """Display the bot's ping and system resource usage."""
         try:
-            logger.info(f"Ping command called by {interaction.user}")
+            logger.info(f"Ping command initiated by {interaction.user}")
             uptime = timedelta(seconds=int(time.time() - self.bot.start_time))
             ping_latency = round(self.bot.latency * 1000)
 
@@ -112,7 +123,7 @@ class MiscCMD(commands.Cog):
                 value=f"```diff\n+ Ping: {ping_latency}ms\n+ Uptime: {str(uptime)}\n```",
             )
 
-            # Adding system resource usage with more details
+            # Adding system resource usage details
             memory = psutil.virtual_memory()
             pingembed.add_field(
                 name="System Resource Usage",
@@ -127,13 +138,18 @@ class MiscCMD(commands.Cog):
             )
 
             await interaction.response.send_message(embed=pingembed)
+            logger.info(
+                f"Ping and system resource information sent to {interaction.user}"
+            )
+
         except Exception as e:
             logger.error(f"Error in ping command: {e}")
             await interaction.response.send_message(
-                "An error occurred while fetching the ping information."
+                "An error occurred while fetching the ping information.", ephemeral=True
             )
 
 
 # Set up the cog
 async def setup(bot):
     await bot.add_cog(MiscCMD(bot))
+    logger.info("MiscCMD Cog setup completed")
