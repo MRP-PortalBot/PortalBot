@@ -4,6 +4,7 @@ from core import database
 from core.common import load_config
 from core.logging_module import get_log
 
+# Load configuration and setup logging
 config, _ = load_config()
 _log = get_log(__name__)
 
@@ -20,6 +21,8 @@ class Events(commands.Cog):
         longid = str(member.id)
         discordname = f"{username}#{member.discriminator}"
 
+        _log.info(f"Member joined: {discordname} in guild: {guild.name}")
+
         try:
             # Connect to the database and fetch or create the user profile
             database.db.connect(reuse_if_open=True)
@@ -30,36 +33,44 @@ class Events(commands.Cog):
 
             if created:
                 message = (
-                    f"{profile.DiscordName}'s Profile has been created successfully."
+                    f"{profile.DiscordName}'s profile has been created successfully."
                 )
+                _log.info(f"Profile created for {discordname}")
             else:
                 profile.DiscordName = discordname
                 profile.save()
                 message = (
-                    f"{profile.DiscordName}'s Profile has been updated successfully."
+                    f"{profile.DiscordName}'s profile has been updated successfully."
                 )
+                _log.info(f"Profile updated for {discordname}")
 
+            # Log the message to the log channel, if available
             if log_channel:
                 await log_channel.send(message)
-            _log.info(message)
+            else:
+                _log.warning(f"Log channel not found in guild: {guild.name}")
 
         except Exception as e:
-            _log.error(f"Error processing join event for {member.name}: {e}")
+            _log.error(f"Error processing join event for {discordname}: {e}")
             if log_channel:
                 await log_channel.send(
-                    f"An error occurred while processing {member.name}'s join event."
+                    f"An error occurred while processing {discordname}'s join event."
                 )
         finally:
             if not database.db.is_closed():
                 database.db.close()
+                _log.debug("Database connection closed.")
 
-        # Send a welcome message based on the guild
+        # Send a welcome message to the user
         await self.send_welcome_message(member)
 
     async def send_welcome_message(self, member: discord.Member):
         guild_id = member.guild.id
         channel = None
         embed = None
+        _log.info(
+            f"Preparing to send welcome message to {member.name} in guild {member.guild.name} (ID: {guild_id})"
+        )
 
         if guild_id == 587495640502763521:  # Example Guild 1
             channel = member.guild.get_channel(588813558486269956)
@@ -89,19 +100,29 @@ class Events(commands.Cog):
                 inline=False,
             )
 
-        elif (
-            guild_id == 448488274562908170
-        ):  # Another Guild (handle differently if needed)
-            _log.info(f"Unhandled join event for guild: {member.guild.name}")
-
-        # Send the welcome message if a channel and embed are ready
-        if channel and embed:
-            embed.set_thumbnail(url=member.avatar.url)
-            embed.set_footer(
-                text="Join the MRP Community Realm!", icon_url=member.guild.icon.url
+        elif guild_id == 448488274562908170:  # Another Guild
+            _log.info(
+                f"No specific welcome message set for guild {member.guild.name} (ID: {guild_id})"
             )
+            return
+
+        if channel and embed:
+            if member.avatar:
+                embed.set_thumbnail(url=member.avatar.url)
+            if member.guild.icon:
+                embed.set_footer(
+                    text="Join the MRP Community Realm!", icon_url=member.guild.icon.url
+                )
             await channel.send(embed=embed)
+            _log.info(
+                f"Sent welcome message to {member.name} in guild {member.guild.name}."
+            )
+        else:
+            _log.warning(
+                f"Unable to send welcome message for {member.name}: Channel or embed not defined."
+            )
 
 
 async def setup(bot):
     await bot.add_cog(Events(bot))
+    _log.info("Events cog has been loaded.")
