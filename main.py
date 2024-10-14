@@ -56,13 +56,24 @@ except Exception as e:
 
 # Xbox authentication
 try:
+    login = os.getenv("xbox_u")
+    password = os.getenv("xbox_p")
+
+    if not login or not password:
+        raise ValueError(
+            "Missing Xbox credentials. Please set xbox_u and xbox_p environment variables."
+        )
+
+    _log.info("Attempting to authenticate with Xbox Live...")
     xbox.client.authenticate(
-        login=os.getenv("xbox_u"),
-        password=os.getenv("xbox_p"),
+        login=login,
+        password=password,
+        # Add twofactor_code or refresh_token here if necessary
     )
-    _log.info(os.getenv("xbox_u"))
-    _log.info(os.getenv("xbox_p"))
     _log.info("Authenticated with Xbox successfully.")
+
+except ValueError as ve:
+    _log.critical(f"Authentication failed: {ve}")
 except Exception as e:
     _log.critical(
         f"ERROR: Unable to authenticate with Xbox! Exception: {type(e).__name__} | Details: {e}"
