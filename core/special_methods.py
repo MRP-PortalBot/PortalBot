@@ -148,31 +148,31 @@ async def on_command_error_(bot, ctx: commands.Context, error: Exception):
     tb = error.__traceback__
     etype = type(error)
     exception_msg = "".join(traceback.format_exception(etype, error, tb, chain=True))
+    error = getattr(error, "original", error)  # Unwrap command invocation errors
 
-    # Handle specific error types
-    error = getattr(error, "original", error)
+    # Log the full error traceback
+    _log.error(f"Error in command '{ctx.command}': {exception_msg}")
 
+    # Early exit for the rule command
     if ctx.command and ctx.command.name == "rule":
-        return "No Rule..."
+        return await ctx.send("No Rule...")
 
-    if isinstance(error, (commands.CheckFailure, commands.CheckAnyFailure)):
+    # Command-specific error handling
+    if isinstance(error, commands.CheckFailure):
+        _log.warning(f"Check failed for user {ctx.author.id} on command {ctx.command}.")
         return
 
-    if hasattr(ctx.command, "on_error"):
-        return
-
-    # Handle 'CommandNotFound'
-    if isinstance(error, (commands.CommandNotFound, commands.errors.CommandNotFound)):
+    if isinstance(error, commands.CommandNotFound):
         cmd = ctx.invoked_with
         cmds = [cmd.name for cmd in bot.commands]
         matches = get_close_matches(cmd, cmds)
         if matches:
+            _log.info(f"Command '{cmd}' not found. Suggesting '{matches[0]}'.")
             return await ctx.send(
                 f'Command "{cmd}" not found. Did you mean "{matches[0]}"?'
             )
         return await ctx.message.add_reaction("❌")
 
-    # Handle missing or extra arguments
     if isinstance(error, (commands.MissingRequiredArgument, commands.TooManyArguments)):
         signature = f"{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}"
         em = discord.Embed(
@@ -182,34 +182,30 @@ async def on_command_error_(bot, ctx: commands.Context, error: Exception):
         )
         em.set_thumbnail(url=Others.error_png)
         em.set_footer(text="Refer to the Help Command if needed.")
+        _log.info(f"Missing or extra arguments in command '{ctx.command}'.")
         return await ctx.send(embed=em)
 
-    # Handle permission-related issues
     if isinstance(
         error,
         (
-            commands.MissingAnyRole,
-            commands.MissingRole,
             commands.MissingPermissions,
+            commands.MissingRole,
             commands.errors.MissingAnyRole,
-            commands.errors.MissingRole,
-            commands.errors.MissingPermissions,
         ),
     ):
         em = discord.Embed(
             title="Insufficient Permissions",
-            description="You don't have the required role or permissions for this command. Please contact an administrator if this is a mistake.",
+            description="You don't have the required role or permissions for this command. Contact an admin if this is an error.",
             color=Colors.red,
         )
         em.set_thumbnail(url=Others.error_png)
         em.set_footer(text="Refer to the Help Command for more details.")
+        _log.warning(
+            f"Permission error for user {ctx.author.id} on command {ctx.command}."
+        )
         return await ctx.send(embed=em)
 
-    # Handle bad argument errors
-    if isinstance(
-        error,
-        (commands.BadArgument, commands.BadLiteralArgument, commands.BadUnionArgument),
-    ):
+    if isinstance(error, (commands.BadArgument, commands.BadLiteralArgument)):
         signature = f"{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}"
         em = discord.Embed(
             title="Bad Argument",
@@ -218,9 +214,11 @@ async def on_command_error_(bot, ctx: commands.Context, error: Exception):
         )
         em.set_thumbnail(url=Others.error_png)
         em.set_footer(text="Refer to the Help Command for more information.")
+        _log.warning(
+            f"Bad argument provided by user {ctx.author.id} on command {ctx.command}."
+        )
         return await ctx.send(embed=em)
 
-    # Handle command cooldowns
     if isinstance(
         error, (commands.CommandOnCooldown, commands.errors.CommandOnCooldown)
     ):
@@ -232,33 +230,12 @@ async def on_command_error_(bot, ctx: commands.Context, error: Exception):
             description=msg,
             color=discord.Color.red(),
         )
+        _log.info(f"Command on cooldown for user {ctx.author.id}: {msg}")
         return await ctx.send(embed=em)
 
-    # Default error handling with error logging via Gist
-    error_file = Path("error.txt")
-    error_file.touch()
-    error_file.write_text(exception_msg)
-
-    with error_file.open("r") as f:
-        data = f.read()
-
-    try:
-        GITHUB_API = "https://api.github.com"
-        API_TOKEN = os.getenv("github_gist")
-        url = f"{GITHUB_API}/gists"
-        headers = {"Authorization": f"token {API_TOKEN}"}
-        payload = {
-            "description": "PortalBot Traceback",
-            "public": True,
-            "files": {"error": {"content": data}},
-        }
-        res = requests.post(url, headers=headers, data=json.dumps(payload))
-        res.raise_for_status()
-        gist_id = res.json()["id"]
-        gist_url = f"https://gist.github.com/{gist_id}"
-    except Exception as e:
-        _log.error(f"Error creating Gist: {str(e)}")
-        gist_url = None
+    # Default error handling (create Gist and notify developers)
+    _log.error(f"Unhandled error for command '{ctx.command}': {exception_msg}")
+    gist_url = await _create_gist(exception_msg)
 
     permitlist = [
         admin.discordID
@@ -267,7 +244,6 @@ async def on_command_error_(bot, ctx: commands.Context, error: Exception):
         )
     ]
 
-    # Handle error message visibility based on user permissions
     if ctx.author.id not in permitlist:
         em = discord.Embed(
             title="An Error Occurred",
@@ -289,9 +265,27 @@ async def on_command_error_(bot, ctx: commands.Context, error: Exception):
         em.set_footer(text=f"Error: {str(error)}")
         await ctx.send(embed=em)
 
-    error_file.unlink()
-
     raise error
+
+
+# Helper function to create a Gist and return the URL
+async def _create_gist(exception_msg: str) -> str:
+    try:
+        GITHUB_API = "https://api.github.com/gists"
+        API_TOKEN = os.getenv("github_gist")
+        headers = {"Authorization": f"token {API_TOKEN}"}
+        payload = {
+            "description": "PortalBot Traceback",
+            "public": True,
+            "files": {"error.txt": {"content": exception_msg}},
+        }
+        res = requests.post(GITHUB_API, headers=headers, data=json.dumps(payload))
+        res.raise_for_status()
+        gist_id = res.json()["id"]
+        return f"https://gist.github.com/{gist_id}"
+    except Exception as e:
+        _log.error(f"Error creating Gist: {str(e)}", exc_info=True)
+        return None
 
 
 async def on_app_command_error_(
