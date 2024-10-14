@@ -60,9 +60,13 @@ try:
         login=os.getenv("xbox_u"),
         password=os.getenv("xbox_p"),
     )
+    _log.info(os.getenv("xbox_u"))
+    _log.info(os.getenv("xbox_p"))
     _log.info("Authenticated with Xbox successfully.")
 except Exception as e:
-    logger.critical(f"ERROR: Unable to authenticate with Xbox! {e}")
+    _log.critical(
+        f"ERROR: Unable to authenticate with Xbox! Exception: {type(e).__name__} | Details: {e}"
+    )
 
 
 # Function to dynamically load extensions (cogs)
