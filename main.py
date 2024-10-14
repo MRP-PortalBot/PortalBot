@@ -25,8 +25,13 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from core import database
 from core.common import get_bot_data_id
 from core.logging_module import get_log
-from core.special_methods import on_app_command_error_, initialize_db, on_ready_, on_command_error_, on_command_, \
-    before_invoke_
+from core.special_methods import (
+    on_app_command_error_,
+    initialize_db,
+    on_ready_,
+    on_command_error_,
+    on_command_,
+)
 
 logger = logging.getLogger("discord")
 logger.setLevel(logging.INFO)
@@ -36,13 +41,14 @@ _log.info("Starting PortalBot...")
 load_dotenv()
 
 row_id = get_bot_data_id()
-bot_info: database.BotData = database.BotData.select().where(
-    database.BotData.id == row_id).get()
+bot_info: database.BotData = (
+    database.BotData.select().where(database.BotData.id == row_id).get()
+)
 
 try:
     xbox.client.authenticate(
-        login=os.getenv('xbox_u'),
-        password=os.getenv('xbox_p'),
+        login=os.getenv("xbox_u"),
+        password=os.getenv("xbox_p"),
     )
 except:
     logger.critical("ERROR: Unable to authenticate with XBOX!")
@@ -63,10 +69,11 @@ class PBCommandTree(app_commands.CommandTree):
         self.bot = bot
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
-        #blacklisted_users = [p.discordID for p in database.Blacklist]
+        # blacklisted_users = [p.discordID for p in database.Blacklist]
         if interaction.user.avatar is None:
             await interaction.response.send_message(
-                "Due to a discord limitation, you must have an avatar set to use this command.")
+                "Due to a discord limitation, you must have an avatar set to use this command."
+            )
             return False
         """if interaction.user.id in blacklisted_users:
             await interaction.response.send_message(
@@ -76,7 +83,7 @@ class PBCommandTree(app_commands.CommandTree):
         return True
 
     async def on_error(
-            self, interaction: discord.Interaction, error: app_commands.AppCommandError
+        self, interaction: discord.Interaction, error: app_commands.AppCommandError
     ):
         await on_app_command_error_(self.bot, interaction, error)
 
@@ -95,10 +102,11 @@ class PortalBot(commands.Bot):
             status=discord.Status.online,
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name=f"over the Portal! | {bot_info.prefix}help")
+                name=f"over the Portal! | {bot_info.prefix}help",
+            ),
         )
         self.help_command = None
-        #self.add_check(self.check)
+        # self.add_check(self.check)
         self._start_time = uptime
 
     async def on_ready(self):
@@ -115,10 +123,10 @@ class PortalBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         with alive_bar(
-                len(get_extensions()),
-                ctrl_c=False,
-                bar="bubbles",
-                title="Initializing Cogs:",
+            len(get_extensions()),
+            ctrl_c=False,
+            bar="bubbles",
+            title="Initializing Cogs:",
         ) as bar:
 
             for ext in get_extensions():
@@ -135,7 +143,8 @@ class PortalBot(commands.Bot):
     async def is_owner(self, user: discord.User):
         database.db.connect(reuse_if_open=True)
         query = database.Administrators.select().where(
-            (database.Administrators.TierLevel >= 3) & (database.Administrators.discordID == user.id)
+            (database.Administrators.TierLevel >= 3)
+            & (database.Administrators.discordID == user.id)
         )
         if query.exists():
             return True
@@ -154,7 +163,9 @@ class PortalBot(commands.Bot):
 
         version = ...  # type: str
         if current_branch == "HEAD":
-            current_tag = repo.describe(committish=current_commit, describe_strategy=GIT_DESCRIBE_TAGS)
+            current_tag = repo.describe(
+                committish=current_commit, describe_strategy=GIT_DESCRIBE_TAGS
+            )
             version = f"{current_tag} (stable)"
         else:
             version = "development"
@@ -179,7 +190,7 @@ class PortalBot(commands.Bot):
 
 bot = PortalBot(time.time())
 
-if os.getenv('sentry_dsn') is not None:
+if os.getenv("sentry_dsn") is not None:
     sentry_logging = LoggingIntegration(
         level=logging.INFO,  # Capture info and above as breadcrumbs
         event_level=logging.ERROR,  # Send errors as events
@@ -188,7 +199,7 @@ if os.getenv('sentry_dsn') is not None:
     # Traceback tracking, DO NOT MODIFY THIS
     use_sentry(
         bot,
-        dsn=os.getenv('sentry_dsn'),
+        dsn=os.getenv("sentry_dsn"),
         traces_sample_rate=1.0,
         integrations=[FlaskIntegration(), sentry_logging],
     )
@@ -196,8 +207,8 @@ if os.getenv('sentry_dsn') is not None:
 initialize_db(bot)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
-        bot.run(os.getenv('token'))
+        bot.run(os.getenv("token"))
     except Exception as e:
         _log.exception(e)
