@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands, ui
 from core.logging_module import get_log  # Import your logging module
+from core.checks import slash_is_realm_op, slash_owns_realm_channel
 
 _log = get_log(__name__)
 
@@ -114,7 +115,7 @@ class HelpCMD(commands.Cog):
             categorized_commands[parent_name].append((command, admin_level))
 
         return categorized_commands
-    
+
     def categorize_operator_commands(self):
         categorized_commands = {}
         for command in self.bot.tree.walk_commands():
@@ -236,7 +237,7 @@ class HelpCMD(commands.Cog):
                 "Sorry, something went wrong while trying to display the admin help menu.",
                 ephemeral=True,
             )
-            
+
     # Operator help command
     @help_group.command(description="Display the operator help menu.")
     async def operator(self, interaction: discord.Interaction):
