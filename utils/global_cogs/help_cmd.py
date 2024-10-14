@@ -90,74 +90,54 @@ class HelpCMD(commands.Cog):
         description="Help commands",
     )
 
-    def categorize_commands(self, admin_only=False):
+    def categorize_commands(self, admin_only=False, operator_only=False):
         categorized_commands = {}
+
         for command in self.bot.tree.walk_commands():
             command_checks = getattr(command, "checks", [])
             admin_level = None
-
-            for check in command_checks:
-                if check.__closure__:
-                    for closure_cell in check.__closure__:
-                        check_value = closure_cell.cell_contents
-                        if isinstance(check_value, int):
-                            admin_level = check_value
-                            break
-
-            if admin_only and admin_level is None:
-                continue
-            if not admin_only and admin_level is not None:
-                continue
-
-            parent_name = command.parent.name if command.parent else "General"
-            if parent_name not in categorized_commands:
-                categorized_commands[parent_name] = []
-            categorized_commands[parent_name].append((command, admin_level))
-
-        return categorized_commands
-
-    def categorize_operator_commands(self):
-        categorized_commands = {}
-
-        for command in self.bot.tree.walk_commands():
-            command_checks = getattr(command, "checks", [])
             is_operator_command = False
 
-            # Loop through each check in the command
+            # Detect admin and operator commands
             for check in command_checks:
                 if check.__closure__:
                     for closure_cell in check.__closure__:
                         check_value = closure_cell.cell_contents
 
-                        # Log the value being checked for debugging
-                        _log.info(
-                            f"Checking command: {command.name} with check value: {check_value}"
-                        )
+                        # Detect admin level
+                        if isinstance(check_value, int):
+                            admin_level = check_value
 
-                        # Check if it matches the specific decorators
+                        # Detect operator-level commands (like Realm OP or Moderator)
                         if check_value in [slash_is_realm_op, slash_owns_realm_channel]:
                             is_operator_command = True
-                            break
 
-                        # Check if it matches roles like "Moderator" or "Realm OP"
                         if isinstance(check_value, str) and check_value in [
                             "Realm OP",
                             "Moderator",
                         ]:
                             is_operator_command = True
-                            break
 
-                        # If realm-specific OP roles, such as "{realm_name} OP"
                         if isinstance(check_value, str) and check_value.endswith(" OP"):
                             is_operator_command = True
-                            break
 
-            # If the command is operator-level, categorize it
-            if is_operator_command:
-                parent_name = command.parent.name if command.parent else "General"
-                if parent_name not in categorized_commands:
-                    categorized_commands[parent_name] = []
-                categorized_commands[parent_name].append(command)
+            # Filtering logic
+            if admin_only and (admin_level is None):
+                continue
+            if operator_only and not is_operator_command:
+                continue
+            if (
+                not admin_only
+                and not operator_only
+                and (admin_level is not None or is_operator_command)
+            ):
+                continue
+
+            parent_name = command.parent.name if command.parent else "General"
+            if parent_name not in categorized_commands:
+                categorized_commands[parent_name] = []
+
+            categorized_commands[parent_name].append((command, admin_level))
 
         return categorized_commands
 
@@ -176,7 +156,9 @@ class HelpCMD(commands.Cog):
     async def general(self, interaction: discord.Interaction):
         try:
             self._log.info(f"{interaction.user} requested the general help command.")
-            categorized_commands = self.categorize_commands(admin_only=False)
+            categorized_commands = self.categorize_commands(
+                admin_only=False, operator_only=False
+            )
             command_groups = [
                 (category, commands_list)
                 for category, commands_list in categorized_commands.items()
@@ -264,7 +246,7 @@ class HelpCMD(commands.Cog):
     async def operator(self, interaction: discord.Interaction):
         try:
             self._log.info(f"{interaction.user} requested the operator help command.")
-            categorized_commands = self.categorize_operator_commands()
+            categorized_commands = self.categorize_commands(operator_only=True)
             command_groups = [
                 (category, commands_list)
                 for category, commands_list in categorized_commands.items()
