@@ -127,6 +127,7 @@ class HelpCMD(commands.Cog):
                 if check.__closure__:
                     for closure_cell in check.__closure__:
                         check_value = closure_cell.cell_contents
+                        _log.info(check_value)
                         if check_value in [slash_is_realm_op, slash_owns_realm_channel]:
                             is_operator_command = True
                             break
