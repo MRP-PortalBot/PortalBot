@@ -64,7 +64,7 @@ try:
     )
 
     # Log the raw response
-    _log.info(f"Raw response: {response}")
+    print(f"Raw response: {response}")
 
     # Check if the response is None or invalid
     if response is None:
