@@ -54,7 +54,9 @@ class ScoreIncrement(commands.Cog):
         score_increment = random.randint(10, 30)
 
         try:
-            _log.debug(f"Connecting to database to update score for {username}.")
+            server_score_log.debug(
+                f"Connecting to database to update score for {username}."
+            )
             database.db.connect(reuse_if_open=True)
 
             server_score, created = database.ServerScores.get_or_create(

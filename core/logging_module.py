@@ -72,8 +72,14 @@ def get_log(
             "%(asctime)s [%(levelname)s] %(name)s: %(message)s", "%Y-%m-%d %H:%M:%S"
         )
 
-        # If the name is "__main__" or "__name__", log to logs/daily
-        log_dir = f"logs/daily" if name in ["__main__", "__name__"] else f"logs/{name}"
+        # If the logger is named "server_score" or other specific names, put it in its own folder
+        if name == "server_score":
+            log_dir = f"logs/{name}"
+        elif name == "leveled_roles":
+            log_dir = f"logs/{name}"
+        else:
+            log_dir = "logs/daily"
+
         os.makedirs(log_dir, exist_ok=True)
 
         # Log file name based on the current date
