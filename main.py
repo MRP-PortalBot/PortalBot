@@ -68,7 +68,7 @@ try:
 
     _log.info("Attempting to authenticate with Xbox Live...")
 
-    response = xbox.client.authenticate(MS_LOGIN=login, MS_PASSWD=password)
+    response = xbox.client.authenticate(login, password)
     _log.debug(f"Raw Xbox API response: {response}")
 
     # Check if the response is None or invalid
