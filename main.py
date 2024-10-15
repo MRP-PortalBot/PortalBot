@@ -37,7 +37,7 @@ from core.special_methods import (
 
 # Setup logging
 logger = logging.getLogger("discord")
-logger.setLevel(logging.debug)
+logger.setLevel(logging.INFO)
 
 _log = get_log(__name__)
 _log.info("Starting PortalBot...")
@@ -64,7 +64,7 @@ try:
     )
 
     # Log the raw response
-    _log.debug(f"Raw response: {response}")
+    _log.info(f"Raw response: {response}")
 
     # Check if the response is None or invalid
     if response is None:
