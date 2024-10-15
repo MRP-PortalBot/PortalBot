@@ -60,8 +60,6 @@ except Exception as e:
 try:
     login = os.getenv("xbox_u")
     password = os.getenv("xbox_p")
-    print(login)
-    print(password)
 
     if not login or not password:
         raise ValueError(
@@ -70,10 +68,7 @@ try:
 
     _log.info("Attempting to authenticate with Xbox Live...")
 
-    response = xbox.client.authenticate(
-        login=login,
-        password=password,
-    )
+    response = xbox.client.authenticate(login, password)
 
     _log.debug(f"Raw Xbox API response: {response}")
 
