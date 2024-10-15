@@ -37,7 +37,7 @@ from core.special_methods import (
 
 # Setup logging
 logger = logging.getLogger("discord")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.debug)
 
 _log = get_log(__name__)
 _log.info("Starting PortalBot...")
