@@ -58,8 +58,8 @@ except Exception as e:
 
 # Xbox authentication
 try:
-    login = os.getenv("xbox_u")
-    password = os.getenv("xbox_p")
+    login = os.getenv("MS_LOGIN")
+    password = os.getenv("MS_PASSWD")
 
     if not login or not password:
         raise ValueError(
