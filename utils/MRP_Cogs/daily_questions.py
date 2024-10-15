@@ -46,13 +46,19 @@ class DailyCMD(commands.Cog):
     @tasks.loop(hours=24)  # This loop will be rescheduled manually
     async def post_question(self):
         while True:
-            # First post at 10:00 AM CST
-            await self.wait_until_time(10, 0)  # Wait until 10:00 AM
-            await self.send_daily_question()
+            try:
+                # Ensure database connection is open
+                database.ensure_database_connection()
 
-            # Second post at 6:00 PM CST
-            await self.wait_until_time(18, 0)  # Wait until 6:00 PM
-            await self.send_daily_question()
+                # First post at 10:00 AM CST
+                await self.wait_until_time(10, 0)  # Wait until 10:00 AM
+                await self.send_daily_question()
+
+                # Second post at 6:00 PM CST
+                await self.wait_until_time(18, 0)  # Wait until 6:00 PM
+                await self.send_daily_question()
+            except Exception as e:
+                _log.error(f"Error in post_question task: {e}")
 
     async def wait_until_time(self, hour, minute):
         """Waits until the next occurrence of the given hour and minute in CST."""
@@ -68,15 +74,20 @@ class DailyCMD(commands.Cog):
         await asyncio.sleep(seconds_until_target)
 
     async def send_daily_question(self):
+        # Ensure database connection is open
+        database.ensure_database_connection()
+
         """Send a daily question to the configured channel and store the question ID."""
         row_id = get_bot_data_id()
-        q: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
+        q: database.BotData = (
+            database.BotData.select().where(database.BotData.id == row_id).get()
+        )
         send_channel = self.bot.get_channel(q.daily_question_channel)
 
         # Check if all questions have been used (i.e., usage is True)
-        unused_questions_count = database.Question.select().where(
-            database.Question.usage == False
-        ).count()
+        unused_questions_count = (
+            database.Question.select().where(database.Question.usage == False).count()
+        )
 
         if unused_questions_count == 0:
             # Reset all questions to unused (usage = False) if all have been used
@@ -84,9 +95,13 @@ class DailyCMD(commands.Cog):
             _log.info("All questions were used, resetting all to unused.")
 
         # Now, select a random unused question
-        question: database.Question = database.Question.select().where(
-            database.Question.usage == False
-        ).order_by(fn.Rand()).limit(1).get()
+        question: database.Question = (
+            database.Question.select()
+            .where(database.Question.usage == False)
+            .order_by(fn.Rand())
+            .limit(1)
+            .get()
+        )
 
         # Mark the selected question as used
         question.usage = True
@@ -96,7 +111,7 @@ class DailyCMD(commands.Cog):
         embed = discord.Embed(
             title="❓ QUESTION OF THE DAY ❓",
             description=f"**{question.question}**",
-            color=0xb10d9f
+            color=0xB10D9F,
         )
         embed.set_footer(text=f"Question ID: {question.id}")
         await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
@@ -106,7 +121,6 @@ class DailyCMD(commands.Cog):
         q.last_question_posted = question.id
         q.last_question_posted_time = datetime.now(pytz.timezone("America/Chicago"))
         q.save()
-
 
     @post_question.before_loop
     async def before_post_question(self):
@@ -155,12 +169,14 @@ class DailyCMD(commands.Cog):
         """Repeat the most recent daily question based on the last_question_posted."""
         try:
             _log.info(f"{interaction.user} triggered the repeat command.")
-            
+
             row_id = get_bot_data_id()
             _log.debug(f"Retrieved bot data row ID: {row_id}")
 
             # Fetch the bot data to get the last posted question's ID
-            bot_data: database.BotData = database.BotData.select().where(database.BotData.id == row_id).get()
+            bot_data: database.BotData = (
+                database.BotData.select().where(database.BotData.id == row_id).get()
+            )
             last_question_id = bot_data.last_question_posted
             _log.debug(f"Retrieved last_question_posted: {last_question_id}")
 
@@ -171,7 +187,9 @@ class DailyCMD(commands.Cog):
 
             # Fetch the question from the database using the stored ID
             question: database.Question = database.Question.get_by_id(last_question_id)
-            _log.info(f"Repeating question ID: {last_question_id}, Question: {question.question}")
+            _log.info(
+                f"Repeating question ID: {last_question_id}, Question: {question.question}"
+            )
 
             # Create and send the embed for the repeated question
             embed = discord.Embed(
@@ -184,11 +202,15 @@ class DailyCMD(commands.Cog):
             _log.info(f"Sent the repeated question to {interaction.user}.")
 
         except database.DoesNotExist:
-            _log.error(f"No question found for last_question_posted ID: {last_question_id}.")
+            _log.error(
+                f"No question found for last_question_posted ID: {last_question_id}."
+            )
             await interaction.response.send_message("Question not found.")
         except Exception as e:
             _log.error(f"Error in repeating question: {e}", exc_info=True)
-            await interaction.response.send_message("An error occurred while repeating the question.")
+            await interaction.response.send_message(
+                "An error occurred while repeating the question."
+            )
 
     @DQ.command(description="Modify a question!")
     @checks.slash_is_bot_admin_2

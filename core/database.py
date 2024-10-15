@@ -10,7 +10,9 @@ from peewee import (
     BooleanField,
     TimestampField,
     MySQLDatabase,
+    OperationalError,
 )
+from playhouse.shortcuts import ReconnectMixin
 from flask import Flask
 from dotenv import load_dotenv
 
@@ -48,6 +50,28 @@ try:
 except Exception as e:
     _log.error(f"Error connecting to the database: {e}")
     raise SystemExit(e)  # Exit the program if the database connection fails
+
+
+class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
+    pass
+
+
+try:
+    db = ReconnectMySQLDatabase(
+        DB_Database, user=DB_user, password=DB_password, host=DB_IP, port=int(DB_Port)
+    )
+except Exception as e:
+    _log.error(f"Error connecting to the database: {e}")
+    raise SystemExit(e)  # Exit the program if the database connection fails
+
+
+def ensure_database_connection():
+    try:
+        if db.is_closed():
+            db.connect(reuse_if_open=True)
+    except OperationalError as e:
+        _log.error(f"Error connecting to the database: {e}")
+        raise
 
 
 # Define function to iterate through tables and create them if necessary
