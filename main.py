@@ -68,7 +68,7 @@ try:
 
     _log.info("Attempting to authenticate with Xbox Live...")
 
-    response = xbox.client.authenticate(login, password)
+    response = xbox.client.authenticate("mrp.portalbot@gmail.com", "Portalbot_MRP")
 
     _log.debug(f"Raw Xbox API response: {response}")
 
