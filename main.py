@@ -60,6 +60,8 @@ except Exception as e:
 try:
     login = os.getenv("xbox_u")
     password = os.getenv("xbox_p")
+    print(login)
+    print(password)
 
     if not login or not password:
         raise ValueError(
