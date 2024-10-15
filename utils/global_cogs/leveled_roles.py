@@ -65,18 +65,20 @@ class LeveledRoles(commands.Cog):
                     member.guild.roles, id=int(role_to_assign.RoleID)
                 )
 
-                # Debug logging for roles comparison
+                # Log current role and intended role to assign
                 leveled_roles_log.debug(
                     f"New level role: {discord_role} | Member's current roles: {[role.name for role in member.roles]}"
                 )
 
-                # Remove all other leveled roles before adding the new one
-                await self.remove_previous_leveled_roles(member, guild_id)
+                # Remove all other leveled roles except for the new one
+                await self.remove_previous_leveled_roles(
+                    member, guild_id, keep_role=discord_role
+                )
 
-                # Check if the role needs to be added
+                # Only assign the new role if it's not already assigned
                 if discord_role and discord_role not in member.roles:
                     leveled_roles_log.info(
-                        f"Assigning {discord_role.name} to {member.display_name} (Level {new_level})."
+                        f"Assigning {discord_role.name} to {member.display_name} for reaching Level {new_level}."
                     )
                     await member.add_roles(discord_role)
 
@@ -100,38 +102,29 @@ class LeveledRoles(commands.Cog):
 
     @with_db_connection
     async def remove_previous_leveled_roles(
-        self, member: discord.Member, guild_id: int
+        self, member: discord.Member, guild_id: int, keep_role: discord.Role = None
     ):
         """
-        Remove all previously assigned leveled roles for a member in a guild to ensure they have only one leveled role at a time.
+        Removes previous leveled roles from a user, excluding the role they should keep.
         """
         try:
-            leveled_roles_log.info(
-                f"Removing previous leveled roles for {member.display_name}."
-            )
-
             leveled_roles = database.LeveledRoles.select().where(
                 database.LeveledRoles.ServerID == str(guild_id)
             )
 
-            roles_to_remove = []
             for role_entry in leveled_roles:
                 discord_role = discord.utils.get(
                     member.guild.roles, id=int(role_entry.RoleID)
                 )
-                if discord_role and discord_role in member.roles:
-                    roles_to_remove.append(discord_role)
-
-            # Only remove roles if there are any to remove
-            if roles_to_remove:
-                await member.remove_roles(*roles_to_remove)
-                leveled_roles_log.info(
-                    f"Removed previous leveled roles for {member.display_name}."
-                )
-            else:
-                leveled_roles_log.debug(
-                    f"No previous leveled roles to remove for {member.display_name}."
-                )
+                if (
+                    discord_role
+                    and discord_role in member.roles
+                    and discord_role != keep_role
+                ):
+                    await member.remove_roles(discord_role)
+                    leveled_roles_log.info(
+                        f"Removed role {discord_role.name} from {member.display_name}."
+                    )
 
         except Exception as e:
             leveled_roles_log.error(
