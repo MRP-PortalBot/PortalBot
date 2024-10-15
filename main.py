@@ -58,22 +58,29 @@ except Exception as e:
 
 # Xbox authentication
 try:
-    response = xbox.client.authenticate(
-        login=os.getenv("MS_LOGIN"),
-        password=os.getenv("MS_PASSWD"),
-    )
+    login = os.getenv("MS_LOGIN")
+    password = os.getenv("MS_PASSWD")
+
+    if not login or not password:
+        raise ValueError(
+            "Missing Xbox credentials. Please set xbox_u and xbox_p environment variables."
+        )
+
+    _log.info("Attempting to authenticate with Xbox Live...")
+
+    response = xbox.client.authenticate(login=login, password=password)
 
     # Log the raw response
     print(f"Raw response: {response}")
 
     # Check if the response is None or invalid
-    if response is None:
-        raise ValueError("No response received from Xbox API.")
+    if response is None or not isinstance(response, dict):
+        raise ValueError("Invalid or empty response received from Xbox API.")
 
-    # Further handle the response as needed
     _log.info("Authenticated with Xbox successfully.")
-except json.JSONDecodeError as json_error:
-    _log.critical(f"Invalid JSON response: {json_error}")
+
+except json.JSONDecodeError as json_err:
+    _log.critical(f"Authentication failed: Invalid JSON response: {json_err}")
 except HTTPError as http_err:
     _log.critical(f"HTTP error occurred: {http_err}")
 except ValueError as val_err:
