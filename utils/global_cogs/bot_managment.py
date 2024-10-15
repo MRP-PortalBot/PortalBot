@@ -1,13 +1,14 @@
 import subprocess
 import sys
 from pathlib import Path
-import logging
 from typing import Literal
 
 import discord
 from discord import app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
+
+from core.logging_module import get_log
 
 from core import database
 from core.checks import (
@@ -21,8 +22,7 @@ from core.checks import (
 load_dotenv()
 
 # Logger setup
-_log = logging.getLogger(__name__)
-_log.setLevel(logging.INFO)  # Ensure logging level is set appropriately
+_log = get_log(__name__)
 
 
 def get_extensions():
@@ -201,6 +201,60 @@ class CoreBotConfig(commands.Cog):
             if not database.db.is_closed():
                 database.db.close()
                 _log.debug("Database connection closed after adding/updating user.")
+
+    # Helper function to fetch bot data
+    async def get_bot_data(self):
+        return database.BotData.get_or_none(
+            database.BotData.id == 1
+        )  # Fetch the bot data row (assuming a single row for config)
+
+    # Group for bot configuration commands
+    BC = app_commands.Group(
+        name="configure",
+        description="Configure the bot's settings.",
+    )
+
+    # Command to set the cooldown time
+    @BC.command(
+        name="set_cooldown",
+        description="Set the server score cooldown time (in seconds).",
+    )
+    @slash_is_bot_admin_3
+    async def set_cooldown(self, interaction: discord.Interaction, cooldown: int):
+        bot_data = await self.get_bot_data()
+        if bot_data:
+            bot_data.cooldown_time = cooldown
+            bot_data.save()
+            await interaction.response.send_message(
+                f"Cooldown time updated to {cooldown} seconds."
+            )
+            _log.info(
+                f"Cooldown time updated to {cooldown} seconds by {interaction.user}."
+            )
+        else:
+            await interaction.response.send_message("BotData not found.")
+            _log.error(
+                f"BotData not found while setting cooldown by {interaction.user}."
+            )
+
+    # Command to set points per message
+    @BC.command(
+        name="set_points",
+        description="Set the server score points per message, Set the min (max = min * 3).",
+    )
+    @slash_is_bot_admin_3
+    async def set_points(self, interaction: discord.Interaction, points: int):
+        bot_data = await self.get_bot_data()
+        if bot_data:
+            bot_data.points_per_message = points
+            bot_data.save()
+            await interaction.response.send_message(
+                f"Points per message updated to {points}."
+            )
+            _log.info(f"Points per message updated to {points} by {interaction.user}.")
+        else:
+            await interaction.response.send_message("BotData not found.")
+            _log.error(f"BotData not found while setting points by {interaction.user}.")
 
 
 async def setup(bot):

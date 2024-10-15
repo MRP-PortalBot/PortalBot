@@ -19,39 +19,41 @@ class ScoreIncrement(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    # Helper function to get the cooldown and points from the BotData
+    async def get_bot_data(self):
+        return database.BotData.get_or_none(database.BotData.id == 1)
+
     @commands.Cog.listener()
     async def on_message(self, message):
-        """
-        Listener that increments score for each message sent by a user
-        with a random point increment (10 to 30 points) and a cooldown of 1 to 3 minutes.
-        Sends a level-up message when the user reaches a new level.
-        """
         if message.author.bot or message.guild is None:
-            return  # Ignore messages from bots or DMs
+            return  # Ignore bot messages or messages from DMs
+
+        bot_data = await self.get_bot_data()
+        if not bot_data:
+            return  # Skip if bot data is not found
+
+        cooldown_time = bot_data.cooldown_time  # Get the cooldown time from the database
+        points_per_message = bot_data.points_per_message  # Get points per message from the database
 
         user_id = str(message.author.id)
         username = str(message.author.name)
         current_time = time.time()
 
-        # Get the cooldown (in seconds)
-        cooldown = random.randint(60, 180)
-
-        # Check if the user is on cooldown
         if user_id in last_message_time:
             last_time = last_message_time[user_id]
             time_diff = current_time - last_time
 
-            if time_diff < cooldown:
-                server_score_log.info(
-                    f"User {username} is still on cooldown ({cooldown - time_diff:.2f} seconds left)."
+            if time_diff < cooldown_time:
+                _log.info(
+                    f"User {username} is still on cooldown ({cooldown_time - time_diff:.2f} seconds left)."
                 )
                 return
 
-        # Log that the user is allowed to gain score
-        server_score_log.info(f"User {username} is eligible to gain score.")
+        # Log that the user is eligible to gain score
+        _log.info(f"User {username} is eligible to gain score.")
 
-        # If cooldown has passed or it's the user's first message, update the score
-        score_increment = random.randint(10, 30)
+        # If cooldown has passed, update the score
+        score_increment = random.randint(points_per_message, points_per_message * 3)
 
         try:
             server_score_log.debug(

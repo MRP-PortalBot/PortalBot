@@ -139,6 +139,8 @@ class BotData(BaseModel):
     other_bot_id = BigIntegerField(default=0)  # Other bot ID (if linked)
     bot_id = BigIntegerField(default=0)  # Discord Bot ID
     server_id = BigIntegerField(default=0)  # Server ID where the bot is active
+    cooldown_time = IntegerField(default=120)  # Default is 120 seconds
+    points_per_message = IntegerField(default=10)  # Default is 10 points
 
 
 class Tag(BaseModel):
