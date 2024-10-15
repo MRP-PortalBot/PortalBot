@@ -32,8 +32,12 @@ class ScoreIncrement(commands.Cog):
         if not bot_data:
             return  # Skip if bot data is not found
 
-        cooldown_time = bot_data.cooldown_time  # Get the cooldown time from the database
-        points_per_message = bot_data.points_per_message  # Get points per message from the database
+        cooldown_time = (
+            bot_data.cooldown_time
+        )  # Get the cooldown time from the database
+        points_per_message = (
+            bot_data.points_per_message
+        )  # Get points per message from the database
 
         user_id = str(message.author.id)
         username = str(message.author.name)
@@ -44,13 +48,13 @@ class ScoreIncrement(commands.Cog):
             time_diff = current_time - last_time
 
             if time_diff < cooldown_time:
-                _log.info(
+                server_score_log.info(
                     f"User {username} is still on cooldown ({cooldown_time - time_diff:.2f} seconds left)."
                 )
                 return
 
         # Log that the user is eligible to gain score
-        _log.info(f"User {username} is eligible to gain score.")
+        server_score_log.info(f"User {username} is eligible to gain score.")
 
         # If cooldown has passed, update the score
         score_increment = random.randint(points_per_message, points_per_message * 3)
