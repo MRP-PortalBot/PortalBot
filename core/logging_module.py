@@ -38,13 +38,16 @@ class ColourFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-def get_log(name: str, level: int = logging.DEBUG) -> logging.Logger:
+def get_log(
+    name: str, level: int = logging.DEBUG, console: bool = True
+) -> logging.Logger:
     """
     Creates and configures a logger.
 
     Args:
         name (str): The name of the logger.
         level (int): Logging level. Defaults to DEBUG.
+        console (bool): Whether to log to the console. Defaults to True.
 
     Returns:
         logging.Logger: Configured logger object.
@@ -54,27 +57,30 @@ def get_log(name: str, level: int = logging.DEBUG) -> logging.Logger:
 
     # Prevent adding multiple handlers if logger already has handlers
     if not logger.hasHandlers():
-        # Console Handler with ColourFormatter
-        stream_formatter = ColourFormatter()
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(stream_formatter)
-        stream_handler.setLevel(logging.DEBUG)  # Ensure all logs show in the console
-        logger.addHandler(stream_handler)
+        # Console Handler with ColourFormatter (only add if console is True)
+        if console:
+            stream_formatter = ColourFormatter()
+            stream_handler = logging.StreamHandler()
+            stream_handler.setFormatter(stream_formatter)
+            stream_handler.setLevel(
+                logging.DEBUG
+            )  # Ensure all logs show in the console
+            logger.addHandler(stream_handler)
 
         # File Handler without colour for persistent logs
         file_formatter = logging.Formatter(
             "%(asctime)s [%(levelname)s] %(name)s: %(message)s", "%Y-%m-%d %H:%M:%S"
         )
-        log_dir = "logs/daily"
+
+        # If the name is "__main__" or "__name__", log to logs/daily
+        log_dir = f"logs/daily" if name in ["__main__", "__name__"] else f"logs/{name}"
         os.makedirs(log_dir, exist_ok=True)
 
         # Log file name based on the current date
         file_name = datetime.now().strftime("%Y-%m-%d.log")
         file_handler = logging.FileHandler(f"{log_dir}/{file_name}")
         file_handler.setFormatter(file_formatter)
-        file_handler.setLevel(
-            logging.DEBUG
-        )  # Set to capture only ERROR and above in file
+        file_handler.setLevel(logging.DEBUG)  # Set to capture DEBUG and above in file
         logger.addHandler(file_handler)
 
     return logger

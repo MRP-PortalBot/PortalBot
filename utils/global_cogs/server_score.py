@@ -9,6 +9,7 @@ from core.logging_module import get_log
 from core.common import calculate_level
 
 _log = get_log(__name__)
+server_score_log = get_log("server_score", console=False)
 
 # Create a dictionary to store the last message timestamp for each user
 last_message_time = {}
@@ -41,13 +42,13 @@ class ScoreIncrement(commands.Cog):
             time_diff = current_time - last_time
 
             if time_diff < cooldown:
-                _log.info(
+                server_score_log.info(
                     f"User {username} is still on cooldown ({cooldown - time_diff:.2f} seconds left)."
                 )
                 return
 
         # Log that the user is allowed to gain score
-        _log.info(f"User {username} is eligible to gain score.")
+        server_score_log.info(f"User {username} is eligible to gain score.")
 
         # If cooldown has passed or it's the user's first message, update the score
         score_increment = random.randint(10, 30)
@@ -66,7 +67,7 @@ class ScoreIncrement(commands.Cog):
 
             # Increment the score
             server_score.Score += score_increment
-            _log.info(
+            server_score_log.info(
                 f"{username} earned {score_increment} points. Total score is now {server_score.Score}."
             )
 
@@ -82,7 +83,7 @@ class ScoreIncrement(commands.Cog):
 
             # Check if the user leveled up
             if new_level > previous_level:
-                _log.info(f"{username} leveled up to {new_level}.")
+                server_score_log.info(f"{username} leveled up to {new_level}.")
 
                 # Fetch and assign the role for the new level
                 role_name = await self.get_role_for_level(new_level, message.guild)
@@ -90,7 +91,7 @@ class ScoreIncrement(commands.Cog):
                     new_role = discord.utils.get(message.guild.roles, name=role_name)
                     if new_role:
                         await message.author.add_roles(new_role)
-                        _log.info(
+                        server_score_log.info(
                             f"Assigned role '{role_name}' to {username} for reaching level {new_level}."
                         )
 
@@ -99,7 +100,9 @@ class ScoreIncrement(commands.Cog):
                 )
 
         except database.ServerScores.DoesNotExist:
-            _log.error(f"Score record not found for {username}. Creating new entry.")
+            server_score_log.error(
+                f"Score record not found for {username}. Creating new entry."
+            )
             initial_score = score_increment
             new_level, progress, next_level_score = calculate_level(initial_score)
 
@@ -111,17 +114,19 @@ class ScoreIncrement(commands.Cog):
                 Level=new_level,
                 Progress=next_level_score,
             )
-            _log.info(
+            server_score_log.info(
                 f"Created new score record for {username} with initial score {initial_score}."
             )
 
         except Exception as e:
-            _log.error(f"Error processing score increment for {username}: {e}")
+            server_score_log.error(
+                f"Error processing score increment for {username}: {e}"
+            )
 
         finally:
             if not database.db.is_closed():
                 database.db.close()
-                _log.debug("Database connection closed.")
+                server_score_log.debug("Database connection closed.")
 
         # Update the last_message_time dictionary with the current time
         last_message_time[user_id] = current_time
@@ -131,7 +136,9 @@ class ScoreIncrement(commands.Cog):
         Fetch the role name associated with the user's new level.
         """
         try:
-            _log.debug(f"Fetching role for level {level} in guild {guild.name}.")
+            server_score_log.debug(
+                f"Fetching role for level {level} in guild {guild.name}."
+            )
             database.db.connect(reuse_if_open=True)
             leveled_role = database.LeveledRoles.get(
                 database.LeveledRoles.Level == level
@@ -139,17 +146,21 @@ class ScoreIncrement(commands.Cog):
             return leveled_role.RoleName if leveled_role else None
 
         except database.LeveledRoles.DoesNotExist:
-            _log.warning(f"No role found for level {level} in guild {guild.name}.")
+            server_score_log.warning(
+                f"No role found for level {level} in guild {guild.name}."
+            )
             return None
 
         except Exception as e:
-            _log.error(f"Error fetching role for level {level}: {e}")
+            server_score_log.error(f"Error fetching role for level {level}: {e}")
             return None
 
         finally:
             if not database.db.is_closed():
                 database.db.close()
-                _log.debug("Database connection closed after fetching role.")
+                server_score_log.debug(
+                    "Database connection closed after fetching role."
+                )
 
 
 # Setup the cog
