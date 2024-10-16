@@ -267,7 +267,11 @@ class CoreBotConfig(commands.Cog):
     ):
         bot_data = await self.get_bot_data()
         if bot_data:
-            blocked_channels = bot_data.get_blocked_channels()
+            blocked_channels = bot_data.get_blocked_channels()  # This returns a list
+            blocked_channels = [
+                int(channel_id) for channel_id in blocked_channels
+            ]  # Convert all elements to int
+
             if channel.id not in blocked_channels:
                 blocked_channels.append(channel.id)
                 bot_data.set_blocked_channels(blocked_channels)
