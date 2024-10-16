@@ -269,12 +269,12 @@ class CoreBotConfig(commands.Cog):
         bot_data = await self.get_bot_data()
         if bot_data:
             try:
-                # Deserialize blocked_channels into a list
-                blocked_channels = (
-                    json.loads(bot_data.blocked_channels)
-                    if bot_data.blocked_channels
-                    else []
-                )
+                # Ensure blocked_channels is a valid JSON list or initialize it as an empty list
+                if not bot_data.blocked_channels:
+                    blocked_channels = []
+                else:
+                    # Deserialize blocked_channels into a list
+                    blocked_channels = json.loads(bot_data.blocked_channels)
 
                 # Ensure all elements are integers
                 blocked_channels = [int(channel_id) for channel_id in blocked_channels]
@@ -296,7 +296,7 @@ class CoreBotConfig(commands.Cog):
                         f"Channel {channel.mention} is already in the blocked list."
                     )
 
-            except ValueError as e:
+            except (ValueError, json.JSONDecodeError) as e:
                 await interaction.response.send_message(
                     "Failed to parse blocked channels list."
                 )
