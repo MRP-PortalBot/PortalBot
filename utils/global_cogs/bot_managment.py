@@ -9,6 +9,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 from core.logging_module import get_log
+import json
 
 from core import database
 from core.checks import (
@@ -267,25 +268,40 @@ class CoreBotConfig(commands.Cog):
     ):
         bot_data = await self.get_bot_data()
         if bot_data:
-            blocked_channels = bot_data.get_blocked_channels()  # This returns a list
-            blocked_channels = [
-                int(channel_id) for channel_id in blocked_channels
-            ]  # Convert all elements to int
+            try:
+                # Deserialize blocked_channels into a list
+                blocked_channels = (
+                    json.loads(bot_data.blocked_channels)
+                    if bot_data.blocked_channels
+                    else []
+                )
 
-            if channel.id not in blocked_channels:
-                blocked_channels.append(channel.id)
-                bot_data.set_blocked_channels(blocked_channels)
-                bot_data.save()
+                # Ensure all elements are integers
+                blocked_channels = [int(channel_id) for channel_id in blocked_channels]
+
+                # Add the new channel if it's not already in the list
+                if channel.id not in blocked_channels:
+                    blocked_channels.append(channel.id)
+                    bot_data.blocked_channels = json.dumps(blocked_channels)
+                    bot_data.save()
+
+                    await interaction.response.send_message(
+                        f"Channel {channel.mention} has been added to the blocked list."
+                    )
+                    _log.info(
+                        f"Channel {channel.name} added to blocked list by {interaction.user}."
+                    )
+                else:
+                    await interaction.response.send_message(
+                        f"Channel {channel.mention} is already in the blocked list."
+                    )
+
+            except ValueError as e:
                 await interaction.response.send_message(
-                    f"Channel {channel.mention} has been added to the blocked list."
+                    "Failed to parse blocked channels list."
                 )
-                _log.info(
-                    f"Channel {channel.name} added to blocked list by {interaction.user}."
-                )
-            else:
-                await interaction.response.send_message(
-                    f"Channel {channel.mention} is already in the blocked list."
-                )
+                _log.error(f"Failed to parse blocked channels list: {e}")
+
         else:
             await interaction.response.send_message("BotData not found.")
             _log.error(
