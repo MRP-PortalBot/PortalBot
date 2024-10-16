@@ -256,6 +256,70 @@ class CoreBotConfig(commands.Cog):
             await interaction.response.send_message("BotData not found.")
             _log.error(f"BotData not found while setting points by {interaction.user}.")
 
+    # Command to add a blocked channel
+    @BC.command(
+        name="add_blocked_channel",
+        description="Add a channel to the block list for server score.",
+    )
+    @slash_is_bot_admin_3
+    async def add_blocked_channel(
+        self, interaction: discord.Interaction, channel: discord.TextChannel
+    ):
+        bot_data = await self.get_bot_data()
+        if bot_data:
+            blocked_channels = bot_data.get_blocked_channels()
+            if channel.id not in blocked_channels:
+                blocked_channels.append(channel.id)
+                bot_data.set_blocked_channels(blocked_channels)
+                bot_data.save()
+                await interaction.response.send_message(
+                    f"Channel {channel.mention} has been added to the blocked list."
+                )
+                _log.info(
+                    f"Channel {channel.name} added to blocked list by {interaction.user}."
+                )
+            else:
+                await interaction.response.send_message(
+                    f"Channel {channel.mention} is already in the blocked list."
+                )
+        else:
+            await interaction.response.send_message("BotData not found.")
+            _log.error(
+                f"BotData not found while adding blocked channel by {interaction.user}."
+            )
+
+    # Command to remove a blocked channel
+    @BC.command(
+        name="remove_blocked_channel",
+        description="Remove a channel from the block list for server score.",
+    )
+    @slash_is_bot_admin_3
+    async def remove_blocked_channel(
+        self, interaction: discord.Interaction, channel: discord.TextChannel
+    ):
+        bot_data = await self.get_bot_data()
+        if bot_data:
+            blocked_channels = bot_data.get_blocked_channels()
+            if channel.id in blocked_channels:
+                blocked_channels.remove(channel.id)
+                bot_data.set_blocked_channels(blocked_channels)
+                bot_data.save()
+                await interaction.response.send_message(
+                    f"Channel {channel.mention} has been removed from the blocked list."
+                )
+                _log.info(
+                    f"Channel {channel.name} removed from blocked list by {interaction.user}."
+                )
+            else:
+                await interaction.response.send_message(
+                    f"Channel {channel.mention} is not in the blocked list."
+                )
+        else:
+            await interaction.response.send_message("BotData not found.")
+            _log.error(
+                f"BotData not found while removing blocked channel by {interaction.user}."
+            )
+
 
 async def setup(bot):
     await bot.add_cog(CoreBotConfig(bot))

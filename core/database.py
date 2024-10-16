@@ -15,6 +15,7 @@ from peewee import (
 from playhouse.shortcuts import ReconnectMixin
 from flask import Flask
 from dotenv import load_dotenv
+import json
 
 from core.logging_module import get_log
 
@@ -141,6 +142,13 @@ class BotData(BaseModel):
     server_id = BigIntegerField(default=0)  # Server ID where the bot is active
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
     points_per_message = IntegerField(default=10)  # Default is 10 points
+    blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs
+
+    def get_blocked_channels(self):
+        return json.loads(self.blocked_channels)
+
+    def set_blocked_channels(self, channel_ids):
+        self.blocked_channels = json.dumps(channel_ids)
 
 
 class Tag(BaseModel):

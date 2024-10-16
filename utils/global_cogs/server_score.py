@@ -26,11 +26,17 @@ class ScoreIncrement(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.bot or message.guild is None:
-            return  # Ignore bot messages or messages from DMs
+            return  # Ignore messages from bots or DMs
 
-        bot_data = await self.get_bot_data()
-        if not bot_data:
-            return  # Skip if bot data is not found
+        # Fetch blocked channels from BotData
+        bot_data = database.BotData.get_or_none(database.BotData.id == 1)
+        if bot_data:
+            blocked_channels = bot_data.get_blocked_channels()
+            if message.channel.id in blocked_channels:
+                server_score_log.info(
+                    f"Message from {message.author.name} ignored in blocked channel {message.channel.name}."
+                )
+                return  # Ignore messages from blocked channels
 
         cooldown_time = (
             bot_data.cooldown_time
