@@ -160,6 +160,8 @@ class SuggestModalNEW(discord.ui.Modal, title="Suggest a Question"):
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
+            await interaction.response.defer()  # Defers the interaction to give more time
+
             # Create embed and log the question suggestion
             embed = discord.Embed(
                 title="Question Suggestion",
@@ -182,13 +184,22 @@ class SuggestModalNEW(discord.ui.Modal, title="Suggest a Question"):
                 f"Question '{self.short_description.value}' suggested by {interaction.user.display_name}."
             )
 
-            # Notify the user of success
-            await interaction.followup.send("Thank you for your suggestion!")
+            # Send the follow-up response
+            await interaction.followup.send(
+                "Thank you for your suggestion!", ephemeral=True
+            )
+
         except Exception as e:
             _log.exception("Error submitting question: %s", e)
-            await interaction.followup.send(
-                "An error occurred while submitting your suggestion.", ephemeral=True
-            )
+            try:
+                await interaction.followup.send(
+                    "An error occurred while submitting your suggestion.",
+                    ephemeral=True,
+                )
+            except discord.errors.NotFound:
+                _log.error(
+                    "Interaction follow-up failed because the webhook was not found."
+                )
 
 
 # View for users to submit a new question
