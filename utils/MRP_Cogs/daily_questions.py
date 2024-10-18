@@ -10,7 +10,7 @@ from core import common, database, checks
 from core.common import load_config, get_bot_data_id
 from core.pagination import paginate_embed
 from core.logging_module import get_log
-from main import PortalBot
+
 
 config, _ = load_config()
 _log = get_log(__name__)
@@ -31,12 +31,11 @@ def get_seconds_until(target_time):
 
 def renumber_display_order():
     try:
+        database.ensure_database_connection()  # Ensure the database is connected
         questions = database.Question.select().order_by(database.Question.id)
-        new_order = 1
-        for question in questions:
+        for new_order, question in enumerate(questions, start=1):
             question.display_order = new_order
             question.save()
-            new_order += 1
 
         _log.info("Questions have been renumbered successfully by display order.")
     except Exception as e:
@@ -107,13 +106,18 @@ class QuestionSuggestionManager(discord.ui.View):
             )
             embed.add_field(name="Question", value=q.question)
             embed.add_field(name="Added By", value=interaction.user.mention)
-            embed.set_footer(text=f"Question ID: {new_question.id}")
+            embed.set_footer(text=f"Question ID: {new_question.display_order}")
             await interaction.message.edit(
                 embed=embed, view=DisabledQuestionSuggestionManager()
             )
 
             await interaction.response.send_message(
                 "Operation Complete.", ephemeral=True
+            )
+        except database.QuestionSuggestionQueue.DoesNotExist:
+            _log.error("Question suggestion not found in the queue.")
+            await interaction.response.send_message(
+                "This question suggestion could not be found.", ephemeral=True
             )
         except Exception as e:
             _log.exception("Error adding question: %s", e)
@@ -322,7 +326,7 @@ class DailyCMD(commands.Cog):
             q.last_question_posted = question.display_order
             q.last_question_posted_time = datetime.now(pytz.timezone("America/Chicago"))
             q.save()
-        except database.DoesNotExist:
+        except database.Question.DoesNotExist:
             _log.error("Bot data or question not found in the database.")
         except Exception as e:
             _log.error(f"Error sending daily question: {e}", exc_info=True)
@@ -335,7 +339,7 @@ class DailyCMD(commands.Cog):
     @DQ.command()
     async def suggest(self, interaction: discord.Interaction):
         class SuggestModal(discord.ui.Modal, title="Suggest a Question"):
-            def __init__(self, bot: PortalBot):
+            def __init__(self, bot):
                 super().__init__(timeout=None)
                 self.bot = bot
 
@@ -432,7 +436,7 @@ class DailyCMD(commands.Cog):
             )
             _log.info(f"Sent the repeated question to {interaction.user}.")
 
-        except database.DoesNotExist:
+        except database.Question.DoesNotExist:
             _log.error(
                 f"No question found for last_question_posted ID: {last_question_id}."
             )
@@ -456,7 +460,7 @@ class DailyCMD(commands.Cog):
             await interaction.response.send_message(
                 f"Question {id} has been modified successfully."
             )
-        except database.DoesNotExist:
+        except database.Question.DoesNotExist:
             _log.error(f"Attempted to modify non-existent question ID {id}.")
             await interaction.response.send_message(
                 "ERROR: This question does not exist!"
@@ -513,7 +517,6 @@ class DailyCMD(commands.Cog):
     @DQ.command(description="List every question.")
     async def list(self, interaction: discord.Interaction, page: int = 1):
         """List all tags in the database"""
-
         renumber_display_order()
 
         def get_total_pages(page_size: int) -> int:
@@ -523,7 +526,11 @@ class DailyCMD(commands.Cog):
         async def populate_embed(embed: discord.Embed, page: int):
             """Used to populate the embed in list command"""
             embed.clear_fields()
-            questions = database.Question.select().paginate(page, 10)
+            questions = (
+                database.Question.select()
+                .order_by(database.Question.display_order)
+                .paginate(page, 10)
+            )
             if not questions.exists():
                 embed.add_field(name="No Questions", value="No questions found.")
             else:
