@@ -329,36 +329,48 @@ class DailyCMD(commands.Cog):
 
             async def on_submit(self, interaction: discord.Interaction):
                 try:
-                    row_id = get_bot_data_id()
-                    q: database.BotData = database.BotData.get_by_id(row_id)
-                    await interaction.response.defer(thinking=True)
+                    await interaction.response.defer()  # Defers the interaction to give more time
+
+                    # Create embed and log the question suggestion
                     embed = discord.Embed(
                         title="Question Suggestion",
                         description=f"Requested by {interaction.user.mention}",
                         color=0x18C927,
                     )
-                    embed.add_field(
-                        name="Question:", value=f"{self.short_description.value}"
-                    )
+                    embed.add_field(name="Question", value=self.short_description.value)
+
+                    # Send the suggestion to the log channel
                     log_channel = await self.bot.fetch_channel(777987716008509490)
                     msg = await log_channel.send(
-                        embed=embed, view=SuggestQuestionFromDQ(self.bot)
+                        embed=embed, view=QuestionSuggestionManager()
                     )
-                    database.QuestionSuggestionQueue.create(
+
+                    # Save the question to the suggestion queue with the message ID
+                    q = database.QuestionSuggestionQueue.create(
                         question=self.short_description.value,
                         discord_id=interaction.user.id,
-                        message_id=msg.id,
+                        message_id=msg.id,  # Now we have the actual message ID
                     )
                     _log.info(
                         f"Question '{self.short_description.value}' suggested by {interaction.user.display_name}."
                     )
-                    await interaction.followup.send("Thank you for your suggestion!")
-                except Exception as e:
-                    _log.error(f"Error suggesting question: {e}", exc_info=True)
+
+                    # Send the follow-up response
                     await interaction.followup.send(
-                        "An error occurred while suggesting the question.",
-                        ephemeral=True,
+                        "Thank you for your suggestion!", ephemeral=True
                     )
+
+                except Exception as e:
+                    _log.exception("Error submitting question: %s", e)
+                    try:
+                        await interaction.followup.send(
+                            "An error occurred while submitting your suggestion.",
+                            ephemeral=True,
+                        )
+                    except discord.errors.NotFound:
+                        _log.error(
+                            "Interaction follow-up failed because the webhook was not found."
+                        )
 
         await interaction.response.send_modal(SuggestModal(self.bot))
 
