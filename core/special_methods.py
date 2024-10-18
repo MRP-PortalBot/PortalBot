@@ -15,12 +15,12 @@ import requests
 from discord import app_commands
 from discord.ext import commands
 
+from utils.MRP_Cogs.daily_questions import QuestionSuggestionManager
 from core import database
 from core.common import (
     ConsoleColors,
     Colors,
     Others,
-    QuestionSuggestionManager,
     get_bot_data_id,
     load_config,
 )
