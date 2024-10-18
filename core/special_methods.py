@@ -15,7 +15,6 @@ import requests
 from discord import app_commands
 from discord.ext import commands
 
-from utils.MRP_Cogs.daily_questions import QuestionSuggestionManager
 from core import database
 from core.common import (
     ConsoleColors,
@@ -60,11 +59,7 @@ async def on_ready_(bot: "PortalBot"):
         )
 
     # Ensure persistent views are initialized
-    if query and not query.persistent_views:
-        bot.add_view(QuestionSuggestionManager())
-        query.persistent_views = True
-        query.save()
-        _log.info("Persistent views initialized and saved to the database.")
+    initialize_persistent_views(bot=bot, query=query)
 
     # Determine the database source (external or local)
     database_source = "External" if not os.getenv("USEREAL") else "localhost"
@@ -141,6 +136,18 @@ async def on_ready_(bot: "PortalBot"):
         _log.error(
             f"Error sending message to 'github-log' channel: {str(e)}", exc_info=True
         )
+
+
+# Function that needs QuestionSuggestionManager
+def initialize_persistent_views(bot, query):
+    from utils.MRP_Cogs.daily_questions import QuestionSuggestionManager
+
+    # Ensure persistent views are initialized
+    if query and not query.persistent_views:
+        bot.add_view(QuestionSuggestionManager())
+        query.persistent_views = True
+        query.save()
+        _log.info("Persistent views initialized and saved to the database.")
 
 
 async def on_command_error_(bot, ctx: commands.Context, error: Exception):
