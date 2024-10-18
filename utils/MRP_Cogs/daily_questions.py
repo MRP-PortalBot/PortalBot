@@ -7,7 +7,7 @@ from discord import app_commands, ui
 from discord.ext import commands, tasks
 from peewee import fn
 from core import common, database, checks
-from core.common import load_config, get_bot_data_id, SuggestQuestionFromDQ
+from core.common import load_config, get_bot_data_id
 from core.pagination import paginate_embed
 from core.logging_module import get_log
 from main import PortalBot
