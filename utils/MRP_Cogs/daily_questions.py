@@ -5,7 +5,7 @@ import pytz
 import discord
 from discord import app_commands, ui
 from discord.ext import commands, tasks
-from peewee import fn
+from peewee import fn, DoesNotExist
 from core import common, database, checks
 from core.common import load_config, get_bot_data_id
 from core.pagination import paginate_embed
@@ -474,11 +474,11 @@ class DailyCMD(commands.Cog):
         try:
             q: database.Question = database.Question.get_by_id(id)
             q.delete_instance()
-            _log.info(f"Question ID {id} deleted by {interaction.user.display_name}.")
             await interaction.response.send_message(
                 f"Question {q.question} has been deleted."
             )
-        except database.DoesNotExist:
+            _log.info(f"Question ID {id} deleted by {interaction.user.display_name}.")
+        except database.Question.DoesNotExist:
             _log.error(f"Attempted to delete non-existent question ID {id}.")
             await interaction.response.send_message("Question not found.")
         except Exception as e:
