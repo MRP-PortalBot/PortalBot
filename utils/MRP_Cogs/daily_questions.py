@@ -385,7 +385,9 @@ class DailyCMD(commands.Cog):
                 color=0xB10D9F,
             )
             embed.set_footer(text=f"Question ID: {question.id}")
-            await interaction.response.send_message(embed=embed)
+            await interaction.response.send_message(
+                embed=embed, view=SuggestQuestionFromDQ(self.bot)
+            )
             _log.info(f"Sent the repeated question to {interaction.user}.")
 
         except database.DoesNotExist:
