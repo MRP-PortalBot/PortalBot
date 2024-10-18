@@ -506,6 +506,8 @@ class DailyCMD(commands.Cog):
     async def list(self, interaction: discord.Interaction, page: int = 1):
         """List all tags in the database"""
 
+        renumber_questions()
+
         def get_total_pages(page_size: int) -> int:
             total_questions = database.Question.select().count()
             return math.ceil(total_questions / page_size)
