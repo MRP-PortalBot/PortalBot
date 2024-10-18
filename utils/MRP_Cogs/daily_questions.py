@@ -29,6 +29,20 @@ def get_seconds_until(target_time):
     return (target - now).total_seconds()
 
 
+def renumber_questions():
+    try:
+        questions = database.Question.select().order_by(database.Question.id)
+        new_id = 1
+        for question in questions:
+            question.id = new_id
+            question.save()
+            new_id += 1
+
+        _log.info("Questions have been renumbered successfully.")
+    except Exception as e:
+        _log.error(f"Error renumbering questions: {e}", exc_info=True)
+
+
 # Disabled View for questions that have been processed
 class DisabledQuestionSuggestionManager(discord.ui.View):
     def __init__(self):
@@ -486,6 +500,7 @@ class DailyCMD(commands.Cog):
             await interaction.response.send_message(
                 "An error occurred while deleting the question."
             )
+        renumber_questions()
 
     @DQ.command(description="List every question.")
     async def list(self, interaction: discord.Interaction, page: int = 1):
