@@ -395,12 +395,15 @@ class DailyCMD(commands.Cog):
 
         await interaction.response.send_modal(SuggestModal(self.bot))
 
-    @DQ.command(name="repeat", description="Repeat the most recent daily question.")
+    @DQ.command(
+        name="post",
+        description="Post a daily question by ID or repeat today's question.",
+    )
     @checks.slash_is_bot_admin_2
-    async def repeatq(self, interaction: discord.Interaction):
-        """Repeat the most recent daily question based on the last_question_posted."""
+    async def postq(self, interaction: discord.Interaction, id: int = None):
+        """Post a daily question by ID or repeat today's question."""
         try:
-            _log.info(f"{interaction.user} triggered the repeat command.")
+            _log.info(f"{interaction.user} triggered the post command.")
 
             row_id = get_bot_data_id()
             _log.debug(f"Retrieved bot data row ID: {row_id}")
@@ -409,23 +412,27 @@ class DailyCMD(commands.Cog):
             bot_data: database.BotData = (
                 database.BotData.select().where(database.BotData.id == row_id).get()
             )
-            last_question_id = bot_data.last_question_posted
-            _log.debug(f"Retrieved last_question_posted: {last_question_id}")
 
-            if not last_question_id:
-                _log.warning("No last_question_posted found.")
-                await interaction.response.send_message("No recent question found.")
-                return
+            # Determine which question ID to use
+            if id is None:
+                last_question_id = bot_data.last_question_posted
+                if not last_question_id:
+                    _log.warning("No last_question_posted found.")
+                    await interaction.response.send_message("No recent question found.")
+                    return
+                question_id_to_post = last_question_id
+            else:
+                question_id_to_post = id
 
-            # Fetch the question from the database using the stored ID
+            # Fetch the question from the database using the determined ID
             question: database.Question = database.Question.get(
-                database.Question.display_order == last_question_id
+                database.Question.display_order == question_id_to_post
             )
             _log.info(
-                f"Repeating question ID: {last_question_id}, Question: {question.question}"
+                f"Posting question ID: {question_id_to_post}, Question: {question.question}"
             )
 
-            # Create and send the embed for the repeated question
+            # Create and send the embed for the question
             embed = discord.Embed(
                 title="❓ QUESTION OF THE DAY ❓",
                 description=f"**{question.question}**",
@@ -435,17 +442,15 @@ class DailyCMD(commands.Cog):
             await interaction.response.send_message(
                 embed=embed, view=SuggestQuestionFromDQ(self.bot)
             )
-            _log.info(f"Sent the repeated question to {interaction.user}.")
+            _log.info(f"Sent the question to {interaction.user}.")
 
         except database.Question.DoesNotExist:
-            _log.error(
-                f"No question found for last_question_posted ID: {last_question_id}."
-            )
+            _log.error(f"No question found for ID: {question_id_to_post}.")
             await interaction.response.send_message("Question not found.")
         except Exception as e:
-            _log.error(f"Error in repeating question: {e}", exc_info=True)
+            _log.error(f"Error in posting question: {e}", exc_info=True)
             await interaction.response.send_message(
-                "An error occurred while repeating the question."
+                "An error occurred while posting the question."
             )
 
     @DQ.command(description="Modify a question!")
