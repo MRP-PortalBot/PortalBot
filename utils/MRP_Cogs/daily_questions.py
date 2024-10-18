@@ -160,16 +160,6 @@ class SuggestModalNEW(discord.ui.Modal, title="Suggest a Question"):
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
-            # Save the question to the suggestion queue
-            q = database.QuestionSuggestionQueue.create(
-                question=self.short_description.value,
-                discord_id=interaction.user.id,
-                message_id=None,  # Message ID will be added after logging
-            )
-            _log.info(
-                f"Question '{self.short_description.value}' suggested by {interaction.user.display_name}."
-            )
-
             # Create embed and log the question suggestion
             embed = discord.Embed(
                 title="Question Suggestion",
@@ -177,11 +167,22 @@ class SuggestModalNEW(discord.ui.Modal, title="Suggest a Question"):
                 color=0x18C927,
             )
             embed.add_field(name="Question", value=self.short_description.value)
+
+            # Send the suggestion to the log channel
             log_channel = await self.bot.fetch_channel(777987716008509490)
             msg = await log_channel.send(embed=embed, view=QuestionSuggestionManager())
-            q.message_id = msg.id
-            q.save()
 
+            # Save the question to the suggestion queue with the message ID
+            q = database.QuestionSuggestionQueue.create(
+                question=self.short_description.value,
+                discord_id=interaction.user.id,
+                message_id=msg.id,  # Now we have the actual message ID
+            )
+            _log.info(
+                f"Question '{self.short_description.value}' suggested by {interaction.user.display_name}."
+            )
+
+            # Notify the user of success
             await interaction.followup.send("Thank you for your suggestion!")
         except Exception as e:
             _log.exception("Error submitting question: %s", e)
