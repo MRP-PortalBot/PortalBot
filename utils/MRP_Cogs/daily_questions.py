@@ -114,6 +114,7 @@ class QuestionSuggestionManager(discord.ui.View):
             await interaction.response.send_message(
                 "Operation Complete.", ephemeral=True
             )
+            renumber_display_order()
         except database.QuestionSuggestionQueue.DoesNotExist:
             _log.error("Question suggestion not found in the queue.")
             await interaction.response.send_message(
@@ -458,7 +459,7 @@ class DailyCMD(commands.Cog):
             q.save()
             _log.info(f"Question ID {id} modified by {interaction.user.display_name}.")
             await interaction.response.send_message(
-                f"Question {id} has been modified successfully."
+                f"Question {id} '{q.question}' has been modified successfully."
             )
         except database.Question.DoesNotExist:
             _log.error(f"Attempted to modify non-existent question ID {id}.")
@@ -491,6 +492,7 @@ class DailyCMD(commands.Cog):
             await interaction.response.send_message(
                 "An error occurred while adding the question."
             )
+        renumber_display_order()
 
     @DQ.command(description="Delete a question!")
     @checks.slash_is_bot_admin_2
@@ -501,7 +503,7 @@ class DailyCMD(commands.Cog):
             )
             q.delete_instance()
             await interaction.response.send_message(
-                f"Question {q.question} has been deleted."
+                f"Question {id} '{q.question}' has been deleted."
             )
             _log.info(f"Question ID {id} deleted by {interaction.user.display_name}.")
         except database.Question.DoesNotExist:
