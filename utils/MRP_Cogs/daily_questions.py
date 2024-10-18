@@ -29,18 +29,18 @@ def get_seconds_until(target_time):
     return (target - now).total_seconds()
 
 
-def renumber_questions():
+def renumber_display_order():
     try:
         questions = database.Question.select().order_by(database.Question.id)
-        new_id = 1
+        new_order = 1
         for question in questions:
-            question.id = new_id
+            question.display_order = new_order
             question.save()
-            new_id += 1
+            new_order += 1
 
-        _log.info("Questions have been renumbered successfully.")
+        _log.info("Questions have been renumbered successfully by display order.")
     except Exception as e:
-        _log.error(f"Error renumbering questions: {e}", exc_info=True)
+        _log.error(f"Error renumbering questions by display order: {e}", exc_info=True)
 
 
 # Disabled View for questions that have been processed
@@ -312,12 +312,14 @@ class DailyCMD(commands.Cog):
                 description=f"**{question.question}**",
                 color=0xB10D9F,
             )
-            embed.set_footer(text=f"Question ID: {question.id}")
+            embed.set_footer(text=f"Question ID: {question.display_order}")
             await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
-            _log.info(f"Question ID {question.id} sent to channel {send_channel.name}.")
+            _log.info(
+                f"Question ID {question.display_order} sent to channel {send_channel.name}."
+            )
 
             # Update the last_question_posted to store the question's ID
-            q.last_question_posted = question.id
+            q.last_question_posted = question.display_order
             q.last_question_posted_time = datetime.now(pytz.timezone("America/Chicago"))
             q.save()
         except database.DoesNotExist:
@@ -411,7 +413,9 @@ class DailyCMD(commands.Cog):
                 return
 
             # Fetch the question from the database using the stored ID
-            question: database.Question = database.Question.get_by_id(last_question_id)
+            question: database.Question = database.Question.get(
+                database.Question.display_order == last_question_id
+            )
             _log.info(
                 f"Repeating question ID: {last_question_id}, Question: {question.question}"
             )
@@ -422,7 +426,7 @@ class DailyCMD(commands.Cog):
                 description=f"**{question.question}**",
                 color=0xB10D9F,
             )
-            embed.set_footer(text=f"Question ID: {question.id}")
+            embed.set_footer(text=f"Question ID: {question.display_order}")
             await interaction.response.send_message(
                 embed=embed, view=SuggestQuestionFromDQ(self.bot)
             )
@@ -443,7 +447,9 @@ class DailyCMD(commands.Cog):
     @checks.slash_is_bot_admin_2
     async def modify(self, interaction: discord.Interaction, id: int, question: str):
         try:
-            q: database.Question = database.Question.get_by_id(id)
+            q: database.Question = database.Question.get(
+                database.Question.display_order == id
+            )
             q.question = question
             q.save()
             _log.info(f"Question ID {id} modified by {interaction.user.display_name}.")
@@ -486,7 +492,9 @@ class DailyCMD(commands.Cog):
     @checks.slash_is_bot_admin_2
     async def delete(self, interaction: discord.Interaction, id: int):
         try:
-            q: database.Question = database.Question.get_by_id(id)
+            q: database.Question = database.Question.get(
+                database.Question.display_order == id
+            )
             q.delete_instance()
             await interaction.response.send_message(
                 f"Question {q.question} has been deleted."
@@ -500,13 +508,13 @@ class DailyCMD(commands.Cog):
             await interaction.response.send_message(
                 "An error occurred while deleting the question."
             )
-        renumber_questions()
+        renumber_display_order()
 
     @DQ.command(description="List every question.")
     async def list(self, interaction: discord.Interaction, page: int = 1):
         """List all tags in the database"""
 
-        renumber_questions()
+        renumber_display_order()
 
         def get_total_pages(page_size: int) -> int:
             total_questions = database.Question.select().count()
@@ -519,7 +527,9 @@ class DailyCMD(commands.Cog):
             if not questions.exists():
                 embed.add_field(name="No Questions", value="No questions found.")
             else:
-                q_list = "\n".join([f"{q.id}. {q.question}" for q in questions])
+                q_list = "\n".join(
+                    [f"{q.display_order}. {q.question}" for q in questions]
+                )
                 embed.add_field(name=f"Page {page}", value=q_list)
 
             return embed

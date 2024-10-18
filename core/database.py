@@ -164,6 +164,7 @@ class Question(BaseModel):
     """Stores questions for DailyQ here."""
 
     id = AutoField()  # Question entry ID
+    display_order = IntegerField()  # Display order
     question = TextField()  # The question text
     usage = TextField(default=False)  # Indicates if the question has been used
 
