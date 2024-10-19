@@ -167,13 +167,13 @@ slash_is_realm_op = is_realm_op()
 
 
 def check_MRP():
-    def predicate(interaction: discord.Interaction) -> bool:
+    async def predicate(interaction: discord.Interaction) -> bool:
         return (
-            interaction.message.guild.id == 587495640502763521
-            or interaction.message.guild.id == 448488274562908170
+            interaction.guild.id == 587495640502763521
+            or interaction.guild.id == 448488274562908170
         )
 
     return app_commands.check(predicate)
 
 
-slash_check_MRP = check_MRP
+slash_check_MRP = check_MRP()
