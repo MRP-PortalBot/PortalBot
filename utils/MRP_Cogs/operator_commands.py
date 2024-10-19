@@ -14,7 +14,7 @@ class OperatorCMD(commands.Cog):
         _log.info("OperatorCMD cog initialized.")
 
     OP = app_commands.Group(
-        name="Operator", description="Realm/Server Owner level commands."
+        name="operator", description="Realm/Server Owner level commands."
     )
 
     @OP.command(name="manage operators", description="Manage your realm admins here.")
