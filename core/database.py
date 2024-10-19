@@ -200,20 +200,56 @@ class PortalbotProfile(BaseModel):
     RealmsAdmin = TextField(default="None")  # Whether the user is an admin of realms
 
 
+class RealmApplications(BaseModel):
+    """Stores users' realm applications."""
+
+    entry_id = AutoField()  # Database Entry ID for the realm
+    discord_id = BigIntegerField()  # Discord ID of the applicant
+    discord_name = TextField()  # Discord name of the applicant
+    realm_name = TextField()  # Realm name the user is applying to
+    emoji = TextField()  # Emoji associated with the realm
+    play_style = TextField()  # Play style (e.g., survival, creative)
+    gamemode = TextField()  # Game mode (peaceful, easy, hard, hardcore)
+    short_desc = TextField()  # Short description of the realm
+    long_desc = TextField()  # Long description of the realm
+    application_process = TextField()  # Application process details
+    admin_team = TextField()  # List of realm administrators
+    member_count = IntegerField()  # Current member count of the realm
+    community_age = TextField()  # Age of the community
+    world_age = TextField()  # Age of the world in the realm
+    reset_schedule = TextField()  # Realm reset schedule
+    foreseeable_future = TextField()  # Future plans for the realm
+    realm_addons = TextField()  # Addons or mods associated with the realm
+    pvp = TextField()  # PvP enabled or not
+    percent_player_sleep = TextField()  # Percent of players for sleep
+    timestamp = TimestampField()  # Timestamp of the application
+    approval = BooleanField()  # Approved or Denied
+
+
 class RealmProfile(BaseModel):
     """Stores Realm Profile Data here."""
 
     entry_id = AutoField()  # Database Entry ID for the realm
-    realm_name = TextField()  # Name of the realm
-    realm_emoji = TextField()  # Emoji associated with the realm
-    realm_long_desc = TextField()  # Long description of the realm
-    realm_short_desc = TextField()  # Short description of the realm
-    realm_addons = TextField()  # Addons or mods associated with the realm
+    discord_id = BigIntegerField()  # Discord ID of the applicant
+    discord_name = TextField()  # Discord name of the applicant
+    realm_name = TextField()  # Realm name the user is applying to
+    emoji = TextField()  # Emoji associated with the realm
+    play_style = TextField()  # Play style (e.g., survival, creative)
+    gamemode = TextField()  # Game mode (peaceful, easy, hard, hardcore)
+    short_desc = TextField()  # Short description of the realm
+    long_desc = TextField()  # Long description of the realm
+    application_process = TextField()  # Application process details
+    admin_team = TextField()  # List of realm administrators
+    member_count = IntegerField()  # Current member count of the realm
+    community_age = TextField()  # Age of the community
     world_age = TextField()  # Age of the world in the realm
-    pvp = BooleanField()  # PvP enabled or not
-    one_player_sleep = BooleanField()  # One player sleep enabled or not
-    realm_style = TextField()  # Realm style (e.g., survival, creative)
-    gamemode = TextField()  # Game mode (e.g., survival, adventure)
+    reset_schedule = TextField()  # Realm reset schedule
+    foreseeable_future = TextField()  # Future plans for the realm
+    realm_addons = TextField()  # Addons or mods associated with the realm
+    pvp = TextField()  # PvP enabled or not
+    percent_player_sleep = TextField()  # Percent of players for sleep
+    timestamp = TimestampField()  # Timestamp of the application
+    checkin = BooleanField()  # Has the realm checked in this month?
 
 
 class Administrators(BaseModel):
@@ -236,27 +272,6 @@ class QuestionSuggestionQueue(BaseModel):
     discord_name = TextField()  # Discord Name of the user
     question = TextField()  # Suggested question
     message_id = BigIntegerField()  # ID of the message containing the suggestion
-
-
-class RealmApplications(BaseModel):
-    """Stores users' realm applications."""
-
-    id = AutoField()  # Application entry ID
-    discord_id = BigIntegerField()  # Discord ID of the applicant
-    discord_name = TextField()  # Discord name of the applicant
-    realm_name = TextField()  # Realm name the user is applying to
-    type_of_realm = TextField()  # Type of realm
-    emoji = TextField()  # Emoji associated with the realm
-    short_desc = TextField()  # Short description of the realm
-    long_desc = TextField()  # Long description of the realm
-    application_process = TextField()  # Application process details
-    member_count = IntegerField()  # Current member count of the realm
-    realm_age = TextField()  # Age of the realm
-    world_age = TextField()  # Age of the world in the realm
-    reset_schedule = TextField()  # Realm reset schedule
-    foreseeable_future = TextField()  # Future plans for the realm
-    admin_team = TextField()  # List of realm administrators
-    timestamp = TimestampField()  # Timestamp of the application
 
 
 class ServerScores(BaseModel):

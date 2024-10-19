@@ -16,8 +16,8 @@ class LeveledRolesCMD(commands.Cog):
         roles_data = [
             (1, "Just Spawned", "2eb0aa"),
             (2, "Chicken Plucker", "2eb0a5"),
-            (3, "Cow Milker", "2fafa0"),
-            (4, "Zombie Slayer", "30af9b"),
+            (3, "Zombie Slayer", "2fafa0"),
+            (4, "Cow Milker", "30af9b"),
             (5, "Pig Rider", "30ae96"),
             (6, "Sheep Shearer", "31ae91"),
             (7, "Creeper Crater", "32ad8c"),

@@ -164,3 +164,16 @@ def is_realm_op():
 
 # Create the decorator for checking realm channel ownership or admin level
 slash_is_realm_op = is_realm_op()
+
+
+def check_MRP():
+    def predicate(ctx):
+        return (
+            ctx.message.guild.id == 587495640502763521
+            or ctx.message.guild.id == 448488274562908170
+        )
+
+    return commands.check(predicate)
+
+
+slash_check_MRP = check_MRP
