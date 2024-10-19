@@ -1,4 +1,4 @@
-from typing import Literal
+"""from typing import Literal
 
 import discord
 import xbox
@@ -71,4 +71,4 @@ class GamertagCMD(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(GamertagCMD(bot))
+    await bot.add_cog(GamertagCMD(bot))"""
