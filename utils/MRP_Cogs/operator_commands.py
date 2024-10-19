@@ -17,7 +17,7 @@ class OperatorCMD(commands.Cog):
         name="operator", description="Realm/Server Owner level commands."
     )
 
-    @OP.command(name="manage operators", description="Manage your realm admins here.")
+    @OP.command(name="manage_operators", description="Manage your realm admins here.")
     @app_commands.describe(
         action="Whether to add or remove a Realm OP Role",
         user="The user to add or remove the role from",
