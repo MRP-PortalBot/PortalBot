@@ -340,7 +340,11 @@ class RealmCMD(commands.Cog):
     @slash_check_MRP
     @slash_is_bot_admin_3
     async def newrealm2(
-        self, interaction: discord.Interaction, realm, emoji, user: discord.Member
+        self,
+        interaction: discord.Interaction,
+        realm: str,
+        emoji: str,
+        user: discord.Member,
     ):
         # Status set to null
         RoleCreate = "FALSE"
