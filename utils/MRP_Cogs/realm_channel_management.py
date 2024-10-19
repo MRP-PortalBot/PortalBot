@@ -188,12 +188,12 @@ class RealmCMD(commands.Cog):
         self.bot = bot
 
     RC = app_commands.Group(
-        name="Realm Channel", description="Realm/Server channel commands."
+        name="realm_channel", description="Realm/Server channel commands."
     )
 
     @RC.command(
-        name="Create Realm Channel",
-        description="Create a new realm via an application.",
+        name="create_realm_channel",
+        description="create a new realm via an application.",
     )
     @app_commands.describe(
         app_number="Application number that corresponds with the realm you're trying to create."
