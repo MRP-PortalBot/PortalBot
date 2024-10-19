@@ -1,7 +1,7 @@
 from typing import Literal
 
 import discord
-from discord import app_commands
+from discord import app_commands, ui
 from discord.ext import commands
 
 from core import database
@@ -339,16 +339,18 @@ class RealmCMD(commands.Cog):
     @RC.command()
     @slash_check_MRP
     @slash_is_bot_admin_3
-    async def newrealm2(self, ctx, realm, emoji, user: discord.Member):
+    async def newrealm2(
+        self, interaction: discord.Interaction, realm, emoji, user: discord.Member
+    ):
         # Status set to null
         RoleCreate = "FALSE"
         ChannelCreate = "FALSE"
         RoleGiven = "FALSE"
         ChannelPermissions = "FALSE"
         DMStatus = "FALSE"
-        author = ctx.message.author
-        guild = ctx.message.guild
-        channel = ctx.message.channel
+        author = interaction.message.author
+        guild = interaction.message.guild
+        channel = interaction.message.channel
         color = discord.Colour(0x3498DB)
 
         # Realm OP Role
@@ -388,7 +390,7 @@ class RealmCMD(commands.Cog):
             role, overwrite=perms, reason="Created New Realm! (RealmOP)"
         )
 
-        Muted = discord.utils.get(ctx.guild.roles, name="muted")
+        Muted = discord.utils.get(interaction.guild.roles, name="muted")
         permsM = channel.overwrites_for(Muted)
         permsM.read_messages = False
         permsM.send_messages = False
@@ -397,7 +399,7 @@ class RealmCMD(commands.Cog):
         )
 
         # This try statement is here incase we are testing this in the testing server as this channel does not appear in that server!
-        if ctx.guild.id == 587495640502763521:
+        if interaction.guild.id == 587495640502763521:
             channelrr = guild.get_channel(683454087206928435)
             await channelrr.send(
                 role.mention
@@ -462,7 +464,7 @@ class RealmCMD(commands.Cog):
             )
             embed.set_footer(text="The command has finished all of its tasks")
             embed.set_thumbnail(url=user.avatar.url)
-            await ctx.send(embed=embed)
+            await interaction.send_message(embed=embed)
 
     @app_commands.command(
         description="Looking to get your channel here? Apply for it here!"
