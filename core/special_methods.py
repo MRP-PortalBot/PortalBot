@@ -467,7 +467,7 @@ def _create_bot_data():
     database.BotData.create(
         prefix=">",
         persistent_views=False,
-        blacklist_response_channel=995819431538217093,
+        bannedlist_response_channel=995819431538217093,
         question_suggest_channel=787803726168588318,
         bot_spam_channel=588728994661138494,
         realm_channel_response=588408514796322816,

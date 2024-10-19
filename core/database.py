@@ -117,13 +117,16 @@ class BotData(BaseModel):
     """
 
     id = AutoField()  # Database Entry ID (ALWAYS QUERY 1)
-    last_question_posted = TextField(null=True)  # Last question that was posted
-    last_question_posted_time = TimestampField  # Last time a question was posted
+    server_id = BigIntegerField(default=0)  # Server ID where the bot is active
+    bot_id = BigIntegerField(default=0)  # Discord Bot ID
+    bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
+    other_bot_id = BigIntegerField(default=0)  # Other bot ID (if linked)
+    prefix = TextField(default=">")  # Bot prefix
     persistent_views = BooleanField(
         default=False
     )  # Whether or not persistent views are enabled
-    prefix = TextField(default=">")  # Bot prefix
-    blacklist_response_channel = BigIntegerField(
+    welcome_channel = BigIntegerField(default=0)  # Welcome Channel ID
+    bannedlist_response_channel = BigIntegerField(
         default=0
     )  # Channel ID for blacklist responses
     daily_question_channel = BigIntegerField(
@@ -136,10 +139,10 @@ class BotData(BaseModel):
     realm_channel_response = BigIntegerField(
         default=0
     )  # Channel ID for realm channel responses
-    bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
-    other_bot_id = BigIntegerField(default=0)  # Other bot ID (if linked)
-    bot_id = BigIntegerField(default=0)  # Discord Bot ID
-    server_id = BigIntegerField(default=0)  # Server ID where the bot is active
+    general_channel = BigIntegerField(default=0)  # General Channel ID
+    mod_channel = BigIntegerField(default=0)  # MOderator Channel ID
+    last_question_posted = TextField(null=True)  # Last question that was posted
+    last_question_posted_time = TimestampField  # Last time a question was posted
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
     points_per_message = IntegerField(default=10)  # Default is 10 points
     blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs
@@ -149,7 +152,6 @@ class BotData(BaseModel):
 
     def set_blocked_channels(self, channel_ids):
         self.blocked_channels = json.dumps(channel_ids)
-
 
 class Tag(BaseModel):
     """Stores our tags accessed by the tag command."""

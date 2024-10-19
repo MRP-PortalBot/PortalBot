@@ -1,183 +1,209 @@
 from typing import Literal
-
+import datetime
 import discord
 from discord import app_commands, ui
 from discord.ext import commands
-
 from core import database
 from core.checks import slash_is_bot_admin_3, slash_check_MRP
 from core.logging_module import get_log
 
 _log = get_log(__name__)
 
-
-def return_applyfornewrealm_modal(
-    bot,
-    realm_name: str,
-    type_of_realm: str,
-    emoji: str,
-    member_count: str,
-    community_duration: str,
-    world_duration: str,
-    reset_schedule: str,
-):
+def return_applyfornewrealm_modal(bot):
     class ApplyForNewRealmForm(ui.Modal, title="Realm Application"):
         def __init__(self):
             super().__init__(timeout=None)
             self.bot = bot
-            self.realm_name = realm_name
-            self.type_of_realm = type_of_realm
-            self.emoji = emoji
-            self.member_count = member_count
-            self.community_duration = community_duration
-            self.world_duration = world_duration
-            self.reset_schedule = reset_schedule
 
             # Define form inputs
+            self.realm_name = ui.TextInput(
+                label="Realm Name",
+                style=discord.TextStyle.short,
+                placeholder="Name of the realm",
+                required=True
+            )
+
+            self.emoji = ui.TextInput(
+                label="Emoji",
+                style=discord.TextStyle.short,
+                placeholder="Emoji associated with the realm",
+                required=True
+            )
+
+            self.play_style = ui.TextInput(
+                label="Play Style",
+                style=discord.TextStyle.short,
+                placeholder="Play style (e.g., survival, creative)",
+                required=True
+            )
+
+            self.gamemode = ui.TextInput(
+                label="Game Mode",
+                style=discord.TextStyle.short,
+                placeholder="Game mode (e.g., peaceful, easy, hard, hardcore)",
+                required=True
+            )
+
             self.short_description = ui.TextInput(
                 label="Short Description",
                 style=discord.TextStyle.short,
                 placeholder="Short description of the realm",
-                required=True,
+                required=True
             )
 
             self.long_description = ui.TextInput(
                 label="Long Description",
                 style=discord.TextStyle.long,
                 placeholder="Long description of the realm",
-                required=True,
+                required=True
             )
 
             self.application_process = ui.TextInput(
                 label="Application Process",
                 style=discord.TextStyle.long,
                 placeholder="Application process for the realm",
-                required=True,
-            )
-
-            self.foreseeable_future = ui.TextInput(
-                label="Foreseeable Future",
-                style=discord.TextStyle.long,
-                placeholder="Will your Realm/Server have the ability to continue for the foreseeable future?",
-                required=True,
+                required=True
             )
 
             self.admin_team = ui.TextInput(
                 label="Admin Team",
                 style=discord.TextStyle.long,
                 placeholder="Who is on your admin team and how long have they been with you?",
-                required=True,
+                required=True
+            )
+
+            self.member_count = ui.TextInput(
+                label="Member Count",
+                style=discord.TextStyle.short,
+                placeholder="Current number of members in the realm",
+                required=True
+            )
+
+            self.community_age = ui.TextInput(
+                label="Community Age",
+                style=discord.TextStyle.short,
+                placeholder="Age of the community",
+                required=True
+            )
+
+            self.world_age = ui.TextInput(
+                label="World Age",
+                style=discord.TextStyle.short,
+                placeholder="Age of the current world in the realm",
+                required=True
+            )
+
+            self.reset_schedule = ui.TextInput(
+                label="Reset Schedule",
+                style=discord.TextStyle.short,
+                placeholder="How often does the realm reset?",
+                required=True
+            )
+
+            self.foreseeable_future = ui.TextInput(
+                label="Foreseeable Future",
+                style=discord.TextStyle.long,
+                placeholder="Will your realm have the ability to continue for the foreseeable future?",
+                required=True
+            )
+
+            self.realm_addons = ui.TextInput(
+                label="Realm Addons",
+                style=discord.TextStyle.long,
+                placeholder="List any addons or mods associated with the realm",
+                required=True
+            )
+
+            self.pvp = ui.TextInput(
+                label="PvP Enabled?",
+                style=discord.TextStyle.short,
+                placeholder="Is PvP enabled in the realm? (Yes/No)",
+                required=True
+            )
+
+            self.percent_player_sleep = ui.TextInput(
+                label="Percent Player Sleep",
+                style=discord.TextStyle.short,
+                placeholder="Percentage of players required to sleep",
+                required=True
             )
 
         async def on_submit(self, interaction: discord.Interaction):
             try:
+                _log.info(f"Submitting realm application for '{self.realm_name.value}' by {interaction.user.display_name}.")
                 await self.save_realm_application(interaction)
-                embed = self.create_application_embed(
-                    interaction.user, interaction.guild
-                )
-                log_channel = self.bot.get_channel(config["realmChannelResponse"])
+                embed = self.create_application_embed(interaction.user, interaction.guild)
+                log_channel = self.bot.get_channel(config['realmChannelResponse'])
                 admin_role = discord.utils.get(interaction.guild.roles, name="Admin")
 
                 # Send embed to the log channel
                 await log_channel.send(content=admin_role.mention, embed=embed)
+                _log.info(f"Realm application submitted by {interaction.user.display_name} for '{self.realm_name.value}'.")
 
                 # Confirmation response to the user
-                await interaction.response.send_message(
-                    "Realm application submitted successfully!", ephemeral=True
-                )
+                await interaction.response.send_message("Realm application submitted successfully!", ephemeral=True)
 
             except Exception as e:
-                _log.error(f"Error submitting realm application: {e}")
-                await interaction.response.send_message(
-                    "An error occurred while submitting your application.",
-                    ephemeral=True,
-                )
+                _log.exception(f"Error submitting realm application for '{self.realm_name.value}': {e}")
+                await interaction.response.send_message("An error occurred while submitting your application.", ephemeral=True)
 
         async def save_realm_application(self, interaction: discord.Interaction):
             """Save the realm application to the database."""
-            q = database.RealmApplications.create(
-                discord_id=interaction.user.id,
-                realm_name=self.realm_name,
-                type_of_realm=self.type_of_realm,
-                emoji=self.emoji,
-                member_count=self.member_count,
-                realm_age=self.community_duration,
-                world_age=self.world_duration,
-                reset_schedule=self.reset_schedule,
-                short_desc=self.short_description.value,
-                long_desc=self.long_description.value,
-                application_process=self.application_process.value,
-                foreseeable_future=self.foreseeable_future.value,
-                admin_team=self.admin_team.value,
-            )
-            q.save()
+            try:
+                q = database.RealmApplications.create(
+                    discord_id=interaction.user.id,
+                    discord_name=interaction.user.display_name,
+                    realm_name=self.realm_name.value,
+                    emoji=self.emoji.value,
+                    play_style=self.play_style.value,
+                    gamemode=self.gamemode.value,
+                    short_desc=self.short_description.value,
+                    long_desc=self.long_description.value,
+                    application_process=self.application_process.value,
+                    admin_team=self.admin_team.value,
+                    member_count=int(self.member_count.value),
+                    community_age=self.community_age.value,
+                    world_age=self.world_age.value,
+                    reset_schedule=self.reset_schedule.value,
+                    foreseeable_future=self.foreseeable_future.value,
+                    realm_addons=self.realm_addons.value,
+                    pvp=self.pvp.value,
+                    percent_player_sleep=self.percent_player_sleep.value,
+                    approval=False
+                )
+                q.save()
+                _log.info(f"Realm application for '{self.realm_name.value}' by {interaction.user.display_name} saved to database.")
+            except Exception as e:
+                _log.exception(f"Error saving realm application for '{self.realm_name.value}': {e}")
 
         def create_application_embed(self, user, guild):
             """Create the embed message for the application."""
             embed = discord.Embed(
                 title="Realm Application",
                 description=f"__**Realm Owner:**__\n{user.mention}\n============================================",
-                color=0xB10D9F,
+                color=0xb10d9f
             )
             embed.set_thumbnail(
                 url="https://cdn.discordapp.com/attachments/588034623993413662/588413853667426315/Portal_Design.png"
             )
-            embed.add_field(
-                name="__**Realm Name**__", value=self.realm_name, inline=True
-            )
-            embed.add_field(
-                name="__**Realm or Server?**__", value=self.type_of_realm, inline=True
-            )
-            embed.add_field(name="__**Emoji**__", value=self.emoji, inline=True)
-            embed.add_field(
-                name="__**Short Description**__",
-                value=self.short_description.value,
-                inline=False,
-            )
-            embed.add_field(
-                name="__**Long Description**__",
-                value=self.long_description.value,
-                inline=False,
-            )
-            embed.add_field(
-                name="__**Application Process**__",
-                value=self.application_process.value,
-                inline=False,
-            )
-            embed.add_field(
-                name="__**Current Member Count**__",
-                value=self.member_count,
-                inline=True,
-            )
-            embed.add_field(
-                name="__**Age of Community**__",
-                value=self.community_duration,
-                inline=True,
-            )
-            embed.add_field(
-                name="__**Age of Current World**__",
-                value=self.world_duration,
-                inline=True,
-            )
-            embed.add_field(
-                name="__**Reset Schedule**__", value=self.reset_schedule, inline=True
-            )
-            embed.add_field(
-                name="__**Foreseeable Future**__",
-                value=self.foreseeable_future.value,
-                inline=True,
-            )
-            embed.add_field(
-                name="__**Admin Team**__", value=self.admin_team.value, inline=False
-            )
-            embed.add_field(
-                name="__**Reaction Codes**__",
-                value="React with 💚 for Approved, 💛 for More Time, ❤️ for Rejected",
-                inline=False,
-            )
-            embed.set_footer(
-                text=f"Realm Application #{self.realm_name} | Submitted on {datetime.now().strftime('%Y-%m-%d')}"
-            )
+            embed.add_field(name="__**Realm Name**__", value=self.realm_name.value, inline=True)
+            embed.add_field(name="__**Emoji**__", value=self.emoji.value, inline=True)
+            embed.add_field(name="__**Play Style**__", value=self.play_style.value, inline=True)
+            embed.add_field(name="__**Game Mode**__", value=self.gamemode.value, inline=True)
+            embed.add_field(name="__**Short Description**__", value=self.short_description.value, inline=False)
+            embed.add_field(name="__**Long Description**__", value=self.long_description.value, inline=False)
+            embed.add_field(name="__**Application Process**__", value=self.application_process.value, inline=False)
+            embed.add_field(name="__**Current Member Count**__", value=self.member_count.value, inline=True)
+            embed.add_field(name="__**Age of Community**__", value=self.community_age.value, inline=True)
+            embed.add_field(name="__**Age of Current World**__", value=self.world_age.value, inline=True)
+            embed.add_field(name="__**Reset Schedule**__", value=self.reset_schedule.value, inline=True)
+            embed.add_field(name="__**Foreseeable Future**__", value=self.foreseeable_future.value, inline=True)
+            embed.add_field(name="__**Admin Team**__", value=self.admin_team.value, inline=False)
+            embed.add_field(name="__**Realm Addons**__", value=self.realm_addons.value, inline=False)
+            embed.add_field(name="__**PvP Enabled**__", value=self.pvp.value, inline=True)
+            embed.add_field(name="__**Percent Player Sleep**__", value=self.percent_player_sleep.value, inline=True)
+            embed.add_field(name="__**Reaction Codes**__", value="React with 💚 for Approved, 💛 for More Time, ❤️ for Rejected", inline=False)
+            embed.set_footer(text=f"Realm Application #{self.realm_name.value} | Submitted on {datetime.now().strftime('%Y-%m-%d')}")
             return embed
 
     return ApplyForNewRealmForm()

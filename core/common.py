@@ -170,7 +170,7 @@ class Me:
     TracebackChannel = 797193549992165456
 
 
-def get_bot_data_id():
+def get_bot_server_id():
     load_dotenv()
     os.getenv("bot_type")
     key_value = {"STABLE": 1, "BETA": 2}
@@ -220,3 +220,18 @@ def get_user_rank(server_id, user_id):
         return None
 
     return None  # If user is not found
+
+
+def get_bot_data_for_guild(interaction):
+    """Fetch the bot data for a specific guild."""
+    try:
+        guild_id = (
+            interaction.guild.id
+        )  # Use interaction or ctx to get the specific guild
+        bot_data = database.BotData.get(database.BotData.guild_id == guild_id)
+        return bot_data
+    except database.BotData.DoesNotExist:
+        return None
+    except Exception as e:
+        print(f"Error fetching bot data for guild {guild_id}: {e}")
+        return None

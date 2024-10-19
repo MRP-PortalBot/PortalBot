@@ -11,6 +11,7 @@ import os
 import time
 import json
 from pathlib import Path
+import asyncio
 
 import discord
 import xbox
@@ -25,7 +26,7 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from requests.exceptions import HTTPError
 
 from core import database
-from core.common import get_bot_data_id
+from core.common import get_bot_server_id
 from core.logging_module import get_log
 from core.special_methods import (
     on_app_command_error_,
@@ -45,63 +46,27 @@ _log.info("Starting PortalBot...")
 # Load environment variables
 load_dotenv()
 
-# Fetch bot information from the database
-row_id = get_bot_data_id()
-try:
-    bot_info: database.BotData = (
-        database.BotData.select().where(database.BotData.id == row_id).get()
-    )
-    _log.info(f"Bot data retrieved from database: {bot_info}")
-except Exception as e:
-    _log.error(f"Failed to retrieve bot data from the database: {e}")
-    raise
+# Initialize bot data cache
+bot_data_cache = {}
 
-# Xbox authentication
-try:
-    login = os.getenv("MS_LOGIN")
-    password = os.getenv("MS_PASSWD")
 
-    if not login or not password:
-        raise ValueError(
-            "Missing Xbox credentials. Please set xbox_u and xbox_p environment variables."
+# Function to get bot data for a specific server
+async def get_bot_data_for_server(server_id):
+    if server_id in bot_data_cache:
+        return bot_data_cache[server_id]
+
+    try:
+        bot_info = (
+            database.BotData.select()
+            .where(database.BotData.server_id == server_id)
+            .get()
         )
-
-    _log.info("Attempting to authenticate with Xbox Live...")
-
-    response = xbox.client.authenticate(login=login, password=password)
-
-    # Log the raw response
-    print(f"Raw response: {response}")
-
-    # Check if the response is None or invalid
-    if response is None or not isinstance(response, dict):
-        raise ValueError("Invalid or empty response received from Xbox API.")
-
-    _log.info("Authenticated with Xbox successfully.")
-
-except json.JSONDecodeError as json_err:
-    _log.critical(f"Authentication failed: Invalid JSON response: {json_err}")
-except HTTPError as http_err:
-    _log.critical(f"HTTP error occurred: {http_err}")
-except ValueError as val_err:
-    _log.critical(f"Authentication failed: {val_err}")
-except AttributeError as attr_err:
-    _log.critical(
-        f"ERROR: Unable to authenticate with Xbox! Exception: {attr_err} | Details: {attr_err}"
-    )
-except Exception as e:
-    _log.critical(f"Unexpected error occurred during Xbox authentication: {e}")
-
-
-# Function to dynamically load extensions (cogs)
-def get_extensions():
-    extensions = ["jishaku"]
-    for file in Path("utils").glob("**/*.py"):
-        if "!" in file.name or "__" in file.name:
-            continue
-        extensions.append(str(file).replace("/", ".").replace(".py", ""))
-    _log.info(f"Extensions found: {extensions}")
-    return extensions
+        bot_data_cache[server_id] = bot_info
+        _log.info(f"Bot data cached for server {server_id}: {bot_info}")
+        return bot_info
+    except Exception as e:
+        _log.error(f"Failed to retrieve bot data for server {server_id}: {e}")
+        return None
 
 
 # Custom Command Tree with error handling
@@ -136,14 +101,16 @@ class PortalBot(commands.Bot):
 
     def __init__(self, uptime: time.time):
         super().__init__(
-            command_prefix=commands.when_mentioned_or(bot_info.prefix),
+            command_prefix=commands.when_mentioned_or(
+                "!"
+            ),  # Default prefix until cache is loaded
             intents=discord.Intents.all(),
             case_insensitive=True,
             tree_cls=PBCommandTree,
             status=discord.Status.online,
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name=f"over the Portal! | {bot_info.prefix}help",
+                name=f"over the Portal! | !help",
             ),
         )
         self.help_command = None
@@ -152,6 +119,16 @@ class PortalBot(commands.Bot):
 
     async def on_ready(self):
         await on_ready_(self)
+        for guild in self.guilds:
+            server_id = guild.id
+            bot_info = await get_bot_data_for_server(server_id)
+            if bot_info:
+                self.command_prefix = commands.when_mentioned_or(bot_info.prefix)
+                self.activity = discord.Activity(
+                    type=discord.ActivityType.watching,
+                    name=f"over the Portal! | {bot_info.prefix}help",
+                )
+                _log.info(f"Bot prefix set for server {server_id}: {bot_info.prefix}")
         _log.info("PortalBot is ready.")
 
     async def on_command_error(self, ctx: commands.Context, error: Exception):
