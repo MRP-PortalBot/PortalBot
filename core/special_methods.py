@@ -218,8 +218,9 @@ def _create_bot_data(server_id, initial_channel_id):
         last_question_posted=None,
         last_question_posted_time=None,
         daily_question_channel=initial_channel_id,
-        welcome_message_channel=initial_channel_id,
+        welcome_channel=initial_channel_id,
         mod_log_channel=initial_channel_id,
+        pb_test_server_id=448488274562908170,
     )
     _log.info(f"Initial BotData entry created successfully for server {server_id}.")
 

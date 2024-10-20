@@ -71,7 +71,7 @@ class Events(commands.Cog):
                 _log.warning(f"No cached bot data found for guild {member.guild.id}")
                 return
 
-            welcome_channel_id = bot_data.welcome_message_channel
+            welcome_channel_id = bot_data.welcome_channel
             if not welcome_channel_id:
                 _log.warning(
                     f"No welcome message channel configured for guild {member.guild.id}"
