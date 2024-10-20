@@ -139,14 +139,14 @@ async def preload_bot_data(bot: "PortalBot"):
 
 
 # Function that needs QuestionSuggestionManager
-def initialize_persistent_views(bot, query):
+def initialize_persistent_views(bot, bot_data):
     from utils.MRP_Cogs.daily_questions import QuestionSuggestionManager
 
     # Ensure persistent views are initialized
-    if query and not query.persistent_views:
+    if not bot_data.persistent_views:
         bot.add_view(QuestionSuggestionManager())
-        query.persistent_views = True
-        query.save()
+        bot_data.persistent_views = True
+        bot_data.save()
         _log.info("Persistent views initialized and saved to the database.")
 
 
@@ -171,7 +171,10 @@ def initialize_db(bot):
 
             # If no bot data exists, create it
             if not bot_data.exists():
-                _create_bot_data(guild.id)
+                initial_channel_id = (
+                    guild.system_channel.id if guild.system_channel else None
+                )
+                _create_bot_data(guild.id, initial_channel_id)
                 _log.info(f"Created initial BotData entry for guild {guild.id}.")
 
         # Check if Administrator entries exist, and create them if not
@@ -190,6 +193,12 @@ def initialize_db(bot):
 
 def _create_bot_data(server_id, initial_channel_id):
     """Creates the initial BotData entry for the given server."""
+    if initial_channel_id is None:
+        _log.warning(
+            f"No initial channel found for server {server_id}, skipping creation."
+        )
+        return
+
     _log.info(f"Creating initial BotData entry in the database for server {server_id}.")
     database.BotData.create(
         server_id=server_id,
