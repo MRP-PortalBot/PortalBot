@@ -143,6 +143,7 @@ async def preload_bot_data(bot: "PortalBot"):
     for guild in bot.guilds:
         await get_bot_data_for_server(guild.id)
     _log.info("Bot data preloaded for all guilds.")
+    _log.info(f"{get_cached_bot_data(guild.id).welcome_channel}")
 
 
 # Function that needs QuestionSuggestionManager
@@ -175,7 +176,6 @@ def initialize_db(bot):
             bot_data = database.BotData.select().where(
                 database.BotData.server_id == guild.id
             )
-            _log.info(f"{bot_data.welcome_channel}")
 
             # If no bot data exists, create it
             if not bot_data.exists():
