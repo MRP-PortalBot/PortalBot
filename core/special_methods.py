@@ -143,7 +143,6 @@ async def preload_bot_data(bot: "PortalBot"):
     for guild in bot.guilds:
         await get_bot_data_for_server(guild.id)
     _log.info("Bot data preloaded for all guilds.")
-    _log.info(f"{get_cached_bot_data(guild.id).welcome_channel}")
 
 
 # Function that needs QuestionSuggestionManager
