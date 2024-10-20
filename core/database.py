@@ -120,7 +120,9 @@ class BotData(BaseModel):
     server_id = BigIntegerField(default=0)  # Server ID where the bot is active
     bot_id = BigIntegerField(default=0)  # Discord Bot ID
     bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
-    other_bot_id = BigIntegerField(default=0)  # Other bot ID (if linked)
+    PB_test_server_ID = BigIntegerField(
+        default=448488274562908170
+    )  # Portal Bot Test Server ID
     prefix = TextField(default=">")  # Bot prefix
     persistent_views = BooleanField(
         default=False
@@ -152,6 +154,7 @@ class BotData(BaseModel):
 
     def set_blocked_channels(self, channel_ids):
         self.blocked_channels = json.dumps(channel_ids)
+
 
 class Tag(BaseModel):
     """Stores our tags accessed by the tag command."""
