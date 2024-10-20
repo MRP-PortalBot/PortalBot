@@ -93,14 +93,7 @@ class PortalBot(commands.Bot):
     Generates a PortalBot Instance.
     """
 
-
-class PortalBot(commands.Bot):
-    """
-    Generates a PortalBot Instance.
-    """
-
     def __init__(self, uptime: time.time):
-        preload_bot_data(self)
         # Set default prefix and activity
         default_prefix = "!"
         default_activity = discord.Activity(
@@ -108,36 +101,36 @@ class PortalBot(commands.Bot):
             name=f"over the Portal! | {default_prefix}help",
         )
 
-        # Fetch cached bot data if available for the first guild in the bot's list (assuming multi-guild support)
-        cached_bot_data = None
-        if len(self.guilds) > 0:
-            cached_bot_data = get_cached_bot_data(self.guilds[0].id)
-
-        # If cached bot data is available, use the prefix and activity from it
-        prefix = cached_bot_data.prefix if cached_bot_data else default_prefix
-        activity = (
-            discord.Activity(
-                type=discord.ActivityType.watching,
-                name=f"over the Portal! | {prefix}help",
-            )
-            if cached_bot_data
-            else default_activity
-        )
-
         super().__init__(
-            command_prefix=commands.when_mentioned_or(prefix),
+            command_prefix=commands.when_mentioned_or(default_prefix),
             intents=discord.Intents.all(),
             case_insensitive=True,
             tree_cls=PBCommandTree,
             status=discord.Status.online,
-            activity=activity,
+            activity=default_activity,
         )
         self.help_command = None
         self._start_time = uptime
-        _log.info("PortalBot instance created with prefix: '%s'", prefix)
+        _log.info("PortalBot instance created.")
 
     async def on_ready(self):
         await on_ready_(self)
+        # Preload bot data for all guilds after bot is ready
+        await preload_bot_data(self)
+
+        # Update bot prefix and activity for each guild using cached bot data
+        for guild in self.guilds:
+            cached_bot_data = get_cached_bot_data(guild.id)
+            if cached_bot_data:
+                self.command_prefix = commands.when_mentioned_or(cached_bot_data.prefix)
+                self.activity = discord.Activity(
+                    type=discord.ActivityType.watching,
+                    name=f"over the Portal! | {cached_bot_data.prefix}help",
+                )
+                _log.info(
+                    f"Bot prefix set for server {guild.id}: {cached_bot_data.prefix}"
+                )
+
         _log.info("PortalBot is ready.")
 
     async def on_command_error(self, ctx: commands.Context, error: Exception):
