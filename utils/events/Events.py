@@ -1,11 +1,10 @@
 import discord
 from discord.ext import commands
 from core import database
-from core.common import load_config
+from core.common import get_cached_bot_data
 from core.logging_module import get_log
 
-# Load configuration and setup logging
-config, _ = load_config()
+# Setup logging
 _log = get_log(__name__)
 
 
@@ -64,63 +63,50 @@ class Events(commands.Cog):
         # Send a welcome message to the user
         await self.send_welcome_message(member)
 
-    async def send_welcome_message(self, member: discord.Member):
-        guild_id = member.guild.id
-        channel = None
-        embed = None
-        _log.info(
-            f"Preparing to send welcome message to {member.name} in guild {member.guild.name} (ID: {guild_id})"
-        )
-
-        if guild_id == 587495640502763521:  # Example Guild 1
-            channel = member.guild.get_channel(588813558486269956)
-            count = member.guild.member_count
-            embed = discord.Embed(
-                title=f"Welcome to {member.guild.name}!",
-                description=f"**{str(member.display_name)}** is the **{str(count)}**th member!",
-                color=0xB10D9F,
-            )
-            embed.add_field(
-                name="Looking for a Realm?",
-                value="Check out the Realm list in <#588070315117117440>!",
-                inline=False,
-            )
-
-        elif guild_id == 192052103017922567:  # Example Guild 2
-            channel = member.guild.get_channel(796115065622626326)
-            count = member.guild.member_count
-            embed = discord.Embed(
-                title=f"Welcome to {member.guild.name}!",
-                description=f"**{str(member.display_name)}** is ready to game!",
-                color=0xFFCE41,
-            )
-            embed.add_field(
-                name="Want to see more channels?",
-                value="Check out the Game list in <#796114173514743928>, and react to a game to join the channel!",
-                inline=False,
-            )
-
-        elif guild_id == 448488274562908170:  # Another Guild
-            _log.info(
-                f"No specific welcome message set for guild {member.guild.name} (ID: {guild_id})"
-            )
+async def send_welcome_message(self, member: discord.Member):
+    try:
+        # Retrieve cached bot data for the server
+        bot_data = get_cached_bot_data(member.guild.id)
+        if not bot_data:
+            _log.warning(f"No cached bot data found for guild {member.guild.id}")
             return
 
-        if channel and embed:
-            if member.avatar:
-                embed.set_thumbnail(url=member.avatar.url)
-            if member.guild.icon:
-                embed.set_footer(
-                    text="Join the MRP Community Realm!", icon_url=member.guild.icon.url
-                )
-            await channel.send(embed=embed)
-            _log.info(
-                f"Sent welcome message to {member.name} in guild {member.guild.name}."
+        welcome_channel_id = bot_data.welcome_message_channel
+        if not welcome_channel_id:
+            _log.warning(f"No welcome message channel configured for guild {member.guild.id}")
+            return
+
+        # Get the welcome channel
+        channel = member.guild.get_channel(welcome_channel_id)
+        if not channel:
+            _log.warning(f"Channel with ID {welcome_channel_id} not found in guild {member.guild.id}")
+            return
+
+        # Prepare welcome embed
+        count = member.guild.member_count
+        embed = discord.Embed(
+            title=f"Welcome to {member.guild.name}!",
+            description=f"**{str(member.display_name)}** is the **{str(count)}**th member!",
+            color=0xB10D9F,
+        )
+        embed.add_field(
+            name="Getting Started",
+            value="Feel free to introduce yourself and check out the community!",
+            inline=False,
+        )
+
+        if member.avatar:
+            embed.set_thumbnail(url=member.avatar.url)
+        if member.guild.icon:
+            embed.set_footer(
+                text=f"Welcome to {member.guild.name}!", icon_url=member.guild.icon.url
             )
-        else:
-            _log.warning(
-                f"Unable to send welcome message for {member.name}: Channel or embed not defined."
-            )
+
+        # Send welcome message
+        await channel.send(embed=embed)
+        _log.info(f"Sent welcome message to {member.name} in guild {member.guild.name}.")
+    except Exception as e:
+        _log.error(f"Error sending welcome message to {member.name}: {e}", exc_info=True)
 
 
 async def setup(bot):
