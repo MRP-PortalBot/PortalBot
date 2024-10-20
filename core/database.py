@@ -120,7 +120,7 @@ class BotData(BaseModel):
     server_id = BigIntegerField(default=0)  # Server ID where the bot is active
     bot_id = BigIntegerField(default=0)  # Discord Bot ID
     bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
-    PB_test_server_ID = BigIntegerField(
+    pb_test_server_id = BigIntegerField(
         default=448488274562908170
     )  # Portal Bot Test Server ID
     prefix = TextField(default=">")  # Bot prefix

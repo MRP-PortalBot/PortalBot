@@ -114,10 +114,8 @@ async def on_ready_(bot: "PortalBot"):
     # Send a message to the GitHub log channel
     try:
         _log.info("Attempting to send sync message to 'github-log' channel.")
-        guild = bot.get_guild(
-            config["PBtest"]
-        )  # Replace 'PBtest' with actual guild ID or logic
-        github_channel = discord.utils.get(guild.channels, name="github-log")
+        pb_guild = bot_data.pb_test_server_id
+        github_channel = discord.utils.get(pb_guild.channels, name="github-log")
 
         if github_channel:
             await github_channel.send("Github Synced, and bot is restarted")
