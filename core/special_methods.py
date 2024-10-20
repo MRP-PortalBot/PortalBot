@@ -114,7 +114,15 @@ async def on_ready_(bot: "PortalBot"):
     # Send a message to the GitHub log channel
     try:
         _log.info("Attempting to send sync message to 'github-log' channel.")
-        pb_guild = bot_data.pb_test_server_id
+
+        # Fetch the guild object using the cached server ID
+        pb_guild = bot.get_guild(bot_data.pb_test_server_id)
+
+        if not pb_guild:
+            _log.error(f"Guild with ID {bot_data.pb_test_server_id} not found.")
+            return
+
+        # Fetch the 'github-log' channel within the guild
         github_channel = discord.utils.get(pb_guild.channels, name="github-log")
 
         if github_channel:
@@ -122,6 +130,7 @@ async def on_ready_(bot: "PortalBot"):
             _log.info("Sync message sent to 'github-log' channel.")
         else:
             _log.error("'github-log' channel not found in the guild.")
+
     except Exception as e:
         _log.error(
             f"Error sending message to 'github-log' channel: {str(e)}", exc_info=True
