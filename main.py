@@ -95,7 +95,7 @@ class PortalBot(commands.Bot):
 
     def __init__(self, uptime: time.time):
         # Set default prefix and activity
-        default_prefix = "!"
+        default_prefix = ">"
         default_activity = discord.Activity(
             type=discord.ActivityType.watching,
             name=f"over the Portal! | {default_prefix}help",
