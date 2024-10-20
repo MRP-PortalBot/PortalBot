@@ -5,9 +5,9 @@ import pytz
 import discord
 from discord import app_commands, ui
 from discord.ext import commands, tasks
-from peewee import fn, DoesNotExist
-from core import common, database, checks
-from core.common import load_config, get_bot_data_id
+from peewee import fn
+from core import database, checks
+from core.common import load_config, get_cached_bot_data
 from core.pagination import paginate_embed
 from core.logging_module import get_log
 
@@ -277,16 +277,15 @@ class DailyCMD(commands.Cog):
     async def send_daily_question(self):
         """Send a daily question to the configured channel and store the question ID."""
         try:
-            database.ensure_database_connection()
-            row_id = get_bot_data_id()
-            q: database.BotData = (
-                database.BotData.select().where(database.BotData.id == row_id).get()
-            )
-            send_channel = self.bot.get_channel(q.daily_question_channel)
+            # Fetch cached bot data for the server
+            bot_data = get_cached_bot_data(self.bot.guilds[0].id)
+
+            # Get the channel to post the question
+            send_channel = self.bot.get_channel(bot_data.daily_question_channel)
 
             if not send_channel:
                 _log.error(
-                    f"Daily question channel with ID {q.daily_question_channel} not found."
+                    f"Daily question channel with ID {bot_data.daily_question_channel} not found."
                 )
                 return
 
@@ -324,9 +323,11 @@ class DailyCMD(commands.Cog):
             )
 
             # Update the last_question_posted to store the question's ID
-            q.last_question_posted = question.display_order
-            q.last_question_posted_time = datetime.now(pytz.timezone("America/Chicago"))
-            q.save()
+            bot_data.last_question_posted = question.display_order
+            bot_data.last_question_posted_time = datetime.now(
+                pytz.timezone("America/Chicago")
+            )
+            bot_data.save()
         except database.Question.DoesNotExist:
             _log.error("Bot data or question not found in the database.")
         except Exception as e:
