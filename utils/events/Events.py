@@ -63,50 +63,59 @@ class Events(commands.Cog):
         # Send a welcome message to the user
         await self.send_welcome_message(member)
 
-async def send_welcome_message(self, member: discord.Member):
-    try:
-        # Retrieve cached bot data for the server
-        bot_data = get_cached_bot_data(member.guild.id)
-        if not bot_data:
-            _log.warning(f"No cached bot data found for guild {member.guild.id}")
-            return
+    async def send_welcome_message(self, member: discord.Member):
+        try:
+            # Retrieve cached bot data for the server
+            bot_data = get_cached_bot_data(member.guild.id)
+            if not bot_data:
+                _log.warning(f"No cached bot data found for guild {member.guild.id}")
+                return
 
-        welcome_channel_id = bot_data.welcome_message_channel
-        if not welcome_channel_id:
-            _log.warning(f"No welcome message channel configured for guild {member.guild.id}")
-            return
+            welcome_channel_id = bot_data.welcome_message_channel
+            if not welcome_channel_id:
+                _log.warning(
+                    f"No welcome message channel configured for guild {member.guild.id}"
+                )
+                return
 
-        # Get the welcome channel
-        channel = member.guild.get_channel(welcome_channel_id)
-        if not channel:
-            _log.warning(f"Channel with ID {welcome_channel_id} not found in guild {member.guild.id}")
-            return
+            # Get the welcome channel
+            channel = member.guild.get_channel(welcome_channel_id)
+            if not channel:
+                _log.warning(
+                    f"Channel with ID {welcome_channel_id} not found in guild {member.guild.id}"
+                )
+                return
 
-        # Prepare welcome embed
-        count = member.guild.member_count
-        embed = discord.Embed(
-            title=f"Welcome to {member.guild.name}!",
-            description=f"**{str(member.display_name)}** is the **{str(count)}**th member!",
-            color=0xB10D9F,
-        )
-        embed.add_field(
-            name="Getting Started",
-            value="Feel free to introduce yourself and check out the community!",
-            inline=False,
-        )
-
-        if member.avatar:
-            embed.set_thumbnail(url=member.avatar.url)
-        if member.guild.icon:
-            embed.set_footer(
-                text=f"Welcome to {member.guild.name}!", icon_url=member.guild.icon.url
+            # Prepare welcome embed
+            count = member.guild.member_count
+            embed = discord.Embed(
+                title=f"Welcome to {member.guild.name}!",
+                description=f"**{str(member.display_name)}** is the **{str(count)}**th member!",
+                color=0xB10D9F,
+            )
+            embed.add_field(
+                name="Getting Started",
+                value="Feel free to introduce yourself and check out the community!",
+                inline=False,
             )
 
-        # Send welcome message
-        await channel.send(embed=embed)
-        _log.info(f"Sent welcome message to {member.name} in guild {member.guild.name}.")
-    except Exception as e:
-        _log.error(f"Error sending welcome message to {member.name}: {e}", exc_info=True)
+            if member.avatar:
+                embed.set_thumbnail(url=member.avatar.url)
+            if member.guild.icon:
+                embed.set_footer(
+                    text=f"Welcome to {member.guild.name}!",
+                    icon_url=member.guild.icon.url,
+                )
+
+            # Send welcome message
+            await channel.send(embed=embed)
+            _log.info(
+                f"Sent welcome message to {member.name} in guild {member.guild.name}."
+            )
+        except Exception as e:
+            _log.error(
+                f"Error sending welcome message to {member.name}: {e}", exc_info=True
+            )
 
 
 async def setup(bot):
