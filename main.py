@@ -11,7 +11,6 @@ import os
 import time
 import json
 from pathlib import Path
-import asyncio
 
 import discord
 import xbox
@@ -26,7 +25,7 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from requests.exceptions import HTTPError
 
 from core import database
-from core.common import get_bot_server_id
+from core.common import get_bot_data_for_server, get_cached_bot_data
 from core.logging_module import get_log
 from core.special_methods import (
     on_app_command_error_,
@@ -46,27 +45,22 @@ _log.info("Starting PortalBot...")
 # Load environment variables
 load_dotenv()
 
-# Initialize bot data cache
-bot_data_cache = {}
+
+async def preload_bot_data(bot):
+    # Preload bot data for all connected guilds (servers)
+    for guild in bot.guilds:
+        await get_bot_data_for_server(guild.id)
 
 
-# Function to get bot data for a specific server
-async def get_bot_data_for_server(server_id):
-    if server_id in bot_data_cache:
-        return bot_data_cache[server_id]
-
-    try:
-        bot_info = (
-            database.BotData.select()
-            .where(database.BotData.server_id == server_id)
-            .get()
-        )
-        bot_data_cache[server_id] = bot_info
-        _log.info(f"Bot data cached for server {server_id}: {bot_info}")
-        return bot_info
-    except Exception as e:
-        _log.error(f"Failed to retrieve bot data for server {server_id}: {e}")
-        return None
+# Function to dynamically load extensions (cogs)
+def get_extensions():
+    extensions = ["jishaku"]
+    for file in Path("utils").glob("**/*.py"):
+        if "!" in file.name or "__" in file.name:
+            continue
+        extensions.append(str(file).replace("/", ".").replace(".py", ""))
+    _log.info(f"Extensions found: {extensions}")
+    return extensions
 
 
 # Custom Command Tree with error handling
@@ -99,36 +93,51 @@ class PortalBot(commands.Bot):
     Generates a PortalBot Instance.
     """
 
+
+class PortalBot(commands.Bot):
+    """
+    Generates a PortalBot Instance.
+    """
+
     def __init__(self, uptime: time.time):
+        preload_bot_data(self)
+        # Set default prefix and activity
+        default_prefix = "!"
+        default_activity = discord.Activity(
+            type=discord.ActivityType.watching,
+            name=f"over the Portal! | {default_prefix}help",
+        )
+
+        # Fetch cached bot data if available for the first guild in the bot's list (assuming multi-guild support)
+        cached_bot_data = None
+        if len(self.guilds) > 0:
+            cached_bot_data = get_cached_bot_data(self.guilds[0].id)
+
+        # If cached bot data is available, use the prefix and activity from it
+        prefix = cached_bot_data.prefix if cached_bot_data else default_prefix
+        activity = (
+            discord.Activity(
+                type=discord.ActivityType.watching,
+                name=f"over the Portal! | {prefix}help",
+            )
+            if cached_bot_data
+            else default_activity
+        )
+
         super().__init__(
-            command_prefix=commands.when_mentioned_or(
-                "!"
-            ),  # Default prefix until cache is loaded
+            command_prefix=commands.when_mentioned_or(prefix),
             intents=discord.Intents.all(),
             case_insensitive=True,
             tree_cls=PBCommandTree,
             status=discord.Status.online,
-            activity=discord.Activity(
-                type=discord.ActivityType.watching,
-                name=f"over the Portal! | !help",
-            ),
+            activity=activity,
         )
         self.help_command = None
         self._start_time = uptime
-        _log.info("PortalBot instance created.")
+        _log.info("PortalBot instance created with prefix: '%s'", prefix)
 
     async def on_ready(self):
         await on_ready_(self)
-        for guild in self.guilds:
-            server_id = guild.id
-            bot_info = await get_bot_data_for_server(server_id)
-            if bot_info:
-                self.command_prefix = commands.when_mentioned_or(bot_info.prefix)
-                self.activity = discord.Activity(
-                    type=discord.ActivityType.watching,
-                    name=f"over the Portal! | {bot_info.prefix}help",
-                )
-                _log.info(f"Bot prefix set for server {server_id}: {bot_info.prefix}")
         _log.info("PortalBot is ready.")
 
     async def on_command_error(self, ctx: commands.Context, error: Exception):

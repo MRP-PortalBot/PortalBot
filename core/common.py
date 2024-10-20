@@ -18,6 +18,36 @@ from core.logging_module import get_log
 # Setting up logger
 _log = get_log(__name__)
 
+# core/common.py
+
+from core import database
+import logging
+
+_log = logging.getLogger(__name__)
+
+bot_data_cache = {}
+
+
+async def get_bot_data_for_server(server_id):
+    if server_id in bot_data_cache:
+        return bot_data_cache[server_id]
+
+    try:
+        bot_info = (
+            database.BotData.select()
+            .where(database.BotData.server_id == server_id)
+            .get()
+        )
+        bot_data_cache[server_id] = bot_info
+        return bot_info
+    except Exception as e:
+        # Log error appropriately
+        return None
+
+
+def get_cached_bot_data(server_id):
+    return bot_data_cache.get(server_id)
+
 
 # Loading Configuration Functions
 def load_config() -> Tuple[dict, Path]:
@@ -168,14 +198,6 @@ class Others:
 
 class Me:
     TracebackChannel = 797193549992165456
-
-
-def get_bot_server_id():
-    load_dotenv()
-    os.getenv("bot_type")
-    key_value = {"STABLE": 1, "BETA": 2}
-
-    return key_value[os.getenv("bot_type")]
 
 
 # Function to Calculate Level Based on Score
