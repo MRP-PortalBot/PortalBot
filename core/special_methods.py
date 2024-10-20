@@ -175,6 +175,7 @@ def initialize_db(bot):
             bot_data = database.BotData.select().where(
                 database.BotData.server_id == guild.id
             )
+            print(bot_data.welcome_channel)
 
             # If no bot data exists, create it
             if not bot_data.exists():
