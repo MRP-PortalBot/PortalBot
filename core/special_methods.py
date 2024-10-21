@@ -117,7 +117,9 @@ async def on_ready_(bot: "PortalBot"):
         _log.info("Attempting to send sync message to 'github-log' channel.")
 
         # Fetch the guild object using the cached server ID
-        pb_guild = bot.get_guild(get_cached_bot_data(bot.guilds).pb_test_server_id)
+        pb_guild = bot.get_guild(
+            get_cached_bot_data(bot.guilds[0].id).pb_test_server_id
+        )
 
         if not pb_guild:
             _log.error(f"Guild with ID {bot_data.pb_test_server_id} not found.")
