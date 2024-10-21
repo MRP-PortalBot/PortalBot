@@ -30,28 +30,44 @@ _log = logging.getLogger(__name__)
 cache_lock = Lock()
 bot_data_cache = {}
 
+
 async def get_bot_data_for_server(server_id):
     if server_id in bot_data_cache:
+        _log.info(f"Returning cached bot data for server {server_id}")
         return bot_data_cache[server_id]
 
     try:
-        # Ensure that you are getting the correct BotData object from the database
+        # Fetch the bot data for the server
         bot_info = (
             database.BotData.select()
             .where(database.BotData.server_id == server_id)
             .get()
         )
+        # Cache the bot data
         bot_data_cache[server_id] = bot_info
+        _log.info(
+            f"Bot data fetched and cached for guild {server_id}: Prefix: {bot_info.prefix}, Server ID: {bot_info.server_id}"
+        )
         return bot_info
     except database.DoesNotExist:
         _log.error(f"No BotData found for server ID: {server_id}")
         return None
     except Exception as e:
-        _log.error(f"Error fetching bot data for server ID {server_id}: {e}", exc_info=True)
+        _log.error(
+            f"Error fetching bot data for server ID {server_id}: {e}", exc_info=True
+        )
         return None
 
+
 def get_cached_bot_data(server_id):
-    return bot_data_cache.get(server_id)
+    bot_data = bot_data_cache.get(server_id)
+    if bot_data:
+        _log.info(
+            f"Cached bot data fetched for guild {server_id}: Prefix: {bot_data.prefix}, Server ID: {bot_data.server_id}"
+        )
+    else:
+        _log.warning(f"No cached bot data found for guild {server_id}")
+    return bot_data
 
 
 # Loading Configuration Functions
