@@ -131,7 +131,7 @@ def return_applyfornewrealm_modal(bot):
             )
 
         async def on_submit(self, interaction: discord.Interaction):
-            bot_data = get_cached_bot_data(interaction.guild.id)
+            bot_data = await get_cached_bot_data(interaction.guild.id)
             try:
                 _log.info(
                     f"Submitting realm application for '{self.realm_name.value}' by {interaction.user.display_name}."
@@ -301,7 +301,7 @@ class RealmCMD(commands.Cog):
     @slash_is_bot_admin_3
     async def create_realm(self, interaction: discord.Interaction, app_number: int):
         await interaction.response.defer(thinking=True)
-        bot_data = get_cached_bot_data(interaction.guild.id)
+        bot_data = await get_cached_bot_data(interaction.guild.id)
         # Status set to null
         role_create = "FALSE"
         channel_create = "FALSE"

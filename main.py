@@ -120,7 +120,7 @@ class PortalBot(commands.Bot):
 
         # Update bot prefix and activity for each guild using cached bot data
         for guild in self.guilds:
-            cached_bot_data = get_cached_bot_data(guild.id)
+            cached_bot_data = await get_cached_bot_data(guild.id)
             if cached_bot_data:
                 self.command_prefix = commands.when_mentioned_or(cached_bot_data.prefix)
                 self.activity = discord.Activity(
