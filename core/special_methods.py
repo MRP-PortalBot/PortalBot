@@ -171,7 +171,7 @@ async def preload_bot_data(bot: "PortalBot"):
     _log.info("Bot data preloaded for all guilds.")
 
     for guild in bot.guilds:
-        bot_data = get_cached_bot_data(guild.id)
+        bot_data = await get_cached_bot_data(guild.id)
 
         if bot_data is None:
             _log.warning(
