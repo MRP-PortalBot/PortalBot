@@ -66,7 +66,7 @@ class Events(commands.Cog):
     async def send_welcome_message(self, member: discord.Member):
         try:
             # Retrieve cached bot data for the server
-            bot_data = await get_cached_bot_data(member.guild.id)
+            bot_data = get_cached_bot_data(member.guild.id)
             if not bot_data:
                 _log.warning(f"No cached bot data found for guild {member.guild.id}")
                 return

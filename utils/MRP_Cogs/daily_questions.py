@@ -341,7 +341,7 @@ class DailyCMD(commands.Cog):
         """Send a daily question to the configured channel and store the question ID."""
         try:
             database.ensure_database_connection()
-            bot_data = await get_cached_bot_data(self.guild.id)
+            bot_data = get_cached_bot_data(self.guild.id)
 
             if not bot_data.daily_question_enabled:
                 _log.info(
@@ -642,7 +642,7 @@ class DailyCMD(commands.Cog):
     @checks.slash_is_bot_admin_2
     async def toggle_daily_question(self, interaction: discord.Interaction):
         try:
-            bot_data = await get_cached_bot_data(interaction.guild.id)
+            bot_data = get_cached_bot_data(interaction.guild.id)
 
             # Toggle the state
             bot_data.daily_question_enabled = not bot_data.daily_question_enabled

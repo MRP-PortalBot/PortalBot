@@ -30,12 +30,12 @@ _log = logging.getLogger(__name__)
 cache_lock = Lock()
 bot_data_cache = {}
 
-
 async def get_bot_data_for_server(server_id):
     if server_id in bot_data_cache:
         return bot_data_cache[server_id]
 
     try:
+        # Ensure that you are getting the correct BotData object from the database
         bot_info = (
             database.BotData.select()
             .where(database.BotData.server_id == server_id)
@@ -43,18 +43,14 @@ async def get_bot_data_for_server(server_id):
         )
         bot_data_cache[server_id] = bot_info
         return bot_info
-    except database.BotData.DoesNotExist:
-        _log.warning(f"No bot data found for server ID {server_id}.")
+    except database.DoesNotExist:
+        _log.error(f"No BotData found for server ID: {server_id}")
         return None
     except Exception as e:
-        _log.error(
-            f"Unexpected error fetching bot data for server ID {server_id}: {e}",
-            exc_info=True,
-        )
+        _log.error(f"Error fetching bot data for server ID {server_id}: {e}", exc_info=True)
         return None
 
-
-async def get_cached_bot_data(server_id):
+def get_cached_bot_data(server_id):
     return bot_data_cache.get(server_id)
 
 
