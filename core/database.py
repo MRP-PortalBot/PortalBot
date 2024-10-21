@@ -144,6 +144,7 @@ class BotData(BaseModel):
     )  # Channel ID for realm channel responses
     general_channel = BigIntegerField(default=0)  # General Channel ID
     mod_channel = BigIntegerField(default=0)  # MOderator Channel ID
+    daily_question_enabled = BooleanField(default=True)
     last_question_posted = TextField(null=True)  # Last question that was posted
     last_question_posted_time = TimestampField  # Last time a question was posted
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
@@ -173,6 +174,8 @@ class Question(BaseModel):
     display_order = IntegerField()  # Display order
     question = TextField()  # The question text
     usage = TextField(default=False)  # Indicates if the question has been used
+    upvotes = IntegerField(default=0)
+    downvotes = IntegerField(default=0)
 
 
 class MRP_Blacklist_Data(BaseModel):
@@ -240,6 +243,7 @@ class RealmProfile(BaseModel):
     discord_name = TextField()  # Discord name of the applicant
     realm_name = TextField()  # Realm name the user is applying to
     emoji = TextField()  # Emoji associated with the realm
+    logo_url = TextField()  # Logo associated with the realm
     play_style = TextField()  # Play style (e.g., survival, creative)
     gamemode = TextField()  # Game mode (peaceful, easy, hard, hardcore)
     short_desc = TextField()  # Short description of the realm
@@ -254,7 +258,6 @@ class RealmProfile(BaseModel):
     realm_addons = TextField()  # Addons or mods associated with the realm
     pvp = TextField()  # PvP enabled or not
     percent_player_sleep = TextField()  # Percent of players for sleep
-    timestamp = TimestampField()  # Timestamp of the application
     checkin = BooleanField()  # Has the realm checked in this month?
 
 

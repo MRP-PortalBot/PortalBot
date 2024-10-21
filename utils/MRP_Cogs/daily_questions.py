@@ -221,6 +221,69 @@ class SuggestModalNEW(discord.ui.Modal, title="Suggest a Question"):
                 )
 
 
+class QuestionVoteView(discord.ui.View):
+    def __init__(self, bot, question_id):
+        super().__init__(timeout=None)
+        self.bot = bot
+        self.question_id = question_id
+
+        # Load the initial vote counts
+        question = database.Question.get(display_order=question_id)
+        self.upvote_count = question.upvotes
+        self.downvote_count = question.downvotes
+
+        # Upvote Button
+        self.upvote_button = discord.ui.button(
+            label=f"👍 {self.upvote_count}",
+            style=discord.ButtonStyle.green,
+            custom_id="question_upvote",
+        )
+        self.upvote_button.callback = self.handle_upvote
+        self.add_item(self.upvote_button)
+
+        # Downvote Button
+        self.downvote_button = discord.ui.button(
+            label=f"👎 {self.downvote_count}",
+            style=discord.ButtonStyle.red,
+            custom_id="question_downvote",
+        )
+        self.downvote_button.callback = self.handle_downvote
+        self.add_item(self.downvote_button)
+
+        # Suggest a Question Button
+        self.add_item(SuggestQuestionFromDQ(bot).suggest_question)
+
+    async def handle_upvote(self, interaction: discord.Interaction):
+        try:
+            question = database.Question.get(display_order=self.question_id)
+            question.upvotes += 1
+            question.save()
+
+            self.upvote_count = question.upvotes
+            self.upvote_button.label = f"👍 {self.upvote_count}"
+            await interaction.response.edit_message(view=self)
+            _log.info(
+                f"Upvote added by {interaction.user.display_name} for question ID {self.question_id}."
+            )
+        except Exception as e:
+            _log.error(f"Error handling upvote: {e}", exc_info=True)
+
+    async def handle_downvote(self, interaction: discord.Interaction):
+        try:
+            question = database.Question.get(display_order=self.question_id)
+            question.downvotes += 1
+            question.save()
+
+            self.downvote_count = question.downvotes
+            self.downvote_button.label = f"👎 {self.downvote_count}"
+            await interaction.response.edit_message(view=self)
+            _log.info(
+                f"Downvote added by {interaction.user.display_name} for question ID {self.question_id}."
+            )
+        except Exception as e:
+            _log.error(f"Error handling downvote: {e}", exc_info=True)
+
+
 # View for users to submit a new question
 class SuggestQuestionFromDQ(discord.ui.View):
     def __init__(self, bot):
@@ -277,8 +340,14 @@ class DailyCMD(commands.Cog):
     async def send_daily_question(self):
         """Send a daily question to the configured channel and store the question ID."""
         try:
-            # Fetch cached bot data for the server
-            bot_data = get_cached_bot_data(self.bot.guilds[0].id)
+            database.ensure_database_connection()
+            bot_data = get_cached_bot_data(self.guild.id)
+
+            if not bot_data.daily_question_enabled:
+                _log.info(
+                    f"Daily questions are disabled for guild {bot_data.server_id}."
+                )
+                return
 
             # Get the channel to post the question
             send_channel = self.bot.get_channel(bot_data.daily_question_channel)
@@ -317,7 +386,10 @@ class DailyCMD(commands.Cog):
                 color=0xB10D9F,
             )
             embed.set_footer(text=f"Question ID: {question.display_order}")
-            await send_channel.send(embed=embed, view=SuggestQuestionFromDQ(self.bot))
+
+            view = QuestionVoteView(self.bot, question.display_order)
+            await send_channel.send(embed=embed, view=view)
+
             _log.info(
                 f"Question ID {question.display_order} sent to channel {send_channel.name}."
             )
@@ -562,6 +634,29 @@ class DailyCMD(commands.Cog):
             _log.error(f"Error listing questions: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred while listing questions."
+            )
+
+    @DQ.command(
+        name="toggle-daily-question", description="Enable or disable daily questions."
+    )
+    @checks.slash_is_bot_admin_2
+    async def toggle_daily_question(self, interaction: discord.Interaction):
+        try:
+            bot_data = get_cached_bot_data(interaction.guild.id)
+
+            # Toggle the state
+            bot_data.daily_question_enabled = not bot_data.daily_question_enabled
+            bot_data.save()
+
+            state = "enabled" if bot_data.daily_question_enabled else "disabled"
+            await interaction.response.send_message(
+                f"Daily questions have been {state}.", ephemeral=True
+            )
+            _log.info(f"Daily questions {state} for guild {interaction.guild.id}.")
+        except Exception as e:
+            _log.error(f"Error toggling daily questions: {e}", exc_info=True)
+            await interaction.response.send_message(
+                "An error occurred while toggling daily questions.", ephemeral=True
             )
 
 

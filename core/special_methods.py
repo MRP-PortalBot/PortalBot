@@ -215,6 +215,7 @@ def _create_bot_data(server_id, initial_channel_id):
         question_suggest_channel=initial_channel_id,
         bot_spam_channel=initial_channel_id,
         realm_channel_response=initial_channel_id,
+        daily_question_enabled=True,
         last_question_posted=None,
         last_question_posted_time=None,
         daily_question_channel=initial_channel_id,
