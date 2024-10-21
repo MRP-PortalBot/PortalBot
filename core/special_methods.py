@@ -114,12 +114,15 @@ async def on_ready_(bot: "PortalBot"):
 
     # Send a message to the GitHub log channel
     try:
+        if not hasattr(bot_data, "pb_test_server_id") or not bot_data.pb_test_server_id:
+            _log.error("pb_test_server_id not found in bot data.")
+            return
+
+        _log.info(f"Using pb_test_server_id: {bot_data.pb_test_server_id}")
         _log.info("Attempting to send sync message to 'github-log' channel.")
 
         # Fetch the guild object using the cached server ID
-        pb_guild = bot.get_guild(
-            get_cached_bot_data(bot.guilds[0].id).pb_test_server_id
-        )
+        pb_guild = bot.get_guild(bot_data.pb_test_server_id)
 
         if not pb_guild:
             _log.error(f"Guild with ID {bot_data.pb_test_server_id} not found.")
