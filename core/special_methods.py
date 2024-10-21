@@ -118,6 +118,8 @@ async def on_ready_(bot: "PortalBot"):
             _log.error("pb_test_server_id not found in bot data.")
             return
 
+        _log.info(f"Bot data fetched: {bot_data}")
+
         _log.info(f"Using pb_test_server_id: {bot_data.pb_test_server_id}")
         _log.info("Attempting to send sync message to 'github-log' channel.")
 
