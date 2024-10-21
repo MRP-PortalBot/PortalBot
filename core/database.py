@@ -124,6 +124,7 @@ class BotData(BaseModel):
         default=448488274562908170
     )  # Portal Bot Test Server ID
     prefix = TextField(default=">")  # Bot prefix
+    admin_role = BigIntegerField(default=0)  # Admin role for the server
     persistent_views = BooleanField(
         default=False
     )  # Whether or not persistent views are enabled
