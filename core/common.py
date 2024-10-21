@@ -32,27 +32,26 @@ bot_data_cache = {}
 
 
 async def get_bot_data_for_server(server_id):
-    async with cache_lock:
-        if server_id in bot_data_cache:
-            return bot_data_cache[server_id]
+    if server_id in bot_data_cache:
+        return bot_data_cache[server_id]
 
-        try:
-            bot_info = (
-                database.BotData.select()
-                .where(database.BotData.server_id == server_id)
-                .get()
-            )
-            bot_data_cache[server_id] = bot_info
-            return bot_info
-        except database.DoesNotExist:
-            _log.warning(f"No bot data found for server ID {server_id}.")
-            return None
-        except Exception as e:
-            _log.error(
-                f"Unexpected error fetching bot data for server ID {server_id}: {e}",
-                exc_info=True,
-            )
-            return None
+    try:
+        bot_info = (
+            database.BotData.select()
+            .where(database.BotData.server_id == server_id)
+            .get()
+        )
+        bot_data_cache[server_id] = bot_info
+        return bot_info
+    except database.BotData.DoesNotExist:
+        _log.warning(f"No bot data found for server ID {server_id}.")
+        return None
+    except Exception as e:
+        _log.error(
+            f"Unexpected error fetching bot data for server ID {server_id}: {e}",
+            exc_info=True,
+        )
+        return None
 
 
 async def get_cached_bot_data(server_id):
