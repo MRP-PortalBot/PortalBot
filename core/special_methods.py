@@ -148,16 +148,37 @@ async def on_ready_(bot: "PortalBot"):
 # Preload bot data for all guilds
 async def preload_bot_data(bot: "PortalBot"):
     _log.info("Preloading bot data for all guilds...")
+
     for guild in bot.guilds:
-        _log.info(f"Guild Data: {guild}")
+        _log.info(f"Guild Data {guild}: {guild.id}")
         bot_init = await get_bot_data_for_server(guild.id)
-        _log.info(f"Bot data fetched and cached for guild {guild.id}: {bot_init}")
+
+        if bot_init is None:
+            _log.warning(
+                f"No bot data initialized for guild {guild.id}. Attempting to create default bot data."
+            )
+            # Attempt to create default bot data here
+            _create_bot_data(
+                guild.id,
+                initial_channel_id=(
+                    guild.text_channels[0].id if guild.text_channels else None
+                ),
+            )
+
+        else:
+            _log.info(f"Bot data fetched and cached for guild {guild.id}: {bot_init}")
+
     _log.info("Bot data preloaded for all guilds.")
 
     for guild in bot.guilds:
-        # Assuming get_cached_bot_data is not an async function
         bot_data = get_cached_bot_data(guild.id)
-        _log.info(f"Cached bot data fetched for guild {guild.id}: {bot_data}")
+
+        if bot_data is None:
+            _log.warning(
+                f"No cached bot data found for guild {guild.id}. Skipping view initialization."
+            )
+        else:
+            _log.info(f"Cached bot data fetched for guild {guild.id}: {bot_data}")
 
 
 # Function that needs QuestionSuggestionManager
