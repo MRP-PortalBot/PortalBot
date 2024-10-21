@@ -475,16 +475,11 @@ class DailyCMD(commands.Cog):
     @checks.slash_is_bot_admin_2
     async def postq(self, interaction: discord.Interaction, id: int = None):
         """Post a daily question by ID or repeat today's question."""
+        bot_data = get_cached_bot_data(self.guild.id)
         try:
             _log.info(f"{interaction.user} triggered the post command.")
 
-            row_id = get_bot_data_id()
-            _log.debug(f"Retrieved bot data row ID: {row_id}")
-
-            # Fetch the bot data to get the last posted question's ID
-            bot_data: database.BotData = (
-                database.BotData.select().where(database.BotData.id == row_id).get()
-            )
+            _log.debug(f"Retrieved bot data for server: {bot_data.server_id}")
 
             # Determine which question ID to use
             if id is None:
