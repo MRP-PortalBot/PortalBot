@@ -52,6 +52,7 @@ async def on_ready_(bot: "PortalBot"):
             )
             continue
         initialize_persistent_views(bot, bot_data)
+        return bot_data
 
     # Determine the database source (external or local)
     database_source = "External" if not os.getenv("USEREAL") else "localhost"
