@@ -572,8 +572,8 @@ class DailyCMD(commands.Cog):
             # Create and send the enhanced embed for the daily question
 
             embed = discord.Embed(
-                title=f"**{question.question}**",
-                description=":heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: ",
+                title="# 🌟❓Question of the Day❓🌟",
+                description=f"## **{question.question}**"
                 color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
             )
 
@@ -594,11 +594,6 @@ class DailyCMD(commands.Cog):
                 name="💡 Tip",
                 value="Remember, thoughtful answers help everyone learn something new!",
                 inline=False,
-            )
-
-            # Set the author for better context
-            embed.set_author(
-                name="             # 🌟:question: Question of the Day :question:🌟"
             )
 
             # Footer to show appreciation and include a timestamp for context
