@@ -536,7 +536,7 @@ class DailyCMD(commands.Cog):
         """Post a daily question by ID or repeat today's question."""
         guild_id = interaction.guild.id
         bot_data = get_cached_bot_data(guild_id)
-        channel_id = bot_data.question_channel_id
+        channel_id = bot_data.daily_question_channel
 
         # Use the bot to get the channel object
         send_channel = self.bot.get_channel(channel_id)
