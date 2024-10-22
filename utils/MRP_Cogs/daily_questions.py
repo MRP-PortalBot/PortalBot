@@ -572,8 +572,8 @@ class DailyCMD(commands.Cog):
             # Create and send the enhanced embed for the daily question
 
             embed = discord.Embed(
-                title="🌟 Question of the Day 🌟",
-                description=f"**{question.question}**",
+                title=f"**{question.question}**",
+                description="🌟 Question of the Day 🌟",
                 color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
             )
 
