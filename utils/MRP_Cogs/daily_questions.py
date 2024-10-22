@@ -573,7 +573,7 @@ class DailyCMD(commands.Cog):
 
             embed = discord.Embed(
                 title="# 🌟❓Question of the Day❓🌟",
-                description=f"## **{question.question}**"
+                description=f"## **{question.question}**",
                 color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
             )
 
