@@ -405,8 +405,8 @@ class DailyCMD(commands.Cog):
             # Create and send the enhanced embed for the daily question
 
             embed = discord.Embed(
-                title="🌟 Question of the Day 🌟",
-                description=f"**{question.question}**",
+                title="🌟❓Question of the Day❓🌟",
+                description=f"## **{question.question}**",
                 color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
             )
 
@@ -429,15 +429,9 @@ class DailyCMD(commands.Cog):
                 inline=False,
             )
 
-            # Set the author for better context
-            embed.set_author(
-                name=f"Question #{question.display_order}",
-                icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180245087617024/Nether_Portal_Avatargreen.png",
-            )
-
             # Footer to show appreciation and include a timestamp for context
             embed.set_footer(
-                text="Thank you for participating!",
+                text=f"Thank you for participating! • Question #{question.display_order}",
                 icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180249748406272/Portal_Design.png",
             )
 
@@ -572,7 +566,7 @@ class DailyCMD(commands.Cog):
             # Create and send the enhanced embed for the daily question
 
             embed = discord.Embed(
-                title="# 🌟❓Question of the Day❓🌟",
+                title="🌟❓Question of the Day❓🌟",
                 description=f"## **{question.question}**",
                 color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
             )
