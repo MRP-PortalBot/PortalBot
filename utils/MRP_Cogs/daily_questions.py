@@ -573,7 +573,7 @@ class DailyCMD(commands.Cog):
 
             embed = discord.Embed(
                 title=f":question:**{question.question}**:question:",
-                description=":heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: ",
+                description=":heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign::heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: :heavy_minus_sign: ",
                 color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
             )
 
@@ -597,10 +597,7 @@ class DailyCMD(commands.Cog):
             )
 
             # Set the author for better context
-            embed.set_author(
-                name="🌟 Question of the Day 🌟",
-                icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180245087617024/Nether_Portal_Avatargreen.png",
-            )
+            embed.set_author(name="🌟 Question of the Day 🌟")
 
             # Footer to show appreciation and include a timestamp for context
             embed.set_footer(
