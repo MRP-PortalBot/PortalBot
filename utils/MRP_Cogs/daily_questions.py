@@ -402,7 +402,7 @@ class DailyCMD(commands.Cog):
 
             # Thumbnail to visually highlight the embed
             embed.set_thumbnail(
-                url="https://your-image-url-here.com/question.png"
+                url="https://cdn.discordapp.com/attachments/788873229136560140/1298379290173243504/QOD.png?ex=67195971&is=671807f1&hm=61c8eaaea1cea3f4f6883540a672e1768e55adb5cdc836213c589cbdf3b5ea7a&"
             )  # Replace with a meaningful image
 
             # Add a discussion field to invite users
