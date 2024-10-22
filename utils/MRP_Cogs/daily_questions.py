@@ -341,22 +341,21 @@ class DailyCMD(commands.Cog):
         """Send a daily question to the configured channel and store the question ID."""
         try:
             database.ensure_database_connection()
-            bot_data = get_cached_bot_data(self.guild.id)
+            for guild in self.bot.guilds:
+                bot_data = get_cached_bot_data(guild.id)
+                if not bot_data or not bot_data.daily_question_enabled:
+                    _log.warning(
+                        f"Daily question disabled or no data for guild {guild.id}. Skipping."
+                    )
+                    continue
 
-            if not bot_data.daily_question_enabled:
-                _log.info(
-                    f"Daily questions are disabled for guild {bot_data.server_id}."
-                )
-                return
+                send_channel = self.bot.get_channel(bot_data.daily_question_channel)
 
-            # Get the channel to post the question
-            send_channel = self.bot.get_channel(bot_data.daily_question_channel)
-
-            if not send_channel:
-                _log.error(
-                    f"Daily question channel with ID {bot_data.daily_question_channel} not found."
-                )
-                return
+                if not send_channel:
+                    _log.error(
+                        f"Daily question channel with ID {bot_data.daily_question_channel} not found in guild {guild.id}."
+                    )
+                    continue
 
             # Check if all questions have been used (i.e., usage is True)
             unused_questions_count = (
@@ -379,7 +378,7 @@ class DailyCMD(commands.Cog):
             question.usage = True
             question.save()
 
-            # Create and send the embed for the daily question
+            """# Create and send the embed for the daily question
             embed = discord.Embed(
                 title="❓ QUESTION OF THE DAY ❓",
                 description=f"**{question.question}**",
@@ -387,6 +386,56 @@ class DailyCMD(commands.Cog):
             )
             embed.set_footer(text=f"Question ID: {question.display_order}")
 
+            view = QuestionVoteView(self.bot, question.display_order)
+            await send_channel.send(embed=embed, view=view)
+
+            _log.info(
+                f"Question ID {question.display_order} sent to channel {send_channel.name}."
+            )"""
+            # Create and send the enhanced embed for the daily question
+
+            embed = discord.Embed(
+                title="🌟 Question of the Day 🌟",
+                description=f"**{question.question}**",
+                color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
+            )
+
+            # Thumbnail to visually highlight the embed
+            embed.set_thumbnail(
+                url="https://your-image-url-here.com/question.png"
+            )  # Replace with a meaningful image
+
+            # Add a discussion field to invite users
+            embed.add_field(
+                name="🗣️ Discuss",
+                value="We'd love to hear your thoughts! Share your response below and get to know the community better!",
+                inline=False,
+            )
+
+            # Add a tip to encourage thoughtful answers
+            embed.add_field(
+                name="💡 Tip",
+                value="Remember, thoughtful answers help everyone learn something new!",
+                inline=False,
+            )
+
+            # Set the author for better context
+            embed.set_author(
+                name=f"Question #{question.display_order}",
+                icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180245087617024/Nether_Portal_Avatargreen.png",
+            )
+
+            # Footer to show appreciation and include a timestamp for context
+            embed.set_footer(
+                text="Thank you for participating!",
+                icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180249748406272/Portal_Design.png",
+            )
+
+            embed.timestamp = (
+                datetime.now()
+            )  # Timestamp to indicate when the question was posted
+
+            # Send the embed with the view for voting
             view = QuestionVoteView(self.bot, question.display_order)
             await send_channel.send(embed=embed, view=view)
 
@@ -475,7 +524,8 @@ class DailyCMD(commands.Cog):
     @checks.slash_is_bot_admin_2
     async def postq(self, interaction: discord.Interaction, id: int = None):
         """Post a daily question by ID or repeat today's question."""
-        bot_data = get_cached_bot_data(self.guild.id)
+        guild_id = interaction.guild.id
+        bot_data = get_cached_bot_data(guild_id)
         try:
             _log.info(f"{interaction.user} triggered the post command.")
 
