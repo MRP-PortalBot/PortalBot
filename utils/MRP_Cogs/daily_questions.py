@@ -550,17 +550,56 @@ class DailyCMD(commands.Cog):
                 f"Posting question ID: {question_id_to_post}, Question: {question.question}"
             )
 
-            # Create and send the embed for the question
+            # Create and send the enhanced embed for the daily question
+
             embed = discord.Embed(
-                title="❓ QUESTION OF THE DAY ❓",
+                title="🌟 Question of the Day 🌟",
                 description=f"**{question.question}**",
-                color=0xB10D9F,
+                color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
             )
-            embed.set_footer(text=f"Question ID: {question.display_order}")
-            await interaction.response.send_message(
-                embed=embed, view=SuggestQuestionFromDQ(self.bot)
+
+            # Thumbnail to visually highlight the embed
+            embed.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/788873229136560140/1298379290173243504/QOD.png?ex=67195971&is=671807f1&hm=61c8eaaea1cea3f4f6883540a672e1768e55adb5cdc836213c589cbdf3b5ea7a&"
+            )  # Replace with a meaningful image
+
+            # Add a discussion field to invite users
+            embed.add_field(
+                name="🗣️ Discuss",
+                value="We'd love to hear your thoughts! Share your response below and get to know the community better!",
+                inline=False,
             )
-            _log.info(f"Sent the question to {interaction.user}.")
+
+            # Add a tip to encourage thoughtful answers
+            embed.add_field(
+                name="💡 Tip",
+                value="Remember, thoughtful answers help everyone learn something new!",
+                inline=False,
+            )
+
+            # Set the author for better context
+            embed.set_author(
+                name=f"Question #{question.display_order}",
+                icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180245087617024/Nether_Portal_Avatargreen.png",
+            )
+
+            # Footer to show appreciation and include a timestamp for context
+            embed.set_footer(
+                text="Thank you for participating!",
+                icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180249748406272/Portal_Design.png",
+            )
+
+            embed.timestamp = (
+                datetime.now()
+            )  # Timestamp to indicate when the question was posted
+
+            # Send the embed with the view for voting
+            view = QuestionVoteView(self.bot, question.display_order)
+            await send_channel.send(embed=embed, view=view)
+
+            _log.info(
+                f"Question ID {question.display_order} sent to channel {send_channel.name}."
+            )
 
         except database.Question.DoesNotExist:
             _log.error(f"No question found for ID: {question_id_to_post}.")
