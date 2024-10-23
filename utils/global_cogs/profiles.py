@@ -17,6 +17,7 @@ class ProfileCMD(commands.Cog):
     AVATAR_SIZE = 128
     PADDING = 20
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
+
     BAR_HEIGHT = 30  # Progress bar height
     RADIUS = 15  # Rounded corners radius for the progress bar
     FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"
@@ -30,17 +31,10 @@ class ProfileCMD(commands.Cog):
     XBOX_LOGO_PATH = "./core/images/xbox-logo.png"
     NS_LOGO_PATH = "./core/images/ns-logo.png"
 
-    def load_background_image(self):
-        """Load and return the background image."""
-        background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
-        return background_image.copy()
-
     @app_commands.command(name="profile", description="Generates a profile image.")
     async def generate_profile_canvas(
         self, interaction: discord.Interaction, profile: discord.Member = None
     ):
-        # Your existing code...
-
         if profile is None:
             profile = interaction.user
 
@@ -125,7 +119,25 @@ class ProfileCMD(commands.Cog):
                 # Update y-coordinate for the next console
                 y += 30  # Adjust for the next entry
 
-    # The rest of the methods (load_background_image, load_avatar_image, etc.) remain unchanged
+    def load_background_image(self):
+        """Load and return the background image."""
+        background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
+        return background_image.copy()
+
+    async def load_avatar_image(self, profile):
+        """Load and return the user's avatar image."""
+        avatar_asset = await profile.display_avatar.read()
+        avatar_image = Image.open(io.BytesIO(avatar_asset)).resize(
+            (self.AVATAR_SIZE, self.AVATAR_SIZE)
+        )
+        return avatar_image
+
+    def draw_avatar(self, image, avatar_image):
+        """Draws the avatar onto the canvas with a circular mask."""
+        mask = Image.new("L", (self.AVATAR_SIZE, self.AVATAR_SIZE), 0)
+        mask_draw = ImageDraw.Draw(mask)
+        mask_draw.ellipse((0, 0, self.AVATAR_SIZE, self.AVATAR_SIZE), fill=255)
+        image.paste(avatar_image, (self.PADDING, self.PADDING), mask)
 
     # Database function example
     def fetch_profile_data(self, profile, guild_id):
