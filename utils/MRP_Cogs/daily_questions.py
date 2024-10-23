@@ -412,7 +412,7 @@ class DailyCMD(commands.Cog):
 
             # Thumbnail to visually highlight the embed
             embed.set_thumbnail(
-                url="https://cdn.discordapp.com/attachments/788873229136560140/1298379290173243504/QOD.png?ex=67195971&is=671807f1&hm=61c8eaaea1cea3f4f6883540a672e1768e55adb5cdc836213c589cbdf3b5ea7a&"
+                url="https://cdn.discordapp.com/attachments/788873229136560140/1298745739048124457/MC-QOD.png?ex=671aaeb9&is=67195d39&hm=615018af7912ca3f2d14f48a52b6400226687aafb2bfe8a4630288b2302a9d22&"
             )  # Replace with a meaningful image
 
             # Add a discussion field to invite users
@@ -590,7 +590,7 @@ class DailyCMD(commands.Cog):
 
             # Thumbnail to visually highlight the embed
             embed.set_thumbnail(
-                url="https://cdn.discordapp.com/attachments/788873229136560140/1298379290173243504/QOD.png?ex=67195971&is=671807f1&hm=61c8eaaea1cea3f4f6883540a672e1768e55adb5cdc836213c589cbdf3b5ea7a&"
+                url="https://cdn.discordapp.com/attachments/788873229136560140/1298745739048124457/MC-QOD.png?ex=671aaeb9&is=67195d39&hm=615018af7912ca3f2d14f48a52b6400226687aafb2bfe8a4630288b2302a9d22&"
             )  # Replace with a meaningful image
 
             # Add a discussion field to invite users
