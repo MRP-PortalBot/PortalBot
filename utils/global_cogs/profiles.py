@@ -17,7 +17,6 @@ class ProfileCMD(commands.Cog):
     AVATAR_SIZE = 128
     PADDING = 20
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
-
     BAR_HEIGHT = 30  # Progress bar height
     RADIUS = 15  # Rounded corners radius for the progress bar
     FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"
@@ -31,10 +30,17 @@ class ProfileCMD(commands.Cog):
     XBOX_LOGO_PATH = "./core/images/xbox-logo.png"
     NS_LOGO_PATH = "./core/images/ns-logo.png"
 
+    def load_background_image(self):
+        """Load and return the background image."""
+        background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
+        return background_image.copy()
+
     @app_commands.command(name="profile", description="Generates a profile image.")
     async def generate_profile_canvas(
         self, interaction: discord.Interaction, profile: discord.Member = None
     ):
+        # Your existing code...
+
         if profile is None:
             profile = interaction.user
 
