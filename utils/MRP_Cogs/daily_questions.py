@@ -439,20 +439,37 @@ class DailyCMD(commands.Cog):
                 datetime.now()
             )  # Timestamp to indicate when the question was posted
 
-            # Send the embed with the view for voting
-            view = QuestionVoteView(self.bot, question.display_order)
-            await send_channel.send(embed=embed, view=view)
+            # Loop through all guilds and send the question to configured channels
+            for guild in self.bot.guilds:
+                bot_data = get_cached_bot_data(guild.id)
+                if not bot_data or not bot_data.daily_question_enabled:
+                    _log.warning(
+                        f"Daily question disabled or no data for guild {guild.id}. Skipping."
+                    )
+                    continue
 
-            _log.info(
-                f"Question ID {question.display_order} sent to channel {send_channel.name}."
-            )
+                send_channel = self.bot.get_channel(bot_data.daily_question_channel)
 
-            # Update the last_question_posted to store the question's ID
+                if not send_channel:
+                    _log.error(
+                        f"Daily question channel with ID {bot_data.daily_question_channel} not found in guild {guild.id}."
+                    )
+                    continue
+
+                # Send the embed with the view for voting
+                view = QuestionVoteView(self.bot, question.display_order)
+                await send_channel.send(embed=embed, view=view)
+                _log.info(
+                    f"Question ID {question.display_order} sent to channel {send_channel.name} in guild {guild.name} ({guild.id})."
+                )
+
+            # Update the last_question_posted to store the question's ID after sending to all guilds
             bot_data.last_question_posted = question.display_order
             bot_data.last_question_posted_time = datetime.now(
                 pytz.timezone("America/Chicago")
             )
             bot_data.save()
+
         except database.Question.DoesNotExist:
             _log.error("Bot data or question not found in the database.")
         except Exception as e:
