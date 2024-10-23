@@ -204,7 +204,7 @@ class PortalbotProfile(BaseModel):
     XBOX = TextField(default="None")  # Xbox Gamertag
     Playstation = TextField(default="None")  # Playstation username
     Switch = TextField(default="None")  # Nintendo Switch username
-    SwitchFC = TextField(default="None")  # Nintendo Switch friend code
+    SwitchNNID = TextField(default="None")  # Nintendo Switch Nintendo Network ID
     RealmsJoined = TextField(default="None")  # Number of realms the user has joined
     RealmsAdmin = TextField(default="None")  # Whether the user is an admin of realms
 
