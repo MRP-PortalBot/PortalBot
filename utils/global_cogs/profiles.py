@@ -97,7 +97,7 @@ class ProfileEditModal(discord.ui.Modal, title="Edit Profile"):
                 )
                 return
             if self.switch_nnid_field.value and not re.match(
-                r"^SW-\d{4}-\d{4}-\d{4}$", self.switch_field.value
+                r"^SW-\d{4}-\d{4}-\d{4}$", self.switch_nnid_field.value
             ):
                 await interaction.response.send_message(
                     "Invalid Switch Friend Code format.", ephemeral=True
