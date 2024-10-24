@@ -247,42 +247,47 @@ class ProfileCMD(commands.Cog):
         await self.send_image(interaction, image)
 
     def draw_console_usernames(self, image, query):
-        """Draws the console usernames and NNID under the profile picture."""
+        """Draws the console usernames and NNID under the profile picture with proper spacing and alignment."""
         draw = ImageDraw.Draw(image)
         font, _ = self.load_fonts()
 
         # Starting position for drawing usernames
         x = self.PADDING
         y = (
-            self.PADDING + self.AVATAR_SIZE + 10
+            self.PADDING + self.AVATAR_SIZE + 20
         )  # Below the avatar image with some padding
 
         # Console info (name, image path, and username)
         consoles = [
-            ("PlayStation", self.PS_LOGO_PATH, query.psn_username),
-            ("Xbox", self.XBOX_LOGO_PATH, query.xbox_username),
-            ("Nintendo Switch", self.NS_LOGO_PATH, query.switch_username),
+            ("PlayStation", self.PS_LOGO_PATH, query.Playstation),
+            ("Xbox", self.XBOX_LOGO_PATH, query.XBOX),
+            ("Nintendo Switch", self.NS_LOGO_PATH, query.Switch),
             (
                 "Nintendo NNID",
                 self.NS_LOGO_PATH,
                 query.SwitchNNID,
-            ),  # Use NS logo for NNID as well
+            ),
         ]
 
         for console_name, logo_path, username in consoles:
-            if username:
+            if username and username != "None":  # Ensure there is a valid username
                 # Load and draw the console logo
-                logo = Image.open(logo_path).resize(
-                    (24, 24)
-                )  # Resize the logo to fit nicely
-                image.paste(logo, (x, y), logo)
+                try:
+                    logo = Image.open(logo_path).resize(
+                        (24, 24)
+                    )  # Resize the logo to fit nicely
+                    image.paste(logo, (x, y), logo)
+                except Exception as e:
+                    _log.error(
+                        f"Failed to load logo {logo_path} for {console_name}: {e}"
+                    )
 
                 # Draw the username next to the logo
-                text_x = x + 30  # Space after the logo
+                text_x = x + 34  # Space after the logo to draw text
                 self.draw_text_with_shadow(draw, text_x, y, username, font)
 
-                # Update y-coordinate for the next console
-                y += 30  # Adjust for the next entry
+                # Update y-coordinate for the next console, leaving enough space
+                y += 40  # Adjust for the next entry to ensure consistent padding
 
     def load_background_image(self):
         """Load and return the background image."""
