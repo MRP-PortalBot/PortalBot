@@ -1,17 +1,167 @@
-import discord
+import asyncio
 import io
+import logging
+import re
+import discord
 from PIL import Image, ImageDraw, ImageFont
 from discord import File
 from discord.ext import commands
 from discord import app_commands
 from core import database
-from core.common import calculate_level
+from core.logging_module import get_log
+from core.common import calculate_level  # Import your helper function here
 from core.common import get_user_rank
 
+_log = get_log(__name__)
 
+
+# ------------------- Profile Modals -------------------
+class ProfileEditModal(discord.ui.Modal, title="Edit Profile"):
+    def __init__(self, bot, profile_id):
+        super().__init__()
+        self.bot = bot
+        self.profile_id = profile_id
+
+    # Text input fields for editing different profile properties
+    xbox_field = discord.ui.TextInput(
+        label="XBOX Gamertag",
+        style=discord.TextStyle.short,
+        required=False,
+        placeholder="Enter new XBOX Gamertag",
+    )
+
+    psn_field = discord.ui.TextInput(
+        label="Playstation ID",
+        style=discord.TextStyle.short,
+        required=False,
+        placeholder="Enter new Playstation ID",
+    )
+
+    switch_field = discord.ui.TextInput(
+        label="Switch Username",
+        style=discord.TextStyle.short,
+        required=False,
+        placeholder="Enter new Switch Username",
+    )
+
+    switch_nnid_field = discord.ui.TextInput(
+        label="Switch NNID",
+        style=discord.TextStyle.short,
+        required=False,
+        placeholder="Enter new Switch Friend Code",
+    )
+
+    timezone_field = discord.ui.TextInput(
+        label="Timezone",
+        style=discord.TextStyle.short,
+        required=False,
+        placeholder="Enter new timezone (e.g., UTC-5, CST, etc.)",
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            # Fetch the profile from the database
+            profile = database.PortalbotProfile.get(
+                database.PortalbotProfile.DiscordLongID == self.profile_id
+            )
+
+            # Validate user input before updating the profile
+            if self.xbox_field.value and not re.match(
+                r"^[a-zA-Z0-9 ]{1,15}$", self.xbox_field.value
+            ):
+                await interaction.response.send_message(
+                    "Invalid XBOX Gamertag format.", ephemeral=True
+                )
+                _log.warning(
+                    f"Invalid XBOX Gamertag format provided by user {self.profile_id}."
+                )
+                return
+            if self.psn_field.value and not re.match(
+                r"^[a-zA-Z0-9-_]{3,16}$", self.psn_field.value
+            ):
+                await interaction.response.send_message(
+                    "Invalid Playstation ID format.", ephemeral=True
+                )
+                _log.warning(
+                    f"Invalid Playstation ID format provided by user {self.profile_id}."
+                )
+                return
+            if self.switch_field.value and not re.match(
+                r"^[a-zA-Z0-9-_]{3,16}$", self.switch_field.value
+            ):
+                await interaction.response.send_message(
+                    "Invalid Switch Friend Code format.", ephemeral=True
+                )
+                _log.warning(
+                    f"Invalid Switch Username format provided by user {self.profile_id}."
+                )
+                return
+            if self.switch_nnid_field.value and not re.match(
+                r"^SW-\d{4}-\d{4}-\d{4}$", self.switch_field.value
+            ):
+                await interaction.response.send_message(
+                    "Invalid Switch Friend Code format.", ephemeral=True
+                )
+                _log.warning(
+                    f"Invalid Switch Friend Code format provided by user {self.profile_id}."
+                )
+                return
+            if self.timezone_field.value and not re.match(
+                r"^[a-zA-Z0-9\-+ ]+$", self.timezone_field.value
+            ):
+                await interaction.response.send_message(
+                    "Invalid timezone format.", ephemeral=True
+                )
+                _log.warning(
+                    f"Invalid timezone format provided by user {self.profile_id}."
+                )
+                return
+
+            # Update profile fields based on user input
+            if self.xbox_field.value:
+                profile.XBOX = self.xbox_field.value
+            if self.psn_field.value:
+                profile.Playstation = self.psn_field.value
+            if self.switch_field.value:
+                profile.Switch = self.switch_field.value
+            if self.switch_nnid_field.value:
+                profile.SwitchNNID = self.switch_nnid_field.value
+            if self.timezone_field.value:
+                profile.Timezone = self.timezone_field.value
+
+            # Save updated profile to the database
+            profile.save()
+            _log.info(f"Profile for user ID {self.profile_id} updated successfully.")
+
+            # Notify the user that the profile was updated
+            await interaction.response.send_message(
+                "Your profile has been updated successfully!", ephemeral=True
+            )
+
+        except database.PortalbotProfile.DoesNotExist:
+            await interaction.response.send_message(
+                "Profile not found. Please create a profile first.", ephemeral=True
+            )
+            _log.error(
+                f"Profile for user ID {self.profile_id} not found during update."
+            )
+
+        except Exception as e:
+            _log.error(
+                f"Error updating profile for user ID {self.profile_id}: {e}",
+                exc_info=True,
+            )
+            await interaction.response.send_message(
+                "An error occurred while updating your profile.", ephemeral=True
+            )
+
+
+# ------------------- Profile Command -------------------
 class ProfileCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    PF = app_commands.Group(name="profile", description="Commands for User Profiles")
 
     # Constants for easy updating
     AVATAR_SIZE = 128
@@ -31,8 +181,8 @@ class ProfileCMD(commands.Cog):
     XBOX_LOGO_PATH = "./core/images/xbox-logo.png"
     NS_LOGO_PATH = "./core/images/ns-logo.png"
 
-    @app_commands.command(name="profile", description="Generates a profile image.")
-    async def generate_profile_canvas(
+    @PF.command(name="profile", description="Generates a profile card.")
+    async def profile(
         self, interaction: discord.Interaction, profile: discord.Member = None
     ):
         if profile is None:
@@ -40,14 +190,29 @@ class ProfileCMD(commands.Cog):
 
         # Ensure interaction response before follow-up
         if not interaction.response.is_done():
-            await interaction.response.defer()
+            try:
+                await interaction.response.defer()
+            except discord.InteractionResponded:
+                _log.warning(
+                    f"Interaction response already deferred for user {interaction.user.id}."
+                )
 
         # Load background and create base image
         image = self.load_background_image()
 
         # Load and draw avatar
-        avatar_image = await self.load_avatar_image(profile)
-        self.draw_avatar(image, avatar_image)
+        try:
+            avatar_image = await self.load_avatar_image(profile)
+            self.draw_avatar(image, avatar_image)
+        except Exception as e:
+            _log.error(
+                f"Error loading avatar for user {profile.id}: {e}", exc_info=True
+            )
+            await interaction.followup.send(
+                "Failed to load the avatar image. Please try again later.",
+                ephemeral=True,
+            )
+            return
 
         # Fetch profile data and score
         query, server_score, next_role_name = self.fetch_profile_data(
@@ -139,7 +304,6 @@ class ProfileCMD(commands.Cog):
         mask_draw.ellipse((0, 0, self.AVATAR_SIZE, self.AVATAR_SIZE), fill=255)
         image.paste(avatar_image, (self.PADDING, self.PADDING), mask)
 
-    # Database function example
     def fetch_profile_data(self, profile, guild_id):
         """Fetch profile data and score from the database."""
         longid = str(profile.id)
@@ -148,7 +312,7 @@ class ProfileCMD(commands.Cog):
                 database.PortalbotProfile.DiscordLongID == longid
             )
         except database.PortalbotProfile.DoesNotExist:
-            return None, None
+            return None, None, None
 
         # Add console usernames and NNID to the query if not already present
         query.psn_username = getattr(query, "PSNUsername", None)
@@ -182,7 +346,7 @@ class ProfileCMD(commands.Cog):
         """Calculate level and progress based on the server score."""
         if isinstance(server_score, int):
             return calculate_level(server_score)
-        return 0, 0
+        return 0, 0, 0
 
     def draw_text_and_progress(
         self,
@@ -231,7 +395,7 @@ class ProfileCMD(commands.Cog):
         text_below_y = (
             progress_bar_y + self.BAR_HEIGHT + 10
         )  # Adjust for padding below the bar
-        score_text = f"Server Score \u2934"
+        score_text = f"Server Score ⤴"
         next_role_text = f"Next Role: {next_role_name}"  # Display the next role's name
 
         # Draw the text below the progress bar with shadow
@@ -337,6 +501,157 @@ class ProfileCMD(commands.Cog):
         await interaction.followup.send(
             file=File(fp=buffer_output, filename="profile_card.png")
         )
+
+    # ------------------- Profile Embed Command -------------------
+
+    # Slash command to view a profile with a fancy embed
+    @PF.command(name="embed", description="Displays the profile of a user as an embed.")
+    async def profile_embed(
+        self, interaction: discord.Interaction, profile: discord.Member = None
+    ):
+        """
+        Slash command to display a profile in an enhanced embed format.
+        If no user is specified, displays the author's profile.
+        """
+        if profile is None:
+            profile = interaction.user
+
+        # Automatically grab the guild ID from where the command is executed
+        guild_id = interaction.guild.id
+
+        profile_embed = await self.generate_profile_embed(
+            profile, guild_id
+        )  # Passing guild_id to fetch score
+        if profile_embed:
+            await interaction.response.send_message(embed=profile_embed)
+        else:
+            await interaction.response.send_message(
+                f"No profile found for {profile.mention}"
+            )
+
+    async def generate_profile_embed(self, profile: discord.Member, guild_id: int):
+        """
+        Helper function to generate a fancy profile embed for a user.
+        This pulls data from the PortalbotProfile table in the database, along with the server score.
+        """
+        longid = str(profile.id)  # Get the user's Discord ID
+        avatar_url = profile.display_avatar.url
+
+        # Query the profile from the PortalbotProfile database using Peewee
+        try:
+            query = database.PortalbotProfile.get(
+                database.PortalbotProfile.DiscordLongID == longid
+            )
+        except database.PortalbotProfile.DoesNotExist:
+            return None
+
+        ServerScores = database.ServerScores
+
+        # Query the user's server score from ServerScores
+        score_query = ServerScores.get_or_none(
+            (ServerScores.DiscordLongID == longid)
+            & (ServerScores.ServerID == str(guild_id))
+        )
+
+        # If the score entry exists, get the score, otherwise show "N/A"
+        server_score = score_query.Score if score_query else "N/A"
+
+        # Calculate level and progress if server_score is valid
+        if isinstance(server_score, int):
+            level, progress, next_level_score = calculate_level(server_score)
+        else:
+            level, progress, next_level_score = 0, 0, 0
+
+        # **Fetch user rank**
+        rank = get_user_rank(guild_id, profile.id)
+
+        # If profile exists, create a fancy embed
+        embed = discord.Embed(
+            title=f"{profile.display_name}'s Profile",
+            description=f"**Profile for {profile.display_name}**",
+            color=discord.Color.blurple(),  # Fancy blurple color
+        )
+        embed.set_thumbnail(url=avatar_url)  # Set profile picture as thumbnail
+        embed.set_footer(text="Generated with PortalBot")  # Add a custom footer
+
+        # Use emojis to improve the field display
+        embed.add_field(name="👤 Discord Name", value=query.DiscordName, inline=True)
+        embed.add_field(name="🆔 Long ID", value=query.DiscordLongID, inline=True)
+
+        # Add server score
+        embed.add_field(
+            name="💬 Server Score",
+            value=f"{server_score} / {next_level_score}",
+            inline=False,
+        )
+        embed.add_field(name="🎮 Level", value=f"Level {level}", inline=True)
+        embed.add_field(
+            name="📈 % to Next Level", value=f"{round(progress * 100, 2)}%", inline=True
+        )
+        embed.add_field(name="🏆 Server Rank", value=rank, inline=False)
+
+        # Add profile fields dynamically with icons/emojis
+        if query.Timezone != "None":
+            embed.add_field(name="🕓 Timezone", value=query.Timezone, inline=False)
+        if query.XBOX != "None":
+            embed.add_field(name="🎮 XBOX Gamertag", value=query.XBOX, inline=False)
+        if query.Playstation != "None":
+            embed.add_field(
+                name="🎮 Playstation ID", value=query.Playstation, inline=False
+            )
+        if query.Switch != "None":
+            embed.add_field(
+                name="🎮 Switch Friend Code", value=query.Switch, inline=False
+            )
+
+        # Add RealmsJoined and RealmsAdmin fields if they are not "None"
+        if query.RealmsJoined != "None":  # Make sure it's not empty or default value
+            embed.add_field(
+                name="🏰 Member of Realms", value=query.RealmsJoined, inline=False
+            )
+        if query.RealmsAdmin != "None":  # Same check for RealmsAdmin
+            embed.add_field(
+                name="🛡️ Admin of Realms", value=query.RealmsAdmin, inline=False
+            )
+
+        return embed
+
+    # ------------------- Profile Edit Command -------------------
+    # Slash command to edit a user's profile
+    @PF.command(name="edit_profile", description="Edit your user profile.")
+    async def edit_profile(self, interaction: discord.Interaction):
+        """
+        Slash command to edit the user's profile.
+        """
+        profile = interaction.user
+
+        # Ensure the user has a profile to edit
+        try:
+            # Try to get the user's profile from the database
+            profile_query = database.PortalbotProfile.get(
+                database.PortalbotProfile.DiscordLongID == str(profile.id)
+            )
+
+            # Show the profile edit modal if the profile exists
+            await interaction.response.send_modal(
+                ProfileEditModal(self.bot, profile.id)
+            )
+
+        except database.PortalbotProfile.DoesNotExist:
+            # If the profile does not exist, send a message to the user
+            await interaction.response.send_message(
+                "You don't have a profile yet. Please create one first.", ephemeral=True
+            )
+            _log.warning(f"User {profile.id} attempted to edit a non-existent profile.")
+
+        except Exception as e:
+            _log.error(
+                f"Error during profile edit command for user {profile.id}: {e}",
+                exc_info=True,
+            )
+            await interaction.response.send_message(
+                "An error occurred while trying to edit your profile.", ephemeral=True
+            )
 
 
 # Set up the cog
