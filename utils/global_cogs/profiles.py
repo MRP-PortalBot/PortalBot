@@ -606,7 +606,9 @@ class ProfileCMD(commands.Cog):
             )
         if query.Switch != "None":
             embed.add_field(
-                name="🎮 Switch Friend Code", value=query.Switch, inline=False
+                name="🎮 Switch Friend Code",
+                value=f"{query.Switch} - {query.SwitchNNID}",
+                inline=False,
             )
 
         # Add RealmsJoined and RealmsAdmin fields if they are not "None"
