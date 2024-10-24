@@ -341,7 +341,7 @@ class DailyCMD(commands.Cog):
                         bot_data.save()
 
             # Post the same question again at 6:00 PM
-            elif now.hour == 15 and now.minute >= 0 and now.minute <= 10:
+            elif now.hour == 18 and now.minute >= 0 and now.minute <= 10:
                 _log.info("Posting question at 6:00 PM CST (or shortly after).")
                 for guild in self.bot.guilds:
                     bot_data = get_cached_bot_data(guild.id)
