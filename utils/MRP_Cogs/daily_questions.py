@@ -326,15 +326,31 @@ class DailyCMD(commands.Cog):
     async def post_question(self):
         try:
             now = datetime.now(pytz.timezone("America/Chicago"))
-            # Allow posting if the hour is 10 and it's at or after the start of the hour (i.e., 10:00 AM onwards)
+            # Post the question at 10:00 AM
             if now.hour == 10 and now.minute >= 0 and now.minute <= 10:
                 _log.info("Posting question at 10:00 AM CST (or shortly after).")
-                await self.send_daily_question()
+                question_id = await self.send_daily_question()
+                # Save the last posted question ID in bot data for persistence
+                for guild in self.bot.guilds:
+                    bot_data = get_cached_bot_data(guild.id)
+                    if bot_data:
+                        bot_data.last_question_posted = question_id
+                        bot_data.last_question_posted_time = datetime.now(
+                            pytz.timezone("America/Chicago")
+                        )
+                        bot_data.save()
 
-            # Allow posting if the hour is 18 and it's at or after the start of the hour (i.e., 6:00 PM onwards)
+            # Post the same question again at 6:00 PM
             elif now.hour == 15 and now.minute >= 0 and now.minute <= 10:
                 _log.info("Posting question at 6:00 PM CST (or shortly after).")
-                await self.send_daily_question()
+                for guild in self.bot.guilds:
+                    bot_data = get_cached_bot_data(guild.id)
+                    if bot_data and bot_data.last_question_posted:
+                        await self.send_daily_question(bot_data.last_question_posted)
+                    else:
+                        _log.warning(
+                            f"No question ID available to repost at 6:00 PM for guild {guild.id}."
+                        )
 
         except Exception as e:
             _log.error(f"Error in post_question task: {e}", exc_info=True)
@@ -349,7 +365,7 @@ class DailyCMD(commands.Cog):
         _log.debug(f"Waiting {seconds_until_target} seconds until {target_time}.")
         await asyncio.sleep(seconds_until_target)
 
-    async def send_daily_question(self):
+    async def send_daily_question(self, question_id=None):
         """Send a daily question to the configured channel and store the question ID."""
         try:
             database.ensure_database_connection()
@@ -369,26 +385,31 @@ class DailyCMD(commands.Cog):
                     )
                     continue
 
-            # Check if all questions have been used (i.e., usage is True)
-            unused_questions_count = (
-                database.Question.select()
-                .where(database.Question.usage == False)
-                .count()
-            )
-            if unused_questions_count == 0:
-                database.Question.update(usage=False).execute()
-                _log.info("All questions were used, resetting all to unused.")
+            if question_id is None:
+                # Check if all questions have been used (i.e., usage is True)
+                unused_questions_count = (
+                    database.Question.select()
+                    .where(database.Question.usage == False)
+                    .count()
+                )
+                if unused_questions_count == 0:
+                    database.Question.update(usage=False).execute()
+                    _log.info("All questions were used, resetting all to unused.")
 
-            # Select a random unused question
-            question: database.Question = (
-                database.Question.select()
-                .where(database.Question.usage == False)
-                .order_by(fn.Rand())
-                .limit(1)
-                .get()
-            )
-            question.usage = True
-            question.save()
+                # Select a random unused question
+                question = (
+                    database.Question.select()
+                    .where(database.Question.usage == False)
+                    .order_by(fn.Rand())
+                    .limit(1)
+                    .get()
+                )
+                question.usage = True
+                question.save()
+
+            else:
+                # Fetch the existing question by its ID
+                question = database.Question.get(display_order=question_id)
 
             """# Create and send the embed for the daily question
             embed = discord.Embed(
