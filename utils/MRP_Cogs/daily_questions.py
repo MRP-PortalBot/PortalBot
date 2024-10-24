@@ -322,7 +322,7 @@ class DailyCMD(commands.Cog):
         name="daily-question", description="Configure the daily-question settings."
     )
 
-    @tasks.loop(hours=24)
+    @tasks.loop(hours=1)
     async def post_question(self):
         try:
             database.ensure_database_connection()
@@ -331,7 +331,7 @@ class DailyCMD(commands.Cog):
             await self.send_daily_question()
 
             # Second post at 6:00 PM CST
-            await self.wait_until_time(20, 0)
+            await self.wait_until_time(15, 0)
             await self.send_daily_question()
 
         except Exception as e:
