@@ -325,14 +325,16 @@ class DailyCMD(commands.Cog):
     @tasks.loop(hours=1)
     async def post_question(self):
         try:
-            database.ensure_database_connection()
-            # First post at 10:00 AM CST
-            await self.wait_until_time(10, 0)
-            await self.send_daily_question()
+            now = datetime.now(pytz.timezone("America/Chicago"))
+            # Allow posting if the hour is 10 and it's at or after the start of the hour (i.e., 10:00 AM onwards)
+            if now.hour == 10 and now.minute >= 0 and now.minute <= 10:
+                _log.info("Posting question at 10:00 AM CST (or shortly after).")
+                await self.send_daily_question()
 
-            # Second post at 6:00 PM CST
-            await self.wait_until_time(15, 0)
-            await self.send_daily_question()
+            # Allow posting if the hour is 18 and it's at or after the start of the hour (i.e., 6:00 PM onwards)
+            elif now.hour == 15 and now.minute >= 0 and now.minute <= 10:
+                _log.info("Posting question at 6:00 PM CST (or shortly after).")
+                await self.send_daily_question()
 
         except Exception as e:
             _log.error(f"Error in post_question task: {e}", exc_info=True)
