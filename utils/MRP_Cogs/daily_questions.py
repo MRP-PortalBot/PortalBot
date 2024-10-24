@@ -324,18 +324,18 @@ class DailyCMD(commands.Cog):
 
     @tasks.loop(hours=24)
     async def post_question(self):
-        while True:
-            try:
-                database.ensure_database_connection()
-                # First post at 10:00 AM CST
-                await self.wait_until_time(10, 0)
-                await self.send_daily_question()
+        try:
+            database.ensure_database_connection()
+            # First post at 10:00 AM CST
+            await self.wait_until_time(10, 0)
+            await self.send_daily_question()
 
-                # Second post at 6:00 PM CST
-                await self.wait_until_time(18, 0)
-                await self.send_daily_question()
-            except Exception as e:
-                _log.error(f"Error in post_question task: {e}", exc_info=True)
+            # Second post at 6:00 PM CST
+            await self.wait_until_time(20, 0)
+            await self.send_daily_question()
+
+        except Exception as e:
+            _log.error(f"Error in post_question task: {e}", exc_info=True)
 
     async def wait_until_time(self, hour, minute):
         """Waits until the next occurrence of the given hour and minute in CST."""
