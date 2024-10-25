@@ -167,7 +167,7 @@ class ProfileCMD(commands.Cog):
     AVATAR_SIZE = 145
     PADDING = 25
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
-    SMALL_PADDING = 15
+    SMALL_PADDING = 10
 
     BAR_HEIGHT = 30  # Progress bar height
     RADIUS = 15  # Rounded corners radius for the progress bar
