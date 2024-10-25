@@ -164,7 +164,7 @@ class ProfileCMD(commands.Cog):
     PF = app_commands.Group(name="profile", description="Commands for User Profiles")
 
     # Constants for easy updating
-    AVATAR_SIZE = 128
+    AVATAR_SIZE = 150
     PADDING = 20
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
 
