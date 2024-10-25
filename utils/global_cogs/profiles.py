@@ -249,7 +249,7 @@ class ProfileCMD(commands.Cog):
     def draw_console_usernames(self, image, query):
         """Draws the console usernames and NNID under the profile picture with proper spacing and alignment."""
         draw = ImageDraw.Draw(image)
-        font, _ = self.load_fonts()
+        font, small_font = self.load_fonts()
 
         # Starting position for drawing usernames
         x = self.PADDING
@@ -274,7 +274,7 @@ class ProfileCMD(commands.Cog):
                 # Load and draw the console logo
                 try:
                     logo = Image.open(logo_path).resize(
-                        (24, 24)
+                        (20, 20)
                     )  # Resize the logo to fit nicely
                     image.paste(logo, (x, y), logo)
                 except Exception as e:
@@ -283,11 +283,11 @@ class ProfileCMD(commands.Cog):
                     )
 
                 # Draw the username next to the logo
-                text_x = x + 34  # Space after the logo to draw text
-                self.draw_text_with_shadow(draw, text_x, y, username, font)
+                text_x = x + 30  # Space after the logo to draw text
+                self.draw_text_with_shadow(draw, text_x, y, username, small_font)
 
                 # Update y-coordinate for the next console, leaving enough space
-                y += 40  # Adjust for the next entry to ensure consistent padding
+                y += 36  # Adjust for the next entry to ensure consistent padding
 
     def load_background_image(self):
         """Load and return the background image."""
