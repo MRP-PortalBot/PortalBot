@@ -280,7 +280,7 @@ class ProfileCMD(commands.Cog):
                 text_x = x + 5
                 text_y = y + 26  # Space below the logo to draw text
                 self.draw_text_with_shadow(
-                    draw, text_x, text_y, username, small_font - 3
+                    draw, text_x, text_y, username, smallest_font
                 )
 
                 # Update y-coordinate for the next console, leaving enough space
