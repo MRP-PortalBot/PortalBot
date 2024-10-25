@@ -167,6 +167,7 @@ class ProfileCMD(commands.Cog):
     AVATAR_SIZE = 145
     PADDING = 25
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
+    SMALL_PADDING = 15
 
     BAR_HEIGHT = 30  # Progress bar height
     RADIUS = 15  # Rounded corners radius for the progress bar
@@ -252,7 +253,7 @@ class ProfileCMD(commands.Cog):
         font, small_font = self.load_fonts()
 
         # Starting position for drawing usernames
-        x = self.PADDING
+        x = self.SMALL_PADDING
         y = (
             self.PADDING + self.AVATAR_SIZE + 20
         )  # Below the avatar image with some padding
@@ -283,7 +284,7 @@ class ProfileCMD(commands.Cog):
                     )
 
                 # Draw the username next to the logo
-                text_x = x + 30  # Space after the logo to draw text
+                text_x = x + 25  # Space after the logo to draw text
                 self.draw_text_with_shadow(draw, text_x, y, username, small_font)
 
                 # Update y-coordinate for the next console, leaving enough space
