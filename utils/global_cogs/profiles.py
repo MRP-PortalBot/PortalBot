@@ -297,9 +297,7 @@ class ProfileCMD(commands.Cog):
     def draw_realms_info(self, image, query):
         """Draws the realms information for OP and member realms in the pink area."""
         draw = ImageDraw.Draw(image)
-        font, small_font, smallest_font = (
-            self.load_fonts()
-        )  # Use regular and small fonts
+        font, small_font, _ = self.load_fonts()  # Use regular and small fonts
 
         # Define starting position for drawing the realms information
         x = self.PADDING
@@ -307,14 +305,28 @@ class ProfileCMD(commands.Cog):
             image.height - 120
         )  # Set the y-coordinate relative to the bottom of the image for a more organized layout
 
+        # Helper function to fetch emoji from the realm profile database
+        def get_realm_emoji(realm_name):
+            try:
+                realm = database.RealmProfile.get(
+                    database.RealmProfile.name == realm_name.strip()
+                )
+                return (
+                    realm.emoji or ""
+                )  # Return emoji if it exists, otherwise return an empty string
+            except database.RealmProfile.DoesNotExist:
+                _log.warning(f"Realm '{realm_name}' not found in the database.")
+                return ""
+
         # Draw realms where the user is an OP
         if query.RealmsAdmin and query.RealmsAdmin != "None":
             op_realms = query.RealmsAdmin.split(
                 ","
             )  # Assuming multiple realms are comma-separated
-            op_realms_text = "Realms as OP:\n" + "\n".join(
-                [f"🔹 {realm.strip()}" for realm in op_realms]
-            )
+            op_realms_text = "Realms as OP:\n"
+            for realm in op_realms:
+                emoji = get_realm_emoji(realm)
+                op_realms_text += f"{emoji} {realm.strip()}\n"
             self.draw_text_with_shadow(draw, x, y, op_realms_text, small_font)
 
             # Update y-coordinate to add space below the OP realms
@@ -327,9 +339,10 @@ class ProfileCMD(commands.Cog):
             member_realms = query.RealmsJoined.split(
                 ","
             )  # Assuming multiple realms are comma-separated
-            member_realms_text = "Realms as Member:\n" + "\n".join(
-                [f"🔸 {realm.strip()}" for realm in member_realms]
-            )
+            member_realms_text = "Realms as Member:\n"
+            for realm in member_realms:
+                emoji = get_realm_emoji(realm)
+                member_realms_text += f"{emoji} {realm.strip()}\n"
             self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
 
     def load_background_image(self):
