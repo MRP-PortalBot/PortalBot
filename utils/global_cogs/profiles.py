@@ -165,7 +165,7 @@ class ProfileCMD(commands.Cog):
 
     # Constants for easy updating
     AVATAR_SIZE = 145
-    PADDING = 30
+    PADDING = 25
     TEXT_EXTRA_PADDING = PADDING * 2  # Double padding for text
 
     BAR_HEIGHT = 30  # Progress bar height
