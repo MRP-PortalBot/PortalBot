@@ -250,7 +250,7 @@ class ProfileCMD(commands.Cog):
     def draw_console_usernames(self, image, query):
         """Draws the console usernames and NNID under the profile picture with proper spacing and alignment."""
         draw = ImageDraw.Draw(image)
-        font, small_font = self.load_fonts()
+        font, small_font, small_font_15 = self.load_fonts()
 
         # Starting position for drawing usernames
         x = self.SMALL_PADDING
@@ -263,11 +263,6 @@ class ProfileCMD(commands.Cog):
             ("PlayStation", self.PS_LOGO_PATH, query.Playstation),
             ("Xbox", self.XBOX_LOGO_PATH, query.XBOX),
             ("Nintendo Switch", self.NS_LOGO_PATH, query.Switch),
-            (
-                "Nintendo NNID",
-                self.NS_LOGO_PATH,
-                query.SwitchNNID,
-            ),
         ]
 
         for console_name, logo_path, username in consoles:
@@ -293,7 +288,7 @@ class ProfileCMD(commands.Cog):
         # Draw the NNID without the logo
         if query.SwitchNNID and query.SwitchNNID != "None":
             nnid_text = query.SwitchNNID
-            self.draw_text_with_shadow(draw, x, y, nnid_text, small_font)
+            self.draw_text_with_shadow(draw, x, y, nnid_text, small_font_15)
 
     def load_background_image(self):
         """Load and return the background image."""
@@ -372,7 +367,7 @@ class ProfileCMD(commands.Cog):
     ):
         """Draws the username, server score, progress bar, and rank on the image."""
         draw = ImageDraw.Draw(image)
-        font, small_font = self.load_fonts()
+        font, small_font, small_font_15 = self.load_fonts()
 
         # Define coordinates for text and progress bar
         text_x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
@@ -425,10 +420,12 @@ class ProfileCMD(commands.Cog):
         try:
             font = ImageFont.truetype(self.FONT_PATH, 40)
             small_font = ImageFont.truetype(self.FONT_PATH, 20)
+            small_font_15 = ImageFont.truetype(self.FONT_PATH, 15)
         except IOError:
             font = ImageFont.load_default()
             small_font = ImageFont.load_default()
-        return font, small_font
+            small_font_15 = ImageFont.load_default()
+        return font, small_font, small_font_15
 
     def draw_text_with_shadow(self, draw, x, y, text, font):
         """Draw text with a shadow for better readability."""
