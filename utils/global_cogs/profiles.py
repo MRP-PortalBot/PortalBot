@@ -270,7 +270,7 @@ class ProfileCMD(commands.Cog):
                 # Load and draw the console logo
                 try:
                     logo = Image.open(logo_path).resize(
-                        (20, 20)
+                        (24, 24)
                     )  # Resize the logo to fit nicely
                     image.paste(logo, (x, y), logo)
                 except Exception as e:
@@ -278,12 +278,12 @@ class ProfileCMD(commands.Cog):
                         f"Failed to load logo {logo_path} for {console_name}: {e}"
                     )
 
-                # Draw the username next to the logo
-                text_x = x + 25  # Space after the logo to draw text
-                self.draw_text_with_shadow(draw, text_x, y, username, small_font)
+                # Draw the username below the logo
+                text_y = y + 26  # Space below the logo to draw text
+                self.draw_text_with_shadow(draw, x, text_y, username, small_font)
 
                 # Update y-coordinate for the next console, leaving enough space
-                y += 36  # Adjust for the next entry to ensure consistent padding
+                y += 50  # Adjust for the next entry to ensure consistent padding
 
         # Draw the NNID without the logo
         if query.SwitchNNID and query.SwitchNNID != "None":
