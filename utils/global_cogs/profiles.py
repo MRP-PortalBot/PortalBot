@@ -290,6 +290,11 @@ class ProfileCMD(commands.Cog):
                 # Update y-coordinate for the next console, leaving enough space
                 y += 36  # Adjust for the next entry to ensure consistent padding
 
+        # Draw the NNID without the logo
+        if query.SwitchNNID and query.SwitchNNID != "None":
+            nnid_text = query.SwitchNNID
+            self.draw_text_with_shadow(draw, x, y, nnid_text, small_font)
+
     def load_background_image(self):
         """Load and return the background image."""
         background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
