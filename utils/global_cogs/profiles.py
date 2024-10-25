@@ -308,8 +308,8 @@ class ProfileCMD(commands.Cog):
         """Draws the avatar onto the canvas with a circular mask."""
         mask = Image.new("L", (self.AVATAR_SIZE, self.AVATAR_SIZE), 0)
         mask_draw = ImageDraw.Draw(mask)
-        mask_draw.ellipse((0, 0, self.AVATAR_SIZE, self.AVATAR_SIZE), fill=255)
-        image.paste(avatar_image, (self.PADDING, self.PADDING), mask)
+        mask_draw.ellipse((0, 0, self.AVATAR_SIZE - 1, self.AVATAR_SIZE - 1), fill=255)
+        image.paste(avatar_image, (self.PADDING, self.PADDING - 10), mask)
 
     def fetch_profile_data(self, profile, guild_id):
         """Fetch profile data and score from the database."""
