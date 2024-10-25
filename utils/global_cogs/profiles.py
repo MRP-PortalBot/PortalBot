@@ -279,7 +279,9 @@ class ProfileCMD(commands.Cog):
                 # Draw the username below the logo
                 text_x = x + 5
                 text_y = y + 26  # Space below the logo to draw text
-                self.draw_text_with_shadow(draw, text_x, text_y, username, small_font)
+                self.draw_text_with_shadow(
+                    draw, text_x, text_y, username, small_font - 3
+                )
 
                 # Update y-coordinate for the next console, leaving enough space
                 y += 50  # Adjust for the next entry to ensure consistent padding
