@@ -244,6 +244,9 @@ class ProfileCMD(commands.Cog):
         # Draw game console usernames and NNID under the profile picture
         self.draw_console_usernames(image, query)
 
+        # Draw realms information in the pink area below the score section
+        self.draw_realms_info(image, query)
+
         # Send the final image
         await self.send_image(interaction, image)
 
@@ -290,6 +293,44 @@ class ProfileCMD(commands.Cog):
         if query.SwitchNNID and query.SwitchNNID != "None":
             nnid_text = query.SwitchNNID
             self.draw_text_with_shadow(draw, x, y, nnid_text, smallest_font)
+
+    def draw_realms_info(self, image, query):
+        """Draws the realms information for OP and member realms in the pink area."""
+        draw = ImageDraw.Draw(image)
+        font, small_font, smallest_font = (
+            self.load_fonts()
+        )  # Use regular and small fonts
+
+        # Define starting position for drawing the realms information
+        x = self.PADDING
+        y = (
+            image.height - 120
+        )  # Set the y-coordinate relative to the bottom of the image for a more organized layout
+
+        # Draw realms where the user is an OP
+        if query.RealmsAdmin and query.RealmsAdmin != "None":
+            op_realms = query.RealmsAdmin.split(
+                ","
+            )  # Assuming multiple realms are comma-separated
+            op_realms_text = "Realms as OP:\n" + "\n".join(
+                [f"🔹 {realm.strip()}" for realm in op_realms]
+            )
+            self.draw_text_with_shadow(draw, x, y, op_realms_text, small_font)
+
+            # Update y-coordinate to add space below the OP realms
+            y += (
+                len(op_realms) + 1
+            ) * 20  # Adjust spacing based on the number of OP realms
+
+        # Draw realms where the user is a member
+        if query.RealmsJoined and query.RealmsJoined != "None":
+            member_realms = query.RealmsJoined.split(
+                ","
+            )  # Assuming multiple realms are comma-separated
+            member_realms_text = "Realms as Member:\n" + "\n".join(
+                [f"🔸 {realm.strip()}" for realm in member_realms]
+            )
+            self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
 
     def load_background_image(self):
         """Load and return the background image."""
