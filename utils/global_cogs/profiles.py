@@ -254,9 +254,7 @@ class ProfileCMD(commands.Cog):
 
         # Starting position for drawing usernames
         x = self.SMALL_PADDING
-        y = (
-            self.PADDING + self.AVATAR_SIZE + 10
-        )  # Below the avatar image with some padding
+        y = self.PADDING + self.AVATAR_SIZE  # Below the avatar image with some padding
 
         # Console info (name, image path, and username)
         consoles = [
