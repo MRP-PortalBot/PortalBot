@@ -172,6 +172,7 @@ class ProfileCMD(commands.Cog):
     BAR_HEIGHT = 30  # Progress bar height
     RADIUS = 15  # Rounded corners radius for the progress bar
     FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"
+    EMOJI_FONT_PATH = "./core/fonts/NotoColorEmoji-Regular.ttf"
     BACKGROUND_IMAGE_PATH = "./core/images/profilebackground4.png"
     TEXT_COLOR = (255, 255, 255, 255)
     SHADOW_COLOR = (0, 0, 0, 200)  # Black with transparency
@@ -253,7 +254,7 @@ class ProfileCMD(commands.Cog):
     def draw_console_usernames(self, image, query):
         """Draws the console usernames and NNID under the profile picture with proper spacing and alignment."""
         draw = ImageDraw.Draw(image)
-        font, small_font, smallest_font = self.load_fonts()
+        font, small_font, smallest_font, emoji_font = self.load_fonts()
 
         # Starting position for drawing usernames
         x = self.SMALL_PADDING
@@ -297,7 +298,9 @@ class ProfileCMD(commands.Cog):
     def draw_realms_info(self, image, query):
         """Draws the realms information for OP and member realms in the pink area."""
         draw = ImageDraw.Draw(image)
-        font, small_font, _ = self.load_fonts()  # Use regular and small fonts
+        font, small_font, smallest_font, emoji_font = (
+            self.load_fonts()
+        )  # Use regular and small fonts
 
         # Define starting position for drawing the realms information
         x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
@@ -323,27 +326,52 @@ class ProfileCMD(commands.Cog):
             op_realms = query.RealmsAdmin.split(
                 ","
             )  # Assuming multiple realms are comma-separated
-            op_realms_text = "Realms as OP:\n"
-            for realm in op_realms:
-                emoji = get_realm_emoji(realm)
-                op_realms_text += f"{emoji} {realm.strip()}\n"
+            op_realms_text = "Realms as OP:"
             self.draw_text_with_shadow(draw, x, y, op_realms_text, small_font)
 
-            # Update y-coordinate to add space below the OP realms
-            y += (
-                len(op_realms) + 1
-            ) * 20  # Adjust spacing based on the number of OP realms
+            # Update y-coordinate for OP realms
+            y += 25  # Adjust space between title and realms list
+
+            for realm in op_realms:
+                emoji = get_realm_emoji(realm)
+                if emoji:
+                    # Draw the emoji first
+                    draw.text((x, y), emoji, font=emoji_font, fill=self.TEXT_COLOR)
+
+                # Draw the realm name next to the emoji
+                emoji_width = emoji_font.getsize(emoji)[0] if emoji else 0
+                self.draw_text_with_shadow(
+                    draw, x + emoji_width + 5, y, realm.strip(), small_font
+                )
+
+                # Update y-coordinate for the next realm
+                y += 25
 
         # Draw realms where the user is a member
         if query.RealmsJoined and query.RealmsJoined != "None":
             member_realms = query.RealmsJoined.split(
                 ","
             )  # Assuming multiple realms are comma-separated
-            member_realms_text = "Realms as Member:\n"
+            member_realms_text = "Realms as Member:"
+            self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
+
+            # Update y-coordinate for member realms
+            y += 25  # Adjust space between title and realms list
+
             for realm in member_realms:
                 emoji = get_realm_emoji(realm)
-                member_realms_text += f"{emoji} {realm.strip()}\n"
-            self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
+                if emoji:
+                    # Draw the emoji first
+                    draw.text((x, y), emoji, font=emoji_font, fill=self.TEXT_COLOR)
+
+                # Draw the realm name next to the emoji
+                emoji_width = emoji_font.getsize(emoji)[0] if emoji else 0
+                self.draw_text_with_shadow(
+                    draw, x + emoji_width + 5, y, realm.strip(), small_font
+                )
+
+                # Update y-coordinate for the next realm
+                y += 25
 
     def load_background_image(self):
         """Load and return the background image."""
@@ -422,7 +450,7 @@ class ProfileCMD(commands.Cog):
     ):
         """Draws the username, server score, progress bar, and rank on the image."""
         draw = ImageDraw.Draw(image)
-        font, small_font, smallest_font = self.load_fonts()
+        font, small_font, smallest_font, emoji_font = self.load_fonts()
 
         # Define coordinates for text and progress bar
         text_x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
@@ -476,11 +504,13 @@ class ProfileCMD(commands.Cog):
             font = ImageFont.truetype(self.FONT_PATH, 40)
             small_font = ImageFont.truetype(self.FONT_PATH, 20)
             smallest_font = ImageFont.truetype(self.FONT_PATH, 17)
+            emoji_font = ImageFont.truetype(self.EMOJI_FONT_PATH, 20)
         except IOError:
             font = ImageFont.load_default()
             small_font = ImageFont.load_default()
             smallest_font = ImageFont.load_default()
-        return font, small_font, smallest_font
+            emoji_font = ImageFont.load_default()
+        return font, small_font, smallest_font, emoji_font
 
     def draw_text_with_shadow(self, draw, x, y, text, font):
         """Draw text with a shadow for better readability."""
