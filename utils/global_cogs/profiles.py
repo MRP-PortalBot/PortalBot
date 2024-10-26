@@ -339,7 +339,7 @@ class ProfileCMD(commands.Cog):
                     draw.text((x, y), emoji, font=emoji_font, fill=self.TEXT_COLOR)
 
                 # Draw the realm name next to the emoji
-                emoji_width = emoji_font.getsize(emoji)[0] if emoji else 0
+                emoji_width = emoji_font.getbbox(emoji)[2] if emoji else 0
                 self.draw_text_with_shadow(
                     draw, x + emoji_width + 5, y, realm.strip(), small_font
                 )
@@ -365,7 +365,7 @@ class ProfileCMD(commands.Cog):
                     draw.text((x, y), emoji, font=emoji_font, fill=self.TEXT_COLOR)
 
                 # Draw the realm name next to the emoji
-                emoji_width = emoji_font.getsize(emoji)[0] if emoji else 0
+                emoji_width = emoji_font.getbbox(emoji)[2] if emoji else 0
                 self.draw_text_with_shadow(
                     draw, x + emoji_width + 5, y, realm.strip(), small_font
                 )
