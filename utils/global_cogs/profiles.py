@@ -309,7 +309,7 @@ class ProfileCMD(commands.Cog):
         def get_realm_emoji(realm_name):
             try:
                 realm = database.RealmProfile.get(
-                    database.RealmProfile.name == realm_name.strip()
+                    database.RealmProfile.realm_name == realm_name.strip()
                 )
                 return (
                     realm.emoji or ""
