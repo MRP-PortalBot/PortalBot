@@ -314,7 +314,7 @@ class ProfileCMD(commands.Cog):
                 realm = database.RealmProfile.get(
                     database.RealmProfile.realm_name == realm_name.strip()
                 )
-                _log.info(f"{realm_name}' emoji is {emoji}")
+                _log.info(f"{realm.name}' emoji is {realm.emoji}")
                 return (
                     realm.emoji or ""
                 )  # Return emoji if it exists, otherwise return an empty string
