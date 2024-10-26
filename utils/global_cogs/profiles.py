@@ -305,7 +305,7 @@ class ProfileCMD(commands.Cog):
         # Define starting position for drawing the realms information
         x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
         y = (
-            image.height - 160
+            image.height - 170
         )  # Set the y-coordinate relative to the bottom of the image for a more organized layout
 
         # Helper function to fetch emoji from the realm profile database
@@ -314,6 +314,7 @@ class ProfileCMD(commands.Cog):
                 realm = database.RealmProfile.get(
                     database.RealmProfile.realm_name == realm_name.strip()
                 )
+                _log.info(f"{realm_name}' emoji is {emoji}")
                 return (
                     realm.emoji or ""
                 )  # Return emoji if it exists, otherwise return an empty string
