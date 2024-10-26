@@ -300,7 +300,7 @@ class ProfileCMD(commands.Cog):
         font, small_font, _ = self.load_fonts()  # Use regular and small fonts
 
         # Define starting position for drawing the realms information
-        x = self.PADDING
+        x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
         y = (
             image.height - 120
         )  # Set the y-coordinate relative to the bottom of the image for a more organized layout
