@@ -298,9 +298,7 @@ class ProfileCMD(commands.Cog):
     def draw_realms_info(self, image, query):
         """Draws the realms information for OP and member realms in the pink area."""
         draw = ImageDraw.Draw(image)
-        font, small_font, smallest_font, emoji_font = (
-            self.load_fonts()
-        )  # Use regular and small fonts
+        _, small_font, _, emoji_font = self.load_fonts()  # Use regular and small fonts
 
         # Define starting position for drawing the realms information
         x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
@@ -526,7 +524,7 @@ class ProfileCMD(commands.Cog):
             font = ImageFont.truetype(self.FONT_PATH, 40)
             small_font = ImageFont.truetype(self.FONT_PATH, 20)
             smallest_font = ImageFont.truetype(self.FONT_PATH, 17)
-            emoji_font = ImageFont.truetype(self.EMOJI_FONT_PATH, 20)
+            emoji_font = ImageFont.truetype(self.EMOJI_FONT_PATH, 40)
         except IOError:
             font = ImageFont.load_default()
             small_font = ImageFont.load_default()
