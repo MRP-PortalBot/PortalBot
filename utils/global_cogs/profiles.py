@@ -305,7 +305,7 @@ class ProfileCMD(commands.Cog):
         # Define starting position for drawing the realms information
         x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
         y = (
-            image.height - 120
+            image.height - 175
         )  # Set the y-coordinate relative to the bottom of the image for a more organized layout
 
         # Helper function to fetch emoji from the realm profile database
@@ -323,17 +323,16 @@ class ProfileCMD(commands.Cog):
 
         # Draw realms where the user is an OP
         if query.RealmsAdmin and query.RealmsAdmin != "None":
-            op_realms = query.RealmsAdmin.split(
-                ","
-            )  # Assuming multiple realms are comma-separated
-            op_realms_text = "Realms as OP: "
-            current_x = x
-            draw.text(
-                (current_x, y), op_realms_text, font=small_font, fill=self.TEXT_COLOR
-            )
-            current_x += small_font.getlength(op_realms_text)
+            # Draw the title first
+            op_realms_text = "Realms as OP:"
+            self.draw_text_with_shadow(draw, x, y, op_realms_text, small_font)
 
-            for index, realm in enumerate(op_realms):
+            # Update y-coordinate to add space below the title
+            y += 25
+
+            # Draw OP realms in a single line, separated by commas
+            current_x = x
+            for index, realm in enumerate(query.RealmsAdmin.split(",")):
                 emoji = get_realm_emoji(realm)
                 if emoji:
                     # Draw the emoji first
@@ -350,31 +349,27 @@ class ProfileCMD(commands.Cog):
                 current_x += small_font.getlength(realm_text)
 
                 # Draw comma separator except after the last realm
-                if index < len(op_realms) - 1:
+                if index < len(query.RealmsAdmin.split(",")) - 1:
                     draw.text(
                         (current_x, y), ", ", font=small_font, fill=self.TEXT_COLOR
                     )
                     current_x += small_font.getlength(", ")
 
-            # Update y-coordinate to add space below the OP realms
+            # Update y-coordinate to add space below OP realms
             y += 30
 
         # Draw realms where the user is a member
         if query.RealmsJoined and query.RealmsJoined != "None":
-            member_realms = query.RealmsJoined.split(
-                ","
-            )  # Assuming multiple realms are comma-separated
-            member_realms_text = "Realms as Member: "
-            current_x = x
-            draw.text(
-                (current_x, y),
-                member_realms_text,
-                font=small_font,
-                fill=self.TEXT_COLOR,
-            )
-            current_x += small_font.getlength(member_realms_text)
+            # Draw the title first
+            member_realms_text = "Realms as Member:"
+            self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
 
-            for index, realm in enumerate(member_realms):
+            # Update y-coordinate to add space below the title
+            y += 25
+
+            # Draw member realms in a single line, separated by commas
+            current_x = x
+            for index, realm in enumerate(query.RealmsJoined.split(",")):
                 emoji = get_realm_emoji(realm)
                 if emoji:
                     # Draw the emoji first
@@ -391,13 +386,13 @@ class ProfileCMD(commands.Cog):
                 current_x += small_font.getlength(realm_text)
 
                 # Draw comma separator except after the last realm
-                if index < len(member_realms) - 1:
+                if index < len(query.RealmsJoined.split(",")) - 1:
                     draw.text(
                         (current_x, y), ", ", font=small_font, fill=self.TEXT_COLOR
                     )
                     current_x += small_font.getlength(", ")
 
-            # Update y-coordinate to add space below the Member realms
+            # Update y-coordinate to add space below member realms
             y += 30
 
     def load_background_image(self):
