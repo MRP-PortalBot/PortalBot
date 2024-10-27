@@ -299,14 +299,11 @@ class ProfileCMD(commands.Cog):
 
     def draw_realms_info(self, image, query):
         """Draws the realms information for OP and member realms in the pink area."""
-        draw = ImageDraw.Draw(image)
-        _, small_font, _, emoji_font = self.load_fonts()  # Use regular and small fonts
+        _, small_font, _, emoji_font = self.load_fonts()  # Load fonts
 
         # Define starting position for drawing the realms information
         x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
-        y = (
-            image.height - 175
-        )  # Set the y-coordinate relative to the bottom of the image
+        y = image.height - 175  # Position relative to the bottom of the image
 
         # Helper function to fetch emoji from the realm profile database
         def get_realm_emoji(realm_name):
@@ -314,21 +311,20 @@ class ProfileCMD(commands.Cog):
                 realm = database.RealmProfile.get(
                     database.RealmProfile.realm_name == realm_name.strip()
                 )
-                _log.info(em.demojize(realm.emoji))
-                return (
-                    realm.emoji or ""
-                )  # Return emoji if it exists, otherwise return an empty string
+                return realm.emoji or ""
             except database.RealmProfile.DoesNotExist:
                 _log.warning(f"Realm '{realm_name}' not found in the database.")
                 return ""
 
-        # Use Pilmoji to handle emojis
+        # Use Pilmoji to draw emojis and text together
         with Pilmoji(image) as pilmoji:
             # Draw realms where the user is an OP
             if query.RealmsAdmin and query.RealmsAdmin != "None":
                 # Draw the title first
                 op_realms_text = "Realms as OP:"
-                self.draw_text_with_shadow(draw, x, y, op_realms_text, small_font)
+                pilmoji.text(
+                    (x, y), op_realms_text, font=small_font, fill=self.TEXT_COLOR
+                )
 
                 # Update y-coordinate to add space below the title
                 y += 25
@@ -339,18 +335,17 @@ class ProfileCMD(commands.Cog):
                 for index, realm in enumerate(op_realms):
                     emoji = get_realm_emoji(realm)
                     if emoji:
-                        # Draw the emoji first
                         pilmoji.text(
-                            (current_x, y), emoji, font=emoji_font, fill=self.TEXT_COLOR
+                            (current_x, y), emoji, font=emoji_font, embedded_color=True
                         )
-                        current_x += (
-                            emoji_font.getlength(emoji) + 5
-                        )  # Adjust for space after emoji
+                        current_x += emoji_font.getlength(emoji) + 5
 
-                    # Draw the realm name next to the emoji
                     realm_text = realm.strip()
-                    self.draw_text_with_shadow(
-                        draw, current_x, y, realm_text, small_font
+                    pilmoji.text(
+                        (current_x, y),
+                        realm_text,
+                        font=small_font,
+                        fill=self.TEXT_COLOR,
                     )
                     current_x += small_font.getlength(realm_text)
 
@@ -361,14 +356,15 @@ class ProfileCMD(commands.Cog):
                         )
                         current_x += small_font.getlength(", ")
 
-                # Update y-coordinate to add space below OP realms
-                y += 30
+                y += 30  # Update y-coordinate after OP realms
 
             # Draw realms where the user is a member
             if query.RealmsJoined and query.RealmsJoined != "None":
                 # Draw the title first
                 member_realms_text = "Realms as Member:"
-                self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
+                pilmoji.text(
+                    (x, y), member_realms_text, font=small_font, fill=self.TEXT_COLOR
+                )
 
                 # Update y-coordinate to add space below the title
                 y += 25
@@ -379,18 +375,17 @@ class ProfileCMD(commands.Cog):
                 for index, realm in enumerate(member_realms):
                     emoji = get_realm_emoji(realm)
                     if emoji:
-                        # Draw the emoji first
                         pilmoji.text(
-                            (current_x, y), emoji, font=emoji_font, fill=self.TEXT_COLOR
+                            (current_x, y), emoji, font=emoji_font, embedded_color=True
                         )
-                        current_x += (
-                            emoji_font.getlength(emoji) + 5
-                        )  # Adjust for space after emoji
+                        current_x += emoji_font.getlength(emoji) + 5
 
-                    # Draw the realm name next to the emoji
                     realm_text = realm.strip()
-                    self.draw_text_with_shadow(
-                        draw, current_x, y, realm_text, small_font
+                    pilmoji.text(
+                        (current_x, y),
+                        realm_text,
+                        font=small_font,
+                        fill=self.TEXT_COLOR,
                     )
                     current_x += small_font.getlength(realm_text)
 
@@ -401,8 +396,7 @@ class ProfileCMD(commands.Cog):
                         )
                         current_x += small_font.getlength(", ")
 
-                # Update y-coordinate to add space below member realms
-                y += 30
+                y += 30  # Update y-coordinate after member realms
 
     def load_background_image(self):
         """Load and return the background image."""
