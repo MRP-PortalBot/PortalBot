@@ -306,7 +306,7 @@ class ProfileCMD(commands.Cog):
         x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
         y = (
             image.height - 175
-        )  # Set the y-coordinate relative to the bottom of the image for a more organized layout
+        )  # Set the y-coordinate relative to the bottom of the image
 
         # Helper function to fetch emoji from the realm profile database
         def get_realm_emoji(realm_name):
@@ -322,93 +322,87 @@ class ProfileCMD(commands.Cog):
                 _log.warning(f"Realm '{realm_name}' not found in the database.")
                 return ""
 
-        # Draw realms where the user is an OP
-        if query.RealmsAdmin and query.RealmsAdmin != "None":
-            # Draw the title first
-            op_realms_text = "Realms as OP:"
-            self.draw_text_with_shadow(draw, x, y, op_realms_text, small_font)
+        # Use Pilmoji to handle emojis
+        with Pilmoji(image) as pilmoji:
+            # Draw realms where the user is an OP
+            if query.RealmsAdmin and query.RealmsAdmin != "None":
+                # Draw the title first
+                op_realms_text = "Realms as OP:"
+                self.draw_text_with_shadow(draw, x, y, op_realms_text, small_font)
 
-            # Update y-coordinate to add space below the title
-            y += 25
+                # Update y-coordinate to add space below the title
+                y += 25
 
-            # Draw OP realms in a single line, separated by commas
-            current_x = x
-            for index, realm in enumerate(query.RealmsAdmin.split(",")):
-                emoji = get_realm_emoji(realm)
-                if emoji:
-                    # Draw the emoji first
-                    with Image.new("RGB", (550, 80), (255, 255, 255)) as image:
-                        with Pilmoji(image) as pilmoji:
-                            pilmoji.text(
-                                (current_x, y),
-                                emoji,
-                                font=emoji_font,
-                                embedded_color=True,
-                                fill=self.TEXT_COLOR,
-                            )
-                        image.show
-                    current_x += (
-                        emoji_font.getlength(emoji) + 5
-                    )  # Adjust for space after emoji
+                # Draw OP realms in a single line, separated by commas
+                current_x = x
+                op_realms = query.RealmsAdmin.split(",")
+                for index, realm in enumerate(op_realms):
+                    emoji = get_realm_emoji(realm)
+                    if emoji:
+                        # Draw the emoji first
+                        pilmoji.text(
+                            (current_x, y), emoji, font=emoji_font, fill=self.TEXT_COLOR
+                        )
+                        current_x += (
+                            emoji_font.getlength(emoji) + 5
+                        )  # Adjust for space after emoji
 
-                # Draw the realm name next to the emoji
-                realm_text = realm.strip()
-                self.draw_text_with_shadow(draw, current_x, y, realm_text, small_font)
-                current_x += small_font.getlength(realm_text)
-
-                # Draw comma separator except after the last realm
-                if index < len(query.RealmsAdmin.split(",")) - 1:
-                    draw.text(
-                        (current_x, y), ", ", font=small_font, fill=self.TEXT_COLOR
+                    # Draw the realm name next to the emoji
+                    realm_text = realm.strip()
+                    self.draw_text_with_shadow(
+                        draw, current_x, y, realm_text, small_font
                     )
-                    current_x += small_font.getlength(", ")
+                    current_x += small_font.getlength(realm_text)
 
-            # Update y-coordinate to add space below OP realms
-            y += 30
+                    # Draw comma separator except after the last realm
+                    if index < len(op_realms) - 1:
+                        pilmoji.text(
+                            (current_x, y), ", ", font=small_font, fill=self.TEXT_COLOR
+                        )
+                        current_x += small_font.getlength(", ")
 
-        # Draw realms where the user is a member
-        if query.RealmsJoined and query.RealmsJoined != "None":
-            # Draw the title first
-            member_realms_text = "Realms as Member:"
-            self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
+                # Update y-coordinate to add space below OP realms
+                y += 30
 
-            # Update y-coordinate to add space below the title
-            y += 25
+            # Draw realms where the user is a member
+            if query.RealmsJoined and query.RealmsJoined != "None":
+                # Draw the title first
+                member_realms_text = "Realms as Member:"
+                self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
 
-            # Draw member realms in a single line, separated by commas
-            current_x = x
-            for index, realm in enumerate(query.RealmsJoined.split(",")):
-                emoji = get_realm_emoji(realm)
-                if emoji:
-                    # Draw the emoji first
-                    with Image.new("RGB", (550, 80), (255, 255, 255)) as image:
-                        with Pilmoji(image) as pilmoji:
-                            pilmoji.text(
-                                (current_x, y),
-                                emoji,
-                                font=emoji_font,
-                                embedded_color=True,
-                                fill=self.TEXT_COLOR,
-                            )
-                        image.show
-                    current_x += (
-                        emoji_font.getlength(emoji) + 5
-                    )  # Adjust for space after emoji
+                # Update y-coordinate to add space below the title
+                y += 25
 
-                # Draw the realm name next to the emoji
-                realm_text = realm.strip()
-                self.draw_text_with_shadow(draw, current_x, y, realm_text, small_font)
-                current_x += small_font.getlength(realm_text)
+                # Draw member realms in a single line, separated by commas
+                current_x = x
+                member_realms = query.RealmsJoined.split(",")
+                for index, realm in enumerate(member_realms):
+                    emoji = get_realm_emoji(realm)
+                    if emoji:
+                        # Draw the emoji first
+                        pilmoji.text(
+                            (current_x, y), emoji, font=emoji_font, fill=self.TEXT_COLOR
+                        )
+                        current_x += (
+                            emoji_font.getlength(emoji) + 5
+                        )  # Adjust for space after emoji
 
-                # Draw comma separator except after the last realm
-                if index < len(query.RealmsJoined.split(",")) - 1:
-                    draw.text(
-                        (current_x, y), ", ", font=small_font, fill=self.TEXT_COLOR
+                    # Draw the realm name next to the emoji
+                    realm_text = realm.strip()
+                    self.draw_text_with_shadow(
+                        draw, current_x, y, realm_text, small_font
                     )
-                    current_x += small_font.getlength(", ")
+                    current_x += small_font.getlength(realm_text)
 
-            # Update y-coordinate to add space below member realms
-            y += 30
+                    # Draw comma separator except after the last realm
+                    if index < len(member_realms) - 1:
+                        pilmoji.text(
+                            (current_x, y), ", ", font=small_font, fill=self.TEXT_COLOR
+                        )
+                        current_x += small_font.getlength(", ")
+
+                # Update y-coordinate to add space below member realms
+                y += 30
 
     def load_background_image(self):
         """Load and return the background image."""
