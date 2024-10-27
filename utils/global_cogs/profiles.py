@@ -337,7 +337,7 @@ class ProfileCMD(commands.Cog):
                     # Draw the emoji first
                     draw.text(
                         (current_x, y),
-                        str(emoji),
+                        emoji,
                         font=emoji_font,
                         embedded_color=True,
                         fill=self.TEXT_COLOR,
@@ -378,7 +378,7 @@ class ProfileCMD(commands.Cog):
                     # Draw the emoji first
                     draw.text(
                         (current_x, y),
-                        str(emoji),
+                        emoji,
                         font=emoji_font,
                         embedded_color=True,
                         fill=self.TEXT_COLOR,
@@ -533,7 +533,7 @@ class ProfileCMD(commands.Cog):
             font = ImageFont.truetype(self.FONT_PATH, 40)
             small_font = ImageFont.truetype(self.FONT_PATH, 20)
             smallest_font = ImageFont.truetype(self.FONT_PATH, 17)
-            emoji_font = ImageFont.truetype(self.EMOJI_FONT_PATH, 20)
+            emoji_font = ImageFont.truetype(self.EMOJI_FONT_PATH, 109)
         except IOError:
             font = ImageFont.load_default()
             small_font = ImageFont.load_default()
