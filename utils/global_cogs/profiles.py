@@ -11,7 +11,7 @@ from core import database
 from core.logging_module import get_log
 from core.common import calculate_level  # Import your helper function here
 from core.common import get_user_rank
-import emoji
+import emoji as em
 
 _log = get_log(__name__)
 
@@ -313,7 +313,7 @@ class ProfileCMD(commands.Cog):
                 realm = database.RealmProfile.get(
                     database.RealmProfile.realm_name == realm_name.strip()
                 )
-                _log.info(emoji.demojize(realm.emoji))
+                _log.info(em.demojize(realm.emoji))
                 return (
                     realm.emoji or ""
                 )  # Return emoji if it exists, otherwise return an empty string
