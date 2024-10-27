@@ -315,7 +315,7 @@ class ProfileCMD(commands.Cog):
                 )
                 _log.info(em.demojize(realm.emoji))
                 return (
-                    realm.emoji or ""
+                    realm.emoji or "😡"
                 )  # Return emoji if it exists, otherwise return an empty string
             except database.RealmProfile.DoesNotExist:
                 _log.warning(f"Realm '{realm_name}' not found in the database.")
