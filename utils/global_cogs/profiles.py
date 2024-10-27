@@ -12,6 +12,7 @@ from core.logging_module import get_log
 from core.common import calculate_level  # Import your helper function here
 from core.common import get_user_rank
 import emoji as em
+from pilmoji import Pilmoji
 
 _log = get_log(__name__)
 
@@ -315,7 +316,7 @@ class ProfileCMD(commands.Cog):
                 )
                 _log.info(em.demojize(realm.emoji))
                 return (
-                    realm.emoji or "😡"
+                    realm.emoji or ""
                 )  # Return emoji if it exists, otherwise return an empty string
             except database.RealmProfile.DoesNotExist:
                 _log.warning(f"Realm '{realm_name}' not found in the database.")
@@ -336,13 +337,16 @@ class ProfileCMD(commands.Cog):
                 emoji = get_realm_emoji(realm)
                 if emoji:
                     # Draw the emoji first
-                    draw.text(
-                        (current_x, y),
-                        emoji,
-                        font=emoji_font,
-                        embedded_color=True,
-                        fill=self.TEXT_COLOR,
-                    )
+                    with Image.new("RGB", (550, 80), (255, 255, 255)) as image:
+                        with Pilmoji(image) as pilmoji:
+                            pilmoji.text(
+                                (current_x, y),
+                                emoji,
+                                font=emoji_font,
+                                embedded_color=True,
+                                fill=self.TEXT_COLOR,
+                            )
+                        image.show
                     current_x += (
                         emoji_font.getlength(emoji) + 5
                     )  # Adjust for space after emoji
@@ -377,13 +381,16 @@ class ProfileCMD(commands.Cog):
                 emoji = get_realm_emoji(realm)
                 if emoji:
                     # Draw the emoji first
-                    draw.text(
-                        (current_x, y),
-                        emoji,
-                        font=emoji_font,
-                        embedded_color=True,
-                        fill=self.TEXT_COLOR,
-                    )
+                    with Image.new("RGB", (550, 80), (255, 255, 255)) as image:
+                        with Pilmoji(image) as pilmoji:
+                            pilmoji.text(
+                                (current_x, y),
+                                emoji,
+                                font=emoji_font,
+                                embedded_color=True,
+                                fill=self.TEXT_COLOR,
+                            )
+                        image.show
                     current_x += (
                         emoji_font.getlength(emoji) + 5
                     )  # Adjust for space after emoji
