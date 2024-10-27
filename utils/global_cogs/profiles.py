@@ -313,7 +313,7 @@ class ProfileCMD(commands.Cog):
                 realm = database.RealmProfile.get(
                     database.RealmProfile.realm_name == realm_name.strip()
                 )
-                print(emoji.demojize(realm.emoji))
+                _log.info(emoji.demojize(realm.emoji))
                 return (
                     realm.emoji or ""
                 )  # Return emoji if it exists, otherwise return an empty string
