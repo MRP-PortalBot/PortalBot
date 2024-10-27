@@ -11,6 +11,7 @@ from core import database
 from core.logging_module import get_log
 from core.common import calculate_level  # Import your helper function here
 from core.common import get_user_rank
+import emoji
 
 _log = get_log(__name__)
 
@@ -336,7 +337,7 @@ class ProfileCMD(commands.Cog):
                     # Draw the emoji first
                     draw.text(
                         (current_x, y),
-                        emoji,
+                        str(emoji),
                         font=emoji_font,
                         embedded_color=True,
                         fill=self.TEXT_COLOR,
@@ -377,7 +378,7 @@ class ProfileCMD(commands.Cog):
                     # Draw the emoji first
                     draw.text(
                         (current_x, y),
-                        emoji,
+                        str(emoji),
                         font=emoji_font,
                         embedded_color=True,
                         fill=self.TEXT_COLOR,
@@ -532,7 +533,7 @@ class ProfileCMD(commands.Cog):
             font = ImageFont.truetype(self.FONT_PATH, 40)
             small_font = ImageFont.truetype(self.FONT_PATH, 20)
             smallest_font = ImageFont.truetype(self.FONT_PATH, 17)
-            emoji_font = ImageFont.truetype(r"self.EMOJI_FONT_PATH", 20)
+            emoji_font = ImageFont.truetype(self.EMOJI_FONT_PATH, 20)
         except IOError:
             font = ImageFont.load_default()
             small_font = ImageFont.load_default()
