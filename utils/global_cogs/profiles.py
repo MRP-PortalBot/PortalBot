@@ -371,10 +371,10 @@ class ProfileCMD(commands.Cog):
         if query.RealmsJoined and query.RealmsJoined != "None":
             _log.info(f"{x},{y}")
             # Draw the title first
-            y + 25
+            y + 75
             member_realms_text = "Realms as Member:"
             self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
-
+            _log.info(f"{x},{y}")
             # Update y-coordinate to add space below the title
             y += 25
 
