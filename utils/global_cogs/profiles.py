@@ -369,6 +369,7 @@ class ProfileCMD(commands.Cog):
 
         # Draw realms where the user is a member
         if query.RealmsJoined and query.RealmsJoined != "None":
+            _log.info(f"{x},{y}")
             # Draw the title first
             y + 25
             member_realms_text = "Realms as Member:"
