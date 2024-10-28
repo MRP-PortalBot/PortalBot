@@ -367,9 +367,6 @@ class ProfileCMD(commands.Cog):
             current_text = ", ".join([realm.strip() for realm in op_realms])
             y = draw_wrapped_text(draw, current_text, small_font, x, y, max_width)
 
-        # Paste the overlay (with transparency) onto the original image
-        image.alpha_composite(overlay)
-
         # Draw realms where the user is a member
         if query.RealmsJoined and query.RealmsJoined != "None":
             # Draw the title first
@@ -377,7 +374,7 @@ class ProfileCMD(commands.Cog):
             self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
 
             # Update y-coordinate to add space below the title
-            y += 25
+            y += 30
 
             # Calculate the height of the member realms text block
             member_realms_height = 30  # Initial height for the title
