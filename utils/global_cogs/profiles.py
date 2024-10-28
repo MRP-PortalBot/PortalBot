@@ -63,7 +63,7 @@ class ProfileEditModal(discord.ui.Modal):
         # Fields for editing profile - include reset to default option
         self.timezone_field = discord.ui.TextInput(
             label="Timezone",
-            placeholder="Enter your timezone (or type 'reset' to set to default)",
+            placeholder="Enter your timezone abreviation - UTC, CST, PST, etc. - (or type 'reset' to set to default)",
             required=False,
         )
         self.xbox_field = discord.ui.TextInput(
@@ -77,13 +77,13 @@ class ProfileEditModal(discord.ui.Modal):
             required=False,
         )
         self.switch_field = discord.ui.TextInput(
-            label="Switch Friend Code",
-            placeholder="Enter your Switch Friend Code (or type 'reset' to set to default)",
+            label="Switch Username",
+            placeholder="Enter your Switch Username (or type 'reset' to set to default)",
             required=False,
         )
         self.nnid_field = discord.ui.TextInput(
             label="Nintendo Network ID",
-            placeholder="Enter your Nintendo Network ID (or type 'reset' to set to default)",
+            placeholder="Enter your Nintendo Network ID - SW-####-####-#### - (or type 'reset' to set to default)",
             required=False,
         )
 
