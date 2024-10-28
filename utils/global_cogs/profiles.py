@@ -18,139 +18,129 @@ _log = get_log(__name__)
 
 
 # ------------------- Profile Modals -------------------
-class ProfileEditModal(discord.ui.Modal, title="Edit Profile"):
-    def __init__(self, bot, profile_id):
-        super().__init__()
+# Slash command to edit a user's profile
+@PF.command(name="edit_profile", description="Edit your user profile.")
+async def edit_profile(self, interaction: discord.Interaction):
+    """
+    Slash command to edit the user's profile.
+    """
+    profile = interaction.user
+
+    # Ensure the user has a profile to edit
+    try:
+        # Try to get the user's profile from the database
+        profile_query = database.PortalbotProfile.get(
+            database.PortalbotProfile.DiscordLongID == str(profile.id)
+        )
+
+        # Show the profile edit modal if the profile exists
+        await interaction.response.send_modal(ProfileEditModal(self.bot, profile.id))
+
+    except database.PortalbotProfile.DoesNotExist:
+        # If the profile does not exist, send a message to the user
+        await interaction.response.send_message(
+            "You don't have a profile yet. Please create one first.", ephemeral=True
+        )
+        _log.warning(f"User {profile.id} attempted to edit a non-existent profile.")
+
+    except Exception as e:
+        _log.error(
+            f"Error during profile edit command for user {profile.id}: {e}",
+            exc_info=True,
+        )
+        await interaction.response.send_message(
+            "An error occurred while trying to edit your profile.", ephemeral=True
+        )
+
+
+# Update ProfileEditModal to include resetting fields to default
+class ProfileEditModal(discord.ui.Modal):
+    def __init__(self, bot, user_id):
+        super().__init__(title="Edit Your Profile")
         self.bot = bot
-        self.profile_id = profile_id
+        self.user_id = user_id
 
-    # Text input fields for editing different profile properties
-    xbox_field = discord.ui.TextInput(
-        label="XBOX Gamertag",
-        style=discord.TextStyle.short,
-        required=False,
-        placeholder="Enter new XBOX Gamertag",
-    )
+        # Fields for editing profile - include reset to default option
+        self.timezone_field = discord.ui.TextInput(
+            label="Timezone",
+            placeholder="Enter your timezone (or type 'reset' to set to default)",
+            required=False,
+        )
+        self.xbox_field = discord.ui.TextInput(
+            label="Xbox Gamertag",
+            placeholder="Enter your Xbox Gamertag (or type 'reset' to set to default)",
+            required=False,
+        )
+        self.psn_field = discord.ui.TextInput(
+            label="PlayStation ID",
+            placeholder="Enter your PlayStation ID (or type 'reset' to set to default)",
+            required=False,
+        )
+        self.switch_field = discord.ui.TextInput(
+            label="Switch Friend Code",
+            placeholder="Enter your Switch Friend Code (or type 'reset' to set to default)",
+            required=False,
+        )
+        self.nnid_field = discord.ui.TextInput(
+            label="Nintendo Network ID",
+            placeholder="Enter your Nintendo Network ID (or type 'reset' to set to default)",
+            required=False,
+        )
 
-    psn_field = discord.ui.TextInput(
-        label="Playstation ID",
-        style=discord.TextStyle.short,
-        required=False,
-        placeholder="Enter new Playstation ID",
-    )
-
-    switch_field = discord.ui.TextInput(
-        label="Switch Username",
-        style=discord.TextStyle.short,
-        required=False,
-        placeholder="Enter new Switch Username",
-    )
-
-    switch_nnid_field = discord.ui.TextInput(
-        label="Switch NNID",
-        style=discord.TextStyle.short,
-        required=False,
-        placeholder="Enter new Switch Friend Code",
-    )
-
-    timezone_field = discord.ui.TextInput(
-        label="Timezone",
-        style=discord.TextStyle.short,
-        required=False,
-        placeholder="Enter new timezone (e.g., UTC-5, CST, etc.)",
-    )
+        # Add fields to the modal
+        self.add_item(self.timezone_field)
+        self.add_item(self.xbox_field)
+        self.add_item(self.psn_field)
+        self.add_item(self.switch_field)
+        self.add_item(self.nnid_field)
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
-            # Fetch the profile from the database
-            profile = database.PortalbotProfile.get(
-                database.PortalbotProfile.DiscordLongID == self.profile_id
+            profile_query = database.PortalbotProfile.get(
+                database.PortalbotProfile.DiscordLongID == str(self.user_id)
             )
 
-            # Validate user input before updating the profile
-            if self.xbox_field.value and not re.match(
-                r"^[a-zA-Z0-9 ]{1,15}$", self.xbox_field.value
-            ):
-                await interaction.response.send_message(
-                    "Invalid XBOX Gamertag format.", ephemeral=True
-                )
-                _log.warning(
-                    f"Invalid XBOX Gamertag format provided by user {self.profile_id}."
-                )
-                return
-            if self.psn_field.value and not re.match(
-                r"^[a-zA-Z0-9-_]{3,16}$", self.psn_field.value
-            ):
-                await interaction.response.send_message(
-                    "Invalid Playstation ID format.", ephemeral=True
-                )
-                _log.warning(
-                    f"Invalid Playstation ID format provided by user {self.profile_id}."
-                )
-                return
-            if self.switch_field.value and not re.match(
-                r"^[a-zA-Z0-9-_]{3,16}$", self.switch_field.value
-            ):
-                await interaction.response.send_message(
-                    "Invalid Switch Friend Code format.", ephemeral=True
-                )
-                _log.warning(
-                    f"Invalid Switch Username format provided by user {self.profile_id}."
-                )
-                return
-            if self.switch_nnid_field.value and not re.match(
-                r"^SW-\d{4}-\d{4}-\d{4}$", self.switch_nnid_field.value
-            ):
-                await interaction.response.send_message(
-                    "Invalid Switch Friend Code format.", ephemeral=True
-                )
-                _log.warning(
-                    f"Invalid Switch Friend Code format provided by user {self.profile_id}."
-                )
-                return
-            if self.timezone_field.value and not re.match(
-                r"^[a-zA-Z0-9\-+ ]+$", self.timezone_field.value
-            ):
-                await interaction.response.send_message(
-                    "Invalid timezone format.", ephemeral=True
-                )
-                _log.warning(
-                    f"Invalid timezone format provided by user {self.profile_id}."
-                )
-                return
+            # Update the profile fields or reset them to default if 'reset' is entered
+            if self.timezone_field.value.lower() == "reset":
+                profile_query.Timezone = "None"
+            elif self.timezone_field.value:
+                profile_query.Timezone = self.timezone_field.value
 
-            # Update profile fields based on user input
-            if self.xbox_field.value:
-                profile.XBOX = self.xbox_field.value
-            if self.psn_field.value:
-                profile.Playstation = self.psn_field.value
-            if self.switch_field.value:
-                profile.Switch = self.switch_field.value
-            if self.switch_nnid_field.value:
-                profile.SwitchNNID = self.switch_nnid_field.value
-            if self.timezone_field.value:
-                profile.Timezone = self.timezone_field.value
+            if self.xbox_field.value.lower() == "reset":
+                profile_query.XBOX = "None"
+            elif self.xbox_field.value:
+                profile_query.XBOX = self.xbox_field.value
 
-            # Save updated profile to the database
-            profile.save()
-            _log.info(f"Profile for user ID {self.profile_id} updated successfully.")
+            if self.psn_field.value.lower() == "reset":
+                profile_query.Playstation = "None"
+            elif self.psn_field.value:
+                profile_query.Playstation = self.psn_field.value
 
-            # Notify the user that the profile was updated
+            if self.switch_field.value.lower() == "reset":
+                profile_query.Switch = "None"
+            elif self.switch_field.value:
+                profile_query.Switch = self.switch_field.value
+
+            if self.nnid_field.value.lower() == "reset":
+                profile_query.SwitchNNID = "None"
+            elif self.nnid_field.value:
+                profile_query.SwitchNNID = self.nnid_field.value
+
+            profile_query.save()
+
             await interaction.response.send_message(
                 "Your profile has been updated successfully!", ephemeral=True
             )
+            _log.info(f"User {self.user_id} successfully updated their profile.")
 
         except database.PortalbotProfile.DoesNotExist:
+            _log.error(f"User {self.user_id} attempted to edit a non-existent profile.")
             await interaction.response.send_message(
-                "Profile not found. Please create a profile first.", ephemeral=True
+                "An error occurred: Profile not found.", ephemeral=True
             )
-            _log.error(
-                f"Profile for user ID {self.profile_id} not found during update."
-            )
-
         except Exception as e:
             _log.error(
-                f"Error updating profile for user ID {self.profile_id}: {e}",
+                f"Error during profile update for user {self.user_id}: {e}",
                 exc_info=True,
             )
             await interaction.response.send_message(
@@ -750,135 +740,40 @@ class ProfileCMD(commands.Cog):
         return embed
 
     # ------------------- Profile Edit Command -------------------
+    # Slash command to edit a user's profile
+    @PF.command(name="edit_profile", description="Edit your user profile.")
+    async def edit_profile(self, interaction: discord.Interaction):
+        """
+        Slash command to edit the user's profile.
+        """
+        profile = interaction.user
 
-
-# Slash command to edit a user's profile
-@PF.command(name="edit_profile", description="Edit your user profile.")
-async def edit_profile(self, interaction: discord.Interaction):
-    """
-    Slash command to edit the user's profile.
-    """
-    profile = interaction.user
-
-    # Ensure the user has a profile to edit
-    try:
-        # Try to get the user's profile from the database
-        profile_query = database.PortalbotProfile.get(
-            database.PortalbotProfile.DiscordLongID == str(profile.id)
-        )
-
-        # Show the profile edit modal if the profile exists
-        await interaction.response.send_modal(ProfileEditModal(self.bot, profile.id))
-
-    except database.PortalbotProfile.DoesNotExist:
-        # If the profile does not exist, send a message to the user
-        await interaction.response.send_message(
-            "You don't have a profile yet. Please create one first.", ephemeral=True
-        )
-        _log.warning(f"User {profile.id} attempted to edit a non-existent profile.")
-
-    except Exception as e:
-        _log.error(
-            f"Error during profile edit command for user {profile.id}: {e}",
-            exc_info=True,
-        )
-        await interaction.response.send_message(
-            "An error occurred while trying to edit your profile.", ephemeral=True
-        )
-
-
-# Update ProfileEditModal to include resetting fields to default
-class ProfileEditModal(discord.ui.Modal):
-    def __init__(self, bot, user_id):
-        super().__init__(title="Edit Your Profile")
-        self.bot = bot
-        self.user_id = user_id
-
-        # Fields for editing profile - include reset to default option
-        self.timezone_field = discord.ui.TextInput(
-            label="Timezone",
-            placeholder="Enter your timezone (or type 'reset' to set to default)",
-            required=False,
-        )
-        self.xbox_field = discord.ui.TextInput(
-            label="Xbox Gamertag",
-            placeholder="Enter your Xbox Gamertag (or type 'reset' to set to default)",
-            required=False,
-        )
-        self.psn_field = discord.ui.TextInput(
-            label="PlayStation ID",
-            placeholder="Enter your PlayStation ID (or type 'reset' to set to default)",
-            required=False,
-        )
-        self.switch_field = discord.ui.TextInput(
-            label="Switch Friend Code",
-            placeholder="Enter your Switch Friend Code (or type 'reset' to set to default)",
-            required=False,
-        )
-        self.nnid_field = discord.ui.TextInput(
-            label="Nintendo Network ID",
-            placeholder="Enter your Nintendo Network ID (or type 'reset' to set to default)",
-            required=False,
-        )
-
-        # Add fields to the modal
-        self.add_item(self.timezone_field)
-        self.add_item(self.xbox_field)
-        self.add_item(self.psn_field)
-        self.add_item(self.switch_field)
-        self.add_item(self.nnid_field)
-
-    async def on_submit(self, interaction: discord.Interaction):
+        # Ensure the user has a profile to edit
         try:
+            # Try to get the user's profile from the database
             profile_query = database.PortalbotProfile.get(
-                database.PortalbotProfile.DiscordLongID == str(self.user_id)
+                database.PortalbotProfile.DiscordLongID == str(profile.id)
             )
 
-            # Update the profile fields or reset them to default if 'reset' is entered
-            if self.timezone_field.value.lower() == "reset":
-                profile_query.Timezone = "None"
-            elif self.timezone_field.value:
-                profile_query.Timezone = self.timezone_field.value
-
-            if self.xbox_field.value.lower() == "reset":
-                profile_query.XBOX = "None"
-            elif self.xbox_field.value:
-                profile_query.XBOX = self.xbox_field.value
-
-            if self.psn_field.value.lower() == "reset":
-                profile_query.Playstation = "None"
-            elif self.psn_field.value:
-                profile_query.Playstation = self.psn_field.value
-
-            if self.switch_field.value.lower() == "reset":
-                profile_query.Switch = "None"
-            elif self.switch_field.value:
-                profile_query.Switch = self.switch_field.value
-
-            if self.nnid_field.value.lower() == "reset":
-                profile_query.SwitchNNID = "None"
-            elif self.nnid_field.value:
-                profile_query.SwitchNNID = self.nnid_field.value
-
-            profile_query.save()
-
-            await interaction.response.send_message(
-                "Your profile has been updated successfully!", ephemeral=True
+            # Show the profile edit modal if the profile exists
+            await interaction.response.send_modal(
+                ProfileEditModal(self.bot, profile.id)
             )
-            _log.info(f"User {self.user_id} successfully updated their profile.")
 
         except database.PortalbotProfile.DoesNotExist:
-            _log.error(f"User {self.user_id} attempted to edit a non-existent profile.")
+            # If the profile does not exist, send a message to the user
             await interaction.response.send_message(
-                "An error occurred: Profile not found.", ephemeral=True
+                "You don't have a profile yet. Please create one first.", ephemeral=True
             )
+            _log.warning(f"User {profile.id} attempted to edit a non-existent profile.")
+
         except Exception as e:
             _log.error(
-                f"Error during profile update for user {self.user_id}: {e}",
+                f"Error during profile edit command for user {profile.id}: {e}",
                 exc_info=True,
             )
             await interaction.response.send_message(
-                "An error occurred while updating your profile.", ephemeral=True
+                "An error occurred while trying to edit your profile.", ephemeral=True
             )
 
 
