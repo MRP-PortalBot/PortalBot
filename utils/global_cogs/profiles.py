@@ -267,7 +267,7 @@ class ProfileCMD(commands.Cog):
         x = int(self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING)
         y = int(image.height - 175)  # Position relative to the bottom of the image
 
-        max_width = image.width - self.PADDING - x - 10  # Maximum width for the text
+        max_width = image.width - self.PADDING - x - 50  # Maximum width for the text
 
         def draw_wrapped_text(draw, text, font, x, y, max_width):
             """Draws text and wraps it if it exceeds the max width."""
