@@ -536,7 +536,7 @@ class ProfileCMD(commands.Cog):
         draw.rounded_rectangle(
             [(x, y), (x + filled_width, y + self.BAR_HEIGHT)],
             radius=self.RADIUS,
-            fill=(26, 126, 86, 255),
+            fill=(29, 188, 101, 255),
         )
 
         # Load a smaller font for the text inside the progress bar
