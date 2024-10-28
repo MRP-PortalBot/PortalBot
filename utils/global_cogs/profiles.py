@@ -303,8 +303,8 @@ class ProfileCMD(commands.Cog):
         _, small_font, _, emoji_font = self.load_fonts()  # Load fonts
 
         # Define starting position for drawing the realms information
-        x = self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING
-        y = image.height - 175  # Position relative to the bottom of the image
+        x = int(self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING)
+        y = int(image.height - 175)  # Position relative to the bottom of the image
 
         # Helper function to fetch emoji from the realm profile database
         def get_realm_emoji(realm_name):
@@ -351,20 +351,25 @@ class ProfileCMD(commands.Cog):
                     # Create an emoji image and paste it on the main image
                     emoji_image = create_emoji_image(emoji)
                     if emoji_image:  # Ensure emoji image is created successfully
-                        image.paste(emoji_image, (current_x, y), emoji_image)
+                        image.paste(emoji_image, (int(current_x), int(y)), emoji_image)
                         current_x += (
                             emoji_image.width + 5
                         )  # Adjust for space after the emoji
 
                 # Draw the realm name next to the emoji
                 realm_text = realm.strip()
-                self.draw_text_with_shadow(draw, current_x, y, realm_text, small_font)
+                self.draw_text_with_shadow(
+                    draw, int(current_x), int(y), realm_text, small_font
+                )
                 current_x += small_font.getlength(realm_text)
 
                 # Draw comma separator except after the last realm
                 if index < len(op_realms) - 1:
                     draw.text(
-                        (current_x, y), ", ", font=small_font, fill=self.TEXT_COLOR
+                        (int(current_x), int(y)),
+                        ", ",
+                        font=small_font,
+                        fill=self.TEXT_COLOR,
                     )
                     current_x += small_font.getlength(", ")
 
@@ -388,20 +393,25 @@ class ProfileCMD(commands.Cog):
                     # Create an emoji image and paste it on the main image
                     emoji_image = create_emoji_image(emoji)
                     if emoji_image:  # Ensure emoji image is created successfully
-                        image.paste(emoji_image, (current_x, y), emoji_image)
+                        image.paste(emoji_image, (int(current_x), int(y)), emoji_image)
                         current_x += (
                             emoji_image.width + 5
                         )  # Adjust for space after the emoji
 
                 # Draw the realm name next to the emoji
                 realm_text = realm.strip()
-                self.draw_text_with_shadow(draw, current_x, y, realm_text, small_font)
+                self.draw_text_with_shadow(
+                    draw, int(current_x), int(y), realm_text, small_font
+                )
                 current_x += small_font.getlength(realm_text)
 
                 # Draw comma separator except after the last realm
                 if index < len(member_realms) - 1:
                     draw.text(
-                        (current_x, y), ", ", font=small_font, fill=self.TEXT_COLOR
+                        (int(current_x), int(y)),
+                        ", ",
+                        font=small_font,
+                        fill=self.TEXT_COLOR,
                     )
                     current_x += small_font.getlength(", ")
 
