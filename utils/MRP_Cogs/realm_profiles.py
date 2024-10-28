@@ -4,6 +4,11 @@ from discord.ext import commands
 from discord import Interaction
 from discord.app_commands.errors import CheckFailure
 from core.database import RealmProfile
+from PIL import Image, ImageDraw, ImageFont
+from core.logging_module import get_log
+
+_log = get_log(__name__)
+
 
 class RealmProfiles(commands.Cog):
     def __init__(self, bot):
@@ -19,7 +24,7 @@ class RealmProfiles(commands.Cog):
         """View the details of a Realm Profile."""
         # Use the provided realm_name or default to the channel name
         realm_name = realm_name if realm_name else interaction.channel.name
-        
+
         # Query the RealmProfile from the database
         realm_profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
 
@@ -27,47 +32,66 @@ class RealmProfiles(commands.Cog):
             # Create an embed to display the profile information
             embed = discord.Embed(
                 title=f"{realm_profile.realm_emoji} {realm_profile.realm_name} - Realm Profile",
-                color=discord.Color.blue()
+                color=discord.Color.blue(),
             )
-            embed.add_field(name="Realm Name", value=realm_profile.realm_name, inline=False)
-            embed.add_field(name="Description", value=realm_profile.realm_long_desc, inline=False)
-            embed.add_field(name="PvP", value="Enabled" if realm_profile.pvp else "Disabled", inline=True)
-            embed.add_field(name="One Player Sleep", value="Enabled" if realm_profile.one_player_sleep else "Disabled", inline=True)
-            embed.add_field(name="World Age", value=realm_profile.world_age, inline=True)
-            embed.add_field(name="Realm Style", value=realm_profile.realm_style, inline=True)
+            embed.add_field(
+                name="Realm Name", value=realm_profile.realm_name, inline=False
+            )
+            embed.add_field(
+                name="Description", value=realm_profile.realm_long_desc, inline=False
+            )
+            embed.add_field(
+                name="PvP",
+                value="Enabled" if realm_profile.pvp else "Disabled",
+                inline=True,
+            )
+            embed.add_field(
+                name="One Player Sleep",
+                value="Enabled" if realm_profile.one_player_sleep else "Disabled",
+                inline=True,
+            )
+            embed.add_field(
+                name="World Age", value=realm_profile.world_age, inline=True
+            )
+            embed.add_field(
+                name="Realm Style", value=realm_profile.realm_style, inline=True
+            )
             embed.add_field(name="Game Mode", value=realm_profile.gamemode, inline=True)
 
             await interaction.response.send_message(embed=embed)
         else:
             # Send a message if no profile was found for the specified realm
-            await interaction.response.send_message(f"No profile found for realm '{realm_name}'", ephemeral=True)
+            await interaction.response.send_message(
+                f"No profile found for realm '{realm_name}'", ephemeral=True
+            )
 
     @RP.command(description="Configure a Realm Profile")
     async def setup(
-        self, interaction: Interaction,
+        self,
+        interaction: Interaction,
         realm_name: str,
         realm_emoji: str,
         pvp: bool,
         one_player_sleep: bool,
         world_age: str,
         realm_style: str,
-        gamemode: str
+        gamemode: str,
     ):
         """Configure your Realm Profile."""
         try:
             # Use the provided realm_name or default to the channel name
             realm_name = realm_name if realm_name else interaction.channel.name
-            
+
             realm_profile, created = RealmProfile.get_or_create(
                 realm_name=realm_name,
                 defaults={
-                    'realm_emoji': realm_emoji,
-                    'pvp': pvp,
-                    'one_player_sleep': one_player_sleep,
-                    'world_age': world_age,
-                    'realm_style': realm_style,
-                    'gamemode': gamemode
-                }
+                    "realm_emoji": realm_emoji,
+                    "pvp": pvp,
+                    "one_player_sleep": one_player_sleep,
+                    "world_age": world_age,
+                    "realm_style": realm_style,
+                    "gamemode": gamemode,
+                },
             )
 
             if not created:
@@ -83,28 +107,114 @@ class RealmProfiles(commands.Cog):
             embed = discord.Embed(
                 title="Realm Profile Configured",
                 description=f"{realm_emoji} {realm_name} has been successfully configured.",
-                color=discord.Color.green()
+                color=discord.Color.green(),
             )
-            embed.add_field(name="PvP", value="Enabled" if pvp else "Disabled", inline=True)
-            embed.add_field(name="One Player Sleep", value="Enabled" if one_player_sleep else "Disabled", inline=True)
+            embed.add_field(
+                name="PvP", value="Enabled" if pvp else "Disabled", inline=True
+            )
+            embed.add_field(
+                name="One Player Sleep",
+                value="Enabled" if one_player_sleep else "Disabled",
+                inline=True,
+            )
             embed.add_field(name="World Age", value=world_age, inline=True)
             embed.add_field(name="Realm Style", value=realm_style, inline=True)
             embed.add_field(name="Game Mode", value=gamemode, inline=True)
-            
+
             await interaction.response.send_message(embed=embed)
-        
+
         except CheckFailure:
             if not interaction.response.is_done():
-                await interaction.response.send_message("You do not own this realm channel or lack permissions.", ephemeral=True)
+                await interaction.response.send_message(
+                    "You do not own this realm channel or lack permissions.",
+                    ephemeral=True,
+                )
 
     # Error handling to avoid responding multiple times
     async def on_app_command_error(self, interaction: Interaction, error):
         if isinstance(error, CheckFailure):
             if not interaction.response.is_done():
-                await interaction.response.send_message("Check failed: You don't have permission to run this command.", ephemeral=True)
+                await interaction.response.send_message(
+                    "Check failed: You don't have permission to run this command.",
+                    ephemeral=True,
+                )
         else:
             if not interaction.response.is_done():
-                await interaction.response.send_message("An error occurred while processing your command.", ephemeral=True)
+                await interaction.response.send_message(
+                    "An error occurred while processing your command.", ephemeral=True
+                )
+
+        # ------------------View Realm Profile Card-------------------------------------------------------------------
+
+        # Constants
+        self.BACKGROUND_IMAGE_PATH = ".core/images/Portal_Design.png"  # Path to the Nether Portal background image
+        self.FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"  # Example font path
+        self.AVATAR_SIZE = 100
+        self.PADDING = 20
+        self.TEXT_COLOR = (255, 255, 255, 255)
+
+    @app_commands.command(
+        name="generate_realm_profile",
+        description="Generate a profile card for a Minecraft Realm.",
+    )
+    async def generate_realm_profile(
+        self, interaction: discord.Interaction, realm_name: str
+    ):
+        """
+        Slash command to generate a profile card for a realm.
+        """
+        try:
+            # Defer interaction response
+            await interaction.response.defer()
+
+            # Load the background image
+            background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
+            image = background_image.copy()
+
+            # Draw on the image
+            draw = ImageDraw.Draw(image)
+            font = ImageFont.truetype(self.FONT_PATH, 40)
+            small_font = ImageFont.truetype(self.FONT_PATH, 20)
+
+            # Draw the Realm Logo - Placeholder (top of the image)
+            realm_logo = Image.new(
+                "RGBA", (self.AVATAR_SIZE, self.AVATAR_SIZE), (255, 0, 0, 255)
+            )  # Placeholder red box
+            image.paste(realm_logo, (self.PADDING, self.PADDING), realm_logo)
+
+            # Draw the Realm Name (below the logo)
+            text_x = self.PADDING + self.AVATAR_SIZE + self.PADDING
+            text_y = self.PADDING
+            draw.text((text_x, text_y), realm_name, font=font, fill=self.TEXT_COLOR)
+
+            # Add any other details (e.g., members, description)
+            details_y = text_y + 50  # Below the realm name
+            details = "Members: 45\nStatus: Active"
+            draw.text(
+                (text_x, details_y), details, font=small_font, fill=self.TEXT_COLOR
+            )
+
+            # Save the image to a buffer
+            buffer_output = io.BytesIO()
+            image.save(buffer_output, format="PNG")
+            buffer_output.seek(0)
+
+            # Send the final image as a Discord message
+            await interaction.followup.send(
+                file=discord.File(buffer_output, "realm_profile_card.png")
+            )
+            _log.info(f"Successfully generated realm profile card for {realm_name}.")
+
+        except Exception as e:
+            _log.error(
+                f"Error during realm profile generation for {realm_name}: {e}",
+                exc_info=True,
+            )
+            await interaction.followup.send(
+                "An error occurred while generating the realm profile card.",
+                ephemeral=True,
+            )
+
 
 async def setup(bot):
     await bot.add_cog(RealmProfiles(bot))
