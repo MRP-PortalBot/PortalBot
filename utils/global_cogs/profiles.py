@@ -310,6 +310,24 @@ class ProfileCMD(commands.Cog):
         x = int(self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING)
         y = int(image.height - 175)  # Position relative to the bottom of the image
 
+        max_width = image.width - self.PADDING - x  # Maximum width for the text
+
+        def draw_wrapped_text(draw, text, font, x, y, max_width):
+            """Draws text and wraps it if it exceeds the max width."""
+            words = text.split()
+            line = ""
+            for word in words:
+                test_line = f"{line} {word}" if line else word
+                if font.getlength(test_line) <= max_width:
+                    line = test_line
+                else:
+                    draw.text((x, y), line, font=font, fill=self.TEXT_COLOR)
+                    y += 20  # Move to the next line
+                    line = word
+            if line:
+                draw.text((x, y), line, font=font, fill=self.TEXT_COLOR)
+            return y + 20  # Return the updated y-coordinate
+
         # Draw realms where the user is an OP
         if query.RealmsAdmin and query.RealmsAdmin != "None":
             # Draw the title first
@@ -345,27 +363,9 @@ class ProfileCMD(commands.Cog):
                 fill=(0, 0, 0, 30),  # Set the alpha value for transparency
             )
 
-            # Draw OP realms in a single line, separated by commas
-            current_x = x
-            for index, realm in enumerate(op_realms):
-                # Draw the realm name
-                realm_text = realm.strip()
-                self.draw_text_with_shadow(
-                    draw, int(current_x), int(y), realm_text, small_font
-                )
-                current_x += small_font.getlength(realm_text)
-
-                # Draw comma separator except after the last realm
-                if index < len(op_realms) - 1:
-                    draw.text(
-                        (int(current_x), int(y)),
-                        ", ",
-                        font=small_font,
-                        fill=self.TEXT_COLOR,
-                    )
-                    current_x += small_font.getlength(", ")
-
-            y += 30  # Update y-coordinate after OP realms
+            # Draw OP realms in a single line, separated by commas, with wrapping
+            current_text = ", ".join([realm.strip() for realm in op_realms])
+            y = draw_wrapped_text(draw, current_text, small_font, x, y, max_width)
 
         # Paste the overlay (with transparency) onto the original image
         image.alpha_composite(overlay)
@@ -405,27 +405,9 @@ class ProfileCMD(commands.Cog):
                 fill=(0, 0, 0, 30),  # Set the alpha value for transparency
             )
 
-            # Draw member realms in a single line, separated by commas
-            current_x = x
-            for index, realm in enumerate(member_realms):
-                # Draw the realm name
-                realm_text = realm.strip()
-                self.draw_text_with_shadow(
-                    draw, int(current_x), int(y), realm_text, small_font
-                )
-                current_x += small_font.getlength(realm_text)
-
-                # Draw comma separator except after the last realm
-                if index < len(member_realms) - 1:
-                    draw.text(
-                        (int(current_x), int(y)),
-                        ", ",
-                        font=small_font,
-                        fill=self.TEXT_COLOR,
-                    )
-                    current_x += small_font.getlength(", ")
-
-            y += 30  # Update y-coordinate after member realms
+            # Draw member realms in a single line, separated by commas, with wrapping
+            current_text = ", ".join([realm.strip() for realm in member_realms])
+            y = draw_wrapped_text(draw, current_text, small_font, x, y, max_width)
 
         # Paste the overlay (with transparency) onto the original image
         image.alpha_composite(overlay)
