@@ -338,7 +338,7 @@ class ProfileCMD(commands.Cog):
             rect_x0 = x - 7
             rect_y0 = y - 32
             rect_x1 = image.width - self.PADDING
-            rect_y1 = rect_y0 + op_realms_height
+            rect_y1 = rect_y0 + op_realms_height - 5
             draw_overlay.rounded_rectangle(
                 [rect_x0, rect_y0, rect_x1, rect_y1],
                 radius=15,
