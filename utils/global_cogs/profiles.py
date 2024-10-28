@@ -370,11 +370,12 @@ class ProfileCMD(commands.Cog):
         # Draw realms where the user is a member
         if query.RealmsJoined and query.RealmsJoined != "None":
             # Draw the title first
+            y + 25
             member_realms_text = "Realms as Member:"
             self.draw_text_with_shadow(draw, x, y, member_realms_text, small_font)
 
             # Update y-coordinate to add space below the title
-            y += 30
+            y += 25
 
             # Calculate the height of the member realms text block
             member_realms_height = 30  # Initial height for the title
