@@ -379,9 +379,34 @@ class ProfileCMD(commands.Cog):
             # Update y-coordinate to add space below the title
             y += 25
 
-            # Draw member realms in a single line, separated by commas
+            # Calculate the height of the member realms text block
+            member_realms_height = 30  # Initial height for the title
             current_x = x
             member_realms = query.RealmsJoined.split(",")
+            for index, realm in enumerate(member_realms):
+                # Calculate width of each realm text and comma
+                realm_text = realm.strip()
+                text_width = small_font.getlength(realm_text)
+                current_x += text_width
+                if index < len(member_realms) - 1:
+                    current_x += small_font.getlength(", ")
+                member_realms_height += (
+                    30 if index == 0 else 0
+                )  # Add height for each realm text line
+
+            # Draw a rounded transparent white square behind the member realms section on the overlay
+            rect_x0 = x - 7
+            rect_y0 = y - 32
+            rect_x1 = image.width - self.PADDING
+            rect_y1 = rect_y0 + member_realms_height - 5
+            draw_overlay.rounded_rectangle(
+                [rect_x0, rect_y0, rect_x1, rect_y1],
+                radius=15,
+                fill=(255, 255, 255, 100),  # Set the alpha value for transparency
+            )
+
+            # Draw member realms in a single line, separated by commas
+            current_x = x
             for index, realm in enumerate(member_realms):
                 # Draw the realm name
                 realm_text = realm.strip()
@@ -401,6 +426,9 @@ class ProfileCMD(commands.Cog):
                     current_x += small_font.getlength(", ")
 
             y += 30  # Update y-coordinate after member realms
+
+        # Paste the overlay (with transparency) onto the original image
+        image.alpha_composite(overlay)
 
     def load_background_image(self):
         """Load and return the background image."""
