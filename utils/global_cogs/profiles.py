@@ -252,7 +252,7 @@ class ProfileCMD(commands.Cog):
         # Draw the NNID without the logo
         if query.SwitchNNID and query.SwitchNNID != "None":
             nnid_text = query.SwitchNNID
-            self.draw_text_with_shadow(draw, x, y, nnid_text, smallest_font)
+            self.draw_text_with_shadow(draw, x + 10, y, nnid_text, smallest_font)
 
     def draw_realms_info(self, image, query):
         """Draws the realms information for OP and member realms in the pink area."""
@@ -267,7 +267,7 @@ class ProfileCMD(commands.Cog):
         x = int(self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING)
         y = int(image.height - 175)  # Position relative to the bottom of the image
 
-        max_width = image.width - self.PADDING - x  # Maximum width for the text
+        max_width = image.width - self.PADDING - x - 10  # Maximum width for the text
 
         def draw_wrapped_text(draw, text, font, x, y, max_width):
             """Draws text and wraps it if it exceeds the max width."""
