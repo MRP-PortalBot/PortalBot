@@ -327,6 +327,10 @@ class ProfileCMD(commands.Cog):
             with Pilmoji(emoji_image) as pilmoji:
                 pilmoji.text((0, 0), emoji, font=emoji_font, embedded_color=True)
 
+            # Debug step: Save emoji image to verify if it renders correctly
+            emoji_image.save(f"test_emoji_{emoji}.png")
+            _log.info(f"Saved emoji image for {emoji}")
+
             return emoji_image
 
         # Draw realms where the user is an OP
@@ -346,10 +350,11 @@ class ProfileCMD(commands.Cog):
                 if emoji:
                     # Create an emoji image and paste it on the main image
                     emoji_image = create_emoji_image(emoji)
-                    image.paste(emoji_image, (current_x, y), emoji_image)
-                    current_x += (
-                        emoji_image.width + 5
-                    )  # Adjust for space after the emoji
+                    if emoji_image:  # Ensure emoji image is created successfully
+                        image.paste(emoji_image, (current_x, y), emoji_image)
+                        current_x += (
+                            emoji_image.width + 5
+                        )  # Adjust for space after the emoji
 
                 # Draw the realm name next to the emoji
                 realm_text = realm.strip()
@@ -382,10 +387,11 @@ class ProfileCMD(commands.Cog):
                 if emoji:
                     # Create an emoji image and paste it on the main image
                     emoji_image = create_emoji_image(emoji)
-                    image.paste(emoji_image, (current_x, y), emoji_image)
-                    current_x += (
-                        emoji_image.width + 5
-                    )  # Adjust for space after the emoji
+                    if emoji_image:  # Ensure emoji image is created successfully
+                        image.paste(emoji_image, (current_x, y), emoji_image)
+                        current_x += (
+                            emoji_image.width + 5
+                        )  # Adjust for space after the emoji
 
                 # Draw the realm name next to the emoji
                 realm_text = realm.strip()
