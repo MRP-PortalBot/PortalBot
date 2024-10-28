@@ -335,8 +335,8 @@ class ProfileCMD(commands.Cog):
                 )  # Add height for each realm text line
 
             # Draw a rounded transparent white square behind the OP realms section on the overlay
-            rect_x0 = x
-            rect_y0 = y - 15
+            rect_x0 = x - 3
+            rect_y0 = y + 3
             rect_x1 = image.width - self.PADDING
             rect_y1 = y + op_realms_height - 10
             draw_overlay.rounded_rectangle(
