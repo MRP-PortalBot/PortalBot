@@ -299,6 +299,10 @@ class ProfileCMD(commands.Cog):
 
     def draw_realms_info(self, image, query):
         """Draws the realms information for OP and member realms in the pink area."""
+        # Create a transparent layer to draw the rounded rectangle
+        overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))
+        draw_overlay = ImageDraw.Draw(overlay)
+
         draw = ImageDraw.Draw(image)
         _, small_font, _, _ = self.load_fonts()  # Load fonts
 
@@ -316,7 +320,7 @@ class ProfileCMD(commands.Cog):
             y += 25
 
             # Calculate the height of the OP realms text block
-            op_realms_height = 10  # Initial height for the title
+            op_realms_height = 30  # Initial height for the title
             current_x = x
             op_realms = query.RealmsAdmin.split(",")
             for index, realm in enumerate(op_realms):
@@ -330,15 +334,15 @@ class ProfileCMD(commands.Cog):
                     30 if index == 0 else 0
                 )  # Add height for each realm text line
 
-            # Draw a rounded white square behind the OP realms section
+            # Draw a rounded transparent white square behind the OP realms section on the overlay
             rect_x0 = x - 10
             rect_y0 = y - 35
-            rect_x1 = image.width - self.PADDING
+            rect_x1 = current_x + 10
             rect_y1 = y + op_realms_height - 10
-            draw.rounded_rectangle(
+            draw_overlay.rounded_rectangle(
                 [rect_x0, rect_y0, rect_x1, rect_y1],
                 radius=15,
-                fill=(255, 255, 255, 30),
+                fill=(255, 255, 255, 100),  # Set the alpha value for transparency
             )
 
             # Draw OP realms in a single line, separated by commas
@@ -362,6 +366,9 @@ class ProfileCMD(commands.Cog):
                     current_x += small_font.getlength(", ")
 
             y += 30  # Update y-coordinate after OP realms
+
+        # Paste the overlay (with transparency) onto the original image
+        image.alpha_composite(overlay)
 
         # Draw realms where the user is a member
         if query.RealmsJoined and query.RealmsJoined != "None":
