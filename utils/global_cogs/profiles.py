@@ -267,7 +267,7 @@ class ProfileCMD(commands.Cog):
         x = int(self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING)
         y = int(image.height - 175)  # Position relative to the bottom of the image
 
-        max_width = image.width - self.PADDING - x  # Maximum width for the text
+        max_width = image.width - self.PADDING - x - 10  # Maximum width for the text
 
         def draw_wrapped_text(draw, text, font, x, y, max_width):
             """Draws text and wraps it if it exceeds the max width."""
@@ -312,7 +312,7 @@ class ProfileCMD(commands.Cog):
             # Draw a rounded transparent white square behind the OP realms section on the overlay
             rect_x0 = x - 7
             rect_y0 = y - 32
-            rect_x1 = max_width
+            rect_x1 = image.width - self.PADDING - 10
             rect_y1 = rect_y0 + op_realms_height - 5
             draw_overlay.rounded_rectangle(
                 [rect_x0, rect_y0, rect_x1, rect_y1],
@@ -353,7 +353,7 @@ class ProfileCMD(commands.Cog):
             # Draw a rounded transparent white square behind the member realms section on the overlay
             rect_x0 = x - 7
             rect_y0 = y - 32
-            rect_x1 = max_width
+            rect_x1 = image.width - self.PADDING - 10
             rect_y1 = rect_y0 + member_realms_height - 5
             draw_overlay.rounded_rectangle(
                 [rect_x0, rect_y0, rect_x1, rect_y1],
