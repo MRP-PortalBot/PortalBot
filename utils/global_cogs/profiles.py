@@ -267,7 +267,7 @@ class ProfileCMD(commands.Cog):
         x = int(self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING)
         y = int(image.height - 175)  # Position relative to the bottom of the image
 
-        max_width = image.width - self.PADDING - x - 50  # Maximum width for the text
+        max_width = image.width - self.PADDING - x  # Maximum width for the text
 
         def draw_wrapped_text(draw, text, font, x, y, max_width):
             """Draws text and wraps it if it exceeds the max width."""
@@ -312,7 +312,7 @@ class ProfileCMD(commands.Cog):
             # Draw a rounded transparent white square behind the OP realms section on the overlay
             rect_x0 = x - 7
             rect_y0 = y - 32
-            rect_x1 = image.width - self.PADDING
+            rect_x1 = max_width
             rect_y1 = rect_y0 + op_realms_height - 5
             draw_overlay.rounded_rectangle(
                 [rect_x0, rect_y0, rect_x1, rect_y1],
@@ -353,7 +353,7 @@ class ProfileCMD(commands.Cog):
             # Draw a rounded transparent white square behind the member realms section on the overlay
             rect_x0 = x - 7
             rect_y0 = y - 32
-            rect_x1 = image.width - self.PADDING
+            rect_x1 = max_width
             rect_y1 = rect_y0 + member_realms_height - 5
             draw_overlay.rounded_rectangle(
                 [rect_x0, rect_y0, rect_x1, rect_y1],
@@ -456,7 +456,7 @@ class ProfileCMD(commands.Cog):
 
         # Draw the user's rank
         rank_text = f"#{rank}"
-        rank_x = image.width - self.PADDING - font.getbbox(rank_text)[2]
+        rank_x = image.width - 10 - self.PADDING - font.getbbox(rank_text)[2]
         rank_y = text_y
         self.draw_text_with_shadow(draw, rank_x, rank_y, rank_text, font)
 
@@ -464,7 +464,7 @@ class ProfileCMD(commands.Cog):
         progress_bar_y = text_y + 65  # Adjust this value for consistent padding
 
         # Draw progress bar
-        bar_width = image.width - text_x - self.PADDING
+        bar_width = image.width - text_x - self.PADDING - 10
         self.draw_progress_bar(
             draw,
             text_x,
@@ -575,7 +575,7 @@ class ProfileCMD(commands.Cog):
         ]  # Using getbbox for text size
         self.draw_text_with_shadow(
             draw,
-            image_width - self.PADDING - next_level_text_width,
+            image_width - 10 - self.PADDING - next_level_text_width,
             y,
             next_role_text,
             font,
