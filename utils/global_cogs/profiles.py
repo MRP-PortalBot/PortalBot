@@ -300,38 +300,11 @@ class ProfileCMD(commands.Cog):
     def draw_realms_info(self, image, query):
         """Draws the realms information for OP and member realms in the pink area."""
         draw = ImageDraw.Draw(image)
-        _, small_font, _, emoji_font = self.load_fonts()  # Load fonts
+        _, small_font, _, _ = self.load_fonts()  # Load fonts
 
         # Define starting position for drawing the realms information
         x = int(self.PADDING + self.AVATAR_SIZE + self.TEXT_EXTRA_PADDING)
         y = int(image.height - 175)  # Position relative to the bottom of the image
-
-        # Helper function to fetch emoji from the realm profile database
-        def get_realm_emoji(realm_name):
-            try:
-                realm = database.RealmProfile.get(
-                    database.RealmProfile.realm_name == realm_name.strip()
-                )
-                return realm.emoji or ""
-            except database.RealmProfile.DoesNotExist:
-                _log.warning(f"Realm '{realm_name}' not found in the database.")
-                return ""
-
-        # Function to create an image for each emoji
-        def create_emoji_image(emoji):
-            emoji_size = 30  # Set the size of the emoji
-            emoji_image = Image.new(
-                "RGBA", (emoji_size, emoji_size), (255, 255, 255, 0)
-            )  # Transparent background
-
-            with Pilmoji(emoji_image) as pilmoji:
-                pilmoji.text((0, 0), emoji, font=emoji_font, embedded_color=True)
-
-            # Debug step: Save emoji image to verify if it renders correctly
-            emoji_image.save(f"test_emoji_{emoji}.png")
-            _log.info(f"Saved emoji image for {emoji}")
-
-            return emoji_image
 
         # Draw realms where the user is an OP
         if query.RealmsAdmin and query.RealmsAdmin != "None":
@@ -346,17 +319,7 @@ class ProfileCMD(commands.Cog):
             current_x = x
             op_realms = query.RealmsAdmin.split(",")
             for index, realm in enumerate(op_realms):
-                emoji = get_realm_emoji(realm)
-                if emoji:
-                    # Create an emoji image and paste it on the main image
-                    emoji_image = create_emoji_image(emoji)
-                    if emoji_image:  # Ensure emoji image is created successfully
-                        image.paste(emoji_image, (int(current_x), int(y)), emoji_image)
-                        current_x += (
-                            emoji_image.width + 5
-                        )  # Adjust for space after the emoji
-
-                # Draw the realm name next to the emoji
+                # Draw the realm name
                 realm_text = realm.strip()
                 self.draw_text_with_shadow(
                     draw, int(current_x), int(y), realm_text, small_font
@@ -388,17 +351,7 @@ class ProfileCMD(commands.Cog):
             current_x = x
             member_realms = query.RealmsJoined.split(",")
             for index, realm in enumerate(member_realms):
-                emoji = get_realm_emoji(realm)
-                if emoji:
-                    # Create an emoji image and paste it on the main image
-                    emoji_image = create_emoji_image(emoji)
-                    if emoji_image:  # Ensure emoji image is created successfully
-                        image.paste(emoji_image, (int(current_x), int(y)), emoji_image)
-                        current_x += (
-                            emoji_image.width + 5
-                        )  # Adjust for space after the emoji
-
-                # Draw the realm name next to the emoji
+                # Draw the realm name
                 realm_text = realm.strip()
                 self.draw_text_with_shadow(
                     draw, int(current_x), int(y), realm_text, small_font
