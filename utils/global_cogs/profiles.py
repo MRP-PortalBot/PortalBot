@@ -18,39 +18,6 @@ _log = get_log(__name__)
 
 
 # ------------------- Profile Modals -------------------
-# Slash command to edit a user's profile
-@PF.command(name="edit_profile", description="Edit your user profile.")
-async def edit_profile(self, interaction: discord.Interaction):
-    """
-    Slash command to edit the user's profile.
-    """
-    profile = interaction.user
-
-    # Ensure the user has a profile to edit
-    try:
-        # Try to get the user's profile from the database
-        profile_query = database.PortalbotProfile.get(
-            database.PortalbotProfile.DiscordLongID == str(profile.id)
-        )
-
-        # Show the profile edit modal if the profile exists
-        await interaction.response.send_modal(ProfileEditModal(self.bot, profile.id))
-
-    except database.PortalbotProfile.DoesNotExist:
-        # If the profile does not exist, send a message to the user
-        await interaction.response.send_message(
-            "You don't have a profile yet. Please create one first.", ephemeral=True
-        )
-        _log.warning(f"User {profile.id} attempted to edit a non-existent profile.")
-
-    except Exception as e:
-        _log.error(
-            f"Error during profile edit command for user {profile.id}: {e}",
-            exc_info=True,
-        )
-        await interaction.response.send_message(
-            "An error occurred while trying to edit your profile.", ephemeral=True
-        )
 
 
 # Update ProfileEditModal to include resetting fields to default
