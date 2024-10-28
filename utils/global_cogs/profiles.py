@@ -360,7 +360,7 @@ class ProfileCMD(commands.Cog):
             draw_overlay.rounded_rectangle(
                 [rect_x0, rect_y0, rect_x1, rect_y1],
                 radius=15,
-                fill=(0, 0, 0, 30),  # Set the alpha value for transparency
+                fill=(0, 0, 0, 50),  # Set the alpha value for transparency
             )
 
             # Draw OP realms in a single line, separated by commas, with wrapping
@@ -401,7 +401,7 @@ class ProfileCMD(commands.Cog):
             draw_overlay.rounded_rectangle(
                 [rect_x0, rect_y0, rect_x1, rect_y1],
                 radius=15,
-                fill=(0, 0, 0, 30),  # Set the alpha value for transparency
+                fill=(0, 0, 0, 50),  # Set the alpha value for transparency
             )
 
             # Draw member realms in a single line, separated by commas, with wrapping
