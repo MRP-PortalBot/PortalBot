@@ -316,7 +316,7 @@ class ProfileCMD(commands.Cog):
             y += 25
 
             # Calculate the height of the OP realms text block
-            op_realms_height = 30  # Initial height for the title
+            op_realms_height = 20  # Initial height for the title
             current_x = x
             op_realms = query.RealmsAdmin.split(",")
             for index, realm in enumerate(op_realms):
@@ -333,7 +333,7 @@ class ProfileCMD(commands.Cog):
             # Draw a rounded white square behind the OP realms section
             rect_x0 = x - 10
             rect_y0 = y - 35
-            rect_x1 = current_x + 10
+            rect_x1 = current_x + 80
             rect_y1 = y + op_realms_height - 10
             draw.rounded_rectangle(
                 [rect_x0, rect_y0, rect_x1, rect_y1],
