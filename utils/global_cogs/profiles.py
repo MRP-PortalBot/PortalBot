@@ -315,9 +315,34 @@ class ProfileCMD(commands.Cog):
             # Update y-coordinate to add space below the title
             y += 25
 
-            # Draw OP realms in a single line, separated by commas
+            # Calculate the height of the OP realms text block
+            op_realms_height = 30  # Initial height for the title
             current_x = x
             op_realms = query.RealmsAdmin.split(",")
+            for index, realm in enumerate(op_realms):
+                # Calculate width of each realm text and comma
+                realm_text = realm.strip()
+                text_width = small_font.getlength(realm_text)
+                current_x += text_width
+                if index < len(op_realms) - 1:
+                    current_x += small_font.getlength(", ")
+                op_realms_height += (
+                    30 if index == 0 else 0
+                )  # Add height for each realm text line
+
+            # Draw a rounded white square behind the OP realms section
+            rect_x0 = x - 10
+            rect_y0 = y - 35
+            rect_x1 = current_x + 10
+            rect_y1 = y + op_realms_height - 10
+            draw.rounded_rectangle(
+                [rect_x0, rect_y0, rect_x1, rect_y1],
+                radius=15,
+                fill=(255, 255, 255, 180),
+            )
+
+            # Draw OP realms in a single line, separated by commas
+            current_x = x
             for index, realm in enumerate(op_realms):
                 # Draw the realm name
                 realm_text = realm.strip()
