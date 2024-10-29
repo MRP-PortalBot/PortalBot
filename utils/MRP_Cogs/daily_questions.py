@@ -324,10 +324,11 @@ class DailyCMD(commands.Cog):
 
     @tasks.loop(hours=1)
     async def post_question(self):
+        self.before_post_question
         try:
             now = datetime.now(pytz.timezone("America/Chicago"))
             # Post the question at 10:00 AM
-            if now.hour == 10 and now.minute >= 0 and now.minute <= 10:
+            if now.hour == 11 and now.minute >= 0 and now.minute <= 30:
                 _log.info("Posting question at 10:00 AM CST (or shortly after).")
                 question_id = await self.send_daily_question()
                 # Save the last posted question ID in bot data for persistence
