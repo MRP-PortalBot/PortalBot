@@ -259,9 +259,9 @@ class RealmProfile(BaseModel):
     realm_addons = TextField()  # Addons or mods associated with the realm
     pvp = TextField()  # PvP enabled or not
     percent_player_sleep = TextField()  # Percent of players for sleep
-    portal_invite = TextField() # Invite to the portal specific to each realm
+    portal_invite = TextField()  # Invite to the portal specific to each realm
     checkin = BooleanField()  # Has the realm checked in this month?
-    archived = BooleanField() # Is the realm archived?
+    archived = BooleanField()  # Is the realm archived?
 
 
 class Administrators(BaseModel):
@@ -308,6 +308,15 @@ class LeveledRoles(BaseModel):
     LevelThreshold = IntegerField()  # Level required to achieve the role
 
 
+class Reminder(BaseModel):
+    """Stores reminders for users."""
+
+    id = AutoField()  # Unique ID for each reminder
+    user_id = BigIntegerField()  # Discord user ID of the user who set the reminder
+    message_link = TextField()  # Link to the message to remind the user about
+    remind_at = TimestampField()  # When to send the reminder
+
+
 # Flask app initialization
 app = Flask(__name__)
 
@@ -343,6 +352,7 @@ tables = {
     "questionsuggestionqueue": QuestionSuggestionQueue,
     "realmapplications": RealmApplications,
     "botdata": BotData,
+    "reminders": Reminder,
 }
 
 # Call the table creation function

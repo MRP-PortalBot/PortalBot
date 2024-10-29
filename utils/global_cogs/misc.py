@@ -38,10 +38,12 @@ class MiscCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         _log.info("MiscCMD Cog Loaded")
+        self.check_reminders.start()  # Start the background task to check reminders
 
-    ##======================================================Slash Commands===========================================================
+    def cog_unload(self):
+        self.check_reminders.cancel()  # Stop the background task when the cog is unloaded
 
-    # Nick Command
+    ##======================================================Nick Command===========================================================
     @app_commands.command(
         name="nick",
         description="Change a user's nickname based on the channel name emoji.",
@@ -85,8 +87,8 @@ class MiscCMD(commands.Cog):
             await interaction.response.send_message(
                 "An error occurred while changing the nickname.", ephemeral=True
             )
-
-    # Rule Command [INT]
+            
+    ##======================================================Rule Command [INT]===========================================================
     @app_commands.command(name="rule", description="Sends out MRP Server Rules")
     async def rule(self, interaction: discord.Interaction, number: int = None):
         """Send the requested server rule."""
@@ -107,7 +109,7 @@ class MiscCMD(commands.Cog):
                 "An error occurred while fetching the rule.", ephemeral=True
             )
 
-    # Ping Command
+    ##======================================================Ping Command===========================================================
     @app_commands.command(description="Ping the bot")
     async def ping(self, interaction: discord.Interaction):
         """Display the bot's ping and system resource usage."""
@@ -152,13 +154,9 @@ class MiscCMD(commands.Cog):
                 "An error occurred while fetching the ping information.", ephemeral=True
             )
 
-    @app_commands.command(
-        name="remind_me",
-        description="Set a reminder to be notified later about a message.",
-    )
-    async def remind_me(
-        self, interaction: discord.Interaction, message_link: str, remind_after: str
-    ):
+    ##======================================================Remind Me Command===========================================================
+    @app_commands.command(name="remind_me", description="Set a reminder to be notified later about a message.")
+    async def remind_me(self, interaction: discord.Interaction, message_link: str, remind_after: str):
         """
         Slash command to set a reminder for a message.
         Parameters:
@@ -167,38 +165,61 @@ class MiscCMD(commands.Cog):
         """
         try:
             # Parse the remind_after input
-            time_units = {"s": 1, "m": 60, "h": 3600, "d": 86400}
-            duration = int(remind_after[:-1]) * time_units[remind_after[-1]]
+            time_units = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
+            unit = remind_after[-1]
+            if unit not in time_units:
+                raise ValueError("Invalid time unit.")
+            duration = int(remind_after[:-1]) * time_units[unit]
+
+            remind_at = datetime.datetime.utcnow() + datetime.timedelta(seconds=duration)
+
+            # Store reminder in the database
+            database.Reminder.create(
+                user_id=interaction.user.id,
+                message_link=message_link,
+                remind_at=remind_at
+            )
 
             # Confirm reminder creation
             await interaction.response.send_message(
-                f"Okay {interaction.user.mention}, I will remind you in {remind_after}.",
-                ephemeral=True,
+                f"Okay {interaction.user.mention}, I will remind you in {remind_after}.", ephemeral=True
             )
-
-            # Wait for the specified duration
-            await asyncio.sleep(duration)
-
-            # Send the reminder as a direct message
-            reminder_message = f"Hey {interaction.user.mention}, here's your reminder for the message: {message_link}"
-            await interaction.user.send(reminder_message)
-            _log.info(
-                f"Sent reminder to {interaction.user} for message: {message_link}"
-            )
+            _log.info(f"Set reminder for user {interaction.user} for message: {message_link}")
 
         except ValueError:
             await interaction.response.send_message(
-                "Invalid time format! Please use a valid format like '10m', '2h', or '1d'.",
-                ephemeral=True,
+                "Invalid time format! Please use a valid format like '10m', '2h', or '1d'.", ephemeral=True
             )
         except Exception as e:
-            _log.error(
-                f"Error setting reminder for user {interaction.user}: {e}",
-                exc_info=True,
-            )
+            _log.error(f"Error setting reminder for user {interaction.user}: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred while setting your reminder.", ephemeral=True
             )
+
+    @tasks.loop(minutes=1)
+    async def check_reminders(self):
+        """
+        Background task that runs every minute to check for due reminders.
+        """
+        try:
+            now = datetime.datetime.utcnow()
+            due_reminders = database.Reminder.select().where(database.Reminder.remind_at <= now)
+
+            for reminder in due_reminders:
+                user = self.bot.get_user(reminder.user_id)
+                if user:
+                    reminder_message = f"Hey {user.mention}, here's your reminder for the message: {reminder.message_link}"
+                    try:
+                        await user.send(reminder_message)
+                        _log.info(f"Sent reminder to user {user.id} for message: {reminder.message_link}")
+                    except Exception as e:
+                        _log.error(f"Failed to send reminder to user {user.id}: {e}", exc_info=True)
+
+                # Delete the reminder after sending it
+                reminder.delete_instance()
+
+        except Exception as e:
+            _log.error(f"Error checking reminders: {e}", exc_info=True)
 
 
 # Set up the cog
