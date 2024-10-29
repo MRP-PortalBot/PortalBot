@@ -9,19 +9,19 @@ from core.logging_module import get_log
 
 _log = get_log(__name__)
 
-# Constants
-BACKGROUND_IMAGE_PATH = (
-    ".core/images/Portal_Design.png"  # Path to the Nether Portal background image
-)
-FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"  # Example font path
-AVATAR_SIZE = 100
-PADDING = 20
-TEXT_COLOR = (255, 255, 255, 255)
-
 
 class RealmProfiles(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    # Constants
+    BACKGROUND_IMAGE_PATH = (
+        ".core/images/Portal_Design.png"  # Path to the Nether Portal background image
+    )
+    FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"  # Example font path
+    AVATAR_SIZE = 100
+    PADDING = 20
+    TEXT_COLOR = (255, 255, 255, 255)
 
     RP = app_commands.Group(
         name="realm-profile",
