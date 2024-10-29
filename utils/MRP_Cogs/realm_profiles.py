@@ -65,7 +65,7 @@ class RealmProfiles(commands.Cog):
                 name="World Age", value=realm_profile.world_age, inline=True
             )
             embed.add_field(
-                name="Realm Style", value=realm_profile.realm_style, inline=True
+                name="Realm Style", value=realm_profile.play_style, inline=True
             )
             embed.add_field(name="Game Mode", value=realm_profile.gamemode, inline=True)
 
@@ -85,7 +85,7 @@ class RealmProfiles(commands.Cog):
         pvp: bool,
         percent_player_sleep: bool,
         world_age: str,
-        realm_style: str,
+        play_style: str,
         gamemode: str,
     ):
         """Configure your Realm Profile."""
@@ -100,7 +100,7 @@ class RealmProfiles(commands.Cog):
                     "pvp": pvp,
                     "percent_player_sleep": percent_player_sleep,
                     "world_age": world_age,
-                    "realm_style": realm_style,
+                    "play_style": play_style,
                     "gamemode": gamemode,
                 },
             )
@@ -111,7 +111,7 @@ class RealmProfiles(commands.Cog):
                 realm_profile.pvp = pvp
                 realm_profile.percent_player_sleep = percent_player_sleep
                 realm_profile.world_age = world_age
-                realm_profile.realm_style = realm_style
+                realm_profile.play_style = play_style
                 realm_profile.gamemode = gamemode
                 realm_profile.save()
 
@@ -129,7 +129,7 @@ class RealmProfiles(commands.Cog):
                 inline=True,
             )
             embed.add_field(name="World Age", value=world_age, inline=True)
-            embed.add_field(name="Realm Style", value=realm_style, inline=True)
+            embed.add_field(name="Realm Style", value=play_style, inline=True)
             embed.add_field(name="Game Mode", value=gamemode, inline=True)
 
             await interaction.response.send_message(embed=embed)
