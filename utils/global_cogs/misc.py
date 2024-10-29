@@ -176,7 +176,7 @@ class MiscCMD(commands.Cog):
                 raise ValueError("Invalid time unit.")
             duration = int(remind_after[:-1]) * time_units[unit]
 
-            remind_at = datetime.now() + datetime.timedelta(seconds=duration)
+            remind_at = datetime.now() + timedelta(seconds=duration)
 
             # Store reminder in the database
             database.Reminder.create(
