@@ -42,7 +42,7 @@ class RealmProfiles(commands.Cog):
         if realm_profile:
             # Create an embed to display the profile information
             embed = discord.Embed(
-                title=f"{realm_profile.realm_emoji} {realm_profile.realm_name} - Realm Profile",
+                title=f"{realm_profile.emoji} {realm_profile.realm_name} - Realm Profile",
                 color=discord.Color.blue(),
             )
             embed.add_field(
@@ -96,7 +96,7 @@ class RealmProfiles(commands.Cog):
             realm_profile, created = RealmProfile.get_or_create(
                 realm_name=realm_name,
                 defaults={
-                    "realm_emoji": realm_emoji,
+                    "emoji": realm_emoji,
                     "pvp": pvp,
                     "one_player_sleep": one_player_sleep,
                     "world_age": world_age,
@@ -107,7 +107,7 @@ class RealmProfiles(commands.Cog):
 
             if not created:
                 # Update the existing profile
-                realm_profile.realm_emoji = realm_emoji
+                realm_profile.emoji = realm_emoji
                 realm_profile.pvp = pvp
                 realm_profile.one_player_sleep = one_player_sleep
                 realm_profile.world_age = world_age
