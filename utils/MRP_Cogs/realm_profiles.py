@@ -16,7 +16,7 @@ class RealmProfiles(commands.Cog):
 
     # Constants
     BACKGROUND_IMAGE_PATH = (
-        ".core/images/Portal_Design.png"  # Path to the Nether Portal background image
+        "./core/images/Portal_Design.png"  # Path to the Nether Portal background image
     )
     FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"  # Example font path
     AVATAR_SIZE = 100
@@ -155,7 +155,7 @@ class RealmProfiles(commands.Cog):
 
         # ------------------View Realm Profile Card-------------------------------------------------------------------
 
-    @app_commands.command(
+    @RP.command(
         name="generate_realm_profile",
         description="Generate a profile card for a Minecraft Realm.",
     )
