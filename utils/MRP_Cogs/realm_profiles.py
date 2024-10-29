@@ -49,7 +49,7 @@ class RealmProfiles(commands.Cog):
                 name="Realm Name", value=realm_profile.realm_name, inline=False
             )
             embed.add_field(
-                name="Description", value=realm_profile.realm_long_desc, inline=False
+                name="Description", value=realm_profile.long_desc, inline=False
             )
             embed.add_field(
                 name="PvP",
