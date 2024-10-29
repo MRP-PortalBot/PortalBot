@@ -250,6 +250,7 @@ class RealmProfile(BaseModel):
     long_desc = TextField()  # Long description of the realm
     application_process = TextField()  # Application process details
     admin_team = TextField()  # List of realm administrators
+    members = TextField()  # List of members
     member_count = IntegerField()  # Current member count of the realm
     community_age = TextField()  # Age of the community
     world_age = TextField()  # Age of the world in the realm
@@ -258,7 +259,9 @@ class RealmProfile(BaseModel):
     realm_addons = TextField()  # Addons or mods associated with the realm
     pvp = TextField()  # PvP enabled or not
     percent_player_sleep = TextField()  # Percent of players for sleep
+    portal_invite = TextField() # Invite to the portal specific to each realm
     checkin = BooleanField()  # Has the realm checked in this month?
+    archived = BooleanField() # Is the realm archived?
 
 
 class Administrators(BaseModel):
