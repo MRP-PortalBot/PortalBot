@@ -1,17 +1,24 @@
 import ast
 import json
 import random
-import logging
 import time
 import psutil
 from datetime import datetime, timedelta
 from pathlib import Path
-import discord
-from discord import app_commands
-from discord.ext import commands
-from core.checks import slash_is_bot_admin_1
+import io
+import asyncio
 
+import discord
+from discord.ext import commands, tasks
+from discord import app_commands
+
+from core.checks import slash_is_bot_admin_1
+from core.logging_module import get_log
 from core import database
+
+from PIL import Image, ImageDraw, ImageFont
+
+_log = get_log(__name__)
 
 # List of server rules
 rules = [
@@ -26,14 +33,11 @@ rules = [
     ":nine: **Discord Terms of Service apply!** You must be at least **13** years old.",
 ]
 
-# Logger setup
-logger = logging.getLogger(__name__)
-
 
 class MiscCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        logger.info("MiscCMD Cog Loaded")
+        _log.info("MiscCMD Cog Loaded")
 
     ##======================================================Slash Commands===========================================================
 
@@ -55,7 +59,7 @@ class MiscCMD(commands.Cog):
     ):
         """Slash command to change a user's nickname based on the channel's emoji."""
         try:
-            logger.info(
+            _log.info(
                 f"{interaction.user} initiated nickname change for {user.display_name} using channel {channel.name}"
             )
             name = user.display_name
@@ -72,12 +76,12 @@ class MiscCMD(commands.Cog):
             await interaction.response.send_message(
                 f"Changed {user.mention}'s nickname!"
             )
-            logger.info(
+            _log.info(
                 f"Successfully changed {user.display_name}'s nickname to {name} {emoji}"
             )
 
         except Exception as e:
-            logger.error(f"Error in changing nickname for {user.display_name}: {e}")
+            _log.error(f"Error in changing nickname for {user.display_name}: {e}")
             await interaction.response.send_message(
                 "An error occurred while changing the nickname.", ephemeral=True
             )
@@ -89,16 +93,16 @@ class MiscCMD(commands.Cog):
         try:
             if 1 <= number <= len(rules):
                 await interaction.response.send_message(rules[number - 1])
-                logger.info(f"Rule {number} sent by {interaction.user}")
+                _log.info(f"Rule {number} sent by {interaction.user}")
             else:
                 await interaction.response.send_message(
                     f"Please choose a valid rule number between 1 and {len(rules)}."
                 )
-                logger.warning(
+                _log.warning(
                     f"Invalid rule number {number} requested by {interaction.user}"
                 )
         except Exception as e:
-            logger.error(f"Error in rule command: {e}")
+            _log.error(f"Error in rule command: {e}")
             await interaction.response.send_message(
                 "An error occurred while fetching the rule.", ephemeral=True
             )
@@ -108,7 +112,7 @@ class MiscCMD(commands.Cog):
     async def ping(self, interaction: discord.Interaction):
         """Display the bot's ping and system resource usage."""
         try:
-            logger.info(f"Ping command initiated by {interaction.user}")
+            _log.info(f"Ping command initiated by {interaction.user}")
             uptime = timedelta(seconds=int(time.time() - self.bot.start_time))
             ping_latency = round(self.bot.latency * 1000)
 
@@ -138,18 +142,66 @@ class MiscCMD(commands.Cog):
             )
 
             await interaction.response.send_message(embed=pingembed)
-            logger.info(
+            _log.info(
                 f"Ping and system resource information sent to {interaction.user}"
             )
 
         except Exception as e:
-            logger.error(f"Error in ping command: {e}")
+            _log.error(f"Error in ping command: {e}")
             await interaction.response.send_message(
                 "An error occurred while fetching the ping information.", ephemeral=True
+            )
+
+    @app_commands.command(
+        name="remind_me",
+        description="Set a reminder to be notified later about a message.",
+    )
+    async def remind_me(
+        self, interaction: discord.Interaction, message_link: str, remind_after: str
+    ):
+        """
+        Slash command to set a reminder for a message.
+        Parameters:
+        - message_link: Link to the message the user wants to be reminded about.
+        - remind_after: Duration after which the user wants to be reminded (e.g., '10m', '2h').
+        """
+        try:
+            # Parse the remind_after input
+            time_units = {"s": 1, "m": 60, "h": 3600, "d": 86400}
+            duration = int(remind_after[:-1]) * time_units[remind_after[-1]]
+
+            # Confirm reminder creation
+            await interaction.response.send_message(
+                f"Okay {interaction.user.mention}, I will remind you in {remind_after}.",
+                ephemeral=True,
+            )
+
+            # Wait for the specified duration
+            await asyncio.sleep(duration)
+
+            # Send the reminder as a direct message
+            reminder_message = f"Hey {interaction.user.mention}, here's your reminder for the message: {message_link}"
+            await interaction.user.send(reminder_message)
+            _log.info(
+                f"Sent reminder to {interaction.user} for message: {message_link}"
+            )
+
+        except ValueError:
+            await interaction.response.send_message(
+                "Invalid time format! Please use a valid format like '10m', '2h', or '1d'.",
+                ephemeral=True,
+            )
+        except Exception as e:
+            _log.error(
+                f"Error setting reminder for user {interaction.user}: {e}",
+                exc_info=True,
+            )
+            await interaction.response.send_message(
+                "An error occurred while setting your reminder.", ephemeral=True
             )
 
 
 # Set up the cog
 async def setup(bot):
     await bot.add_cog(MiscCMD(bot))
-    logger.info("MiscCMD Cog setup completed")
+    _log.info("MiscCMD Cog setup completed")
