@@ -207,8 +207,32 @@ class ProfileCMD(commands.Cog):
         # Draw realms information in the pink area below the score section
         self.draw_realms_info(image, query)
 
+        # Add rounded corners to the entire profile card
+        image = self.add_rounded_corners(image, radius=30)
+
         # Send the final image
         await self.send_image(interaction, image)
+
+    def add_rounded_corners(self, image, radius):
+        """
+        Adds rounded corners to an image.
+
+        :param image: The image to which rounded corners should be added.
+        :param radius: The radius of the rounded corners.
+        :return: Image with rounded corners.
+        """
+        # Create a mask the same size as the image, filled with transparency
+        mask = Image.new("L", image.size, 0)
+        draw = ImageDraw.Draw(mask)
+
+        # Draw a rounded rectangle on the mask
+        draw.rounded_rectangle((0, 0) + image.size, radius=radius, fill=255)
+
+        # Apply the mask to the image
+        rounded_image = Image.new("RGBA", image.size)
+        rounded_image.paste(image, (0, 0), mask=mask)
+
+        return rounded_image
 
     def draw_console_usernames(self, image, query):
         """Draws the console usernames and NNID under the profile picture with proper spacing and alignment."""
