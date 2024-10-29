@@ -58,7 +58,7 @@ class RealmProfiles(commands.Cog):
             )
             embed.add_field(
                 name="One Player Sleep",
-                value="Enabled" if realm_profile.one_player_sleep else "Disabled",
+                value="Enabled" if realm_profile.percent_player_sleep else "Disabled",
                 inline=True,
             )
             embed.add_field(
@@ -83,7 +83,7 @@ class RealmProfiles(commands.Cog):
         realm_name: str,
         realm_emoji: str,
         pvp: bool,
-        one_player_sleep: bool,
+        percent_player_sleep: bool,
         world_age: str,
         realm_style: str,
         gamemode: str,
@@ -98,7 +98,7 @@ class RealmProfiles(commands.Cog):
                 defaults={
                     "emoji": realm_emoji,
                     "pvp": pvp,
-                    "one_player_sleep": one_player_sleep,
+                    "percent_player_sleep": percent_player_sleep,
                     "world_age": world_age,
                     "realm_style": realm_style,
                     "gamemode": gamemode,
@@ -109,7 +109,7 @@ class RealmProfiles(commands.Cog):
                 # Update the existing profile
                 realm_profile.emoji = realm_emoji
                 realm_profile.pvp = pvp
-                realm_profile.one_player_sleep = one_player_sleep
+                realm_profile.percent_player_sleep = percent_player_sleep
                 realm_profile.world_age = world_age
                 realm_profile.realm_style = realm_style
                 realm_profile.gamemode = gamemode
@@ -125,7 +125,7 @@ class RealmProfiles(commands.Cog):
             )
             embed.add_field(
                 name="One Player Sleep",
-                value="Enabled" if one_player_sleep else "Disabled",
+                value="Enabled" if percent_player_sleep else "Disabled",
                 inline=True,
             )
             embed.add_field(name="World Age", value=world_age, inline=True)
