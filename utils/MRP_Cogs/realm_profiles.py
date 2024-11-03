@@ -8,6 +8,7 @@ from core.database import RealmProfile
 from PIL import Image, ImageDraw, ImageFont
 from core.logging_module import get_log
 import io
+import requests
 
 
 _log = get_log(__name__)
@@ -186,13 +187,14 @@ class RealmProfiles(commands.Cog):
             # Defer interaction response
             await interaction.response.defer()
 
-            # Fetch list of available realms from the database
-            realm_names = [realm.realm_name for realm in database.RealmProfile.select()]
+            # Fetch the realm profile from the database
+            realm_profile = database.RealmProfile.get_or_none(
+                database.RealmProfile.realm_name == realm_name
+            )
 
-            # Check if the provided realm_name is valid
-            if realm_name not in realm_names:
+            if not realm_profile:
                 await interaction.followup.send(
-                    f"Invalid realm name. Please choose from the following: {', '.join(realm_names)}",
+                    f"Invalid realm name. Please choose a valid realm.",
                     ephemeral=True,
                 )
                 return
@@ -215,10 +217,20 @@ class RealmProfiles(commands.Cog):
             font = ImageFont.truetype(self.FONT_PATH, 40)
             small_font = ImageFont.truetype(self.FONT_PATH, 20)
 
-            # Draw the Realm Logo - Placeholder (top of the image)
-            realm_logo = Image.new(
-                "RGBA", (200, 200), (255, 0, 0, 255)
-            )  # Placeholder red box
+            # Draw the Realm Logo (top of the image)
+            try:
+                response = requests.get(realm_profile.logo_url)
+                realm_logo = (
+                    Image.open(io.BytesIO(response.content))
+                    .convert("RGBA")
+                    .resize((200, 200))
+                )
+            except Exception as e:
+                _log.error(f"Error loading realm logo: {e}")
+                realm_logo = Image.new(
+                    "RGBA", (200, 200), (255, 0, 0, 255)
+                )  # Placeholder red box
+
             logo_width, logo_height = realm_logo.size
             final_image.paste(
                 realm_logo,
@@ -233,7 +245,7 @@ class RealmProfiles(commands.Cog):
 
             # Add any other details (e.g., members, description)
             details_y = text_y + 50  # Below the realm name
-            details = "Members: 45\nStatus: Active"
+            details = f"Members: {realm_profile.member_count}\nStatus: Active"
             draw.text(
                 (text_x, details_y), details, font=small_font, fill=self.TEXT_COLOR
             )
