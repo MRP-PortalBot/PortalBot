@@ -219,15 +219,16 @@ class RealmProfiles(commands.Cog):
             realm_logo = Image.new(
                 "RGBA", (200, 200), (255, 0, 0, 255)
             )  # Placeholder red box
+            logo_width, logo_height = realm_logo.size
             final_image.paste(
                 realm_logo,
-                (self.PADDING + 20, banner_height - 20),
+                (self.PADDING + 25, banner_height - 35),
                 realm_logo,
             )
 
             # Draw the Realm Name (below the logo)
-            text_x = self.PADDING + self.AVATAR_SIZE + self.PADDING
-            text_y = self.PADDING + banner_height + 10
+            text_x = self.PADDING + 25 + logo_width + self.PADDING
+            text_y = banner_height + 10
             draw.text((text_x, text_y), realm_name, font=font, fill=self.TEXT_COLOR)
 
             # Add any other details (e.g., members, description)
