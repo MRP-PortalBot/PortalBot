@@ -238,10 +238,17 @@ class RealmProfiles(commands.Cog):
                 realm_logo,
             )
 
-            # Draw the Realm Name (below the logo) with text wrapping
+            # Draw the Realm Name (below the logo) with text wrapping and resizing
             text_x = self.PADDING + 25 + logo_width + self.PADDING + self.PADDING
             text_y = banner_height - 10
             max_width = final_image.width - text_x - self.PADDING
+
+            # Adjust font size to fit the realm name within max_width
+            realm_name_font_size = 40
+            while font.getbbox(realm_name)[2] > max_width and realm_name_font_size > 10:
+                realm_name_font_size -= 2
+                font = ImageFont.truetype(self.FONT_PATH, realm_name_font_size)
+
             realm_name_lines = self.wrap_text(realm_name, font, max_width)
             for line in realm_name_lines:
                 draw.text((text_x, text_y), line, font=font, fill=self.TEXT_COLOR)
