@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord import Interaction
 from discord.app_commands.errors import CheckFailure
+from core import database
 from core.database import RealmProfile
 from PIL import Image, ImageDraw, ImageFont
 from core.logging_module import get_log
