@@ -17,9 +17,7 @@ class RealmProfiles(commands.Cog):
         self.bot = bot
 
     # Constants
-    BACKGROUND_IMAGE_PATH = (
-        "./core/images/Portal_Design.png"  # Path to the Nether Portal background image
-    )
+    BACKGROUND_IMAGE_PATH = "./core/images/realm_background3.png"  # Path to the Nether Portal background image
     FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"  # Example font path
     AVATAR_SIZE = 100
     PADDING = 20
