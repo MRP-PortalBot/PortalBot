@@ -217,11 +217,11 @@ class RealmProfiles(commands.Cog):
 
             # Draw the Realm Logo - Placeholder (top of the image)
             realm_logo = Image.new(
-                "RGBA", (90, 90), (255, 0, 0, 255)
+                "RGBA", (200, 200), (255, 0, 0, 255)
             )  # Placeholder red box
             final_image.paste(
                 realm_logo,
-                (self.PADDING, banner_height - 10),
+                (self.PADDING + 20, banner_height - 20),
                 realm_logo,
             )
 
