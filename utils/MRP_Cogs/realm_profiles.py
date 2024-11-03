@@ -18,8 +18,9 @@ class RealmProfiles(commands.Cog):
         self.bot = bot
 
     # Constants
-    BACKGROUND_IMAGE_PATH = "./core/images/realm_background3.png"  # Path to the Nether Portal background image
+    BACKGROUND_IMAGE_PATH = "./core/images/realm_background4.png"  # Path to the Nether Portal background image
     FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"  # Example font path
+    BANNER_IMAGE_PATH = "./core/images/realm_backround_banner.png"
     AVATAR_SIZE = 100
     PADDING = 20
     TEXT_COLOR = (255, 255, 255, 255)
@@ -200,6 +201,11 @@ class RealmProfiles(commands.Cog):
             background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
             image = background_image.copy()
 
+            # Load the banner image
+            banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
+            banner_width, banner_height = banner_image.size
+            image.paste(banner_image, (0, 0), banner_image)
+
             # Draw on the image
             draw = ImageDraw.Draw(image)
             font = ImageFont.truetype(self.FONT_PATH, 40)
@@ -209,11 +215,15 @@ class RealmProfiles(commands.Cog):
             realm_logo = Image.new(
                 "RGBA", (self.AVATAR_SIZE, self.AVATAR_SIZE), (255, 0, 0, 255)
             )  # Placeholder red box
-            image.paste(realm_logo, (self.PADDING, self.PADDING), realm_logo)
+            image.paste(
+                realm_logo,
+                (self.PADDING, self.PADDING + banner_height + 10),
+                realm_logo,
+            )
 
             # Draw the Realm Name (below the logo)
             text_x = self.PADDING + self.AVATAR_SIZE + self.PADDING
-            text_y = self.PADDING
+            text_y = self.PADDING + banner_height + 10
             draw.text((text_x, text_y), realm_name, font=font, fill=self.TEXT_COLOR)
 
             # Add any other details (e.g., members, description)
