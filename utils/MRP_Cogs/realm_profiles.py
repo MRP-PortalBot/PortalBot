@@ -222,13 +222,13 @@ class RealmProfiles(commands.Cog):
             logo_width, logo_height = realm_logo.size
             final_image.paste(
                 realm_logo,
-                (self.PADDING + 25, banner_height - 35),
+                (self.PADDING + 25, banner_height - 50),
                 realm_logo,
             )
 
             # Draw the Realm Name (below the logo)
-            text_x = self.PADDING + 25 + logo_width + self.PADDING
-            text_y = banner_height + 10
+            text_x = self.PADDING + 25 + logo_width + self.PADDING + self.PADDING
+            text_y = banner_height - 10
             draw.text((text_x, text_y), realm_name, font=font, fill=self.TEXT_COLOR)
 
             # Add any other details (e.g., members, description)
