@@ -208,7 +208,7 @@ class RealmProfiles(commands.Cog):
             # Create a new image to paste the banner behind the background
             final_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
             final_image.paste(banner_image, (0, 0), banner_image)
-            final_image.paste(image, (0, banner_height), image)
+            final_image.paste(image, (0, 0), image)
 
             # Draw on the image
             draw = ImageDraw.Draw(final_image)
