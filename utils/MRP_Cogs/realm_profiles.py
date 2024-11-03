@@ -166,6 +166,17 @@ class RealmProfiles(commands.Cog):
         Slash command to generate a profile card for a realm.
         """
         try:
+            # Fetch list of available realms from the database
+            realm_names = [realm.realm_name for realm in database.RealmProfile.select()]
+
+            # Check if the provided realm_name is valid
+            if realm_name not in realm_names:
+                await interaction.response.send_message(
+                    f"Invalid realm name. Please choose from the following: {', '.join(realm_names)}",
+                    ephemeral=True,
+                )
+                return
+
             # Defer interaction response
             await interaction.response.defer()
 
