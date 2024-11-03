@@ -214,7 +214,7 @@ class RealmProfiles(commands.Cog):
 
             # Draw on the image
             draw = ImageDraw.Draw(final_image)
-            font = ImageFont.truetype(self.FONT_PATH, 50)  # Increased default font size
+            font = ImageFont.truetype(self.FONT_PATH, 60)  # Increased default font size
             small_font = ImageFont.truetype(self.FONT_PATH, 20)
 
             # Draw the Realm Logo (top of the image)
@@ -244,13 +244,16 @@ class RealmProfiles(commands.Cog):
             max_width = final_image.width - text_x - self.PADDING
 
             # Adjust font size to fit the realm name within max_width
-            realm_name_font_size = 50
-            while font.getbbox(realm_name)[2] > max_width and realm_name_font_size > 10:
+            realm_name_font_size = 60
+            words = realm_name.split()
+            while (
+                font.getbbox(" ".join(words[:3]))[2] > max_width
+                and realm_name_font_size > 10
+            ):
                 realm_name_font_size -= 2
                 font = ImageFont.truetype(self.FONT_PATH, realm_name_font_size)
 
             # Wrap text after the third word
-            words = realm_name.split()
             realm_name_lines = [" ".join(words[:3])]
             if len(words) > 3:
                 realm_name_lines.append(" ".join(words[3:]))
