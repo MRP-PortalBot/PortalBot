@@ -215,7 +215,6 @@ class RealmProfiles(commands.Cog):
             # Draw on the image
             draw = ImageDraw.Draw(final_image)
             font = ImageFont.truetype(self.FONT_PATH, 60)  # Increased default font size
-            small_font = ImageFont.truetype(self.FONT_PATH, 20)
 
             # Draw the Realm Logo (top of the image)
             try:
@@ -238,16 +237,15 @@ class RealmProfiles(commands.Cog):
                 realm_logo,
             )
 
-            # Draw the Realm Name (below the logo) with text wrapping and resizing
-            text_x = self.PADDING + 25 + logo_width + self.PADDING + self.PADDING
-            text_y = banner_height - 10
-            max_width = final_image.width - text_x - self.PADDING
+            # Draw the Realm Name (centered in the black rectangle)
+            text_x = banner_width // 2
+            text_y = banner_height // 2
 
             # Adjust font size to fit the realm name within max_width
             realm_name_font_size = 60
             words = realm_name.split()
             while (
-                font.getbbox(" ".join(words[:3]))[2] > max_width
+                font.getbbox(" ".join(words[:3]))[2] > banner_width - 50
                 and realm_name_font_size > 10
             ):
                 realm_name_font_size -= 2
@@ -258,16 +256,23 @@ class RealmProfiles(commands.Cog):
             if len(words) > 3:
                 realm_name_lines.append(" ".join(words[3:]))
 
-            for line in realm_name_lines:
-                draw.text((text_x, text_y), line, font=font, fill=self.TEXT_COLOR)
-                text_y += font.getbbox(line)[3] + 5
-
-            # Add any other details (e.g., members, description)
-            details_y = text_y + 10  # Below the realm name
-            details = f"Members: {realm_profile.member_count}\nStatus: Active"
-            draw.text(
-                (text_x, details_y), details, font=small_font, fill=self.TEXT_COLOR
+            # Calculate the total height of the text block
+            total_text_height = sum(
+                [font.getbbox(line)[3] + 5 for line in realm_name_lines]
             )
+
+            # Adjust text_y to center the text vertically
+            text_y -= total_text_height // 2
+
+            for line in realm_name_lines:
+                text_width = font.getbbox(line)[2]
+                draw.text(
+                    (text_x - text_width // 2, text_y),
+                    line,
+                    font=font,
+                    fill=self.TEXT_COLOR,
+                )
+                text_y += font.getbbox(line)[3] + 5
 
             # Draw rounded corners for the entire profile card
             mask = Image.new("L", final_image.size, 0)
