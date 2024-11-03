@@ -27,6 +27,9 @@ class RealmProfiles(commands.Cog):
     async def realm_name_autocomplete(
         self, interaction: discord.Interaction, current: str
     ):
+        """
+        Autocomplete function to suggest realm names based on user input.
+        """
         realm_names = [realm.realm_name for realm in database.RealmProfile.select()]
         return [
             app_commands.Choice(name=realm, value=realm)
@@ -179,19 +182,19 @@ class RealmProfiles(commands.Cog):
         Slash command to generate a profile card for a realm.
         """
         try:
+            # Defer interaction response
+            await interaction.response.defer()
+
             # Fetch list of available realms from the database
             realm_names = [realm.realm_name for realm in database.RealmProfile.select()]
 
             # Check if the provided realm_name is valid
             if realm_name not in realm_names:
-                await interaction.response.send_message(
+                await interaction.followup.send(
                     f"Invalid realm name. Please choose from the following: {', '.join(realm_names)}",
                     ephemeral=True,
                 )
                 return
-
-            # Defer interaction response
-            await interaction.response.defer()
 
             # Load the background image
             background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
