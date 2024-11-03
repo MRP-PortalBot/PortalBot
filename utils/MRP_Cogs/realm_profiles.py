@@ -239,7 +239,7 @@ class RealmProfiles(commands.Cog):
 
             # Draw the Realm Name (centered in the black rectangle to the right of the logo)
             text_x = banner_width + self.PADDING + logo_width + 25
-            text_y = banner_height // 2
+            text_y = banner_height - 20
 
             # Adjust font size to fit the realm name within max_width
             max_width = final_image.width - text_x - self.PADDING
