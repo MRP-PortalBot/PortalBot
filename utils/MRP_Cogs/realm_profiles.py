@@ -238,13 +238,17 @@ class RealmProfiles(commands.Cog):
                 realm_logo,
             )
 
-            # Draw the Realm Name (below the logo)
+            # Draw the Realm Name (below the logo) with text wrapping
             text_x = self.PADDING + 25 + logo_width + self.PADDING + self.PADDING
             text_y = banner_height - 10
-            draw.text((text_x, text_y), realm_name, font=font, fill=self.TEXT_COLOR)
+            max_width = final_image.width - text_x - self.PADDING
+            realm_name_lines = self.wrap_text(realm_name, font, max_width)
+            for line in realm_name_lines:
+                draw.text((text_x, text_y), line, font=font, fill=self.TEXT_COLOR)
+                text_y += font.getsize(line)[1] + 5
 
             # Add any other details (e.g., members, description)
-            details_y = text_y + 50  # Below the realm name
+            details_y = text_y + 10  # Below the realm name
             details = f"Members: {realm_profile.member_count}\nStatus: Active"
             draw.text(
                 (text_x, details_y), details, font=small_font, fill=self.TEXT_COLOR
@@ -279,6 +283,27 @@ class RealmProfiles(commands.Cog):
                 "An error occurred while generating the realm profile card.",
                 ephemeral=True,
             )
+
+    def wrap_text(self, text, font, max_width):
+        """
+        Wrap text to fit within the max_width.
+        """
+        lines = []
+        words = text.split()
+        current_line = ""
+
+        for word in words:
+            test_line = f"{current_line} {word}" if current_line else word
+            if font.getsize(test_line)[0] <= max_width:
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word
+
+        if current_line:
+            lines.append(current_line)
+
+        return lines
 
 
 async def setup(bot):
