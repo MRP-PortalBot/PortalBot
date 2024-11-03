@@ -233,9 +233,23 @@ class RealmProfiles(commands.Cog):
                 (text_x, details_y), details, font=small_font, fill=self.TEXT_COLOR
             )
 
+            # Draw rounded corners for the entire profile card
+            mask = Image.new("L", image.size, 0)
+            corner_radius = 30
+            draw_mask = ImageDraw.Draw(mask)
+            draw_mask.rounded_rectangle(
+                [(0, 0), image.size], radius=corner_radius, fill=255
+            )
+            image.putalpha(mask)
+
+            # Paste the banner behind the background
+            final_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
+            final_image.paste(banner_image, (0, 0), banner_image)
+            final_image.paste(image, (0, 0), image)
+
             # Save the image to a buffer
             buffer_output = io.BytesIO()
-            image.save(buffer_output, format="PNG")
+            final_image.save(buffer_output, format="PNG")
             buffer_output.seek(0)
 
             # Send the final image as a Discord message
