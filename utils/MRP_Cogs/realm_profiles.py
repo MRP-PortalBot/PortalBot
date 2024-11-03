@@ -245,7 +245,7 @@ class RealmProfiles(commands.Cog):
             realm_name_lines = self.wrap_text(realm_name, font, max_width)
             for line in realm_name_lines:
                 draw.text((text_x, text_y), line, font=font, fill=self.TEXT_COLOR)
-                text_y += font.getsize(line)[1] + 5
+                text_y += font.getbbox(line)[3] + 5
 
             # Add any other details (e.g., members, description)
             details_y = text_y + 10  # Below the realm name
@@ -294,7 +294,7 @@ class RealmProfiles(commands.Cog):
 
         for word in words:
             test_line = f"{current_line} {word}" if current_line else word
-            if font.getsize(test_line)[0] <= max_width:
+            if font.getbbox(test_line)[2] <= max_width:
                 current_line = test_line
             else:
                 lines.append(current_line)
