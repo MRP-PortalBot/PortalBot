@@ -24,12 +24,26 @@ class RealmProfiles(commands.Cog):
     PADDING = 20
     TEXT_COLOR = (255, 255, 255, 255)
 
+    async def realm_name_autocomplete(
+        self, interaction: discord.Interaction, current: str
+    ):
+        """
+        Autocomplete function to suggest realm names based on user input.
+        """
+        realm_names = [realm.realm_name for realm in database.RealmProfile.select()]
+        return [
+            app_commands.Choice(name=realm, value=realm)
+            for realm in realm_names
+            if current.lower() in realm.lower()
+        ]
+
     RP = app_commands.Group(
         name="realm-profile",
         description="View/Configure your Realm Profile.",
     )
 
     @RP.command(description="View a Realm Profile")
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def view(self, interaction: discord.Interaction, realm_name: str = None):
         """View the details of a Realm Profile."""
         # Use the provided realm_name or default to the channel name
@@ -160,6 +174,7 @@ class RealmProfiles(commands.Cog):
         name="generate_realm_profile",
         description="Generate a profile card for a Minecraft Realm.",
     )
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def generate_realm_profile(
         self, interaction: discord.Interaction, realm_name: str
     ):
