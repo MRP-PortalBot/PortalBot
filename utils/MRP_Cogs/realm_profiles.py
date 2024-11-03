@@ -204,10 +204,14 @@ class RealmProfiles(commands.Cog):
             # Load the banner image
             banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
             banner_width, banner_height = banner_image.size
-            image.paste(banner_image, (0, 0), banner_image)
+
+            # Create a new image to paste the banner behind the background
+            final_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
+            final_image.paste(banner_image, (0, 0), banner_image)
+            final_image.paste(image, (0, banner_height), image)
 
             # Draw on the image
-            draw = ImageDraw.Draw(image)
+            draw = ImageDraw.Draw(final_image)
             font = ImageFont.truetype(self.FONT_PATH, 40)
             small_font = ImageFont.truetype(self.FONT_PATH, 20)
 
@@ -215,7 +219,7 @@ class RealmProfiles(commands.Cog):
             realm_logo = Image.new(
                 "RGBA", (self.AVATAR_SIZE, self.AVATAR_SIZE), (255, 0, 0, 255)
             )  # Placeholder red box
-            image.paste(
+            final_image.paste(
                 realm_logo,
                 (self.PADDING, self.PADDING + banner_height + 10),
                 realm_logo,
@@ -234,18 +238,13 @@ class RealmProfiles(commands.Cog):
             )
 
             # Draw rounded corners for the entire profile card
-            mask = Image.new("L", image.size, 0)
+            mask = Image.new("L", final_image.size, 0)
             corner_radius = 30
             draw_mask = ImageDraw.Draw(mask)
             draw_mask.rounded_rectangle(
-                [(0, 0), image.size], radius=corner_radius, fill=255
+                [(0, 0), final_image.size], radius=corner_radius, fill=255
             )
-            image.putalpha(mask)
-
-            # Paste the banner behind the background
-            final_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
-            final_image.paste(banner_image, (0, 0), banner_image)
-            final_image.paste(image, (0, 0), image)
+            final_image.putalpha(mask)
 
             # Save the image to a buffer
             buffer_output = io.BytesIO()
