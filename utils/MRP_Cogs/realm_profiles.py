@@ -222,7 +222,7 @@ class RealmProfiles(commands.Cog):
             logo_width, logo_height = realm_logo.size
             final_image.paste(
                 realm_logo,
-                (self.PADDING + 25, banner_height - 50),
+                (self.PADDING + 25, banner_height - 60),
                 realm_logo,
             )
 
