@@ -244,6 +244,7 @@ class RealmProfile(BaseModel):
     realm_name = TextField()  # Realm name the user is applying to
     emoji = TextField()  # Emoji associated with the realm
     logo_url = TextField()  # Logo associated with the realm
+    banner_url = TextField()  # Banner associated with the realm
     play_style = TextField()  # Play style (e.g., survival, creative)
     gamemode = TextField()  # Game mode (peaceful, easy, hard, hardcore)
     short_desc = TextField()  # Short description of the realm

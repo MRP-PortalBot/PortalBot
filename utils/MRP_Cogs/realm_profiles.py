@@ -21,7 +21,7 @@ class RealmProfiles(commands.Cog):
     # Constants
     BACKGROUND_IMAGE_PATH = "./core/images/realm_background4.png"  # Path to the Nether Portal background image
     FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"  # Example font path
-    BANNER_IMAGE_PATH = "./core/images/realm_backround_banner.png"
+    BANNER_IMAGE_PATH = "./core/images/realm_backround_banner2.png"
     AVATAR_SIZE = 100
     PADDING = 20
     TEXT_COLOR = (255, 255, 255, 255)
@@ -203,8 +203,13 @@ class RealmProfiles(commands.Cog):
             background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
             image = background_image.copy()
 
-            # Load the banner image
-            banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
+            # Load the banner image from the URL in the database or use default
+            try:
+                response = requests.get(realm_profile.banner_url)
+                banner_image = Image.open(io.BytesIO(response.content)).convert("RGBA")
+            except Exception as e:
+                _log.error(f"Error loading banner image: {e}")
+                banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
             banner_width, banner_height = banner_image.size
 
             # Create a new image to paste the banner behind the background
