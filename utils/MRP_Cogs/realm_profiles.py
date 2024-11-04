@@ -245,20 +245,22 @@ class RealmProfiles(commands.Cog):
             box_width = box_x2 - box_x
             box_height = box_y2 - box_y
 
-            # Adjust font size to fit the realm name within max_width
+            # Adjust font size to fit the realm name within box_width and box_height
             realm_name_font_size = 60
             words = realm_name.split()
             while (
-                font.getbbox(" ".join(words[:3]))[2] > box_width - 50
+                font.getbbox(" ".join(words[:2]))[2] > box_width - 50
+                or len(words) > 2
+                and font.getbbox(" ".join(words[2:]))[3] * 2 > box_height
                 and realm_name_font_size > 10
             ):
                 realm_name_font_size -= 2
                 font = ImageFont.truetype(self.FONT_PATH, realm_name_font_size)
 
-            # Wrap text after the third word
-            realm_name_lines = [" ".join(words[:3])]
-            if len(words) > 3:
-                realm_name_lines.append(" ".join(words[3:]))
+            # Wrap text after the second word
+            realm_name_lines = [" ".join(words[:2])]
+            if len(words) > 2:
+                realm_name_lines.append(" ".join(words[2:]))
 
             # Calculate the total height of the text block
             total_text_height = sum(
@@ -328,6 +330,8 @@ class RealmProfiles(commands.Cog):
 
         if current_line:
             lines.append(current_line)
+
+        return lines
 
 
 async def setup(bot):
