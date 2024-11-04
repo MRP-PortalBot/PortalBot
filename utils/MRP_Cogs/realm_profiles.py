@@ -245,10 +245,6 @@ class RealmProfiles(commands.Cog):
             box_width = box_x2 - box_x
             box_height = box_y2 - box_y
 
-            # Draw the Realm Name (centered in the black rectangle)
-            text_x = box_width // 2
-            text_y = box_height // 2
-
             # Adjust font size to fit the realm name within max_width
             realm_name_font_size = 60
             words = realm_name.split()
@@ -269,13 +265,15 @@ class RealmProfiles(commands.Cog):
                 [font.getbbox(line)[3] + 5 for line in realm_name_lines]
             )
 
-            # Adjust text_y to center the text vertically
-            text_y -= total_text_height // 2
+            # Adjust text_y to center the text vertically in the black rectangle
+            text_y = box_y + (box_height - total_text_height) // 2
 
+            # Draw the text centered in the black rectangle
             for line in realm_name_lines:
                 text_width = font.getbbox(line)[2]
+                text_x = box_x + (box_width - text_width) // 2
                 draw.text(
-                    (text_x - text_width // 2, text_y),
+                    (text_x, text_y),
                     line,
                     font=font,
                     fill=self.TEXT_COLOR,
@@ -330,8 +328,6 @@ class RealmProfiles(commands.Cog):
 
         if current_line:
             lines.append(current_line)
-
-        return lines
 
 
 async def setup(bot):
