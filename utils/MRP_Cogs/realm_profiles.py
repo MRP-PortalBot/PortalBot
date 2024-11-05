@@ -203,9 +203,15 @@ class RealmProfiles(commands.Cog):
             background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
             image = background_image.copy()
 
-            # Load the banner image
-            banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
+            # Load the banner image from the URL in the database or use default
+            try:
+                response = requests.get(realm_profile.banner_url)
+                banner_image = Image.open(io.BytesIO(response.content)).convert("RGBA")
+            except Exception as e:
+                _log.error(f"Error loading banner image: {e}")
+                banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
             banner_width, banner_height = banner_image.size
+            banner_height = 275
 
             # Create a new image to paste the banner behind the background
             final_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
@@ -250,7 +256,8 @@ class RealmProfiles(commands.Cog):
             words = realm_name.split()
             while (
                 font.getbbox(" ".join(words[:2]))[2] > box_width - 50
-                or len(words) > 2 and font.getbbox(" ".join(words[2:]))[3] * 2 > box_height
+                or len(words) > 2
+                and font.getbbox(" ".join(words[2:]))[3] * 2 > box_height
                 and realm_name_font_size > 10
             ):
                 realm_name_font_size -= 2
@@ -280,15 +287,6 @@ class RealmProfiles(commands.Cog):
                     fill=self.TEXT_COLOR,
                 )
                 text_y += font.getbbox(line)[3] + 5
-
-            # Draw rounded corners for the entire profile card
-            mask = Image.new("L", final_image.size, 0)
-            corner_radius = 30
-            draw_mask = ImageDraw.Draw(mask)
-            draw_mask.rounded_rectangle(
-                [(0, 0), final_image.size], radius=corner_radius, fill=255
-            )
-            final_image.putalpha(mask)
 
             # Save the image to a buffer
             buffer_output = io.BytesIO()
