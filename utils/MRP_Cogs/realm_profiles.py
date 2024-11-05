@@ -287,15 +287,6 @@ class RealmProfiles(commands.Cog):
                 )
                 text_y += font.getbbox(line)[3] + 5
 
-            # Draw rounded corners for the entire profile card
-            mask = Image.new("L", final_image.size, 0)
-            corner_radius = 30
-            draw_mask = ImageDraw.Draw(mask)
-            draw_mask.rounded_rectangle(
-                [(0, 0), final_image.size], radius=corner_radius, fill=255
-            )
-            final_image.putalpha(mask)
-
             # Save the image to a buffer
             buffer_output = io.BytesIO()
             final_image.save(buffer_output, format="PNG")
