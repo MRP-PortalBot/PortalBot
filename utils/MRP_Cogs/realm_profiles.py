@@ -210,7 +210,7 @@ class RealmProfiles(commands.Cog):
             except Exception as e:
                 _log.error(f"Error loading banner image: {e}")
                 banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
-            banner_height = 250
+            banner_height = 255
 
             # Create a new image to paste the banner behind the background
             final_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
