@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 from core.logging_module import get_log
 import io
 import requests
-
+import os
 
 _log = get_log(__name__)
 
@@ -203,11 +203,9 @@ class RealmProfiles(commands.Cog):
             background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
             image = background_image.copy()
 
-            # Load the banner image from the URL in the database or use default
+            # Load the banner image from the local path or use default
             try:
-                response = realm_profile.banner_url
-                _log.info(response)
-                banner_image = Image.open(response).convert("RGBA")
+                banner_image = Image.open(realm_profile.banner_url).convert("RGBA")
             except Exception as e:
                 _log.error(f"Error loading banner image: {e}")
                 banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
@@ -224,9 +222,11 @@ class RealmProfiles(commands.Cog):
 
             # Draw the Realm Logo (top of the image)
             try:
-                response = realm_profile.logo_url
-                _log.info(response)
-                realm_logo = Image.open(response).convert("RGBA").resize((200, 200))
+                realm_logo = (
+                    Image.open(realm_profile.logo_url)
+                    .convert("RGBA")
+                    .resize((200, 200))
+                )
             except Exception as e:
                 _log.error(f"Error loading realm logo: {e}")
                 realm_logo = Image.new(
@@ -326,6 +326,86 @@ class RealmProfiles(commands.Cog):
             lines.append(current_line)
 
         return lines
+
+    @RP.command(name="upload_logo", description="Upload a logo for your realm.")
+    async def upload_logo(
+        self, interaction: Interaction, realm_name: str, attachment: discord.Attachment
+    ):
+        """
+        Command for uploading a logo for a realm.
+        """
+        try:
+            if not attachment.content_type.startswith("image"):
+                await interaction.response.send_message(
+                    "Please upload a valid image.", ephemeral=True
+                )
+                return
+
+            file_path = f"./core/images/realms/logos/{realm_name}_logo.png"
+            await attachment.save(file_path)
+
+            # Update the realm profile with the new logo path
+            realm_profile = RealmProfile.get_or_none(
+                RealmProfile.realm_name == realm_name
+            )
+            if realm_profile:
+                realm_profile.logo_url = file_path
+                realm_profile.save()
+                await interaction.response.send_message(
+                    f"Logo uploaded successfully for {realm_name}.", ephemeral=True
+                )
+            else:
+                await interaction.response.send_message(
+                    f"Realm '{realm_name}' not found.", ephemeral=True
+                )
+
+        except Exception as e:
+            _log.error(
+                f"Error uploading logo for realm '{realm_name}': {e}", exc_info=True
+            )
+            await interaction.response.send_message(
+                "An error occurred while uploading the logo.", ephemeral=True
+            )
+
+    @RP.command(name="upload_banner", description="Upload a banner for your realm.")
+    async def upload_banner(
+        self, interaction: Interaction, realm_name: str, attachment: discord.Attachment
+    ):
+        """
+        Command for uploading a banner for a realm.
+        """
+        try:
+            if not attachment.content_type.startswith("image"):
+                await interaction.response.send_message(
+                    "Please upload a valid image.", ephemeral=True
+                )
+                return
+
+            file_path = f"./core/images/realms/banners/{realm_name}_banner.png"
+            await attachment.save(file_path)
+
+            # Update the realm profile with the new banner path
+            realm_profile = RealmProfile.get_or_none(
+                RealmProfile.realm_name == realm_name
+            )
+            if realm_profile:
+                realm_profile.banner_url = file_path
+                realm_profile.save()
+                await interaction.response.send_message(
+                    f"Banner uploaded successfully for {realm_name}.", ephemeral=True
+                )
+            else:
+                await interaction.response.send_message(
+                    f"Realm '{realm_name}' not found.", ephemeral=True
+                )
+
+        except Exception as e:
+            _log.error(
+                f"Error uploading banner for realm '{realm_name}': {e}", exc_info=True
+            )
+            await interaction.response.send_message(
+                "An error occurred while uploading the banner.", ephemeral=True
+            )
 
 
 async def setup(bot):
