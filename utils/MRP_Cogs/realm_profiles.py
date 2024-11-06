@@ -206,6 +206,7 @@ class RealmProfiles(commands.Cog):
             # Load the banner image from the URL in the database or use default
             try:
                 response = requests.get(realm_profile.banner_url)
+                _log.info(response)
                 banner_image = Image.open(io.BytesIO(response.content)).convert("RGBA")
             except Exception as e:
                 _log.error(f"Error loading banner image: {e}")
@@ -224,6 +225,7 @@ class RealmProfiles(commands.Cog):
             # Draw the Realm Logo (top of the image)
             try:
                 response = requests.get(realm_profile.logo_url)
+                _log.info(response)
                 realm_logo = (
                     Image.open(io.BytesIO(response.content))
                     .convert("RGBA")
