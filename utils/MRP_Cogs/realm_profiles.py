@@ -205,9 +205,9 @@ class RealmProfiles(commands.Cog):
 
             # Load the banner image from the URL in the database or use default
             try:
-                response = requests.get(realm_profile.banner_url)
+                response = realm_profile.banner_url
                 _log.info(response)
-                banner_image = Image.open(response.content).convert("RGBA")
+                banner_image = Image.open(response).convert("RGBA")
             except Exception as e:
                 _log.error(f"Error loading banner image: {e}")
                 banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
@@ -224,11 +224,9 @@ class RealmProfiles(commands.Cog):
 
             # Draw the Realm Logo (top of the image)
             try:
-                response = requests.get(realm_profile.logo_url)
+                response = realm_profile.logo_url
                 _log.info(response)
-                realm_logo = (
-                    Image.open(response.content).convert("RGBA").resize((200, 200))
-                )
+                realm_logo = Image.open(response).convert("RGBA").resize((200, 200))
             except Exception as e:
                 _log.error(f"Error loading realm logo: {e}")
                 realm_logo = Image.new(
