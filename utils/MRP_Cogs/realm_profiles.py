@@ -341,7 +341,12 @@ class RealmProfiles(commands.Cog):
                 )
                 return
 
-            file_path = f"./core/images/realms/logos/{realm_name}_logo.png"
+            # Define the directory and ensure it exists
+            directory_path = "./core/images/realms/logos/"
+            if not os.path.exists(directory_path):
+                os.makedirs(directory_path)
+
+            file_path = f"{directory_path}{realm_name}_logo.png"
             await attachment.save(file_path)
 
             # Update the realm profile with the new logo path
@@ -381,7 +386,12 @@ class RealmProfiles(commands.Cog):
                 )
                 return
 
-            file_path = f"./core/images/realms/banners/{realm_name}_banner.png"
+            # Define the directory and ensure it exists
+            directory_path = "./core/images/realms/banners/"
+            if not os.path.exists(directory_path):
+                os.makedirs(directory_path)
+
+            file_path = f"{directory_path}{realm_name}_banner.png"
             await attachment.save(file_path)
 
             # Update the realm profile with the new banner path
