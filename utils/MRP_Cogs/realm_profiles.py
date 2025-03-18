@@ -327,18 +327,6 @@ class RealmProfiles(commands.Cog):
 
         return lines
 
-    async def realm_name_autocomplete(
-        self, interaction: discord.Interaction, current: str
-    ) -> list[app_commands.Choice[str]]:
-        # Autocomplete function to suggest realm names based on user input.
-
-        realm_names = [realm.realm_name for realm in database.RealmProfile.select()]
-        return [
-            app_commands.Choice(name=realm, value=realm)
-            for realm in realm_names
-            if current.lower() in realm.lower()
-        ]
-
     @RP.command(name="upload_logo", description="Upload a logo for your realm.")
     @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def upload_logo(
