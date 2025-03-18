@@ -328,9 +328,8 @@ class RealmProfiles(commands.Cog):
         return lines
 
     async def realm_name_autocomplete(
-        interaction: discord.Interaction, current: str
+        self, interaction: discord.Interaction, current: str
     ) -> list[app_commands.Choice[str]]:
-
         # Autocomplete function to suggest realm names based on user input.
 
         realm_names = [realm.realm_name for realm in database.RealmProfile.select()]
