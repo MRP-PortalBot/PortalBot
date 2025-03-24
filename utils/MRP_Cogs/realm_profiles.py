@@ -328,6 +328,7 @@ class RealmProfiles(commands.Cog):
         return lines
 
     @RP.command(name="upload_logo", description="Upload a logo for your realm.")
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def upload_logo(
         self, interaction: Interaction, realm_name: str, attachment: discord.Attachment
     ):
@@ -341,12 +342,10 @@ class RealmProfiles(commands.Cog):
                 )
                 return
 
-            # Define the directory and ensure it exists
-            directory_path = "./core/images/realms/logos/"
-            if not os.path.exists(directory_path):
-                os.makedirs(directory_path)
+            # Ensure directory exists
+            os.makedirs("./core/images/realms/logos/", exist_ok=True)
 
-            file_path = f"{directory_path}{realm_name}_logo.png"
+            file_path = f"./core/images/realms/logos/{realm_name}_logo.png"
             await attachment.save(file_path)
 
             # Update the realm profile with the new logo path
@@ -373,6 +372,7 @@ class RealmProfiles(commands.Cog):
             )
 
     @RP.command(name="upload_banner", description="Upload a banner for your realm.")
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def upload_banner(
         self, interaction: Interaction, realm_name: str, attachment: discord.Attachment
     ):
@@ -386,12 +386,10 @@ class RealmProfiles(commands.Cog):
                 )
                 return
 
-            # Define the directory and ensure it exists
-            directory_path = "./core/images/realms/banners/"
-            if not os.path.exists(directory_path):
-                os.makedirs(directory_path)
+            # Ensure directory exists
+            os.makedirs("./core/images/realms/banners/", exist_ok=True)
 
-            file_path = f"{directory_path}{realm_name}_banner.png"
+            file_path = f"./core/images/realms/banners/{realm_name}_banner.png"
             await attachment.save(file_path)
 
             # Update the realm profile with the new banner path
