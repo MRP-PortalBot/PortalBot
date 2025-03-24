@@ -2,8 +2,8 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime
-import discord  # type: ignore
-from discord.errors import ConnectionClosed  # type: ignore
+import discord
+from discord.errors import ConnectionClosed
 import sys
 
 
@@ -31,11 +31,12 @@ class ColourFormatter(logging.Formatter):
 
         # Format exception text in red
         if record.exc_info:
-            record.exc_text = (
+            formatted_exception = (
                 f"\x1b[31m{formatter.formatException(record.exc_info)}\x1b[0m"
             )
-
-        return formatter.format(record)
+            return f"{formatter.format(record)}\n{formatted_exception}"
+        else:
+            return formatter.format(record)
 
 
 def get_log(
@@ -73,12 +74,12 @@ def get_log(
         )
 
         # If the logger is named "server_score" or other specific names, put it in its own folder
-        if name == "server_score":
-            log_dir = f"logs/{name}"
-        elif name == "leveled_roles":
-            log_dir = f"logs/{name}"
-        else:
-            log_dir = "logs/daily"
+        special_log_dirs = {
+            "server_score": "logs/server_score",
+            "leveled_roles": "logs/leveled_roles",
+        }
+
+        log_dir = special_log_dirs.get(name, "logs/daily")
 
         os.makedirs(log_dir, exist_ok=True)
 

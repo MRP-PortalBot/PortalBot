@@ -9,59 +9,79 @@ from peewee import (
     DoesNotExist,
     OperationalError,
 )
+from functools import wraps
+from typing import Callable, Union
+from discord.ext.commands import Context
+from discord import Interaction
+
 
 # Setup logger
 _log = logging.getLogger(__name__)
 
+TEST_SERVER_ID = 587495640502763521
+PORTAL_SERVER_ID = 448488274562908170
+REALM_CATEGORY_ID = 587627871216861244
 
-# Predicate for command checks based on the admin level
-def predicate_LV(level):
-    """Unified predicate for both command and slash-command admin level checks."""
 
-    def inner(ctx_or_interaction) -> bool:
-        user_id = (
-            ctx_or_interaction.author.id
-            if isinstance(ctx_or_interaction, commands.Context)
-            else ctx_or_interaction.user.id
-        )
+def has_admin_level(required_level: int):
+    """
+    Universal decorator that works with both commands and app_commands
+    to enforce a minimum administrator level.
+    """
+
+    def predicate(obj: Union[Context, Interaction]) -> bool:
+        user_id = obj.author.id if isinstance(obj, Context) else obj.user.id
+        _log.debug(f"Checking admin level {required_level} for user {user_id}")
+
         try:
             database.db.connect(reuse_if_open=True)
-            _log.debug(
-                f"Checking admin level for user {user_id} with required level {level}"
-            )
             query = database.Administrators.select().where(
-                (database.Administrators.TierLevel >= level)
+                (database.Administrators.TierLevel >= required_level)
                 & (database.Administrators.discordID == user_id)
             )
-            if query.exists():
-                _log.info(f"User {user_id} has sufficient admin level {level} access.")
-                return True
+            result = query.exists()
+            if result:
+                _log.info(
+                    f"User {user_id} passed admin check for level {required_level}"
+                )
             else:
                 _log.warning(
-                    f"User {user_id} does not have sufficient admin level {level} access."
+                    f"User {user_id} failed admin check for level {required_level}"
                 )
-                return False
+            return result
         except OperationalError as e:
-            _log.error(f"Database connection error while checking admin level: {e}")
+            _log.error(f"Database connection error: {e}")
             return False
         finally:
             if not database.db.is_closed():
                 database.db.close()
-                _log.debug("Database connection closed.")
 
-    return inner
+    def decorator(func: Callable):
+        if isinstance(func, commands.Command):
+            return commands.check(predicate)(func)
+        elif isinstance(func, app_commands.Command):
+            return app_commands.check(predicate)(func)
+        else:
+            # Assume decorator usage, wrap manually
+            @wraps(func)
+            async def wrapper(*args, **kwargs):
+                ctx_or_interaction = args[0]
+                if predicate(ctx_or_interaction):
+                    return await func(*args, **kwargs)
+                else:
+                    if isinstance(ctx_or_interaction, Context):
+                        await ctx_or_interaction.send(
+                            "You do not have permission to use this command."
+                        )
+                    elif isinstance(ctx_or_interaction, Interaction):
+                        await ctx_or_interaction.response.send_message(
+                            "You do not have permission to use this command.",
+                            ephemeral=True,
+                        )
 
+            return wrapper
 
-# Create various admin-level check decorators for both command and slash commands
-is_bot_Admin_1 = commands.check(predicate_LV(1))
-is_bot_Admin_2 = commands.check(predicate_LV(2))
-is_bot_Admin_3 = commands.check(predicate_LV(3))
-is_bot_Admin_4 = commands.check(predicate_LV(4))
-
-slash_is_bot_admin_1 = app_commands.check(predicate_LV(1))
-slash_is_bot_admin_2 = app_commands.check(predicate_LV(2))
-slash_is_bot_admin_3 = app_commands.check(predicate_LV(3))
-slash_is_bot_admin_4 = app_commands.check(predicate_LV(4))
+    return decorator
 
 
 # Predicate for owning a realm channel
@@ -167,11 +187,8 @@ slash_is_realm_op = is_realm_op()
 
 
 def check_MRP():
-    async def predicate(interaction: discord.Interaction) -> bool:
-        return (
-            interaction.guild.id == 587495640502763521
-            or interaction.guild.id == 448488274562908170
-        )
+    def predicate(interaction: discord.Interaction) -> bool:
+        return interaction.guild.id in {TEST_SERVER_ID, 448488274562908170}
 
     return app_commands.check(predicate)
 

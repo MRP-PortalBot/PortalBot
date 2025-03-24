@@ -4,7 +4,7 @@ from typing import Union, Literal
 from discord import ui, ButtonStyle
 from discord.ext import commands
 from core import database
-from core.checks import is_bot_Admin_3
+from core.checks import has_admin_level
 from core.common import Colors, ButtonHandler
 from core.logging_module import get_log
 
@@ -59,7 +59,7 @@ class BackupRegularCommands(commands.Cog):
         return view.value
 
     @commands.command()
-    @is_bot_Admin_3
+    @has_admin_level(3)
     async def sync(
         self,
         ctx: commands.Context,

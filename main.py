@@ -70,7 +70,7 @@ class PBCommandTree(app_commands.CommandTree):
         self.bot = bot
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
-        if interaction.user.avatar is None:
+        if interaction.user.display_avatar.is_default():
             await interaction.response.send_message(
                 "Due to a Discord limitation, you must have an avatar set to use this command."
             )
@@ -226,6 +226,11 @@ initialize_db(bot)
 
 if __name__ == "__main__":
     try:
+        token = os.getenv("token")
+        if not token:
+            _log.error("Bot token not found in environment variables.")
+            exit(1)
+
         _log.info("Running PortalBot...")
         bot.run(os.getenv("token"))
     except Exception as e:

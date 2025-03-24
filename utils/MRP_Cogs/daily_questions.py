@@ -566,7 +566,7 @@ class DailyCMD(commands.Cog):
         name="post",
         description="Post a daily question by ID or repeat today's question.",
     )
-    @checks.slash_is_bot_admin_2
+    @checks.has_admin_level(2)
     async def postq(self, interaction: discord.Interaction, id: int = None):
         """Post a daily question by ID or repeat today's question."""
         guild_id = interaction.guild.id
@@ -659,7 +659,7 @@ class DailyCMD(commands.Cog):
             )
 
     @DQ.command(description="Modify a question!")
-    @checks.slash_is_bot_admin_2
+    @checks.has_admin_level(2)
     async def modify(self, interaction: discord.Interaction, id: int, question: str):
         try:
             q: database.Question = database.Question.get(
@@ -683,7 +683,7 @@ class DailyCMD(commands.Cog):
             )
 
     @DQ.command(description="Add a question!")
-    @checks.slash_is_bot_admin_2
+    @checks.has_admin_level(2)
     async def new(self, interaction: discord.Interaction, question: str):
         try:
             q = database.Question.create(question=question)
@@ -705,7 +705,7 @@ class DailyCMD(commands.Cog):
         renumber_display_order()
 
     @DQ.command(description="Delete a question!")
-    @checks.slash_is_bot_admin_2
+    @checks.has_admin_level(2)
     async def delete(self, interaction: discord.Interaction, id: int):
         try:
             q: database.Question = database.Question.get(
@@ -771,7 +771,7 @@ class DailyCMD(commands.Cog):
     @DQ.command(
         name="toggle-daily-question", description="Enable or disable daily questions."
     )
-    @checks.slash_is_bot_admin_2
+    @checks.has_admin_level(2)
     async def toggle_daily_question(self, interaction: discord.Interaction):
         try:
             bot_data = get_cached_bot_data(interaction.guild.id)

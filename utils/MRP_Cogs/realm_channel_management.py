@@ -4,7 +4,7 @@ import discord
 from discord import app_commands, ui
 from discord.ext import commands
 from core import database
-from core.checks import slash_is_bot_admin_3, slash_check_MRP
+from core.checks import has_admin_level, slash_check_MRP
 from core.logging_module import get_log
 from core.common import get_cached_bot_data
 
@@ -298,7 +298,7 @@ class RealmCMD(commands.Cog):
     @app_commands.describe(
         app_number="Application number that corresponds with the realm you're trying to create."
     )
-    @slash_is_bot_admin_3
+    @has_admin_level(3)
     async def create_realm(self, interaction: discord.Interaction, app_number: int):
         await interaction.response.defer(thinking=True)
         bot_data = get_cached_bot_data(interaction.guild.id)
@@ -439,7 +439,7 @@ class RealmCMD(commands.Cog):
 
     @RC.command()
     @slash_check_MRP
-    @slash_is_bot_admin_3
+    @has_admin_level(3)
     async def newrealm2(
         self,
         interaction: discord.Interaction,

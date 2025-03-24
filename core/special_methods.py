@@ -2,70 +2,61 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
 import traceback
 import asyncio
 from datetime import datetime
 from difflib import get_close_matches
-from pathlib import Path
 from typing import TYPE_CHECKING, Union
 
 import discord
-import requests
 from discord import app_commands
 from discord.ext import commands
 
 from core import database
 from core.common import (
-    ConsoleColors,
     Colors,
     Others,
     get_cached_bot_data,
     get_bot_data_for_server,
+    get_permitlist,
 )
 from core.logging_module import get_log
-
-# Logger setup
-_log = get_log(__name__)
+from core.utils.embeds import (
+    permission_error_embed,
+    argument_error_embed,
+    cooldown_embed,
+)
+from core.utils.gist import create_gist_from_traceback
 
 if TYPE_CHECKING:
     from main import PortalBot
 
+_log = get_log(__name__)
+
 
 async def on_ready_(bot: "PortalBot"):
-    """
-    Called when the bot is ready and fully connected.
-    Initializes views, fetches version info, and logs bot status.
-    """
     now = datetime.now()
     _log.info(f"Bot ready at {now}. Preloading bot data for guilds.")
-
-    # Preload bot data for all guilds
     await preload_bot_data(bot)
 
-    # Ensure persistent views are initialized
     for guild in bot.guilds:
         bot_data = get_cached_bot_data(guild.id)
         if not bot_data:
-            _log.warning(f"Bot data not found for guild {guild.id}. Skipping view initialization.")
+            _log.warning(
+                f"Bot data not found for guild {guild.id}. Skipping view initialization."
+            )
             continue
         initialize_persistent_views(bot, bot_data)
 
-    # Determine the database source (external or local)
     database_source = "External" if not os.getenv("USEREAL") else "localhost"
-    db_message_color = (
-        ConsoleColors.OKGREEN if database_source == "External" else ConsoleColors.FAIL
-    )
-    db_warning_message = (
-        f"{ConsoleColors.WARNING}WARNING: Not recommended to use SQLite.{ConsoleColors.ENDC}"
+    db_color = Colors.OKGREEN if database_source == "External" else Colors.FAIL
+    db_warning = (
+        f"{Colors.WARNING}WARNING: Not recommended to use SQLite.{Colors.ENDC}"
         if database_source == "localhost"
         else ""
     )
-
-    database_message = f"{db_message_color}Selected Database: {database_source} {ConsoleColors.ENDC}\n{db_warning_message}"
     _log.info(f"Database source determined: {database_source}")
 
-    # Fetch Git version (asynchronously)
     try:
         _log.info("Attempting to fetch Git version.")
         process = await asyncio.create_subprocess_shell(
@@ -74,168 +65,91 @@ async def on_ready_(bot: "PortalBot"):
             stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await process.communicate()
-        if process.returncode == 0:
-            git_version = stdout.decode().strip()
-            _log.info(f"Git version fetched: {git_version}")
-        else:
-            git_version = "ERROR"
+        git_version = stdout.decode().strip() if process.returncode == 0 else "ERROR"
+        if git_version == "ERROR":
             _log.error(f"Git version fetch failed. Stderr: {stderr.decode().strip()}")
+        else:
+            _log.info(f"Git version fetched: {git_version}")
     except Exception as e:
         git_version = f"ERROR: {str(e)}"
-        _log.error(f"Error fetching Git version: {str(e)}", exc_info=True)
+        _log.error(f"Error fetching Git version: {e}", exc_info=True)
 
-    # Log bot details to console
-    print(
-        f"""
-          _____           _        _ ____        _   
-         |  __ \         | |      | |  _ \      | |  
-         | |__) |__  _ __| |_ __ _| | |_) | ___ | |_ 
-         |  ___/ _ \| '__| __/ _` | |  _ < / _ \| __|
-         | |  | (_) | |  | || (_| | | |_) | (_) | |_ 
-         |_|   \___/|_|   \__\__,_|_|____/ \___/ \__|
-
-        Bot Account: {bot.user.name} | {bot.user.id}
-        {ConsoleColors.OKCYAN}Discord API Version: {discord.__version__}{ConsoleColors.ENDC}
-        {ConsoleColors.WARNING}PortalBot Version: {git_version}{ConsoleColors.ENDC}
-        {database_message}
-
-        {ConsoleColors.OKCYAN}Current Time: {now}{ConsoleColors.ENDC}
-        {ConsoleColors.OKGREEN}Initialization complete: Cogs, libraries, and views have successfully been loaded.{ConsoleColors.ENDC}
-        ==================================================
-        {ConsoleColors.WARNING}Statistics{ConsoleColors.ENDC}
-        Guilds: {len(bot.guilds)}
-        Members: {len(bot.users)}
-        """
-    )
+    print(f"Bot Account: {bot.user.name} | {bot.user.id}")
     _log.info("Bot initialization complete. Stats logged.")
 
-    # Send a message to the GitHub log channel
-    try:
-        if not hasattr(bot_data, "pb_test_server_id") or not bot_data.pb_test_server_id:
-            _log.error("pb_test_server_id not found in bot data.")
-            return
+    bot_data = get_cached_bot_data(448488274562908170)
+    if not bot_data or not hasattr(bot_data, "pb_test_server_id"):
+        _log.error("pb_test_server_id not found in bot data.")
+        return
 
-        _log.info(f"Bot data fetched: {bot_data}")
+    pb_guild = bot.get_guild(bot_data.pb_test_server_id)
+    if not pb_guild:
+        _log.error(f"Guild with ID {bot_data.pb_test_server_id} not found.")
+        return
 
-        _log.info(f"Using pb_test_server_id: {bot_data.pb_test_server_id}")
-        _log.info("Attempting to send sync message to 'github-log' channel.")
-
-        # Fetch the guild object using the cached server ID
-        pb_guild = bot.get_guild(bot_data.pb_test_server_id)
-
-        if not pb_guild:
-            _log.error(f"Guild with ID {bot_data.pb_test_server_id} not found.")
-            return
-
-        # Fetch the 'github-log' channel within the guild
-        github_channel = discord.utils.get(pb_guild.channels, name="github-log")
-
-        if github_channel:
-            await github_channel.send("Github Synced, and bot is restarted")
-            _log.info("Sync message sent to 'github-log' channel.")
-        else:
-            _log.error("'github-log' channel not found in the guild.")
-
-    except Exception as e:
-        _log.error(
-            f"Error sending message to 'github-log' channel: {str(e)}", exc_info=True
-        )
+    github_channel = discord.utils.get(pb_guild.channels, name="github-log")
+    if github_channel:
+        await github_channel.send("Github Synced, and bot is restarted")
+        _log.info("Sync message sent to 'github-log' channel.")
+    else:
+        _log.error("'github-log' channel not found in the guild.")
 
 
-# Preload bot data for all guilds
 async def preload_bot_data(bot: "PortalBot"):
     _log.info("Preloading bot data for all guilds...")
-
     for guild in bot.guilds:
         _log.info(f"Guild Data {guild}: {guild.id}")
         bot_init = await get_bot_data_for_server(guild.id)
-
         if bot_init is None:
-            _log.warning(f"No bot data initialized for guild {guild.id}. Attempting to create default bot data.")
-            _create_bot_data(
-                guild.id,
-                initial_channel_id=(guild.text_channels[0].id if guild.text_channels else None),
+            _log.warning(
+                f"No bot data initialized for guild {guild.id}. Attempting to create default bot data."
             )
-
-
-        else:
-            _log.info(f"Bot data fetched and cached for guild {guild.id}: {bot_init}")
-
+            _create_bot_data(
+                guild.id, guild.text_channels[0].id if guild.text_channels else None
+            )
     _log.info("Bot data preloaded for all guilds.")
 
-    for guild in bot.guilds:
-        bot_data = get_cached_bot_data(guild.id)
 
-        if bot_data is None:
-            _log.warning(
-                f"No cached bot data found for guild {guild.id}. Skipping view initialization."
-            )
-        else:
-            _log.info(f"Cached bot data fetched for guild {guild.id}: {bot_data}")
-
-
-# Function that needs QuestionSuggestionManager
 def initialize_persistent_views(bot, bot_data):
     from utils.MRP_Cogs.daily_questions import QuestionSuggestionManager
 
-    # Ensure persistent views are initialized
     if not bot_data.persistent_views:
         bot.add_view(QuestionSuggestionManager())
         bot_data.persistent_views = True
         bot_data.save()
         _log.info("Persistent views initialized and saved to the database.")
+    else:
+        _log.debug("Persistent views already initialized for this guild.")
 
 
-# Initialize the database
 def initialize_db(bot):
-    """
-    Initializes the database and creates the needed table data if they don't exist.
-    """
     try:
-        # Log the start of the database initialization
         _log.info("Initializing database...")
-
-        # Ensure the database is connected
         database.db.connect(reuse_if_open=True)
-        _log.info("Database connected successfully.")
-
-        # Fetch the bot data for each guild
         for guild in bot.guilds:
             bot_data = database.BotData.select().where(
                 database.BotData.server_id == guild.id
             )
-
-            # If no bot data exists, create it
             if not bot_data.exists():
                 initial_channel_id = (
                     guild.system_channel.id if guild.system_channel else None
                 )
                 _create_bot_data(guild.id, initial_channel_id)
-                _log.info(f"Created initial BotData entry for guild {guild.id}.")
-
-        # Check if Administrator entries exist, and create them if not
         if database.Administrators.select().count() == 0:
             _create_administrators(bot.owner_ids)
-            _log.info("Created Administrator entries for bot owners.")
-
     except Exception as e:
         _log.error(f"Error during database initialization: {e}")
     finally:
-        # Always close the database connection
         if not database.db.is_closed():
             database.db.close()
-            _log.info("Database connection closed.")
 
 
 def _create_bot_data(server_id, initial_channel_id):
-    """Creates the initial BotData entry for the given server."""
     if initial_channel_id is None:
         _log.warning(
             f"No initial channel found for server {server_id}, skipping creation."
         )
         return
-
-    _log.info(f"Creating initial BotData entry in the database for server {server_id}.")
     database.BotData.create(
         server_id=server_id,
         prefix=">",
@@ -252,48 +166,32 @@ def _create_bot_data(server_id, initial_channel_id):
         mod_log_channel=initial_channel_id,
         pb_test_server_id=448488274562908170,
     )
-    _log.info(f"Initial BotData entry created successfully for server {server_id}.")
 
 
 def _create_administrators(owner_ids):
-    """Creates Administrator entries based on the bot owner IDs."""
-    _log.info(f"Creating Administrator entries for bot owner IDs: {owner_ids}.")
-
     for owner_id in owner_ids:
         database.Administrators.create(discordID=owner_id, TierLevel=4)
-        _log.info(f"Administrator entry created for owner ID: {owner_id}.")
-
-    # Ensure specific admin entry is created
     specific_admin_id = 306070011028439041
     database.Administrators.create(discordID=specific_admin_id, TierLevel=4)
-    _log.info(f"Administrator entry created for specific ID: {specific_admin_id}.")
 
 
 async def on_command_error_(bot, ctx: commands.Context, error: Exception):
-    # Gather traceback details
+    error = getattr(error, "original", error)
     tb = error.__traceback__
     etype = type(error)
     exception_msg = "".join(traceback.format_exception(etype, error, tb, chain=True))
-    error = getattr(error, "original", error)  # Unwrap command invocation errors
-
-    # Log the full error traceback
     _log.error(f"Error in command '{ctx.command}': {exception_msg}")
 
-    # Early exit for the rule command
     if ctx.command and ctx.command.name == "rule":
         return await ctx.send("No Rule...")
 
-    # Command-specific error handling
     if isinstance(error, commands.CheckFailure):
-        _log.warning(f"Check failed for user {ctx.author.id} on command {ctx.command}.")
         return
 
     if isinstance(error, commands.CommandNotFound):
         cmd = ctx.invoked_with
-        cmds = [cmd.name for cmd in bot.commands]
-        matches = get_close_matches(cmd, cmds)
+        matches = get_close_matches(cmd, [cmd.name for cmd in bot.commands])
         if matches:
-            _log.info(f"Command '{cmd}' not found. Suggesting '{matches[0]}'.")
             return await ctx.send(
                 f'Command "{cmd}" not found. Did you mean "{matches[0]}"?'
             )
@@ -301,95 +199,42 @@ async def on_command_error_(bot, ctx: commands.Context, error: Exception):
 
     if isinstance(error, (commands.MissingRequiredArgument, commands.TooManyArguments)):
         signature = f"{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}"
-        em = discord.Embed(
-            title="Missing or Extra Arguments",
-            description=f"You missed or provided too many arguments.\n\nUsage:\n`{signature}`",
-            color=Colors.red,
+        return await ctx.send(
+            embed=argument_error_embed("Missing or Extra Arguments", signature)
         )
-        em.set_thumbnail(url=Others.error_png)
-        em.set_footer(text="Refer to the Help Command if needed.")
-        _log.info(f"Missing or extra arguments in command '{ctx.command}'.")
-        return await ctx.send(embed=em)
 
     if isinstance(
         error,
-        (
-            commands.MissingPermissions,
-            commands.MissingRole,
-            commands.errors.MissingAnyRole,
-        ),
+        (commands.MissingPermissions, commands.MissingRole, commands.MissingAnyRole),
     ):
-        em = discord.Embed(
-            title="Insufficient Permissions",
-            description="You don't have the required role or permissions for this command. Contact an admin if this is an error.",
-            color=Colors.red,
-        )
-        em.set_thumbnail(url=Others.error_png)
-        em.set_footer(text="Refer to the Help Command for more details.")
-        _log.warning(
-            f"Permission error for user {ctx.author.id} on command {ctx.command}."
-        )
-        return await ctx.send(embed=em)
+        return await ctx.send(embed=permission_error_embed())
 
     if isinstance(error, (commands.BadArgument, commands.BadLiteralArgument)):
         signature = f"{ctx.prefix}{ctx.command.qualified_name} {ctx.command.signature}"
-        em = discord.Embed(
-            title="Bad Argument",
-            description=f"Invalid argument provided.\n\nUsage:\n`{signature}`",
-            color=Colors.red,
-        )
-        em.set_thumbnail(url=Others.error_png)
-        em.set_footer(text="Refer to the Help Command for more information.")
-        _log.warning(
-            f"Bad argument provided by user {ctx.author.id} on command {ctx.command}."
-        )
-        return await ctx.send(embed=em)
+        return await ctx.send(embed=argument_error_embed("Bad Argument", signature))
 
-    if isinstance(
-        error, (commands.CommandOnCooldown, commands.errors.CommandOnCooldown)
-    ):
-        m, s = divmod(error.retry_after, 60)
-        h, m = divmod(m, 60)
-        msg = f"This command is on cooldown. Try again in {int(h)} hours, {int(m)} minutes, and {int(s)} seconds."
-        em = discord.Embed(
-            title="Command On Cooldown",
-            description=msg,
-            color=discord.Color.red(),
-        )
-        _log.info(f"Command on cooldown for user {ctx.author.id}: {msg}")
-        return await ctx.send(embed=em)
+    if isinstance(error, commands.CommandOnCooldown):
+        return await ctx.send(embed=cooldown_embed(error.retry_after))
 
-    # Default error handling (create Gist and notify developers)
-    _log.error(f"Unhandled error for command '{ctx.command}': {exception_msg}")
-    gist_url = await _create_gist(exception_msg)
+    gist_url = await create_gist_from_traceback(exception_msg)
+    permitlist = get_permitlist()
 
-    permitlist = [
-        admin.discordID
-        for admin in database.Administrators.select().where(
-            database.Administrators.TierLevel >= 3
-        )
-    ]
-
-    if ctx.author.id not in permitlist:
-        em = discord.Embed(
-            title="An Error Occurred",
-            description="An unexpected error occurred. The developers have been notified.",
-            color=Colors.red,
-        )
-        em.set_thumbnail(url=Others.error_png)
-        em.set_footer(text=f"Error: {str(error)}")
-        await ctx.send(embed=em)
-    else:
-        em = discord.Embed(
-            title="Traceback Detected",
-            description="An error occurred in PortalBot. Traceback details have been attached below.",
-            color=Colors.red,
-        )
-        if gist_url:
-            em.add_field(name="Gist URL", value=gist_url)
-        em.set_thumbnail(url=Others.error_png)
-        em.set_footer(text=f"Error: {str(error)}")
-        await ctx.send(embed=em)
+    embed = discord.Embed(
+        title=(
+            "Traceback Detected" if ctx.author.id in permitlist else "An Error Occurred"
+        ),
+        description=(
+            "Traceback details have been attached."
+            if ctx.author.id in permitlist
+            else "An unexpected error occurred. The developers have been notified."
+        ),
+        color=Colors.red,
+    )
+    if ctx.author.id in permitlist and gist_url:
+        embed.add_field(name="Gist URL", value=gist_url)
+    embed.set_footer(text=f"Error: {str(error)}")
+    embed.set_thumbnail(url=Others.error_png)
+    await ctx.send(embed=embed)
 
     raise error
 
@@ -399,57 +244,33 @@ async def on_app_command_error_(
     interaction: discord.Interaction,
     error: app_commands.AppCommandError,
 ):
-    """
-    Handles errors that occur during the execution of app commands.
-    """
-    # Capture and format the traceback
+    error = getattr(error, "original", error)
     tb = error.__traceback__
     etype = type(error)
     exception_msg = "".join(traceback.format_exception(etype, error, tb, chain=True))
-
     _log.error(f"Error in command '{interaction.command}': {exception_msg}")
 
-    # Command on Cooldown
     if isinstance(error, app_commands.CommandOnCooldown):
-        h, m = divmod(int(error.retry_after // 60), 60)
-        s = round(error.retry_after % 60)
-        cooldown_msg = f"This command cannot be used again for {h} hours, {m} minutes, and {s} seconds."
-        embed = discord.Embed(
-            title="Command On Cooldown",
-            description=cooldown_msg,
-            color=discord.Color.red(),
-        )
-        _log.info(
-            f"Command {interaction.command} is on cooldown for user {interaction.user.id}: {cooldown_msg}"
-        )
-        await _send_response(interaction, embed)
+        await _send_response(interaction, cooldown_embed(error.retry_after))
         return
 
-    # Command Check Failure
     if isinstance(error, app_commands.CheckFailure):
-        failure_msg = "You cannot run this command!"
-        _log.warning(
-            f"Check failure for user {interaction.user.id} on command {interaction.command}"
+        await _send_response(
+            interaction, "You cannot run this command!", ephemeral=True
         )
-        await _send_response(interaction, failure_msg, ephemeral=True)
         return
 
-    # Command Not Found
     if isinstance(error, app_commands.CommandNotFound):
-        _log.error(f"Command {interaction.command} not found.")
         await interaction.response.send_message(
             f"Command /{interaction.command.name} not found."
         )
         return
 
-    # Unhandled Errors: Create a Gist and notify developers
-    gist_url = await _create_gist(exception_msg)
+    gist_url = await create_gist_from_traceback(exception_msg)
     await _notify_error(interaction, error, gist_url)
+    raise error
 
-    raise error  # Re-raise the error after handling
 
-
-# Helper function to send responses, handling both response and follow-up cases
 async def _send_response(
     interaction: discord.Interaction,
     content: Union[discord.Embed, str],
@@ -463,83 +284,42 @@ async def _send_response(
                 content=content, ephemeral=ephemeral
             )
     except Exception as e:
-        _log.error(f"Error sending response to user {interaction.user.id}: {e}")
+        _log.error(f"Error sending response: {e}")
 
 
-# Reusing the previous helper function to create a Gist and return the URL
-async def _create_gist(exception_msg: str) -> str:
-    try:
-        GITHUB_API = "https://api.github.com/gists"
-        API_TOKEN = os.getenv("GITHUB")
-        headers = {"Authorization": f"token {API_TOKEN}"}
-        payload = {
-            "description": "PortalBot encountered a Traceback!",
-            "public": True,
-            "files": {"error.txt": {"content": exception_msg}},
-        }
-        res = requests.post(GITHUB_API, headers=headers, data=json.dumps(payload))
-        res.raise_for_status()
-        gist_id = res.json()["id"]
-        _log.info(f"Created Gist for error: https://gist.github.com/{gist_id}")
-        return f"https://gist.github.com/{gist_id}"
-    except Exception as e:
-        _log.error(f"Error creating Gist: {e}")
-        return "Unable to create Gist"
-
-
-# Helper function to notify users or admins about errors
 async def _notify_error(
     interaction: discord.Interaction, error: Exception, gist_url: str
 ):
-    permitlist = [
-        user.discordID
-        for user in database.Administrators.select().where(
-            database.Administrators.TierLevel >= 3
-        )
-    ]
+    permitlist = get_permitlist()
 
     if interaction.user.id not in permitlist:
-        error_embed = discord.Embed(
+        embed = discord.Embed(
             title="Error Detected!",
             description="An unexpected error occurred. The developers have been notified.",
             color=discord.Color.brand_red(),
         )
-        error_embed.add_field(
+        embed.add_field(
             name="Error Message",
-            value="Please double check your command. The developers have been notified and are investigating the issue.",
+            value="Please double check your command. The developers are investigating.",
         )
-        error_embed.set_footer(text="Submit a bug report or feedback below!")
-        _log.warning(f"User {interaction.user.id} encountered an error: {error}")
-        await _send_response(interaction, error_embed)
     else:
-        admin_embed = discord.Embed(
+        embed = discord.Embed(
             title="Traceback Detected!",
             description="An error occurred in PortalBot. Traceback details have been attached below.",
-            color=discord.Color.red(),
+            color=Colors.red,
         )
         if gist_url:
-            admin_embed.add_field(name="GIST URL", value=gist_url)
-        admin_embed.set_footer(text=f"Error: {str(error)}")
-        _log.error(
-            f"Admin {interaction.user.id} encountered an error: {error} (Gist URL: {gist_url})"
-        )
-        await _send_response(interaction, admin_embed)
+            embed.add_field(name="GIST URL", value=gist_url)
+
+    embed.set_footer(text=f"Error: {str(error)}")
+    await _send_response(interaction, embed)
 
 
 async def on_command_(bot: "PortalBot", ctx: commands.Context):
-    # List of commands that should bypass the message
     bypass_commands = {"sync", "ping", "kill", "jsk", "py", "jishaku"}
-
-    # Log the command that was invoked
     _log.info(f"User {ctx.author} invoked command: {ctx.command.name}")
-
-    # Return early if the command is in the bypass list
     if ctx.command.name in bypass_commands:
-        _log.info(f"Command {ctx.command.name} is in the bypass list, no message sent.")
         return
-
-    # Notify user that this command is deprecated and suggest the slash equivalent
-    deprecated_msg = f"❌ The command `{ctx.command.name}` is deprecated. Please use the slash command `/{ctx.command.name}` instead."
-    _log.info(f"Sending deprecated message to user {ctx.author}: {deprecated_msg}")
-
-    await ctx.reply(deprecated_msg)
+    await ctx.reply(
+        f"❌ The command `{ctx.command.name}` is deprecated. Please use the slash command `/{ctx.command.name}` instead."
+    )

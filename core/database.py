@@ -146,7 +146,7 @@ class BotData(BaseModel):
     mod_channel = BigIntegerField(default=0)  # MOderator Channel ID
     daily_question_enabled = BooleanField(default=True)
     last_question_posted = TextField(null=True)  # Last question that was posted
-    last_question_posted_time = TimestampField  # Last time a question was posted
+    last_question_posted_time = TimestampField()  # Last time a question was posted
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
     points_per_message = IntegerField(default=10)  # Default is 10 points
     blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs
@@ -173,7 +173,7 @@ class Question(BaseModel):
     id = AutoField()  # Question entry ID
     display_order = IntegerField()  # Display order
     question = TextField()  # The question text
-    usage = TextField(default=False)  # Indicates if the question has been used
+    usage = BooleanField(default=False)  # Indicates if the question has been used
     upvotes = IntegerField(default=0)
     downvotes = IntegerField(default=0)
 
@@ -302,7 +302,7 @@ class ServerScores(BaseModel):
 class LeveledRoles(BaseModel):
     """Stores the roles and level thresholds for each server."""
 
-    RoleID = AutoField()  # Unique ID for each role entry
+    id = AutoField()  # Unique ID for each role entry
     RoleName = TextField()  # Name of the role
     RoleID = BigIntegerField()  # Discord Role ID for role assignment
     ServerID = TextField()  # Server ID where the role is applicable
@@ -357,8 +357,10 @@ tables = {
 }
 
 # Call the table creation function
-try:
-    iter_table(tables)
-except Exception as e:
-    _log.error(f"Error during table creation: {e}")
-    raise SystemExit(e)
+if __name__ == "__main__":
+    try:
+        iter_table(tables)
+    except Exception as e:
+        _log.error(f"Error during table creation: {e}")
+        raise SystemExit(e)
+

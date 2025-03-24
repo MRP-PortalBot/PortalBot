@@ -5,7 +5,6 @@ import os
 import random
 from typing import Tuple, Union, List
 from pathlib import Path
-from dotenv import load_dotenv
 from datetime import datetime
 
 # Importing discord modules
@@ -19,36 +18,31 @@ from core.logging_module import get_log
 # Setting up logger
 _log = get_log(__name__)
 
-# core/common.py
-
-from core import database
-import logging
-
-_log = logging.getLogger(__name__)
-
-
 cache_lock = Lock()
 bot_data_cache = {}
 
 
 async def get_bot_data_for_server(server_id):
-    if server_id in bot_data_cache:
-        _log.info(f"Returning cached bot data for server {server_id}")
-        return bot_data_cache[server_id]
+    async with cache_lock:
+        if server_id in bot_data_cache:
+            _log.info(f"Returning cached bot data for server {server_id}")
+            return bot_data_cache[server_id]
 
     try:
-        # Fetch the bot data for the server
+        # Fetch outside lock to avoid blocking others during DB fetch
         bot_info = (
             database.BotData.select()
             .where(database.BotData.server_id == server_id)
             .get()
         )
-        # Cache the bot data
-        bot_data_cache[server_id] = bot_info
+
+        async with cache_lock:
+            bot_data_cache[server_id] = bot_info
         _log.info(
             f"Bot data fetched and cached for guild {server_id}: Prefix: {bot_info.prefix}, Server ID: {bot_info.server_id}"
         )
         return bot_info
+
     except database.DoesNotExist:
         _log.error(f"No BotData found for server ID: {server_id}")
         return None
@@ -92,25 +86,6 @@ def load_config() -> Tuple[dict, Path]:
 
 
 config, config_file = load_config()
-
-
-def prompt_config(msg, key):
-    """
-    Ensure a value exists in the botconfig.json. If not, prompt the bot owner to input via the console.
-
-    Args:
-        msg (str): The message to display when prompting for input.
-        key (str): The key to look for in the config file.
-    """
-    config, config_file = load_config()
-    if key not in config:
-        config[key] = input(msg)
-        try:
-            with config_file.open("w+") as f:
-                json.dump(config, f, indent=4)
-        except IOError as e:
-            _log.error(f"Error writing to config file: {e}")
-            raise e
 
 
 # Utility Functions
@@ -235,46 +210,67 @@ def calculate_level(score: int) -> Tuple[int, float, int]:
     level = int((score // 100) ** 0.5)
     next_level_score = (level + 1) ** 2 * 100
     prev_level_score = level**2 * 100
-    progress = (score - prev_level_score) / (next_level_score - prev_level_score)
+    if next_level_score == prev_level_score:
+        progress = 0.0
+    else:
+        progress = (score - prev_level_score) / (next_level_score - prev_level_score)
     return level, progress, next_level_score
 
 
 def get_user_rank(server_id, user_id):
     """
-    Get the rank of a user based on their score in a specific server.
+    Retrieve the user's rank in a specific server based on score.
+
+    Args:
+        server_id (int or str): The ID of the Discord server.
+        user_id (int or str): The Discord user ID.
 
     Returns:
-        int: The rank of the user, or None if not found.
+        int or None: The rank of the user (1-based), or None if not found or an error occurred.
     """
     try:
         query = (
             database.ServerScores.select(database.ServerScores.DiscordLongID)
             .where(database.ServerScores.ServerID == str(server_id))
             .order_by(database.ServerScores.Score.desc())
-        )  # Order by score (high to low)
-
+        )
         rank = 1
         for entry in query:
             if entry.DiscordLongID == str(user_id):
-                return rank  # Return the rank of the user
+                return rank
             rank += 1
     except Exception as e:
         _log.error(f"Error retrieving user rank: {e}")
         return None
 
-    return None  # If user is not found
+    return None
 
 
 def get_bot_data_for_guild(interaction):
-    """Fetch the bot data for a specific guild."""
+    """
+    Retrieve bot configuration data for the current guild based on the interaction context.
+
+    Args:
+        interaction (discord.Interaction): The Discord interaction object.
+
+    Returns:
+        BotData or None: The bot data for the guild, or None if not found or an error occurs.
+    """
     try:
-        guild_id = (
-            interaction.guild.id
-        )  # Use interaction or ctx to get the specific guild
-        bot_data = database.BotData.get(database.BotData.guild_id == guild_id)
+        guild_id = interaction.guild.id
+        bot_data = database.BotData.get(database.BotData.server_id == guild_id)
         return bot_data
     except database.BotData.DoesNotExist:
         return None
     except Exception as e:
         print(f"Error fetching bot data for guild {guild_id}: {e}")
         return None
+
+
+def get_permitlist(min_level=3):
+    return [
+        admin.discordID
+        for admin in database.Administrators.select().where(
+            database.Administrators.TierLevel >= min_level
+        )
+    ]
