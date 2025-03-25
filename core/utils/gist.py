@@ -19,7 +19,7 @@ async def create_gist_from_traceback(traceback_text: str) -> str:
 
     try:
         GITHUB_API = "https://api.github.com/gists"
-        API_TOKEN = os.getenv("GITHUB")
+        API_TOKEN = os.getenv("github_gist")
         if not API_TOKEN:
             raise EnvironmentError("Missing GITHUB token in environment.")
 
