@@ -217,7 +217,7 @@ class CoreBotConfig(commands.Cog):
         name="set_cooldown",
         description="Set the server score cooldown time (in seconds).",
     )
-    @has_admin_level(3)    
+    @has_admin_level(3)
     async def set_cooldown(self, interaction: discord.Interaction, cooldown: int):
         bot_data = await get_bot_data_for_server(interaction.guild.id)
         if bot_data:
