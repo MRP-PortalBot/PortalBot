@@ -29,21 +29,23 @@ def has_admin_level(required_level: int):
 
     def predicate(obj: Union[Context, Interaction]) -> bool:
         try:
-            user_id = (
-                obj.author.id if isinstance(obj, Context)
-                else obj.user.id if isinstance(obj, Interaction)
-                else None
-            )
-
-            if user_id is None:
+            if isinstance(obj, Context):
+                user_id = obj.author.id
+            elif isinstance(obj, Interaction):
+                user_id = obj.user.id
+            else:
                 _log.error(f"has_admin_level: Unsupported object type {type(obj)}")
                 return False
 
             database.db.connect(reuse_if_open=True)
-            result = database.Administrators.select().where(
-                (database.Administrators.TierLevel >= required_level) &
-                (database.Administrators.discordID == user_id)
-            ).exists()
+            result = (
+                database.Administrators.select()
+                .where(
+                    (database.Administrators.TierLevel >= required_level)
+                    & (database.Administrators.discordID == user_id)
+                )
+                .exists()
+            )
 
             _log.info(
                 f"Admin check {'passed' if result else 'failed'} for user {user_id} (level {required_level})"
