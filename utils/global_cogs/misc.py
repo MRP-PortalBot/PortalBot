@@ -12,7 +12,7 @@ import discord
 from discord.ext import commands, tasks
 from discord import app_commands
 
-from core.checks import has_admin_level(1)
+from core.checks import has_admin_level
 from core.logging_module import get_log
 from core import database
 
@@ -52,7 +52,7 @@ class MiscCMD(commands.Cog):
         user="The user whose nickname you want to change",
         channel="The channel with the emoji in the name",
     )
-    @@has_admin_level(1)
+    @has_admin_level(1)
     async def nick(
         self,
         interaction: discord.Interaction,
