@@ -19,10 +19,10 @@ class AdminCMD(commands.Cog):
     Admin = app_commands.Group(name="admin", description="Administrative commands.")
 
     # Command to request the database file
+    @has_admin_level(4)
     @Admin.command(
         name="requestdb", description="Request the database file for manual inspection"
     )
-    @has_admin_level(4)
     async def requestdb(self, interaction: discord.Interaction):
         """Request the database file for manual inspection."""
         try:
@@ -59,8 +59,8 @@ class AdminCMD(commands.Cog):
             )
 
     # Command to delete the database file
-    @Admin.command(name="deletedb", description="Delete the database file")
     @has_admin_level(4)
+    @Admin.command(name="deletedb", description="Delete the database file")
     async def deletedb(self, interaction: discord.Interaction):
         """Delete the database file."""
         try:
@@ -94,10 +94,10 @@ class AdminCMD(commands.Cog):
             )
 
     # Command to replace the database file with an attachment
+    @has_admin_level(4)
     @Admin.command(
         name="replacedb", description="Replace the database file with attachment"
     )
-    @has_admin_level(4)
     async def replacedb(self, interaction: discord.Interaction):
         """Replace the database file with an attachment."""
         try:

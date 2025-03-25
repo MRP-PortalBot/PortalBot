@@ -44,6 +44,7 @@ class MiscCMD(commands.Cog):
         self.check_reminders.cancel()  # Stop the background task when the cog is unloaded
 
     ##======================================================Nick Command===========================================================
+    @has_admin_level(1)
     @app_commands.command(
         name="nick",
         description="Change a user's nickname based on the channel name emoji.",
@@ -52,7 +53,6 @@ class MiscCMD(commands.Cog):
         user="The user whose nickname you want to change",
         channel="The channel with the emoji in the name",
     )
-    @has_admin_level(1)
     async def nick(
         self,
         interaction: discord.Interaction,
