@@ -1,21 +1,16 @@
 import os
 import re
-import discord
-import logging
-from discord import app_commands
-from discord.ext import commands
-from core import database
-from peewee import (
-    DoesNotExist,
-    OperationalError,
-)
-from functools import wraps
 from typing import Callable, Union
+from functools import wraps
+import discord
+from discord.ext import commands
+from discord import app_commands, Interaction
 from discord.ext.commands import Context
-from discord import Interaction
+from peewee import OperationalError
+import logging
 
+from core import database
 
-# Setup logger
 _log = logging.getLogger(__name__)
 
 TEST_SERVER_ID = 587495640502763521
@@ -25,66 +20,61 @@ REALM_CATEGORY_ID = 587627871216861244
 
 def has_admin_level(required_level: int):
     """
-    Universal decorator that works with both commands and app_commands
-    to enforce a minimum administrator level.
+    Universal decorator to enforce minimum admin level.
+    Works with both command and app_command functions.
     """
 
     def predicate(obj: Union[Context, Interaction]) -> bool:
-        if isinstance(obj, Context):
-            user_id = obj.author.id
-        elif isinstance(obj, Interaction):
-            user_id = obj.user.id
-        else:
-            _log.error(f"has_admin_level received unsupported object type: {type(obj)}")
-            return False
-
         try:
+            if isinstance(obj, Context):
+                user_id = obj.author.id
+            elif isinstance(obj, Interaction):
+                user_id = obj.user.id
+            else:
+                _log.error(f"has_admin_level: Unsupported object type {type(obj)}")
+                return False
+
             database.db.connect(reuse_if_open=True)
             query = database.Administrators.select().where(
                 (database.Administrators.TierLevel >= required_level)
                 & (database.Administrators.discordID == user_id)
             )
             result = query.exists()
-            if result:
-                _log.info(
-                    f"User {user_id} passed admin check for level {required_level}"
-                )
-            else:
-                _log.warning(
-                    f"User {user_id} failed admin check for level {required_level}"
-                )
+            _log.info(
+                f"Admin check {'passed' if result else 'failed'} for user {user_id} (level {required_level})"
+            )
             return result
+
         except OperationalError as e:
-            _log.error(f"Database connection error: {e}")
+            _log.error(f"Database error in has_admin_level: {e}")
             return False
         finally:
             if not database.db.is_closed():
                 database.db.close()
 
     def decorator(func: Callable):
-        if isinstance(func, commands.Command):
-            return commands.check(predicate)(func)
-        elif isinstance(func, app_commands.Command):
+        # For app_commands
+        if isinstance(func, app_commands.Command):
             return app_commands.check(predicate)(func)
-        else:
-            # Assume decorator usage, wrap manually
-            @wraps(func)
-            async def wrapper(*args, **kwargs):
-                ctx_or_interaction = args[0]
-                if predicate(ctx_or_interaction):
-                    return await func(*args, **kwargs)
-                else:
-                    if isinstance(ctx_or_interaction, Context):
-                        await ctx_or_interaction.send(
-                            "You do not have permission to use this command."
-                        )
-                    elif isinstance(ctx_or_interaction, Interaction):
-                        await ctx_or_interaction.response.send_message(
-                            "You do not have permission to use this command.",
-                            ephemeral=True,
-                        )
 
-            return wrapper
+        # For commands.command (function at this point)
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            ctx_or_interaction = args[0]  # should be Context or Interaction
+            if predicate(ctx_or_interaction):
+                return await func(*args, **kwargs)
+
+            _log.warning(f"User failed permission check for: {func.__name__}")
+            if isinstance(ctx_or_interaction, Context):
+                await ctx_or_interaction.send(
+                    "You do not have permission to use this command."
+                )
+            elif isinstance(ctx_or_interaction, Interaction):
+                await ctx_or_interaction.response.send_message(
+                    "You do not have permission to use this command.", ephemeral=True
+                )
+
+        return wrapper
 
     return decorator
 
