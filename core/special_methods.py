@@ -59,29 +59,6 @@ async def on_ready_(bot: "PortalBot"):
     database_message = f"{db_color}Selected Database: {database_source} {ConsoleColors.ENDC}\n{db_warning}"
     _log.info(f"Database source determined: {database_source}")
 
-    # Log bot details to console
-    print(
-        f"""
-          _____           _        _ ____        _   
-         |  __ \         | |      | |  _ \      | |  
-         | |__) |__  _ __| |_ __ _| | |_) | ___ | |_ 
-         |  ___/ _ \| '__| __/ _ | |  _ < / _ \| __|
-         | |  | (_) | |  | || (_| | | |_) | (_) | |_ 
-         |_|   \___/|_|   \__\__,_|_|____/ \___/ \__|
-
-        Bot Account: {bot.user.name} | {bot.user.id}
-        {ConsoleColors.OKCYAN}Discord API Version: {discord.__version__}{ConsoleColors.ENDC}
-        {ConsoleColors.WARNING}PortalBot Version: {git_version}{ConsoleColors.ENDC}
-        {database_message}
-
-        {ConsoleColors.OKCYAN}Current Time: {now}{ConsoleColors.ENDC}
-        {ConsoleColors.OKGREEN}Initialization complete: Cogs, libraries, and views have successfully been loaded.{ConsoleColors.ENDC}
-        ==================================================
-        {ConsoleColors.WARNING}Statistics{ConsoleColors.ENDC}
-        Guilds: {len(bot.guilds)}
-        Members: {len(bot.users)}
-        """
-    )
     _log.info("Bot initialization complete. Stats logged.")
 
     try:
@@ -120,6 +97,30 @@ async def on_ready_(bot: "PortalBot"):
         _log.info("Sync message sent to 'github-log' channel.")
     else:
         _log.error("'github-log' channel not found in the guild.")
+
+        # Log bot details to console
+    print(
+        f"""
+          _____           _        _ ____        _   
+         |  __ \         | |      | |  _ \      | |  
+         | |__) |__  _ __| |_ __ _| | |_) | ___ | |_ 
+         |  ___/ _ \| '__| __/ _ | |  _ < / _ \| __|
+         | |  | (_) | |  | || (_| | | |_) | (_) | |_ 
+         |_|   \___/|_|   \__\__,_|_|____/ \___/ \__|
+
+        Bot Account: {bot.user.name} | {bot.user.id}
+        {ConsoleColors.OKCYAN}Discord API Version: {discord.__version__}{ConsoleColors.ENDC}
+        {ConsoleColors.WARNING}PortalBot Version: {git_version}{ConsoleColors.ENDC}
+        {database_message}
+
+        {ConsoleColors.OKCYAN}Current Time: {now}{ConsoleColors.ENDC}
+        {ConsoleColors.OKGREEN}Initialization complete: Cogs, libraries, and views have successfully been loaded.{ConsoleColors.ENDC}
+        ==================================================
+        {ConsoleColors.WARNING}Statistics{ConsoleColors.ENDC}
+        Guilds: {len(bot.guilds)}
+        Members: {len(bot.users)}
+        """
+    )
 
 
 async def preload_bot_data(bot: "PortalBot"):
