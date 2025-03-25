@@ -59,8 +59,8 @@ class BackupRegularCommands(commands.Cog):
         _log.debug(f"Confirmation value: {view.value} from user {ctx.author}")
         return view.value
 
-    @commands.command()
     @has_admin_level(3)
+    @commands.command()
     async def sync(
         self,
         ctx: commands.Context,
