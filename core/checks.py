@@ -30,8 +30,13 @@ def has_admin_level(required_level: int):
     """
 
     def predicate(obj: Union[Context, Interaction]) -> bool:
-        user_id = obj.author.id if isinstance(obj, Context) else obj.user.id
-        _log.debug(f"Checking admin level {required_level} for user {user_id}")
+        if isinstance(obj, Context):
+            user_id = obj.author.id
+        elif isinstance(obj, Interaction):
+            user_id = obj.user.id
+        else:
+            _log.error(f"has_admin_level received unsupported object type: {type(obj)}")
+            return False
 
         try:
             database.db.connect(reuse_if_open=True)
