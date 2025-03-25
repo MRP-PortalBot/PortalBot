@@ -170,32 +170,6 @@ class ButtonHandler(ui.Button):
             )
 
 
-# Console Colors for Logging Output
-class ConsoleColors:
-    HEADER = "\033[95m"
-    OKBLUE = "\033[94m"
-    OKCYAN = "\033[96m"
-    OKGREEN = "\033[92m"
-    WARNING = "\033[93m"
-    FAIL = "\033[91m"
-    ENDC = "\033[0m"
-    BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
-
-
-# Other Utility Classes
-class Colors:
-    red = discord.Color.red()
-
-
-class Others:
-    error_png = "https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/sign-error-icon.png"
-
-
-class Me:
-    TracebackChannel = 797193549992165456
-
-
 # Function to Calculate Level Based on Score
 def calculate_level(score: int) -> Tuple[int, float, int]:
     """

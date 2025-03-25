@@ -14,12 +14,12 @@ from discord.ext import commands
 
 from core import database
 from core.common import (
-    Colors,
     Others,
     get_cached_bot_data,
     get_bot_data_for_server,
     get_permitlist,
 )
+from core.constants import ConsoleColors, EmbedColors, BotAssets, Dev
 from core.logging_module import get_log
 from core.utils.embeds import (
     permission_error_embed,
@@ -49,9 +49,11 @@ async def on_ready_(bot: "PortalBot"):
         initialize_persistent_views(bot, bot_data)
 
     database_source = "External" if not os.getenv("USEREAL") else "localhost"
-    db_color = Colors.OKGREEN if database_source == "External" else Colors.FAIL
+    db_color = (
+        ConsoleColors.OKGREEN if database_source == "External" else ConsoleColors.FAIL
+    )
     db_warning = (
-        f"{Colors.WARNING}WARNING: Not recommended to use SQLite.{Colors.ENDC}"
+        f"{ConsoleColors.WARNING}WARNING: Not recommended to use SQLite.{ConsoleColors.ENDC}"
         if database_source == "localhost"
         else ""
     )

@@ -5,7 +5,8 @@ from discord import ui, ButtonStyle
 from discord.ext import commands
 from core import database
 from core.checks import has_admin_level
-from core.common import Colors, ButtonHandler
+from core.common import ButtonHandler
+from core.constants import EmbedColors
 from core.logging_module import get_log
 
 _log = get_log(__name__)
@@ -132,7 +133,7 @@ class BackupRegularCommands(commands.Cog):
                         _log.error(f"Error occurred during {action} sync: {e}")
                         await interaction.followup.send(
                             embed=discord.Embed(
-                                color=Colors.red,
+                                color=EmbedColors.red,
                                 title="Sync Error",
                                 description=f"An error occurred while syncing commands: {str(e)}",
                             )
@@ -142,7 +143,9 @@ class BackupRegularCommands(commands.Cog):
                     _log.info(f"Sync canceled by {interaction.user}.")
                     await interaction.response.edit_message(
                         embed=discord.Embed(
-                            color=Colors.red, title="Sync", description="Sync canceled."
+                            color=EmbedColors.red,
+                            title="Sync",
+                            description="Sync canceled.",
                         ),
                         view=None,
                     )
