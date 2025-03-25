@@ -69,8 +69,8 @@ class CoreBotConfig(commands.Cog):
                 database.db.close()
                 _log.debug("Database connection closed after fetching admins.")
 
-    @has_admin_level(1)
     @PM.command(description="Lists all permit levels and users.")
+    @has_admin_level(1)
     async def list(self, interaction: discord.Interaction):
         try:
             _log.info(f"{interaction.user} requested the permit list.")
@@ -102,9 +102,9 @@ class CoreBotConfig(commands.Cog):
                 "An error occurred while retrieving the permit list.", ephemeral=True
             )
 
-    @has_admin_level(4)
     @PM.command(description="Remove a user from the Bot Administrators list.")
     @app_commands.describe(user="The user to remove from the Bot Administrators list.")
+    @has_admin_level(4)
     async def remove(self, interaction: discord.Interaction, user: discord.User):
         try:
             _log.info(f"{interaction.user} is attempting to remove {user}.")
@@ -144,12 +144,12 @@ class CoreBotConfig(commands.Cog):
                 database.db.close()
                 _log.debug("Database connection closed after removing user.")
 
-    @has_admin_level(4)
     @PM.command(description="Add a user to the Bot Administrators list.")
     @app_commands.describe(
         user="The user to add to the Bot Administrators list.",
         level="Permit level to assign.",
     )
+    @has_admin_level(4)
     async def add(
         self, interaction: discord.Interaction, user: discord.User, level: int
     ):
@@ -213,11 +213,11 @@ class CoreBotConfig(commands.Cog):
     )
 
     # Command to set the cooldown time
-    @has_admin_level(3)
     @BC.command(
         name="set_cooldown",
         description="Set the server score cooldown time (in seconds).",
     )
+    @has_admin_level(3)    
     async def set_cooldown(self, interaction: discord.Interaction, cooldown: int):
         bot_data = await get_bot_data_for_server(interaction.guild.id)
         if bot_data:
@@ -236,11 +236,11 @@ class CoreBotConfig(commands.Cog):
             )
 
     # Command to set points per message
-    @has_admin_level(3)
     @BC.command(
         name="set_points",
         description="Set the server score points per message, Set the min (max = min * 3).",
     )
+    @has_admin_level(3)
     async def set_points(self, interaction: discord.Interaction, points: int):
         bot_data = await get_bot_data_for_server(interaction.guild.id)
         if bot_data:
@@ -255,11 +255,11 @@ class CoreBotConfig(commands.Cog):
             _log.error(f"BotData not found while setting points by {interaction.user}.")
 
     # Command to add a blocked channel
-    @has_admin_level(3)
     @BC.command(
         name="add_blocked_channel",
         description="Add a channel to the block list for server score.",
     )
+    @has_admin_level(3)
     async def add_blocked_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
@@ -309,11 +309,11 @@ class CoreBotConfig(commands.Cog):
             )
 
     # Command to remove a blocked channel
-    @has_admin_level(3)
     @BC.command(
         name="remove_blocked_channel",
         description="Remove a channel from the block list for server score.",
     )
+    @has_admin_level(3)
     async def remove_blocked_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
@@ -340,10 +340,10 @@ class CoreBotConfig(commands.Cog):
                 f"BotData not found while removing blocked channel by {interaction.user}."
             )
 
-    @has_admin_level(3)
     @BC.command(
         name="view", description="View current bot configuration for this guild."
     )
+    @has_admin_level(3)
     async def view_config(self, interaction: discord.Interaction):
         bot_data = await get_bot_data_for_server(interaction.guild.id)
 

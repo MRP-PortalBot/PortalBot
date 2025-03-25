@@ -20,26 +20,35 @@ REALM_CATEGORY_ID = 587627871216861244
 
 def has_admin_level(required_level: int):
     """
-    Universal decorator to enforce minimum admin level.
-    Works with both command and app_command functions.
+    Permission check decorator that supports both app_commands and regular commands.
+    Can be applied to:
+    - app_commands.command()
+    - commands.command()
+    - raw async def functions
     """
 
     def predicate(obj: Union[Context, Interaction]) -> bool:
         try:
-            if isinstance(obj, Context):
-                user_id = obj.author.id
-            elif isinstance(obj, Interaction):
-                user_id = obj.user.id
-            else:
+            user_id = (
+                obj.author.id
+                if isinstance(obj, Context)
+                else obj.user.id if isinstance(obj, Interaction) else None
+            )
+
+            if user_id is None:
                 _log.error(f"has_admin_level: Unsupported object type {type(obj)}")
                 return False
 
             database.db.connect(reuse_if_open=True)
-            query = database.Administrators.select().where(
-                (database.Administrators.TierLevel >= required_level)
-                & (database.Administrators.discordID == user_id)
+            result = (
+                database.Administrators.select()
+                .where(
+                    (database.Administrators.TierLevel >= required_level)
+                    & (database.Administrators.discordID == user_id)
+                )
+                .exists()
             )
-            result = query.exists()
+
             _log.info(
                 f"Admin check {'passed' if result else 'failed'} for user {user_id} (level {required_level})"
             )
@@ -53,14 +62,19 @@ def has_admin_level(required_level: int):
                 database.db.close()
 
     def decorator(func: Callable):
-        # For app_commands
+        # Slash command style
         if isinstance(func, app_commands.Command):
             return app_commands.check(predicate)(func)
 
-        # For commands.command (function at this point)
+        # Prefix command style — return Command object
+        if isinstance(func, commands.Command):
+            return commands.check(predicate)(func)
+
+        # Raw async function (fallback)
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            ctx_or_interaction = args[0]  # should be Context or Interaction
+            ctx_or_interaction = args[0]
+
             if predicate(ctx_or_interaction):
                 return await func(*args, **kwargs)
 

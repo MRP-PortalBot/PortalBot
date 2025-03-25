@@ -291,7 +291,6 @@ class RealmCMD(commands.Cog):
         name="realm_channel", description="Realm/Server channel commands."
     )
 
-    @has_admin_level(3)
     @RC.command(
         name="create_realm_channel",
         description="create a new realm via an application.",
@@ -299,6 +298,7 @@ class RealmCMD(commands.Cog):
     @app_commands.describe(
         app_number="Application number that corresponds with the realm you're trying to create."
     )
+    @has_admin_level(3)
     async def create_realm(self, interaction: discord.Interaction, app_number: int):
         await interaction.response.defer(thinking=True)
         bot_data = get_cached_bot_data(interaction.guild.id)
@@ -437,9 +437,9 @@ class RealmCMD(commands.Cog):
             embed.set_thumbnail(url=user.avatar.url)
             await interaction.followup.send(embed=embed)
 
+    @RC.command()
     @slash_check_MRP
     @has_admin_level(3)
-    @RC.command()
     async def newrealm2(
         self,
         interaction: discord.Interaction,
