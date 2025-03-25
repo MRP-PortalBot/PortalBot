@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 from core.logging_module import get_log
 import json
 
+from core.common import get_bot_data_for_server
+
 from core import database
 from core.checks import has_admin_level
 
@@ -151,6 +153,12 @@ class CoreBotConfig(commands.Cog):
     async def add(
         self, interaction: discord.Interaction, user: discord.User, level: int
     ):
+        if level not in (1, 2, 3, 4):
+            await interaction.response.send_message(
+                "Permit level must be 1–4.", ephemeral=True
+            )
+            return
+
         try:
             _log.info(
                 f"{interaction.user} is attempting to add {user} with permit level {level}."
@@ -198,12 +206,6 @@ class CoreBotConfig(commands.Cog):
                 database.db.close()
                 _log.debug("Database connection closed after adding/updating user.")
 
-    # Helper function to fetch bot data
-    async def get_bot_data(self):
-        return database.BotData.get_or_none(
-            database.BotData.id == 1
-        )  # Fetch the bot data row (assuming a single row for config)
-
     # Group for bot configuration commands
     BC = app_commands.Group(
         name="configure",
@@ -217,7 +219,7 @@ class CoreBotConfig(commands.Cog):
     )
     @has_admin_level(3)
     async def set_cooldown(self, interaction: discord.Interaction, cooldown: int):
-        bot_data = await self.get_bot_data()
+        bot_data = await get_bot_data_for_server(interaction.guild.id)
         if bot_data:
             bot_data.cooldown_time = cooldown
             bot_data.save()
@@ -240,7 +242,7 @@ class CoreBotConfig(commands.Cog):
     )
     @has_admin_level(3)
     async def set_points(self, interaction: discord.Interaction, points: int):
-        bot_data = await self.get_bot_data()
+        bot_data = await get_bot_data_for_server(interaction.guild.id)
         if bot_data:
             bot_data.points_per_message = points
             bot_data.save()
@@ -261,15 +263,18 @@ class CoreBotConfig(commands.Cog):
     async def add_blocked_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
-        bot_data = await self.get_bot_data()
+        bot_data = await get_bot_data_for_server(interaction.guild.id)
         if bot_data:
             try:
                 # Ensure blocked_channels is a valid JSON list or initialize it as an empty list
-                if not bot_data.blocked_channels:
-                    blocked_channels = []
-                else:
-                    # Deserialize blocked_channels into a list
-                    blocked_channels = json.loads(bot_data.blocked_channels)
+                try:
+                    blocked_channels = json.loads(bot_data.blocked_channels or "[]")
+                except json.JSONDecodeError as e:
+                    _log.error(f"Failed to parse blocked channels list: {e}")
+                    await interaction.response.send_message(
+                        "Blocked channel list is corrupted."
+                    )
+                    return
 
                 # Ensure all elements are integers
                 blocked_channels = [int(channel_id) for channel_id in blocked_channels]
@@ -312,7 +317,7 @@ class CoreBotConfig(commands.Cog):
     async def remove_blocked_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
-        bot_data = await self.get_bot_data()
+        bot_data = await get_bot_data_for_server(interaction.guild.id)
         if bot_data:
             blocked_channels = bot_data.get_blocked_channels()
             if channel.id in blocked_channels:
@@ -334,6 +339,64 @@ class CoreBotConfig(commands.Cog):
             _log.error(
                 f"BotData not found while removing blocked channel by {interaction.user}."
             )
+
+    @BC.command(
+        name="view", description="View current bot configuration for this guild."
+    )
+    @has_admin_level(3)
+    async def view_config(self, interaction: discord.Interaction):
+        bot_data = await get_bot_data_for_server(interaction.guild.id)
+
+        if not bot_data:
+            await interaction.response.send_message(
+                "BotData not found.", ephemeral=True
+            )
+            _log.warning(f"BotData not found for guild {interaction.guild.id}.")
+            return
+
+        # Parse blocked channel list
+        try:
+            blocked_channel_ids = bot_data.get_blocked_channels()
+        except Exception as e:
+            _log.error(f"Failed to parse blocked_channels: {e}")
+            blocked_channel_ids = []
+
+        # Format channel mentions
+        blocked_mentions = []
+        for cid in blocked_channel_ids:
+            channel = interaction.guild.get_channel(cid)
+            blocked_mentions.append(channel.mention if channel else f"`{cid}`")
+
+        # Build the embed
+        embed = discord.Embed(
+            title=f"🔧 Bot Configuration: {interaction.guild.name}",
+            color=discord.Color.blurple(),
+        )
+        embed.add_field(
+            name="⏱️ Cooldown Time",
+            value=f"{bot_data.cooldown_time} seconds",
+            inline=True,
+        )
+        embed.add_field(
+            name="🏅 Points per Message",
+            value=str(bot_data.points_per_message),
+            inline=True,
+        )
+        embed.add_field(
+            name="🚫 Blocked Channels",
+            value=(
+                "\n".join(blocked_mentions)
+                if blocked_mentions
+                else "*None configured.*"
+            ),
+            inline=False,
+        )
+        embed.set_footer(text="Use /configure to update these settings.")
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        _log.info(
+            f"Sent bot configuration to {interaction.user} in {interaction.guild.name}."
+        )
 
 
 async def setup(bot):

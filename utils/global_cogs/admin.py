@@ -38,7 +38,14 @@ class AdminCMD(commands.Cog):
 
             with db.open(mode="rb") as f:
                 file = discord.File(f, "database.db")
-                await interaction.user.send(file=file)
+                try:
+                    await interaction.user.send(file=file)
+                except discord.Forbidden:
+                    await interaction.response.send_message(
+                        "I couldn't send the file to your DMs. Please enable DMs or contact an admin.",
+                        ephemeral=True,
+                    )
+                    return
 
             await interaction.response.send_message(
                 "Database file sent to your DMs.", ephemeral=True
@@ -105,7 +112,7 @@ class AdminCMD(commands.Cog):
                 )
                 return
 
-            if not interaction.message.attachments:
+            if not interaction.attachments:
                 _log.warning(
                     f"{interaction.user} attempted to replace the database file but no file was attached."
                 )
@@ -121,7 +128,21 @@ class AdminCMD(commands.Cog):
 
             # Save the new database file from attachment
             with db.open(mode="wb+") as f:
-                await interaction.message.attachments[0].save(f)
+                attachment = interaction.attachments[0]
+
+                if not attachment.filename.endswith(".db"):
+                    await interaction.response.send_message(
+                        "File must be a `.db` file.", ephemeral=True
+                    )
+                    return
+
+                if attachment.size > 10 * 1024 * 1024:  # 10 MB limit (adjust as needed)
+                    await interaction.response.send_message(
+                        "Database file is too large.", ephemeral=True
+                    )
+                    return
+
+                await interaction.attachments[0].save(f)
 
             await interaction.response.send_message(
                 "Database file replaced.", ephemeral=True

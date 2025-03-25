@@ -90,7 +90,7 @@ class Events(commands.Cog):
             count = member.guild.member_count
             embed = discord.Embed(
                 title=f"Welcome to {member.guild.name}!",
-                description=f"**{str(member.display_name)}** is the **{str(count)}**th member!",
+                description=f"**{member.mention}** is the **{str(count)}** member!",
                 color=0xB10D9F,
             )
             embed.add_field(
