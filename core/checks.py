@@ -19,17 +19,15 @@ REALM_CATEGORY_ID = 587627871216861244
 
 
 def has_admin_level(required_level: int):
-    def predicate(obj: Union[Context, Interaction]) -> bool:
-        try:
-            user_id = None
-            if isinstance(obj, Context):
-                user_id = obj.author.id
-            elif isinstance(obj, Interaction):
-                user_id = obj.user.id
-            else:
-                _log.error(f"has_admin_level: Unsupported object type {type(obj)}")
-                return False
+    def get_user_id(obj: Union[Context, Interaction]) -> int | None:
+        if isinstance(obj, Context):
+            return obj.author.id
+        elif isinstance(obj, Interaction):
+            return obj.user.id
+        return None
 
+    def check_permission(user_id: int) -> bool:
+        try:
             database.db.connect(reuse_if_open=True)
             result = (
                 database.Administrators.select()
@@ -39,43 +37,39 @@ def has_admin_level(required_level: int):
                 )
                 .exists()
             )
-
             _log.info(
                 f"Admin check {'passed' if result else 'failed'} for user {user_id} (level {required_level})"
             )
             return result
-
         except OperationalError as e:
-            _log.error(f"Database error in has_admin_level: {e}")
+            _log.error(f"Database error during admin check: {e}")
             return False
         finally:
             if not database.db.is_closed():
                 database.db.close()
 
+    # The actual decorator to wrap the target function
     def decorator(func: Callable):
+        # If it's a slash command, use app_commands.check
         if isinstance(func, app_commands.Command):
-            return app_commands.check(predicate)(func)
+            return app_commands.check(lambda i: check_permission(get_user_id(i)))(func)
 
+        # Otherwise, wrap and apply commands.check manually
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            ctx_or_interaction = None
+            ctx_or_interaction = next(
+                (arg for arg in args if isinstance(arg, (Context, Interaction))), None
+            )
 
-            # Support method-style commands (self, ctx)
-            for arg in args:
-                if isinstance(arg, (Context, Interaction)):
-                    ctx_or_interaction = arg
-                    break
-
-            if ctx_or_interaction is None:
-                _log.error(
-                    f"has_admin_level: Could not find Context or Interaction in args: {args}"
-                )
+            if not ctx_or_interaction:
+                _log.error("No Context or Interaction found in arguments.")
                 return
 
-            if predicate(ctx_or_interaction):
+            user_id = get_user_id(ctx_or_interaction)
+            if user_id and check_permission(user_id):
                 return await func(*args, **kwargs)
 
-            _log.warning(f"User failed permission check for: {func.__name__}")
+            _log.warning(f"Permission denied for {func.__name__} by user {user_id}")
             if isinstance(ctx_or_interaction, Context):
                 await ctx_or_interaction.send(
                     "You do not have permission to use this command."
@@ -85,7 +79,8 @@ def has_admin_level(required_level: int):
                     "You do not have permission to use this command.", ephemeral=True
                 )
 
-        return commands.check(lambda ctx: predicate(ctx))(wrapper)
+        # Apply check to the wrapped function
+        return commands.check(lambda ctx: check_permission(get_user_id(ctx)))(wrapper)
 
     return decorator
 
