@@ -13,7 +13,6 @@ import json
 from pathlib import Path
 
 import discord
-import xbox
 from alive_progress import alive_bar
 from discord import app_commands
 from discord.ext import commands
