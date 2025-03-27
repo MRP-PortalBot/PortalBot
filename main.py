@@ -70,7 +70,7 @@ class PBCommandTree(app_commands.CommandTree):
         self.bot = bot
 
     async def interaction_check(self, interaction: discord.Interaction, /) -> bool:
-        if interaction.user.display_avatar.is_default():
+        if interaction.user.display_avatar == interaction.user.default_avatar:
             await interaction.response.send_message(
                 "Due to a Discord limitation, you must have an avatar set to use this command."
             )
