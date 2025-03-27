@@ -86,7 +86,7 @@ class HelpCMD(commands.Cog):
         _log.info("HelpCMD Cog initialized.")
 
     help_group = app_commands.Group(
-        name="help", description="Help commands", guild_only=False, fallback=None
+        name="help", description="Help commands", guild_only=False
     )
 
     def categorize_commands(self, admin_only=False, operator_only=False):
