@@ -89,25 +89,28 @@ class HelpCMD(commands.Cog):
 
     def categorize_commands(self, admin_only=False, operator_only=False):
         categorized_commands = {}
+
         for command in self.bot.tree.walk_commands():
             command_checks = getattr(command, "checks", [])
             admin_level = None
             is_operator_command = False
 
             for check in command_checks:
-                if check.__closure__:
-                    for closure_cell in check.__closure__:
-                        check_value = closure_cell.cell_contents
-                        if isinstance(check_value, int):
-                            admin_level = check_value
-                        if isinstance(check_value, str) and check_value in [
-                            "Realm OP",
-                            "Moderator",
-                        ]:
-                            is_operator_command = True
-                        if isinstance(check_value, str) and check_value.endswith(" OP"):
+                # Log the check function
+                _log.debug(f"Examining check: {check} for command {command.name}")
+                if hasattr(check, "__closure__") and check.__closure__:
+                    for cell in check.__closure__:
+                        val = cell.cell_contents
+                        if isinstance(val, int):
+                            admin_level = val
+                        if isinstance(val, str) and val.endswith(" OP"):
                             is_operator_command = True
 
+            _log.debug(
+                f"Command {command.name} | Admin level: {admin_level} | Operator: {is_operator_command}"
+            )
+
+            # Filtering logic
             if admin_only and admin_level is None:
                 continue
             if operator_only and not is_operator_command:
@@ -124,6 +127,7 @@ class HelpCMD(commands.Cog):
                 categorized_commands[parent_name] = []
             categorized_commands[parent_name].append((command, admin_level))
 
+        _log.debug(f"Total categories: {len(categorized_commands)}")
         return categorized_commands
 
     @help_group.command(description="Display the general help menu.")
