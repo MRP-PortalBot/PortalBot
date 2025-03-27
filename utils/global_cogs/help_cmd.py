@@ -128,10 +128,6 @@ class HelpCMD(commands.Cog):
 
         return categorized_commands
 
-    @app_commands.command(name="help", description="Show the general help menu.")
-    async def help_entry(self, interaction: discord.Interaction):
-        await self.general(interaction)
-
     @help_group.command(description="Display the general help menu.")
     async def general(self, interaction: discord.Interaction):
         try:
