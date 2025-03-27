@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
 from discord import app_commands, ui
-from core.logging_module import get_log  # Import your logging module
+from difflib import get_close_matches
+from core.logging_module import get_log
 from core.checks import slash_is_realm_op, slash_owns_realm_channel
 
 _log = get_log(__name__)
@@ -14,30 +15,20 @@ class HelpPaginator(ui.View):
         super().__init__(timeout=60)
         self.bot = bot
         self.interaction = interaction
-        self.command_groups = (
-            command_groups  # List of tuples with (category_name, [commands])
-        )
+        self.command_groups = command_groups
         self.per_page = per_page
         self.page = 0
         self.total_pages = (
             len(self.command_groups) + self.per_page - 1
         ) // self.per_page
 
-        # Initial button states
         self.first.disabled = self.page == 0
         self.previous.disabled = self.page == 0
         self.next.disabled = self.page >= self.total_pages - 1
         self.last.disabled = self.page >= self.total_pages - 1
 
-        _log.debug(f"Paginator initialized with {len(command_groups)} command groups.")
-
     async def update_embed(self):
-        """Helper function to update the embed."""
         try:
-            _log.debug(
-                f"Updating help embed for page {self.page + 1}/{self.total_pages}."
-            )
-
             embed = discord.Embed(
                 title="Help Menu",
                 description="Use the buttons below to navigate through the commands",
@@ -55,7 +46,6 @@ class HelpPaginator(ui.View):
             embed.set_footer(text=f"Page {self.page + 1}/{self.total_pages}")
             await self.interaction.edit_original_response(embed=embed, view=self)
 
-            # Update button states
             self.first.disabled = self.page == 0
             self.previous.disabled = self.page == 0
             self.next.disabled = self.page >= self.total_pages - 1
@@ -69,31 +59,23 @@ class HelpPaginator(ui.View):
     @ui.button(label="⏮️ First", style=discord.ButtonStyle.green)
     async def first(self, interaction: discord.Interaction, button: ui.Button):
         self.page = 0
-        _log.debug(f"User {interaction.user} navigated to first page.")
         await self.update_embed()
 
     @ui.button(label="◀️ Previous", style=discord.ButtonStyle.blurple)
     async def previous(self, interaction: discord.Interaction, button: ui.Button):
         if self.page > 0:
             self.page -= 1
-            _log.debug(
-                f"User {interaction.user} navigated to previous page: {self.page + 1}."
-            )
         await self.update_embed()
 
     @ui.button(label="▶️ Next", style=discord.ButtonStyle.blurple)
     async def next(self, interaction: discord.Interaction, button: ui.Button):
         if self.page < self.total_pages - 1:
             self.page += 1
-            _log.debug(
-                f"User {interaction.user} navigated to next page: {self.page + 1}."
-            )
         await self.update_embed()
 
     @ui.button(label="⏭️ Last", style=discord.ButtonStyle.green)
     async def last(self, interaction: discord.Interaction, button: ui.Button):
         self.page = self.total_pages - 1
-        _log.debug(f"User {interaction.user} navigated to last page.")
         await self.update_embed()
 
 
@@ -103,7 +85,9 @@ class HelpCMD(commands.Cog):
         self._log = get_log(__name__)
         _log.info("HelpCMD Cog initialized.")
 
-    help_group = app_commands.Group(name="help", description="Help commands")
+    help_group = app_commands.Group(
+        name="help", description="Help commands", guild_only=False, fallback=None
+    )
 
     def categorize_commands(self, admin_only=False, operator_only=False):
         categorized_commands = {}
@@ -112,7 +96,6 @@ class HelpCMD(commands.Cog):
             admin_level = None
             is_operator_command = False
 
-            # Detect admin and operator commands
             for check in command_checks:
                 if check.__closure__:
                     for closure_cell in check.__closure__:
@@ -127,7 +110,6 @@ class HelpCMD(commands.Cog):
                         if isinstance(check_value, str) and check_value.endswith(" OP"):
                             is_operator_command = True
 
-            # Filtering logic
             if admin_only and admin_level is None:
                 continue
             if operator_only and not is_operator_command:
@@ -144,16 +126,15 @@ class HelpCMD(commands.Cog):
                 categorized_commands[parent_name] = []
             categorized_commands[parent_name].append((command, admin_level))
 
-        _log.debug(
-            f"Categorized commands for admin_only={admin_only}, operator_only={operator_only}"
-        )
         return categorized_commands
 
-    # General help command
+    @app_commands.command(name="help", description="Show the general help menu.")
+    async def help_entry(self, interaction: discord.Interaction):
+        await self.general(interaction)
+
     @help_group.command(description="Display the general help menu.")
     async def general(self, interaction: discord.Interaction):
         try:
-            self._log.info(f"{interaction.user} requested the general help command.")
             categorized_commands = self.categorize_commands(
                 admin_only=False, operator_only=False
             )
@@ -187,19 +168,16 @@ class HelpCMD(commands.Cog):
                 ephemeral=True,
             )
 
-    # Admin help command
     @help_group.command(description="Display the admin help menu.")
     async def admin(self, interaction: discord.Interaction):
         try:
-            self._log.info(f"{interaction.user} requested the admin help command.")
             categorized_commands = self.categorize_commands(admin_only=True)
 
-            # Admin levels to color mapping
             level_colors = {
-                1: "🟩",  # Basic admin privileges
-                2: "🟨",  # Elevated admin privileges
-                3: "🟧",  # High admin privileges
-                4: "🟥",  # Full admin privileges
+                1: "🟩",
+                2: "🟨",
+                3: "🟧",
+                4: "🟥",
             }
 
             embed = discord.Embed(
@@ -208,7 +186,6 @@ class HelpCMD(commands.Cog):
                 color=discord.Color.red(),
             )
 
-            # Loop through the command groups and display commands within each group
             for category, commands in categorized_commands.items():
                 command_list = "\n".join(
                     f"{level_colors.get(level, '⚪')} /{cmd.name} - {cmd.description}"
@@ -216,11 +193,10 @@ class HelpCMD(commands.Cog):
                 )
                 embed.add_field(
                     name=f"🔹 {category}",
-                    value=command_list if command_list else "No commands available.",
+                    value=command_list or "No commands available.",
                     inline=False,
                 )
 
-            # Add the color-coded admin levels key at the bottom
             embed.add_field(
                 name="Admin Levels Key",
                 value=(
@@ -233,7 +209,6 @@ class HelpCMD(commands.Cog):
             )
 
             await interaction.response.send_message(embed=embed)
-            _log.info("Admin help command displayed successfully.")
 
         except Exception as e:
             self._log.error(f"Error in admin help command for {interaction.user}: {e}")
@@ -242,11 +217,9 @@ class HelpCMD(commands.Cog):
                 ephemeral=True,
             )
 
-    # Operator help command
     @help_group.command(description="Display the operator help menu.")
     async def operator(self, interaction: discord.Interaction):
         try:
-            self._log.info(f"{interaction.user} requested the operator help command.")
             categorized_commands = self.categorize_commands(operator_only=True)
             command_groups = [
                 (category, commands_list)
@@ -268,7 +241,6 @@ class HelpCMD(commands.Cog):
             embed.set_footer(text="Page 1/{}".format((len(command_groups) + 4) // 5))
             view = HelpPaginator(self.bot, interaction, command_groups)
             await interaction.response.send_message(embed=embed, view=view)
-            _log.info("Operator help command displayed successfully.")
 
         except Exception as e:
             self._log.error(
@@ -278,6 +250,68 @@ class HelpCMD(commands.Cog):
                 "Sorry, something went wrong while trying to display the operator help menu.",
                 ephemeral=True,
             )
+
+    @help_group.command(
+        name="search", description="Look up detailed help for a specific command."
+    )
+    @app_commands.describe(name="The name of the command to search for.")
+    async def search(self, interaction: discord.Interaction, name: str):
+        try:
+            all_commands = list(self.bot.tree.walk_commands())
+            match = discord.utils.find(lambda c: c.name == name, all_commands)
+
+            # If no exact match, try fuzzy matching
+            if not match:
+                names = [c.name for c in all_commands]
+                close_matches = get_close_matches(name, names, n=1)
+                if close_matches:
+                    match = discord.utils.find(
+                        lambda c: c.name == close_matches[0], all_commands
+                    )
+
+            if not match:
+                await interaction.response.send_message(
+                    f"❌ Command `{name}` not found.", ephemeral=True
+                )
+                return
+
+            embed = discord.Embed(
+                title=f"Help: /{match.name}",
+                description=match.description or "No description available.",
+                color=discord.Color.blurple(),
+            )
+
+            if match.parameters:
+                for param in match.parameters:
+                    embed.add_field(
+                        name=f"`{param.name}`",
+                        value=f"Required: `{param.required}`\nType: `{param.type}`\n{param.description or ''}",
+                        inline=False,
+                    )
+
+            # Include aliases if present
+            aliases = getattr(match, "aliases", [])
+            if aliases:
+                embed.add_field(
+                    name="Aliases",
+                    value=", ".join(f"`{a}`" for a in aliases),
+                    inline=False,
+                )
+
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+        except Exception as e:
+            self._log.error(f"Error in /help search: {e}", exc_info=True)
+            await interaction.response.send_message(
+                "Something went wrong while searching for that command.",
+                ephemeral=True,
+            )
+
+    @search.autocomplete("name")
+    async def search_autocomplete(self, interaction: discord.Interaction, current: str):
+        names = [cmd.name for cmd in self.bot.tree.walk_commands()]
+        matches = get_close_matches(current, names, n=10)
+        return [app_commands.Choice(name=m, value=m) for m in matches]
 
 
 async def setup(bot):
