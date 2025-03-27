@@ -39,7 +39,7 @@ class HelpPaginator(ui.View):
             end = start + self.per_page
             for category, commands in self.command_groups[start:end]:
                 command_list = "\n".join(
-                    [f"/{cmd.name} - {cmd.description}" for cmd in commands if cmd]
+                    [f"/{cmd.name} - {cmd.description}" for cmd, _ in commands if cmd]
                 )
                 embed.add_field(name=f"🔹 {category}", value=command_list, inline=False)
 
@@ -52,9 +52,7 @@ class HelpPaginator(ui.View):
             self.last.disabled = self.page >= self.total_pages - 1
 
         except Exception as e:
-            self.bot._log.error(
-                f"Error updating help embed for {self.interaction.user}: {e}"
-            )
+            _log.error(f"Error updating help embed for {self.interaction.user}: {e}")
 
     @ui.button(label="⏮️ First", style=discord.ButtonStyle.green)
     async def first(self, interaction: discord.Interaction, button: ui.Button):
