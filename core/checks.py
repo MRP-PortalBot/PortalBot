@@ -19,16 +19,9 @@ REALM_CATEGORY_ID = 587627871216861244
 
 
 def has_admin_level(required_level: int):
-    """
-    Permission check decorator that supports both app_commands and regular commands.
-    Can be applied to:
-    - app_commands.command()
-    - commands.command()
-    - raw async def functions
-    """
-
     def predicate(obj: Union[Context, Interaction]) -> bool:
         try:
+            user_id = None
             if isinstance(obj, Context):
                 user_id = obj.author.id
             elif isinstance(obj, Interaction):
@@ -60,18 +53,24 @@ def has_admin_level(required_level: int):
                 database.db.close()
 
     def decorator(func: Callable):
-        # Slash command style
         if isinstance(func, app_commands.Command):
             return app_commands.check(predicate)(func)
 
-        # Prefix command style — return Command object
-        if isinstance(func, commands.Command):
-            return commands.check(predicate)(func)
-
-        # Raw async function (fallback)
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            ctx_or_interaction = args[0]
+            ctx_or_interaction = None
+
+            # Support method-style commands (self, ctx)
+            for arg in args:
+                if isinstance(arg, (Context, Interaction)):
+                    ctx_or_interaction = arg
+                    break
+
+            if ctx_or_interaction is None:
+                _log.error(
+                    f"has_admin_level: Could not find Context or Interaction in args: {args}"
+                )
+                return
 
             if predicate(ctx_or_interaction):
                 return await func(*args, **kwargs)
@@ -86,7 +85,7 @@ def has_admin_level(required_level: int):
                     "You do not have permission to use this command.", ephemeral=True
                 )
 
-        return wrapper
+        return commands.check(lambda ctx: predicate(ctx))(wrapper)
 
     return decorator
 
