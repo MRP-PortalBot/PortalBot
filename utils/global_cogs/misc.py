@@ -90,6 +90,8 @@ class MiscCMD(commands.Cog):
 
     ##======================================================Rule Command [INT]===========================================================
     @app_commands.command(name="rule", description="Sends out MRP Server Rules")
+    @app_commands.describe(number="The rule number to display")
+    @app_commands.autocomplete(number=lambda i, c: [app_commands.Choice(name=f"Rule {i+1}", value=i+1) for i in range(len(rules))])
     async def rule(self, interaction: discord.Interaction, number: int = None):
         """Send the requested server rule."""
         try:
@@ -168,6 +170,12 @@ class MiscCMD(commands.Cog):
         - message_link: Link to the message the user wants to be reminded about.
         - remind_after: Duration after which the user wants to be reminded (e.g., '10m', '2h').
         """
+        if not message_link.startswith("https://discord.com/channels/"):
+            await interaction.response.send_message(
+                "Please provide a valid Discord message link.", ephemeral=True
+            )
+            return
+
         try:
             # Parse the remind_after input
             time_units = {"s": 1, "m": 60, "h": 3600, "d": 86400}

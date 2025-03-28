@@ -318,6 +318,15 @@ class Reminder(BaseModel):
     remind_at = TimestampField()  # When to send the reminder
 
 
+class GuildRules(BaseModel):
+    guild_id = IntegerField()
+    rule_number = IntegerField()
+    rule_text = TextField()
+
+    class Meta:
+        indexes = ((("guild_id", "rule_number"), True),)  # Unique rule number per guild
+
+
 # Flask app initialization
 app = Flask(__name__)
 
@@ -363,4 +372,3 @@ if __name__ == "__main__":
     except Exception as e:
         _log.error(f"Error during table creation: {e}")
         raise SystemExit(e)
-
