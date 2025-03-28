@@ -91,7 +91,6 @@ class MiscCMD(commands.Cog):
     ##======================================================Rule Command [INT]===========================================================
     @app_commands.command(name="rule", description="Sends out MRP Server Rules")
     @app_commands.describe(number="The rule number to display")
-    @app_commands.autocomplete(number=lambda i, c: [app_commands.Choice(name=f"Rule {i+1}", value=i+1) for i in range(len(rules))])
     async def rule(self, interaction: discord.Interaction, number: int = None):
         """Send the requested server rule."""
         try:
