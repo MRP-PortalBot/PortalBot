@@ -363,7 +363,7 @@ tables = {
     "realmapplications": RealmApplications,
     "botdata": BotData,
     "reminders": Reminder,
-    "guildrules": GuildRules
+    "guildrules": GuildRules,
 }
 
 # Call the table creation function
