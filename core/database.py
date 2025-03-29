@@ -150,6 +150,8 @@ class BotData(BaseModel):
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
     points_per_message = IntegerField(default=10)  # Default is 10 points
     blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs
+    rule_channel = IntegerField(null=True)
+    rule_message_id = IntegerField(null=True)
 
     def get_blocked_channels(self):
         return json.loads(self.blocked_channels)
@@ -318,13 +320,11 @@ class Reminder(BaseModel):
     remind_at = TimestampField()  # When to send the reminder
 
 
-class GuildRules(BaseModel):
+class Rule(BaseModel):
     guild_id = IntegerField()
-    rule_number = IntegerField()
-    rule_text = TextField()
-
-    class Meta:
-        indexes = ((("guild_id", "rule_number"), True),)  # Unique rule number per guild
+    category = TextField()
+    number = IntegerField()
+    text = TextField()
 
 
 # Flask app initialization

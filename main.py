@@ -44,6 +44,9 @@ _log.info("Starting PortalBot...")
 # Load environment variables
 load_dotenv()
 
+# Ensure all tables are created
+database.iter_table(database.tables)
+
 
 async def preload_bot_data(bot):
     # Preload bot data for all connected guilds (servers)
