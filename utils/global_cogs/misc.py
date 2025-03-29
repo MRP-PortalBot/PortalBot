@@ -88,28 +88,6 @@ class MiscCMD(commands.Cog):
                 "An error occurred while changing the nickname.", ephemeral=True
             )
 
-    ##======================================================Rule Command [INT]===========================================================
-    @app_commands.command(name="rule", description="Sends out MRP Server Rules")
-    @app_commands.describe(number="The rule number to display")
-    async def rule(self, interaction: discord.Interaction, number: int = None):
-        """Send the requested server rule."""
-        try:
-            if 1 <= number <= len(rules):
-                await interaction.response.send_message(rules[number - 1])
-                _log.info(f"Rule {number} sent by {interaction.user}")
-            else:
-                await interaction.response.send_message(
-                    f"Please choose a valid rule number between 1 and {len(rules)}."
-                )
-                _log.warning(
-                    f"Invalid rule number {number} requested by {interaction.user}"
-                )
-        except Exception as e:
-            _log.error(f"Error in rule command: {e}")
-            await interaction.response.send_message(
-                "An error occurred while fetching the rule.", ephemeral=True
-            )
-
     ##======================================================Ping Command===========================================================
     @app_commands.command(description="Ping the bot")
     async def ping(self, interaction: discord.Interaction):
