@@ -323,7 +323,7 @@ class RulesCMD(commands.Cog):
     ):
         try:
             bot_data = database.BotData.get_or_none(
-                database.BotData.guild_id == interaction.guild_id
+                database.BotData.server_id == interaction.guild_id
             )
             if not bot_data:
                 await interaction.response.send_message(
