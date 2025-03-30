@@ -334,6 +334,8 @@ class RulesCMD(commands.Cog):
                 )
                 return
 
+            print(bot_data.server_id)
+            
             # Save the channel ID
             bot_data.rule_channel = int(channel.id)
 
