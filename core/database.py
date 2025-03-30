@@ -150,8 +150,8 @@ class BotData(BaseModel):
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
     points_per_message = IntegerField(default=10)  # Default is 10 points
     blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs
-    rule_channel = BigIntegerField(null=True)
-    rule_message_id = BigIntegerField(null=True)
+    rule_channel = BigIntegerField(default=0)
+    rule_message_id = BigIntegerField(default=0)
 
     def get_blocked_channels(self):
         return json.loads(self.blocked_channels)
