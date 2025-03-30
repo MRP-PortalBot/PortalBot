@@ -322,28 +322,22 @@ class RulesCMD(commands.Cog):
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
         try:
+            # Defer response to avoid interaction timeout
+            await interaction.response.defer(ephemeral=True)
+
             bot_data = database.BotData.get_or_none(
                 database.BotData.server_id == interaction.guild_id
             )
             if not bot_data:
-                await interaction.response.send_message(
+                await interaction.followup.send(
                     "Bot data not found for this server.", ephemeral=True
                 )
                 return
 
-            # ✅ Save the channel ID as an integer
-            if isinstance(channel.id, str):
-                channel_id = int(channel.id)
-            else:
-                channel_id = channel.id
+            # Save the channel ID
+            bot_data.rule_channel = int(channel.id)
 
-            bot_data.rule_channel = channel_id
-            bot_data.save()
-            _log.info(
-                f"Rule channel set to {channel.name} ({channel.id}) for guild {interaction.guild.name}"
-            )
-
-            # ✅ Generate and send the embed
+            # Generate the rules embed
             rules = (
                 database.Rule.select()
                 .where(database.Rule.guild_id == interaction.guild_id)
@@ -366,13 +360,18 @@ class RulesCMD(commands.Cog):
                 value = "\n".join([f"**{num}.** {text}" for num, text in rule_list])
                 embed.add_field(name=category, value=value, inline=False)
 
+            # Post the embed to the selected channel
             message = await channel.send(embed=embed)
 
-            # ✅ Save the message ID to track the embed for future updates
+            # Track message ID for future updates
             bot_data.rule_message_id = message.id
             bot_data.save()
 
-            await interaction.response.send_message(
+            _log.info(
+                f"Rule channel set to {channel.name} ({channel.id}) for guild {interaction.guild.name}"
+            )
+
+            await interaction.followup.send(
                 f"✅ Rule channel set to {channel.mention} and rules posted.",
                 ephemeral=True,
             )
@@ -381,7 +380,7 @@ class RulesCMD(commands.Cog):
             _log.error(
                 f"Error setting rule channel and posting embed: {e}", exc_info=True
             )
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "❌ Failed to set rule channel.", ephemeral=True
             )
 
