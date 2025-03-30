@@ -315,44 +315,38 @@ class RulesCMD(commands.Cog):
         await self.update_rule_embed(interaction.guild)
 
     @rules_group.command(
-        name="set_channel",
-        description="Set the channel where the rule embed will be posted.",
+        name="set_channel", description="Set the channel to post server rules."
     )
-    @app_commands.describe(channel="The channel to post the rule embed in.")
     @has_admin_level(2)
     async def set_rule_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
         try:
-            guild = interaction.guild
-            guild_id = guild.id
-
-            # Get or create bot data
-            bot_data = database.BotData.get_or_none(database.BotData.id == 1)
-            if not bot_data:
-                bot_data = database.BotData.create(id=1)
-
-            # Update the channel
-            bot_data.rule_channel = channel.id
-            bot_data.rule_message_id = None  # reset
-            bot_data.save()
-
-            # Build rule embed
-            rules = (
-                database.Rule.select()
-                .where(database.Rule.guild_id == guild_id)
-                .order_by(database.Rule.category, database.Rule.number)
+            bot_data = database.BotData.get_or_none(
+                database.BotData.guild_id == interaction.guild_id
             )
-
-            if not rules.exists():
+            if not bot_data:
                 await interaction.response.send_message(
-                    "Rule channel set, but no rules found to post.",
-                    ephemeral=True,
+                    "Bot data not found for this server.", ephemeral=True
                 )
                 return
 
+            # ✅ Save the channel ID as an integer
+            bot_data.rule_channel = channel.id
+            bot_data.save()
+            _log.info(
+                f"Rule channel set to {channel.name} ({channel.id}) for guild {interaction.guild.name}"
+            )
+
+            # ✅ Generate and send the embed
+            rules = (
+                database.Rule.select()
+                .where(database.Rule.guild_id == interaction.guild_id)
+                .order_by(database.Rule.category, database.Rule.number)
+            )
+
             embed = discord.Embed(
-                title=f"{guild.name} - Server Rules",
+                title=f"{interaction.guild.name} - Server Rules",
                 description="These rules are actively enforced. Please read carefully.",
                 color=discord.Color.blurple(),
             )
@@ -367,17 +361,15 @@ class RulesCMD(commands.Cog):
                 value = "\n".join([f"**{num}.** {text}" for num, text in rule_list])
                 embed.add_field(name=category, value=value, inline=False)
 
-            # Send the embed and save message ID
             message = await channel.send(embed=embed)
+
+            # ✅ Save the message ID to track the embed for future updates
             bot_data.rule_message_id = message.id
             bot_data.save()
 
             await interaction.response.send_message(
-                f"✅ Rule channel set to {channel.mention} and embed posted.",
+                f"✅ Rule channel set to {channel.mention} and rules posted.",
                 ephemeral=True,
-            )
-            _log.info(
-                f"Rule channel set and embed posted to {channel.name} ({channel.id}) by {interaction.user}"
             )
 
         except Exception as e:
@@ -385,8 +377,7 @@ class RulesCMD(commands.Cog):
                 f"Error setting rule channel and posting embed: {e}", exc_info=True
             )
             await interaction.response.send_message(
-                "An error occurred while setting the rule channel.",
-                ephemeral=True,
+                "❌ Failed to set rule channel.", ephemeral=True
             )
 
 
