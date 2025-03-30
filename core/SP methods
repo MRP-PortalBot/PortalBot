@@ -21,7 +21,7 @@ from core.common import (
     Colors,
     Others,
     get_cached_bot_data,
-    get_bot_data_for_server,
+    get_bot_data_for_server
 )
 from core.logging_module import get_log
 
@@ -183,6 +183,7 @@ def initialize_persistent_views(bot, bot_data):
         bot.add_view(QuestionSuggestionManager())
         bot_data.persistent_views = True
         bot_data.save()
+
         _log.info("Persistent views initialized and saved to the database.")
 
 

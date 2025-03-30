@@ -7,6 +7,9 @@ from typing import Tuple, Union, List
 from pathlib import Path
 from datetime import datetime
 
+import functools
+import inspect
+
 # Importing discord modules
 import discord
 from discord import ButtonStyle, ui, SelectOption
@@ -14,12 +17,51 @@ from discord import ButtonStyle, ui, SelectOption
 # Importing core modules
 from core import database
 from core.logging_module import get_log
+from core.common import bot_data_cache, cache_lock  # Make sure this is imported
 
 # Setting up logger
 _log = get_log(__name__)
 
 cache_lock = Lock()
 bot_data_cache = {}
+
+
+def cache_updated(func):
+    if inspect.iscoroutinefunction(func):
+
+        @functools.wraps(func)
+        async def async_wrapper(self, *args, **kwargs):
+            result = await func(self, *args, **kwargs)
+            async with cache_lock:
+                bot_data_cache[self.server_id] = self
+                _log.debug(
+                    f"[Async] Updated bot_data_cache for server {self.server_id}"
+                )
+            return result
+
+        return async_wrapper
+    else:
+
+        @functools.wraps(func)
+        def sync_wrapper(self, *args, **kwargs):
+            result = func(self, *args, **kwargs)
+            try:
+                # If in an async loop, use lock correctly
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    coro = cache_lock.__aenter__()
+                    loop.create_task(coro)
+                    bot_data_cache[self.server_id] = self
+                    loop.create_task(cache_lock.__aexit__(None, None, None))
+                else:
+                    # Fallback to immediate update
+                    bot_data_cache[self.server_id] = self
+                _log.debug(f"[Sync] Updated bot_data_cache for server {self.server_id}")
+            except Exception as e:
+                _log.error(f"Failed to update cache for server {self.server_id}: {e}")
+            return result
+
+        return sync_wrapper
 
 
 async def get_bot_data_for_server(server_id):

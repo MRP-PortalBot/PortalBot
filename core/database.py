@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 import json
 
 from core.logging_module import get_log
+from core.common import cache_updated
 
 # Load environment variables
 load_dotenv()
@@ -158,6 +159,10 @@ class BotData(BaseModel):
 
     def set_blocked_channels(self, channel_ids):
         self.blocked_channels = json.dumps(channel_ids)
+
+    @cache_updated
+    def save(self, *args, **kwargs):
+        return super().save(*args, **kwargs)
 
 
 class Tag(BaseModel):
