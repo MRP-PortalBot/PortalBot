@@ -2,7 +2,8 @@ import functools
 import inspect
 import asyncio
 from core.logging_module import get_log
-from core.common import bot_data_cache, cache_lock
+from core.cache_state import bot_data_cache, cache_lock
+
 
 _log = get_log(__name__)
 

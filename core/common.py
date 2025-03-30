@@ -17,10 +17,12 @@ from discord import ButtonStyle, ui, SelectOption
 # Importing core modules
 from core import database
 from core.logging_module import get_log
-from core.common import bot_data_cache, cache_lock  # Make sure this is imported
+
+from core.cache_state import bot_data_cache, cache_lock
 
 # Setting up logger
 _log = get_log(__name__)
+
 
 cache_lock = Lock()
 bot_data_cache = {}
