@@ -332,7 +332,12 @@ class RulesCMD(commands.Cog):
                 return
 
             # ✅ Save the channel ID as an integer
-            bot_data.rule_channel = int(channel.id)
+            if isinstance(channel.id, str):
+                channel_id = int(channel.id)
+            else:
+                channel_id = channel.id
+
+            bot_data.rule_channel = channel_id
             bot_data.save()
             _log.info(
                 f"Rule channel set to {channel.name} ({channel.id}) for guild {interaction.guild.name}"
