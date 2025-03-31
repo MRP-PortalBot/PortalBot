@@ -322,6 +322,7 @@ class RulesCMD(commands.Cog):
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
         try:
+            print (interaction.guild_id)
             await interaction.response.defer(ephemeral=True)
 
             bot_data = database.BotData.get_or_none(
