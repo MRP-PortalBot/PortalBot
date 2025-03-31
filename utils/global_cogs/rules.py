@@ -322,7 +322,6 @@ class RulesCMD(commands.Cog):
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
         try:
-            # Defer response to avoid interaction timeout
             await interaction.response.defer(ephemeral=True)
 
             bot_data = database.BotData.get_or_none(
@@ -334,12 +333,14 @@ class RulesCMD(commands.Cog):
                 )
                 return
 
-            print(bot_data.server_id)
+            # ✅ Clear bad data first
+            bot_data.rule_channel = 0
+            bot_data.rule_message_id = 0
+            bot_data.save()
 
-            # Save the channel ID
+            # ✅ Now assign fresh values
             bot_data.rule_channel = int(channel.id)
 
-            # Generate the rules embed
             rules = (
                 database.Rule.select()
                 .where(database.Rule.guild_id == interaction.guild_id)
@@ -362,19 +363,9 @@ class RulesCMD(commands.Cog):
                 value = "\n".join([f"**{num}.** {text}" for num, text in rule_list])
                 embed.add_field(name=category, value=value, inline=False)
 
-            # Post the embed to the selected channel
             message = await channel.send(embed=embed)
 
-            # Track message ID for future updates
             bot_data.rule_message_id = int(message.id)
-
-            # Safeguard: always cast before saving
-            if isinstance(bot_data.rule_channel, str):
-                bot_data.rule_channel = int(bot_data.rule_channel)
-
-            if isinstance(bot_data.rule_message_id, str):
-                bot_data.rule_message_id = int(bot_data.rule_message_id)
-
             bot_data.save()
 
             _log.info(
