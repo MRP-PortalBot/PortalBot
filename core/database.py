@@ -6,7 +6,7 @@ from peewee import (
     IntegerField,
     TextField,
     SqliteDatabase,
-    BigIntegerField,
+    TextField,
     BooleanField,
     TimestampField,
     MySQLDatabase,
@@ -118,41 +118,41 @@ class BotData(BaseModel):
     """
 
     id = AutoField()  # Database Entry ID (ALWAYS QUERY 1)
-    server_id = BigIntegerField(default=0)  # Server ID where the bot is active
-    bot_id = BigIntegerField(default=0)  # Discord Bot ID
+    server_id = TextField(default=0)  # Server ID where the bot is active
+    bot_id = TextField(default=0)  # Discord Bot ID
     bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
-    pb_test_server_id = BigIntegerField(
+    pb_test_server_id = TextField(
         default=448488274562908170
     )  # Portal Bot Test Server ID
     prefix = TextField(default=">")  # Bot prefix
-    admin_role = BigIntegerField(default=0)  # Admin role for the server
+    admin_role = TextField(default=0)  # Admin role for the server
     persistent_views = BooleanField(
         default=False
     )  # Whether or not persistent views are enabled
-    welcome_channel = BigIntegerField(default=0)  # Welcome Channel ID
-    bannedlist_response_channel = BigIntegerField(
+    welcome_channel = TextField(default=0)  # Welcome Channel ID
+    bannedlist_response_channel = TextField(
         default=0
     )  # Channel ID for blacklist responses
-    daily_question_channel = BigIntegerField(
+    daily_question_channel = TextField(
         default=0
     )  # Channel ID for daily questions
-    question_suggest_channel = BigIntegerField(
+    question_suggest_channel = TextField(
         default=0
     )  # Channel ID for question suggestions
-    bot_spam_channel = BigIntegerField(default=0)  # Channel ID for bot spam
-    realm_channel_response = BigIntegerField(
+    bot_spam_channel = TextField(default=0)  # Channel ID for bot spam
+    realm_channel_response = TextField(
         default=0
     )  # Channel ID for realm channel responses
-    general_channel = BigIntegerField(default=0)  # General Channel ID
-    mod_channel = BigIntegerField(default=0)  # MOderator Channel ID
+    general_channel = TextField(default=0)  # General Channel ID
+    mod_channel = TextField(default=0)  # MOderator Channel ID
     daily_question_enabled = BooleanField(default=True)
     last_question_posted = TextField(null=True)  # Last question that was posted
     last_question_posted_time = TimestampField()  # Last time a question was posted
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
     points_per_message = IntegerField(default=10)  # Default is 10 points
     blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs
-    rule_channel = BigIntegerField(default=0)
-    rule_message_id = BigIntegerField(default=0)
+    rule_channel = TextField(default=0)
+    rule_message_id = TextField(default=0)
 
     def get_blocked_channels(self):
         return json.loads(self.blocked_channels)
@@ -220,7 +220,7 @@ class RealmApplications(BaseModel):
     """Stores users' realm applications."""
 
     entry_id = AutoField()  # Database Entry ID for the realm
-    discord_id = BigIntegerField()  # Discord ID of the applicant
+    discord_id = TextField()  # Discord ID of the applicant
     discord_name = TextField()  # Discord name of the applicant
     realm_name = TextField()  # Realm name the user is applying to
     emoji = TextField()  # Emoji associated with the realm
@@ -246,7 +246,7 @@ class RealmProfile(BaseModel):
     """Stores Realm Profile Data here."""
 
     entry_id = AutoField()  # Database Entry ID for the realm
-    discord_id = BigIntegerField()  # Discord ID of the applicant
+    discord_id = TextField()  # Discord ID of the applicant
     discord_name = TextField()  # Discord name of the applicant
     realm_name = TextField()  # Realm name the user is applying to
     emoji = TextField()  # Emoji associated with the realm
@@ -279,7 +279,7 @@ class Administrators(BaseModel):
     """
 
     id = AutoField()  # Admin entry ID
-    discordID = BigIntegerField(unique=True)  # Discord ID of the administrator
+    discordID = TextField(unique=True)  # Discord ID of the administrator
     discord_name = TextField()  # Discord Name of the administrator
     TierLevel = IntegerField(default=1)  # Admin tier level (1-4)
 
@@ -288,10 +288,10 @@ class QuestionSuggestionQueue(BaseModel):
     """Stores users who suggested questions for the bot."""
 
     id = AutoField()  # Suggestion entry ID
-    discord_id = BigIntegerField()  # Discord ID of the user
+    discord_id = TextField()  # Discord ID of the user
     discord_name = TextField()  # Discord Name of the user
     question = TextField()  # Suggested question
-    message_id = BigIntegerField()  # ID of the message containing the suggestion
+    message_id = TextField()  # ID of the message containing the suggestion
 
 
 class ServerScores(BaseModel):
@@ -311,7 +311,7 @@ class LeveledRoles(BaseModel):
 
     id = AutoField()  # Unique ID for each role entry
     RoleName = TextField()  # Name of the role
-    RoleID = BigIntegerField()  # Discord Role ID for role assignment
+    RoleID = TextField()  # Discord Role ID for role assignment
     ServerID = TextField()  # Server ID where the role is applicable
     LevelThreshold = IntegerField()  # Level required to achieve the role
 
@@ -320,13 +320,13 @@ class Reminder(BaseModel):
     """Stores reminders for users."""
 
     id = AutoField()  # Unique ID for each reminder
-    user_id = BigIntegerField()  # Discord user ID of the user who set the reminder
+    user_id = TextField()  # Discord user ID of the user who set the reminder
     message_link = TextField()  # Link to the message to remind the user about
     remind_at = TimestampField()  # When to send the reminder
 
 
 class Rule(BaseModel):
-    guild_id = BigIntegerField()
+    guild_id = TextField()
     category = TextField()
     number = IntegerField()
     text = TextField()
