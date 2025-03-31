@@ -367,6 +367,14 @@ class RulesCMD(commands.Cog):
 
             # Track message ID for future updates
             bot_data.rule_message_id = int(message.id)
+
+            # Safeguard: always cast before saving
+            if isinstance(bot_data.rule_channel, str):
+                bot_data.rule_channel = int(bot_data.rule_channel)
+
+            if isinstance(bot_data.rule_message_id, str):
+                bot_data.rule_message_id = int(bot_data.rule_message_id)
+
             bot_data.save()
 
             _log.info(
