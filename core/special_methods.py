@@ -86,7 +86,7 @@ async def on_ready_(bot: "PortalBot"):
         _log.error("pb_test_server_id not found in bot data.")
         return
 
-    pb_guild = bot.get_guild(bot_data.pb_test_server_id)
+    pb_guild = bot.get_guild(int(bot_data.pb_test_server_id))
     if not pb_guild:
         _log.error(f"Guild with ID {bot_data.pb_test_server_id} not found.")
         return
@@ -156,7 +156,7 @@ def initialize_db(bot):
         database.db.connect(reuse_if_open=True)
         for guild in bot.guilds:
             bot_data = database.BotData.select().where(
-                database.BotData.server_id == guild.id
+                database.BotData.server_id == str(guild.id)
             )
             if not bot_data.exists():
                 initial_channel_id = (
@@ -198,9 +198,9 @@ def _create_bot_data(server_id, initial_channel_id):
 
 def _create_administrators(owner_ids):
     for owner_id in owner_ids:
-        database.Administrators.create(discordID=owner_id, TierLevel=4)
+        database.Administrators.create(discordID=str(owner_id), TierLevel=4)
     specific_admin_id = 306070011028439041
-    database.Administrators.create(discordID=specific_admin_id, TierLevel=4)
+    database.Administrators.create(discordID=str(specific_admin_id), TierLevel=4)
 
 
 async def on_command_error_(bot, ctx: commands.Context, error: Exception):
