@@ -335,7 +335,7 @@ class RulesCMD(commands.Cog):
                 return
 
             print(bot_data.server_id)
-            
+
             # Save the channel ID
             bot_data.rule_channel = int(channel.id)
 
@@ -366,7 +366,7 @@ class RulesCMD(commands.Cog):
             message = await channel.send(embed=embed)
 
             # Track message ID for future updates
-            bot_data.rule_message_id = message.id
+            bot_data.rule_message_id = int(message.id)
             bot_data.save()
 
             _log.info(
