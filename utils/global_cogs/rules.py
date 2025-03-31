@@ -325,8 +325,8 @@ class RulesCMD(commands.Cog):
             # Defer response to avoid interaction timeout
             await interaction.response.defer(ephemeral=True)
 
-            bot_data = database.BotData.get_or_none(
-                database.BotData.server_id == interaction.guild_id
+            bot_data = database.botdata.get_or_none(
+                database.botdata.server_id == interaction.guild_id
             )
             if not bot_data:
                 await interaction.followup.send(
