@@ -11,7 +11,7 @@ _log = logging.getLogger(__name__)
 
 def add_edit_commands(group: app_commands.Group):
     @group.command(name="edit_profile", description="Edit your user profile.")
-    async def edit_profile(bot, interaction: discord.Interaction):
+    async def edit_profile(interaction: discord.Interaction):
         user = interaction.user
 
         profile = ensure_profile_exists(user)
@@ -22,7 +22,9 @@ def add_edit_commands(group: app_commands.Group):
             return
 
         try:
-            await interaction.response.send_modal(ProfileEditModal(bot, user.id))
+            await interaction.response.send_modal(
+                ProfileEditModal(interaction.client, user.id)
+            )
 
         except Exception as e:
             _log.error(
