@@ -12,7 +12,6 @@ from core.logging_module import get_log
 import json
 
 from core.common import get_bot_data_for_server
-
 from core import database
 from core.checks import has_admin_level
 
@@ -54,20 +53,16 @@ class CoreBotConfig(commands.Cog):
             for admin in query:
                 try:
                     user = self.bot.get_user(
-                        admin.discordID
-                    ) or await self.bot.fetch_user(admin.discordID)
+                        int(admin.discordID)
+                    ) or await self.bot.fetch_user(int(admin.discordID))
                     admin_list.append(f"`{user.name}` -> `{user.id}`")
                 except Exception as e:
                     _log.error(f"Error fetching user with ID {admin.discordID}: {e}")
                     continue
-            _log.debug(
-                f"Fetched {len(admin_list)} administrators for permit level {level}"
-            )
-            return admin_list
+            return admin_list or ["None"]
         finally:
             if not database.db.is_closed():
                 database.db.close()
-                _log.debug("Database connection closed after fetching admins.")
 
     @PM.command(description="Lists all permit levels and users.")
     @has_admin_level(1)
@@ -78,13 +73,9 @@ class CoreBotConfig(commands.Cog):
             level_names = ["Moderators", "Administrators", "Bot Manager", "Owners"]
             embeds = []
 
-            for level, level_name in zip(levels, level_names):
+            for level, name in zip(levels, level_names):
                 admin_list = await self.fetch_admins_by_level(level)
-                if not admin_list:
-                    admin_list = ["None"]
-                embeds.append(
-                    f"**Permit {level}: {level_name}**\n" + "\n".join(admin_list)
-                )
+                embeds.append(f"**Permit {level}: {name}**\n" + "\n".join(admin_list))
 
             embed = discord.Embed(
                 title="Bot Administrators",
@@ -95,9 +86,9 @@ class CoreBotConfig(commands.Cog):
                 text="Only Owners/Permit 4's can modify Bot Administrators. | Permit 4 is the HIGHEST Level"
             )
             await interaction.response.send_message(embed=embed)
-            _log.info("Sent permit list successfully.")
+
         except Exception as e:
-            _log.error(f"Error listing permit levels: {e}")
+            _log.error(f"Error listing permit levels: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred while retrieving the permit list.", ephemeral=True
             )
@@ -109,8 +100,9 @@ class CoreBotConfig(commands.Cog):
         try:
             _log.info(f"{interaction.user} is attempting to remove {user}.")
             database.db.connect(reuse_if_open=True)
+
             query = database.Administrators.get_or_none(
-                database.Administrators.discordID == user.id
+                database.Administrators.discordID == str(user.id)
             )
 
             if query:
@@ -120,29 +112,22 @@ class CoreBotConfig(commands.Cog):
                     description=f"{user.name} has been removed from the database!",
                     color=discord.Color.green(),
                 )
-                _log.info(
-                    f"{user} was removed from the database by {interaction.user}."
-                )
             else:
                 embed = discord.Embed(
                     title="Invalid User!",
                     description="No record found for the provided user.",
                     color=discord.Color.red(),
                 )
-                _log.warning(
-                    f"Failed to remove {user}, no record found in the database."
-                )
 
             await interaction.response.send_message(embed=embed)
         except Exception as e:
-            _log.error(f"Error removing {user} from the database: {e}")
+            _log.error(f"Error removing {user} from the database: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred while removing the user.", ephemeral=True
             )
         finally:
             if not database.db.is_closed():
                 database.db.close()
-                _log.debug("Database connection closed after removing user.")
 
     @PM.command(description="Add a user to the Bot Administrators list.")
     @app_commands.describe(
@@ -160,214 +145,161 @@ class CoreBotConfig(commands.Cog):
             return
 
         try:
-            _log.info(
-                f"{interaction.user} is attempting to add {user} with permit level {level}."
-            )
+            _log.info(f"{interaction.user} is adding {user} at permit level {level}.")
             database.db.connect(reuse_if_open=True)
 
             query = database.Administrators.get_or_none(
-                database.Administrators.discordID == user.id
+                database.Administrators.discordID == str(user.id)
             )
 
             if query:
                 query.TierLevel = level
                 query.discord_name = user.name
                 query.save()
-                _log.info(f"Updated permit level for {user.name} to {level}.")
                 embed = discord.Embed(
                     title="Successfully Updated User!",
-                    description=f"{user.name}'s permit level has been updated to `{level}`.",
+                    description=f"{user.name}'s permit level updated to `{level}`.",
                     color=discord.Color.gold(),
                 )
             else:
                 database.Administrators.create(
-                    discordID=user.id, discord_name=user.name, TierLevel=level
-                )
-                _log.info(
-                    f"Added {user.name} to the database with permit level {level}."
+                    discordID=str(user.id), discord_name=user.name, TierLevel=level
                 )
                 embed = discord.Embed(
                     title="Successfully Added User!",
-                    description=f"{user.name} has been added with permit level `{level}`.",
+                    description=f"{user.name} added with permit level `{level}`.",
                     color=discord.Color.gold(),
                 )
 
             await interaction.response.send_message(embed=embed)
 
         except Exception as e:
-            _log.error(
-                f"Error adding/updating {user.name} in the Bot Administrators list: {e}"
-            )
+            _log.error(f"Error adding/updating {user.name}: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred while adding/updating the user.", ephemeral=True
             )
         finally:
             if not database.db.is_closed():
                 database.db.close()
-                _log.debug("Database connection closed after adding/updating user.")
 
-    # Group for bot configuration commands
     BC = app_commands.Group(
         name="configure",
         description="Configure the bot's settings.",
     )
 
-    # Command to set the cooldown time
     @BC.command(
         name="set_cooldown",
         description="Set the server score cooldown time (in seconds).",
     )
     @has_admin_level(3)
     async def set_cooldown(self, interaction: discord.Interaction, cooldown: int):
-        bot_data = await get_bot_data_for_server(interaction.guild.id)
+        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
         if bot_data:
             bot_data.cooldown_time = cooldown
             bot_data.save()
             await interaction.response.send_message(
                 f"Cooldown time updated to {cooldown} seconds."
             )
-            _log.info(
-                f"Cooldown time updated to {cooldown} seconds by {interaction.user}."
-            )
         else:
             await interaction.response.send_message("BotData not found.")
-            _log.error(
-                f"BotData not found while setting cooldown by {interaction.user}."
-            )
 
-    # Command to set points per message
     @BC.command(
-        name="set_points",
-        description="Set the server score points per message, Set the min (max = min * 3).",
+        name="set_points", description="Set points per message for server score."
     )
     @has_admin_level(3)
     async def set_points(self, interaction: discord.Interaction, points: int):
-        bot_data = await get_bot_data_for_server(interaction.guild.id)
+        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
         if bot_data:
             bot_data.points_per_message = points
             bot_data.save()
             await interaction.response.send_message(
                 f"Points per message updated to {points}."
             )
-            _log.info(f"Points per message updated to {points} by {interaction.user}.")
         else:
             await interaction.response.send_message("BotData not found.")
-            _log.error(f"BotData not found while setting points by {interaction.user}.")
 
-    # Command to add a blocked channel
     @BC.command(
         name="add_blocked_channel",
-        description="Add a channel to the block list for server score.",
+        description="Add a channel to the blocked list.",
     )
     @has_admin_level(3)
     async def add_blocked_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
-        bot_data = await get_bot_data_for_server(interaction.guild.id)
-        if bot_data:
-            try:
-                # Ensure blocked_channels is a valid JSON list or initialize it as an empty list
-                try:
-                    blocked_channels = json.loads(bot_data.blocked_channels or "[]")
-                except json.JSONDecodeError as e:
-                    _log.error(f"Failed to parse blocked channels list: {e}")
-                    await interaction.response.send_message(
-                        "Blocked channel list is corrupted."
-                    )
-                    return
-
-                # Ensure all elements are integers
-                blocked_channels = [int(channel_id) for channel_id in blocked_channels]
-
-                # Add the new channel if it's not already in the list
-                if channel.id not in blocked_channels:
-                    blocked_channels.append(channel.id)
-                    bot_data.blocked_channels = json.dumps(blocked_channels)
-                    bot_data.save()
-
-                    await interaction.response.send_message(
-                        f"Channel {channel.mention} has been added to the blocked list."
-                    )
-                    _log.info(
-                        f"Channel {channel.name} added to blocked list by {interaction.user}."
-                    )
-                else:
-                    await interaction.response.send_message(
-                        f"Channel {channel.mention} is already in the blocked list."
-                    )
-
-            except (ValueError, json.JSONDecodeError) as e:
-                await interaction.response.send_message(
-                    "Failed to parse blocked channels list."
-                )
-                _log.error(f"Failed to parse blocked channels list: {e}")
-
-        else:
+        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
+        if not bot_data:
             await interaction.response.send_message("BotData not found.")
-            _log.error(
-                f"BotData not found while adding blocked channel by {interaction.user}."
+            return
+
+        try:
+            blocked_channels = json.loads(bot_data.blocked_channels or "[]")
+            blocked_channels = [str(c) for c in blocked_channels]
+
+            if str(channel.id) not in blocked_channels:
+                blocked_channels.append(str(channel.id))
+                bot_data.blocked_channels = json.dumps(blocked_channels)
+                bot_data.save()
+                await interaction.response.send_message(
+                    f"Channel {channel.mention} added to the blocked list."
+                )
+            else:
+                await interaction.response.send_message(
+                    f"Channel {channel.mention} is already blocked."
+                )
+        except Exception as e:
+            _log.error(f"Error blocking channel: {e}", exc_info=True)
+            await interaction.response.send_message(
+                "Failed to update blocked channel list.", ephemeral=True
             )
 
-    # Command to remove a blocked channel
     @BC.command(
         name="remove_blocked_channel",
-        description="Remove a channel from the block list for server score.",
+        description="Remove a channel from the blocked list.",
     )
     @has_admin_level(3)
     async def remove_blocked_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
-        bot_data = await get_bot_data_for_server(interaction.guild.id)
-        if bot_data:
-            blocked_channels = bot_data.get_blocked_channels()
-            if channel.id in blocked_channels:
-                blocked_channels.remove(channel.id)
-                bot_data.set_blocked_channels(blocked_channels)
-                bot_data.save()
-                await interaction.response.send_message(
-                    f"Channel {channel.mention} has been removed from the blocked list."
-                )
-                _log.info(
-                    f"Channel {channel.name} removed from blocked list by {interaction.user}."
-                )
-            else:
-                await interaction.response.send_message(
-                    f"Channel {channel.mention} is not in the blocked list."
-                )
-        else:
+        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
+        if not bot_data:
             await interaction.response.send_message("BotData not found.")
-            _log.error(
-                f"BotData not found while removing blocked channel by {interaction.user}."
+            return
+
+        blocked_channels = bot_data.get_blocked_channels()
+        if channel.id in blocked_channels:
+            blocked_channels.remove(channel.id)
+            bot_data.set_blocked_channels(blocked_channels)
+            bot_data.save()
+            await interaction.response.send_message(
+                f"Channel {channel.mention} has been unblocked."
+            )
+        else:
+            await interaction.response.send_message(
+                f"Channel {channel.mention} is not in the blocked list."
             )
 
-    @BC.command(
-        name="view", description="View current bot configuration for this guild."
-    )
+    @BC.command(name="view", description="View current bot config.")
     @has_admin_level(3)
     async def view_config(self, interaction: discord.Interaction):
-        bot_data = await get_bot_data_for_server(interaction.guild.id)
+        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
 
         if not bot_data:
             await interaction.response.send_message(
                 "BotData not found.", ephemeral=True
             )
-            _log.warning(f"BotData not found for guild {interaction.guild.id}.")
             return
 
-        # Parse blocked channel list
         try:
             blocked_channel_ids = bot_data.get_blocked_channels()
         except Exception as e:
             _log.error(f"Failed to parse blocked_channels: {e}")
             blocked_channel_ids = []
 
-        # Format channel mentions
         blocked_mentions = []
         for cid in blocked_channel_ids:
-            channel = interaction.guild.get_channel(cid)
+            channel = interaction.guild.get_channel(int(cid))
             blocked_mentions.append(channel.mention if channel else f"`{cid}`")
 
-        # Build the embed
         embed = discord.Embed(
             title=f"🔧 Bot Configuration: {interaction.guild.name}",
             color=discord.Color.blurple(),
@@ -394,9 +326,6 @@ class CoreBotConfig(commands.Cog):
         embed.set_footer(text="Use /configure to update these settings.")
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
-        _log.info(
-            f"Sent bot configuration to {interaction.user} in {interaction.guild.name}."
-        )
 
 
 async def setup(bot):

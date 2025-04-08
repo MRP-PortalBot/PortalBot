@@ -11,6 +11,7 @@ from peewee import (
     TimestampField,
     MySQLDatabase,
     OperationalError,
+    ForeignKeyField,
 )
 from playhouse.shortcuts import ReconnectMixin
 from flask import Flask
@@ -133,9 +134,7 @@ class BotData(BaseModel):
     bannedlist_response_channel = TextField(
         default=0
     )  # Channel ID for blacklist responses
-    daily_question_channel = TextField(
-        default=0
-    )  # Channel ID for daily questions
+    daily_question_channel = TextField(default=0)  # Channel ID for daily questions
     question_suggest_channel = TextField(
         default=0
     )  # Channel ID for question suggestions
@@ -178,11 +177,27 @@ class Question(BaseModel):
     """Stores questions for DailyQ here."""
 
     id = AutoField()  # Question entry ID
-    display_order = IntegerField()  # Display order
+    display_order = TextField()  # Display order
     question = TextField()  # The question text
     usage = BooleanField(default=False)  # Indicates if the question has been used
     upvotes = IntegerField(default=0)
     downvotes = IntegerField(default=0)
+
+
+class QuestionVote(BaseModel):
+    question = ForeignKeyField(Question, backref="votes")
+    user_id = TextField()  # Discord user ID as string
+    vote_type = TextField()  # "up" or "down"
+
+
+class QuestionSuggestionQueue(BaseModel):
+    """Stores users who suggested questions for the bot."""
+
+    id = AutoField()  # Suggestion entry ID
+    discord_id = TextField()  # Discord ID of the user
+    discord_name = TextField()  # Discord Name of the user
+    question = TextField()  # Suggested question
+    message_id = TextField()  # ID of the message containing the suggestion
 
 
 class MRP_Blacklist_Data(BaseModel):
@@ -284,16 +299,6 @@ class Administrators(BaseModel):
     TierLevel = IntegerField(default=1)  # Admin tier level (1-4)
 
 
-class QuestionSuggestionQueue(BaseModel):
-    """Stores users who suggested questions for the bot."""
-
-    id = AutoField()  # Suggestion entry ID
-    discord_id = TextField()  # Discord ID of the user
-    discord_name = TextField()  # Discord Name of the user
-    question = TextField()  # Suggested question
-    message_id = TextField()  # ID of the message containing the suggestion
-
-
 class ServerScores(BaseModel):
     """Stores the score for each user in different servers."""
 
@@ -358,13 +363,14 @@ def _db_close(exc):
 tables = {
     "tag": Tag,
     "questions": Question,
+    "questionvote": QuestionVote,
+    "questionsuggestionqueue": QuestionSuggestionQueue,
     "blacklist": MRP_Blacklist_Data,
     "profile": PortalbotProfile,
     "realmprofile": RealmProfile,
     "serverscores": ServerScores,
     "leveledroles": LeveledRoles,
     "administrators": Administrators,
-    "questionsuggestionqueue": QuestionSuggestionQueue,
     "realmapplications": RealmApplications,
     "botdata": BotData,
     "reminders": Reminder,

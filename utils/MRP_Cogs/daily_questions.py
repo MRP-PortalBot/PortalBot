@@ -261,34 +261,86 @@ class QuestionVoteView(discord.ui.View):
         self.add_item(self.suggest_question_button)
 
     async def handle_upvote(self, interaction: discord.Interaction):
+        user_id = str(interaction.user.id)
+
         try:
             question = database.Question.get(display_order=self.question_id)
-            question.upvotes += 1
+            vote, created = database.QuestionVote.get_or_create(
+                question=question, user_id=user_id, defaults={"vote_type": "up"}
+            )
+
+            if not created:
+                if vote.vote_type == "up":
+                    # Already upvoted
+                    await interaction.response.send_message(
+                        "You've already upvoted!", ephemeral=True
+                    )
+                    return
+                else:
+                    # Switch from downvote to upvote
+                    vote.vote_type = "up"
+                    vote.save()
+                    question.downvotes = max(0, question.downvotes - 1)
+                    question.upvotes += 1
+            else:
+                # New upvote
+                question.upvotes += 1
+
             question.save()
 
             self.upvote_count = question.upvotes
+            self.downvote_count = question.downvotes
             self.upvote_button.label = f"👍 {self.upvote_count}"
+            self.downvote_button.label = f"👎 {self.downvote_count}"
+
             await interaction.response.edit_message(view=self)
             _log.info(
-                f"Upvote added by {interaction.user.display_name} for question ID {self.question_id}."
+                f"{interaction.user.display_name} upvoted question {self.question_id}."
             )
+
         except Exception as e:
             _log.error(f"Error handling upvote: {e}", exc_info=True)
 
     async def handle_downvote(self, interaction: discord.Interaction):
+        user_id = str(interaction.user.id)
+
         try:
             question = database.Question.get(display_order=self.question_id)
-            question.downvotes += 1
+            vote, created = database.QuestionVote.get_or_create(
+                question=question, user_id=user_id, defaults={"vote_type": "up"}
+            )
+
+            if not created:
+                if vote.vote_type == "down":
+                    # Already downvoted
+                    await interaction.response.send_message(
+                        "You've already downvoted!", ephemeral=True
+                    )
+                    return
+                else:
+                    # Switch from downvote to downvote
+                    vote.vote_type = "down"
+                    vote.save()
+                    question.upvotes = max(0, question.downvotes - 1)
+                    question.downvotes += 1
+            else:
+                # New upvote
+                question.downvotes += 1
+
             question.save()
 
+            self.upvote_count = question.upvotes
             self.downvote_count = question.downvotes
+            self.upvote_button.label = f"👍 {self.upvote_count}"
             self.downvote_button.label = f"👎 {self.downvote_count}"
+
             await interaction.response.edit_message(view=self)
             _log.info(
-                f"Downvote added by {interaction.user.display_name} for question ID {self.question_id}."
+                f"{interaction.user.display_name} upvoted question {self.question_id}."
             )
+
         except Exception as e:
-            _log.error(f"Error handling downvote: {e}", exc_info=True)
+            _log.error(f"Error handling upvote: {e}", exc_info=True)
 
     async def handle_suggest_question(self, interaction: discord.Interaction):
         await interaction.response.send_modal(SuggestModalNEW(self.bot))
@@ -387,7 +439,7 @@ class DailyCMD(commands.Cog):
                     continue
 
             if question_id is None:
-                # Check if all questions have been used (i.e., usage is True)
+                # Check if all questions have been used; if so, reset all usage flags
                 unused_questions_count = (
                     database.Question.select()
                     .where(database.Question.usage == False)
@@ -407,7 +459,6 @@ class DailyCMD(commands.Cog):
                 )
                 question.usage = True
                 question.save()
-
             else:
                 # Fetch the existing question by its ID
                 question = database.Question.get(display_order=question_id)
@@ -589,6 +640,7 @@ class DailyCMD(commands.Cog):
             if id is None:
                 last_question_id = bot_data.last_question_posted
                 if not last_question_id:
+                    # If no ID was provided and we have no memory of a last posted question, abort.
                     _log.warning("No last_question_posted found.")
                     await interaction.response.send_message("No recent question found.")
                     return
@@ -686,8 +738,7 @@ class DailyCMD(commands.Cog):
     @checks.has_admin_level(2)
     async def new(self, interaction: discord.Interaction, question: str):
         try:
-            q = database.Question.create(question=question)
-            q.save()
+            database.Question.create(question=question)  # No need to call save()
             _log.info(
                 f"Question '{question}' added by {interaction.user.display_name}."
             )

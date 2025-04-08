@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+
 from core import database
 from core.logging_module import get_log
 
@@ -13,6 +14,10 @@ class LeveledRolesCMD(commands.Cog):
         _log.info("LeveledRolesCMD Cog initialized")
 
     async def create_and_order_roles(self, guild: discord.Guild):
+        """
+        Creates roles based on level data, assigns colors, and reorders them.
+        Also inserts them into the database if not already present.
+        """
         roles_data = [
             (1, "Just Spawned", "2eb0aa"),
             (2, "Chicken Plucker", "2eb0a5"),
@@ -96,9 +101,8 @@ class LeveledRolesCMD(commands.Cog):
             (80, "Ender Dragon Conqueror", "1919dc"),
         ]
 
-        _log.info(
-            f"Starting role creation and ordering for guild: {guild.name} ({guild.id})"
-        )
+        _log.info(f"Starting leveled role setup for guild: {guild.name} ({guild.id})")
+
         existing_roles = {role.name: role for role in guild.roles}
         created_roles = []
 
@@ -108,91 +112,75 @@ class LeveledRolesCMD(commands.Cog):
                 role = existing_roles.get(role_name)
 
                 if not role:
-                    _log.info(f"Creating role: {role_name} with color: {hex_color}")
+                    _log.info(f"Creating role '{role_name}' with color #{hex_color}")
                     role = await guild.create_role(name=role_name, color=role_color)
                 elif role.color != role_color:
-                    _log.info(f"Updating color for role: {role_name} to {hex_color}")
+                    _log.info(f"Updating role color for '{role_name}' to #{hex_color}")
                     await role.edit(color=role_color)
 
                 created_roles.append((role, level))
 
-                # Add or update role in the database
+                # Save role to database
                 database.LeveledRoles.get_or_create(
                     RoleID=role.id,
-                    LevelThreshold=level,
-                    ServerID=guild.id,
-                    defaults={"RoleName": role_name},
+                    ServerID=str(guild.id),
+                    defaults={"RoleName": role_name, "LevelThreshold": level},
                 )
-                _log.info(f"Role {role_name} added or updated in the database.")
+                _log.debug(f"Role '{role_name}' synced to DB with Level {level}")
 
-            # Sort and reorder roles by level
+            # Reorder roles based on level
             sorted_roles = sorted(created_roles, key=lambda item: item[1])
-            positions = {
-                role: position
-                for position, (role, _) in enumerate(sorted_roles, start=1)
+            position_map = {
+                role: index for index, (role, _) in enumerate(sorted_roles, start=1)
             }
 
-            _log.info(f"Reordering roles in the guild {guild.name}")
-            await guild.edit_role_positions(positions=positions)
+            _log.info(f"Reordering roles in {guild.name}")
+            await guild.edit_role_positions(positions=position_map)
 
         except discord.Forbidden:
-            _log.error(
-                f"Insufficient permissions to create or edit roles in guild {guild.name} ({guild.id})"
-            )
+            _log.error(f"Missing permissions to modify roles in {guild.name}")
             raise
         except discord.HTTPException as e:
-            _log.error(
-                f"HTTP exception while creating or updating roles in guild {guild.name} ({guild.id}): {e}"
-            )
+            _log.error(f"HTTP error while modifying roles: {e}")
             raise
         except Exception as e:
-            _log.error(
-                f"An unexpected error occurred while processing roles in guild {guild.name}: {e}"
-            )
+            _log.error(f"Unexpected error in role setup: {e}")
             raise
         finally:
-            _log.info(f"Role creation and ordering completed for guild {guild.name}")
+            _log.info(f"Completed leveled role setup for {guild.name}")
 
     @app_commands.command(
         name="setup_roles", description="Create and order leveled roles."
     )
     async def setup_roles_command(self, interaction: discord.Interaction):
+        """Command handler to trigger leveled role setup in a guild."""
         guild = interaction.guild
-        if guild is None:
+        if not guild:
+            _log.warning("setup_roles command called outside of a guild.")
             await interaction.response.send_message(
-                "This command must be run in a server."
+                "This command must be used in a server."
             )
-            _log.warning("Command 'setup_roles' was run outside a guild.")
             return
 
         try:
             _log.info(
-                f"'{interaction.user}' initiated role setup in guild {guild.name} ({guild.id})"
+                f"{interaction.user} started role setup in {guild.name} ({guild.id})"
             )
             await self.create_and_order_roles(guild)
             await interaction.response.send_message(
-                "Leveled roles have been set up and ordered."
+                "✅ Leveled roles have been set up."
             )
-            _log.info(
-                f"Leveled roles successfully set up in guild {guild.name} by {interaction.user}"
-            )
-
         except discord.Forbidden:
             await interaction.response.send_message(
-                "I don't have permission to create or edit roles."
-            )
-            _log.error(
-                f"Permission error during role setup in guild {guild.name} by {interaction.user}"
+                "I don't have permission to manage roles."
             )
         except discord.HTTPException as e:
-            await interaction.response.send_message(f"An error occurred: {str(e)}")
-            _log.error(f"HTTP exception during role setup in guild {guild.name}: {e}")
+            await interaction.response.send_message(f"Error setting up roles: {e}")
         except Exception as e:
             await interaction.response.send_message("An unexpected error occurred.")
-            _log.error(f"Unexpected error during role setup in guild {guild.name}: {e}")
+            _log.exception(f"Unexpected error during role setup in {guild.name}: {e}")
 
 
-# Set up the cog
 async def setup(bot):
     await bot.add_cog(LeveledRolesCMD(bot))
     _log.info("LeveledRolesCMD Cog loaded.")

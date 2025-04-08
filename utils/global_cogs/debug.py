@@ -6,6 +6,8 @@ from discord import app_commands, ui
 
 
 class BotCachePaginator(ui.View):
+    """UI View for paginating through bot_data_cache."""
+
     def __init__(self, pages, interaction):
         super().__init__(timeout=60)
         self.pages = pages
@@ -13,6 +15,7 @@ class BotCachePaginator(ui.View):
         self.interaction = interaction
 
     async def update(self, interaction: discord.Interaction):
+        """Update the message with the current page."""
         await interaction.response.edit_message(embed=self.pages[self.page], view=self)
 
     @ui.button(label="⏮️", style=discord.ButtonStyle.green)
@@ -39,6 +42,8 @@ class BotCachePaginator(ui.View):
 
 
 class DebugCMD(commands.Cog):
+    """Cog for administrative debug commands."""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -49,6 +54,7 @@ class DebugCMD(commands.Cog):
     )
     @has_admin_level(4)
     async def all_bot_cache(self, interaction: discord.Interaction):
+        """Display cached BotData for all guilds with pagination."""
         if not bot_data_cache:
             await interaction.response.send_message(
                 "⚠️ No bot data is currently cached.", ephemeral=True
@@ -63,7 +69,7 @@ class DebugCMD(commands.Cog):
             chunk = items[i : i + fields_per_page]
             embed = discord.Embed(
                 title="📦 Cached BotData",
-                description=f"Showing {i+1} to {i+len(chunk)} of {len(items)}",
+                description=f"Showing {i + 1} to {i + len(chunk)} of {len(items)}",
                 color=discord.Color.teal(),
             )
 
@@ -73,7 +79,9 @@ class DebugCMD(commands.Cog):
                     f"**Rule Channel:** {data.rule_channel or 'None'}\n"
                     f"**Rule Message ID:** {data.rule_message_id or 'None'}"
                 )
-                embed.add_field(name=f"Guild ID: {guild_id}", value=value, inline=False)
+                embed.add_field(
+                    name=f"Guild ID: {str(guild_id)}", value=value, inline=False
+                )
 
             pages.append(embed)
 

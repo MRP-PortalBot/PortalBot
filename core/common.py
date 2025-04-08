@@ -6,49 +6,49 @@ import random
 from typing import Tuple, Union, List
 from pathlib import Path
 from datetime import datetime
-
 import functools
 import inspect
 
-# Importing discord modules
 import discord
 from discord import ButtonStyle, ui, SelectOption
 
-# Importing core modules
 from core import database
 from core.logging_module import get_log
 
 from core.cache_state import bot_data_cache, cache_lock
 
-# Setting up logger
+# Logger
 _log = get_log(__name__)
 
-
+# Local fallback cache for bot data
 cache_lock = Lock()
 bot_data_cache = {}
 
 
-async def get_bot_data_for_server(server_id):
+async def get_bot_data_for_server(server_id: Union[int, str]):
+    """
+    Fetch and cache BotData for a given server.
+    Uses string-based ID comparison to support TextField storage.
+    """
     async with cache_lock:
-        if server_id in bot_data_cache:
+        if str(server_id) in bot_data_cache:
             _log.info(f"Returning cached bot data for server {server_id}")
-            return bot_data_cache[server_id]
+            return bot_data_cache[str(server_id)]
 
     try:
-        # Fetch outside lock to avoid blocking others during DB fetch
+        # Fetch outside lock to avoid blocking
         bot_info = (
             database.BotData.select()
-            .where(database.BotData.server_id == server_id)
+            .where(database.BotData.server_id == str(server_id))
             .get()
         )
-
         async with cache_lock:
-            bot_data_cache[server_id] = bot_info
+            bot_data_cache[str(server_id)] = bot_info
         _log.info(
-            f"Bot data fetched and cached for guild {server_id}: Prefix: {bot_info.prefix}, Server ID: {bot_info.server_id}"
+            f"Bot data fetched and cached for guild {server_id}: "
+            f"Prefix: {bot_info.prefix}, Server ID: {bot_info.server_id}"
         )
         return bot_info
-
     except database.DoesNotExist:
         _log.error(f"No BotData found for server ID: {server_id}")
         return None
@@ -59,24 +59,27 @@ async def get_bot_data_for_server(server_id):
         return None
 
 
-def get_cached_bot_data(server_id):
-    bot_data = bot_data_cache.get(server_id)
+def get_cached_bot_data(server_id: Union[int, str]):
+    """
+    Return cached BotData for the given server ID if it exists.
+    """
+    bot_data = bot_data_cache.get(str(server_id))
     if bot_data:
         _log.info(
-            f"Cached bot data fetched for guild {server_id}: Prefix: {bot_data.prefix}, Server ID: {bot_data.server_id}"
+            f"Cached bot data fetched for guild {server_id}: "
+            f"Prefix: {bot_data.prefix}, Server ID: {bot_data.server_id}"
         )
     else:
         _log.warning(f"No cached bot data found for guild {server_id}")
     return bot_data
 
 
-# Loading Configuration Functions
 def load_config() -> Tuple[dict, Path]:
     """
-    Load data from the botconfig.json file.
+    Load config from botconfig.json.
 
     Returns:
-        Tuple[dict, Path]: Configuration data as a dictionary and the Path of the config file.
+        Tuple[dict, Path]: The config dictionary and the Path object.
     """
     config_file = Path("botconfig.json")
     try:
@@ -91,10 +94,10 @@ def load_config() -> Tuple[dict, Path]:
     return config, config_file
 
 
+# Load on startup
 config, config_file = load_config()
 
 
-# Utility Functions
 def solve(s: str) -> str:
     """
     Capitalizes each word in a string.
@@ -108,10 +111,9 @@ def solve(s: str) -> str:
     return " ".join(word.capitalize() for word in s.split())
 
 
-# Discord UI Component Handlers (SelectMenu & Button)
 class SelectMenuHandler(ui.Select):
     """
-    Handler for creating a SelectMenu in Discord with custom logic.
+    Discord Select Menu handler with optional user lock and coroutine execution.
     """
 
     def __init__(
@@ -127,42 +129,33 @@ class SelectMenuHandler(ui.Select):
         super().__init__(options=options, **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
-        # Check if the interaction user is allowed
         if not self._is_authorized_user(interaction.user):
             _log.warning(f"Unauthorized user interaction: {interaction.user}")
             return
 
-        # Set view response
         self.view.value = self.values[0]
         self.view_response = self.values[0]
 
-        # Execute coroutine if provided
         if self.coroutine:
             _log.info(f"Executing coroutine for user: {interaction.user}")
             await self.coroutine(interaction, self.view)
 
     def _is_authorized_user(self, user: discord.User) -> bool:
-        """
-        Helper method to check if the user is authorized for the interaction.
-        """
         return self.select_user is None or user == self.select_user
 
 
 class ButtonHandler(ui.Button):
     """
-    Handler for adding a Button to a specific message and invoking a custom coroutine on click.
+    Discord Button handler with optional user lock and coroutine execution.
     """
 
     def __init__(self, label: str, button_user=None, coroutine=None, **kwargs):
         self.button_user = button_user
         self.coroutine = coroutine
         self.view_response = None
-        super().__init__(
-            label=label, **kwargs
-        )  # Pass the remaining kwargs to the parent class
+        super().__init__(label=label, **kwargs)
 
     async def callback(self, interaction: discord.Interaction):
-        # Check if the interaction is from the correct user
         if self.button_user is None or interaction.user == self.button_user:
             self.view_response = (
                 self.label if self.custom_id is None else self.custom_id
@@ -176,37 +169,27 @@ class ButtonHandler(ui.Button):
             )
 
 
-# Function to Calculate Level Based on Score
 def calculate_level(score: int) -> Tuple[int, float, int]:
     """
-    Calculate the user's level and progress to the next level based on their score.
-
-    Args:
-        score (int): The user's current score.
+    Calculate level and progress based on score.
 
     Returns:
-        Tuple[int, float, int]: The user's level, progress percentage, and next level score.
+        Tuple of (level, percent to next, score for next level)
     """
     level = int((score // 100) ** 0.5)
     next_level_score = (level + 1) ** 2 * 100
     prev_level_score = level**2 * 100
-    if next_level_score == prev_level_score:
-        progress = 0.0
-    else:
-        progress = (score - prev_level_score) / (next_level_score - prev_level_score)
+    progress = (
+        (score - prev_level_score) / (next_level_score - prev_level_score)
+        if next_level_score != prev_level_score
+        else 0.0
+    )
     return level, progress, next_level_score
 
 
-def get_user_rank(server_id, user_id):
+def get_user_rank(server_id: Union[int, str], user_id: Union[int, str]):
     """
-    Retrieve the user's rank in a specific server based on score.
-
-    Args:
-        server_id (int or str): The ID of the Discord server.
-        user_id (int or str): The Discord user ID.
-
-    Returns:
-        int or None: The rank of the user (1-based), or None if not found or an error occurred.
+    Returns the 1-based rank of a user in a given server based on score.
     """
     try:
         query = (
@@ -226,31 +209,54 @@ def get_user_rank(server_id, user_id):
     return None
 
 
-def get_bot_data_for_guild(interaction):
+def get_bot_data_for_guild(interaction: discord.Interaction):
     """
-    Retrieve bot configuration data for the current guild based on the interaction context.
-
-    Args:
-        interaction (discord.Interaction): The Discord interaction object.
-
-    Returns:
-        BotData or None: The bot data for the guild, or None if not found or an error occurs.
+    Returns BotData from database for the given interaction's guild.
     """
     try:
-        guild_id = interaction.guild.id
+        guild_id = str(interaction.guild.id)
         bot_data = database.BotData.get(database.BotData.server_id == guild_id)
         return bot_data
     except database.BotData.DoesNotExist:
         return None
     except Exception as e:
-        print(f"Error fetching bot data for guild {guild_id}: {e}")
+        _log.error(f"Error fetching bot data for guild {guild_id}: {e}")
         return None
 
 
 def get_permitlist(min_level=3):
+    """
+    Returns a list of Discord IDs of administrators with at least the given level.
+    """
     return [
         admin.discordID
         for admin in database.Administrators.select().where(
             database.Administrators.TierLevel >= min_level
         )
     ]
+
+
+def ensure_profile_exists(profile: object) -> database.PortalbotProfile | None:
+    """
+    Ensure the given Discord Member has a profile in the database.
+    Creates one if missing. Returns the profile or None on failure.
+    """
+    user_id = str(profile.id)
+    discordname = f"{profile.name}#{profile.discriminator}"
+
+    try:
+        database.db.connect(reuse_if_open=True)
+        profile_record, created = database.PortalbotProfile.get_or_create(
+            DiscordLongID=user_id, defaults={"DiscordName": discordname}
+        )
+        if created:
+            _log.info(f"Auto-created profile for {discordname}")
+        return profile_record
+
+    except Exception as e:
+        _log.error(f"Failed to ensure profile for {discordname}: {e}", exc_info=True)
+        return None
+
+    finally:
+        if not database.db.is_closed():
+            database.db.close()

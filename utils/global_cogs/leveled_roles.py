@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord import app_commands
 from core import database
 from core.logging_module import get_log
+import functools
 
 _log = get_log(__name__)
 leveled_roles_log = get_log("leveled_roles", console=False)
@@ -16,6 +17,7 @@ class LeveledRoles(commands.Cog):
     def with_db_connection(func):
         """Decorator to ensure database connection is open/closed properly."""
 
+        @functools.wraps(func)
         async def wrapper(self, *args, **kwargs):
             try:
                 if database.db.is_closed():
@@ -37,24 +39,20 @@ class LeveledRoles(commands.Cog):
         self, member: discord.Member, new_level: int, guild_id: int
     ):
         """
-        Assigns the appropriate role to a user based on their new level.
-        Removes any previous leveled role they had to ensure they only have one leveled role.
-        Sends the level-up message only when a new role is assigned.
+        Assigns the appropriate leveled role based on user level.
+        Only one leveled role is allowed at a time.
         """
         try:
             leveled_roles_log.info(
                 f"Checking roles for {member.display_name} (Level {new_level})."
             )
-            leveled_roles = database.LeveledRoles.select().where(
-                database.LeveledRoles.ServerID == str(guild_id)
+            leveled_roles = (
+                database.LeveledRoles.select()
+                .where(database.LeveledRoles.ServerID == str(guild_id))
+                .order_by(database.LeveledRoles.LevelThreshold.desc())
             )
 
-            leveled_roles = leveled_roles.order_by(
-                database.LeveledRoles.LevelThreshold.desc()
-            )
             role_to_assign = None
-
-            # Find the appropriate role for the new level
             for role_entry in leveled_roles:
                 if new_level >= role_entry.LevelThreshold:
                     role_to_assign = role_entry
@@ -64,37 +62,28 @@ class LeveledRoles(commands.Cog):
                 discord_role = discord.utils.get(
                     member.guild.roles, id=int(role_to_assign.RoleID)
                 )
-
-                # Log current role and intended role to assign
                 leveled_roles_log.debug(
-                    f"New level role: {discord_role} | Member's current roles: {[role.name for role in member.roles]}"
+                    f"Intended role: {discord_role} | Current roles: {[r.name for r in member.roles]}"
                 )
 
-                # Remove all other leveled roles except for the new one
                 await self.remove_previous_leveled_roles(
                     member, guild_id, keep_role=discord_role
                 )
 
-                # Only assign the new role if it's not already assigned
                 if discord_role and discord_role not in member.roles:
                     leveled_roles_log.info(
                         f"Assigning {discord_role.name} to {member.display_name} for reaching Level {new_level}."
                     )
                     await member.add_roles(discord_role)
-
-                    # Send the congratulatory message
                     await member.send(
                         f"🎉 Congratulations {member.mention}, you've been promoted to **{discord_role.name}**!"
                     )
                 else:
                     leveled_roles_log.info(
-                        f"Role {discord_role.name if discord_role else 'None'} is either already assigned or does not exist."
+                        f"Role {discord_role.name if discord_role else 'None'} is already assigned or doesn't exist."
                     )
             else:
-                leveled_roles_log.info(
-                    f"No role found for Level {new_level} for {member.display_name}."
-                )
-
+                leveled_roles_log.info(f"No leveled role found for Level {new_level}.")
         except Exception as e:
             leveled_roles_log.error(
                 f"Error assigning role to {member.display_name}: {e}"
@@ -105,7 +94,7 @@ class LeveledRoles(commands.Cog):
         self, member: discord.Member, guild_id: int, keep_role: discord.Role = None
     ):
         """
-        Removes previous leveled roles from a user, excluding the role they should keep.
+        Removes all leveled roles from a member except the one they should keep.
         """
         try:
             leveled_roles = database.LeveledRoles.select().where(
@@ -125,16 +114,15 @@ class LeveledRoles(commands.Cog):
                     leveled_roles_log.info(
                         f"Removed role {discord_role.name} from {member.display_name}."
                     )
-
         except Exception as e:
             leveled_roles_log.error(
-                f"Error removing leveled roles for {member.display_name}: {e}"
+                f"Error removing roles for {member.display_name}: {e}"
             )
 
     @with_db_connection
     @app_commands.command(
         name="set_level_role",
-        description="Sets a level threshold for a role in the current server.",
+        description="Set a level threshold for a role in this server.",
     )
     async def set_level_role(
         self, interaction: discord.Interaction, role: discord.Role, level_threshold: int
@@ -145,110 +133,90 @@ class LeveledRoles(commands.Cog):
         )
 
         try:
-            role_entry, created = database.LeveledRoles.get_or_create(
+            entry, created = database.LeveledRoles.get_or_create(
                 RoleID=str(role.id),
                 ServerID=str(guild_id),
                 defaults={"RoleName": role.name, "LevelThreshold": level_threshold},
             )
 
             if not created:
-                role_entry.LevelThreshold = level_threshold
-                role_entry.RoleName = role.name
-                role_entry.save()
+                entry.LevelThreshold = level_threshold
+                entry.RoleName = role.name
+                entry.save()
 
             await interaction.response.send_message(
-                f"Role **{role.name}** has been set for level **{level_threshold}**."
+                f"✅ Role **{role.name}** set for level **{level_threshold}**."
             )
-            leveled_roles_log.info(
-                f"Role {role.name} successfully set for level {level_threshold}."
-            )
-
         except Exception as e:
-            leveled_roles_log.error(
-                f"Error setting role {role.name} for level {level_threshold}: {e}"
-            )
+            leveled_roles_log.error(f"Error setting leveled role: {e}")
             await interaction.response.send_message(
-                f"An error occurred while setting the role.", ephemeral=True
+                "❌ Failed to set leveled role.", ephemeral=True
             )
 
     @with_db_connection
     @app_commands.command(
-        name="remove_level_role",
-        description="Removes a leveled role in the current server.",
+        name="remove_level_role", description="Remove a leveled role from this server."
     )
     async def remove_level_role(
         self, interaction: discord.Interaction, role: discord.Role
     ):
         guild_id = interaction.guild_id
         leveled_roles_log.info(
-            f"Removing role {role.name} from level system in guild {guild_id}."
+            f"Removing role {role.name} from leveled system in guild {guild_id}."
         )
 
         try:
-            role_entry = database.LeveledRoles.get_or_none(
+            entry = database.LeveledRoles.get_or_none(
                 database.LeveledRoles.RoleID == str(role.id),
                 database.LeveledRoles.ServerID == str(guild_id),
             )
 
-            if role_entry:
-                role_entry.delete_instance()
+            if entry:
+                entry.delete_instance()
                 await interaction.response.send_message(
-                    f"Role **{role.name}** has been removed from the level system."
+                    f"✅ Role **{role.name}** removed from the level system."
                 )
-                leveled_roles_log.info(f"Role {role.name} removed from level system.")
             else:
                 await interaction.response.send_message(
-                    f"Role **{role.name}** was not found in the level system."
+                    f"⚠️ Role **{role.name}** not found in the level system."
                 )
-                leveled_roles_log.warning(
-                    f"Role {role.name} not found in level system."
-                )
-
         except Exception as e:
-            leveled_roles_log.error(
-                f"Error removing role {role.name} from level system: {e}"
-            )
+            leveled_roles_log.error(f"Error removing leveled role: {e}")
             await interaction.response.send_message(
-                f"An error occurred while removing the role.", ephemeral=True
+                "❌ Failed to remove leveled role.", ephemeral=True
             )
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         """
-        Listener that checks if a user's level has changed and assigns the correct role based on the new level.
+        Listens for messages and checks if the user leveled up,
+        then assigns them a role if needed.
         """
-        if message.author.bot:
-            return  # Ignore bot messages
+        if message.author.bot or not message.guild:
+            return
 
         member = message.author
         guild_id = message.guild.id
-        leveled_roles_log.info(
-            f"Checking level for user {member.display_name} in guild {guild_id}."
-        )
 
         try:
-            score_entry = database.ServerScores.get_or_none(
+            score = database.ServerScores.get_or_none(
                 (database.ServerScores.DiscordLongID == str(member.id))
                 & (database.ServerScores.ServerID == str(guild_id))
             )
 
-            if score_entry:
-                new_level = score_entry.Level
+            if score:
                 leveled_roles_log.info(
-                    f"{member.display_name} is at Level {new_level}. Checking for role assignment."
+                    f"{member.display_name} is at Level {score.Level}. Checking for role assignment."
                 )
-                await self.assign_role_based_on_level(member, new_level, guild_id)
+                await self.assign_role_based_on_level(member, score.Level, guild_id)
             else:
                 leveled_roles_log.warning(
-                    f"No score entry found for {member.display_name}."
+                    f"No score entry found for {member.display_name} in guild {guild_id}."
                 )
-
         except Exception as e:
-            leveled_roles_log.error(
-                f"Error in on_message level check for {member.display_name}: {e}"
-            )
+            leveled_roles_log.error(f"Error during level check in on_message: {e}")
 
 
-# Set up the cog
 async def setup(bot):
     await bot.add_cog(LeveledRoles(bot))
+    _log.info("LeveledRoles cog has been set up.")

@@ -18,26 +18,25 @@ class AdminCMD(commands.Cog):
     # Grouping all admin-level commands
     Admin = app_commands.Group(name="admin", description="Administrative commands.")
 
-    # Command to request the database file
     @Admin.command(
         name="requestdb", description="Request the database file for manual inspection"
     )
     @has_admin_level(4)
     async def requestdb(self, interaction: discord.Interaction):
-        """Request the database file for manual inspection."""
+        """Send the database file to the admin via DM."""
         try:
-            db = Path("data.db")
+            db_file = Path("data.db")
             _log.info(f"{interaction.user} has requested the database file.")
 
-            if not db.exists():
+            if not db_file.exists():
                 _log.warning("Database file does not exist.")
                 await interaction.response.send_message(
                     "Database does not exist yet.", ephemeral=True
                 )
                 return
 
-            with db.open(mode="rb") as f:
-                file = discord.File(f, "database.db")
+            with db_file.open("rb") as f:
+                file = discord.File(f, filename="database.db")
                 try:
                     await interaction.user.send(file=file)
                 except discord.Forbidden:
@@ -53,16 +52,15 @@ class AdminCMD(commands.Cog):
             _log.info(f"Database file successfully sent to {interaction.user}.")
 
         except Exception as e:
-            _log.error(f"Error in sending the database file: {e}")
+            _log.error(f"Error in sending the database file: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred while sending the database file.", ephemeral=True
             )
 
-    # Command to delete the database file
     @Admin.command(name="deletedb", description="Delete the database file")
     @has_admin_level(4)
     async def deletedb(self, interaction: discord.Interaction):
-        """Delete the database file."""
+        """Delete the database file if it's not currently in use."""
         try:
             _log.info(f"{interaction.user} is attempting to delete the database file.")
 
@@ -73,33 +71,32 @@ class AdminCMD(commands.Cog):
                 )
                 return
 
-            db = Path("data.db")
-            if not db.exists():
+            db_file = Path("data.db")
+            if not db_file.exists():
                 _log.warning("Database file does not exist.")
                 await interaction.response.send_message(
                     "Database file does not exist.", ephemeral=True
                 )
                 return
 
-            db.unlink()
+            db_file.unlink()
             await interaction.response.send_message(
                 "Database file has been deleted.", ephemeral=True
             )
             _log.info(f"Database file successfully deleted by {interaction.user}.")
 
         except Exception as e:
-            _log.error(f"Error in deleting the database file: {e}")
+            _log.error(f"Error in deleting the database file: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred while deleting the database file.", ephemeral=True
             )
 
-    # Command to replace the database file with an attachment
     @Admin.command(
-        name="replacedb", description="Replace the database file with attachment"
+        name="replacedb", description="Replace the database file with an attachment"
     )
     @has_admin_level(4)
     async def replacedb(self, interaction: discord.Interaction):
-        """Replace the database file with an attachment."""
+        """Replace the current database file with one uploaded as an attachment."""
         try:
             _log.info(f"{interaction.user} is attempting to replace the database file.")
 
@@ -113,36 +110,34 @@ class AdminCMD(commands.Cog):
                 return
 
             if not interaction.attachments:
-                _log.warning(
-                    f"{interaction.user} attempted to replace the database file but no file was attached."
-                )
+                _log.warning("No attachment found in the command.")
                 await interaction.response.send_message(
                     "No file attached for replacement.", ephemeral=True
                 )
                 return
 
-            db = Path("data.db")
-            if db.exists():
-                db.unlink()  # Delete the existing database file
-                _log.info("Existing database file deleted.")
+            attachment = interaction.attachments[0]
 
-            # Save the new database file from attachment
-            with db.open(mode="wb+") as f:
-                attachment = interaction.attachments[0]
+            if not attachment.filename.endswith(".db"):
+                await interaction.response.send_message(
+                    "File must be a `.db` file.", ephemeral=True
+                )
+                return
 
-                if not attachment.filename.endswith(".db"):
-                    await interaction.response.send_message(
-                        "File must be a `.db` file.", ephemeral=True
-                    )
-                    return
+            if attachment.size > 10 * 1024 * 1024:  # 10MB size limit
+                await interaction.response.send_message(
+                    "Database file is too large.", ephemeral=True
+                )
+                return
 
-                if attachment.size > 10 * 1024 * 1024:  # 10 MB limit (adjust as needed)
-                    await interaction.response.send_message(
-                        "Database file is too large.", ephemeral=True
-                    )
-                    return
+            db_file = Path("data.db")
+            if db_file.exists():
+                db_file.unlink()
+                _log.info("Old database file deleted.")
 
-                await interaction.attachments[0].save(f)
+            # Save the new database file
+            with db_file.open("wb+") as f:
+                await attachment.save(f)
 
             await interaction.response.send_message(
                 "Database file replaced.", ephemeral=True
@@ -150,7 +145,7 @@ class AdminCMD(commands.Cog):
             _log.info(f"Database file successfully replaced by {interaction.user}.")
 
         except Exception as e:
-            _log.error(f"Error in replacing the database file: {e}")
+            _log.error(f"Error in replacing the database file: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred while replacing the database file.", ephemeral=True
             )

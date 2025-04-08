@@ -19,15 +19,14 @@ class RulesCMD(commands.Cog):
     )
 
     async def update_rule_embed(self, guild: discord.Guild):
-        """Update or send the rule embed in the configured rule channel."""
-        bot_data = get_cached_bot_data(guild.id)
+        bot_data = get_cached_bot_data(str(guild.id))
         if not bot_data or not bot_data.rule_channel:
             _log.warning(
                 f"No rule channel configured for guild {guild.name} ({guild.id})"
             )
             return
 
-        channel = guild.get_channel(bot_data.rule_channel)
+        channel = guild.get_channel(int(bot_data.rule_channel))
         if not channel:
             _log.error(
                 f"Configured rule channel {bot_data.rule_channel} not found in guild {guild.name}"
@@ -36,7 +35,7 @@ class RulesCMD(commands.Cog):
 
         rules = (
             database.Rule.select()
-            .where(database.Rule.guild_id == guild.id)
+            .where(database.Rule.guild_id == str(guild.id))
             .order_by(database.Rule.category, database.Rule.number)
         )
 
@@ -59,19 +58,17 @@ class RulesCMD(commands.Cog):
             embed.add_field(name=category, value=value, inline=False)
 
         try:
-            # Try to update the existing embed using rule_message_id
             if bot_data.rule_message_id:
                 try:
-                    msg = await channel.fetch_message(bot_data.rule_message_id)
+                    msg = await channel.fetch_message(int(bot_data.rule_message_id))
                     await msg.edit(embed=embed)
                     return
                 except discord.NotFound:
                     _log.warning("Rule message ID not found. Reposting rule embed.")
-                    bot_data.rule_message_id = None
+                    bot_data.rule_message_id = "0"
 
-            # Send new message and store ID
             new_msg = await channel.send(embed=embed)
-            bot_data.rule_message_id = new_msg.id
+            bot_data.rule_message_id = str(new_msg.id)
             bot_data.save()
             _log.info(f"Rule embed message ID saved: {new_msg.id}")
 
@@ -89,12 +86,11 @@ class RulesCMD(commands.Cog):
     async def show_rule(
         self, interaction: discord.Interaction, category: str, number: int
     ):
-        """Show a specific rule from the server rules."""
         try:
             rule = (
                 database.Rule.select()
                 .where(
-                    (database.Rule.guild_id == interaction.guild_id)
+                    (database.Rule.guild_id == str(interaction.guild_id))
                     & (database.Rule.category == category)
                     & (database.Rule.number == number)
                 )
@@ -117,21 +113,17 @@ class RulesCMD(commands.Cog):
         except Exception as e:
             _log.error(f"Error fetching rule {category} #{number}: {e}", exc_info=True)
             await interaction.response.send_message(
-                "An error occurred while retrieving the rule.",
-                ephemeral=True,
+                "An error occurred while retrieving the rule.", ephemeral=True
             )
 
     @show_rule.autocomplete("category")
     async def autocomplete_category(
-        self,
-        interaction: discord.Interaction,
-        current: str,
+        self, interaction: discord.Interaction, current: str
     ) -> list[app_commands.Choice[str]]:
-        """Autocomplete existing rule categories."""
         try:
             query = (
                 database.Rule.select(database.Rule.category)
-                .where(database.Rule.guild_id == interaction.guild_id)
+                .where(database.Rule.guild_id == str(interaction.guild_id))
                 .distinct()
             )
 
@@ -148,17 +140,14 @@ class RulesCMD(commands.Cog):
 
     @show_rule.autocomplete("number")
     async def autocomplete_rule_number(
-        self,
-        interaction: discord.Interaction,
-        current: int,
+        self, interaction: discord.Interaction, current: int
     ) -> list[app_commands.Choice[int]]:
-        """Autocomplete rule numbers based on selected category."""
         try:
             category = interaction.namespace.category
             query = (
                 database.Rule.select(database.Rule.number)
                 .where(
-                    (database.Rule.guild_id == interaction.guild_id)
+                    (database.Rule.guild_id == str(interaction.guild_id))
                     & (database.Rule.category == category)
                 )
                 .order_by(database.Rule.number)
@@ -176,10 +165,9 @@ class RulesCMD(commands.Cog):
 
     @rules_group.command(name="list", description="List all server rules.")
     async def list_rules(self, interaction: discord.Interaction):
-        guild_id = interaction.guild_id
         rules = (
             database.Rule.select()
-            .where(database.Rule.guild_id == guild_id)
+            .where(database.Rule.guild_id == str(interaction.guild_id))
             .order_by(database.Rule.category, database.Rule.number)
         )
 
@@ -212,7 +200,7 @@ class RulesCMD(commands.Cog):
     async def add_rule(
         self, interaction: discord.Interaction, category: str, text: str
     ):
-        guild_id = interaction.guild_id
+        guild_id = str(interaction.guild_id)
         count = (
             database.Rule.select()
             .where(
@@ -243,7 +231,7 @@ class RulesCMD(commands.Cog):
     async def remove_rule(
         self, interaction: discord.Interaction, category: str, number: int
     ):
-        guild_id = interaction.guild_id
+        guild_id = str(interaction.guild_id)
         rule = (
             database.Rule.select()
             .where(
@@ -260,7 +248,6 @@ class RulesCMD(commands.Cog):
 
         rule.delete_instance()
 
-        # Reorder remaining rules in the same category
         remaining_rules = (
             database.Rule.select()
             .where(
@@ -296,7 +283,7 @@ class RulesCMD(commands.Cog):
         rule = (
             database.Rule.select()
             .where(
-                (database.Rule.guild_id == interaction.guild_id)
+                (database.Rule.guild_id == str(interaction.guild_id))
                 & (database.Rule.category == category)
                 & (database.Rule.number == number)
             )
@@ -322,11 +309,10 @@ class RulesCMD(commands.Cog):
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
         try:
-            print (interaction.guild_id)
             await interaction.response.defer(ephemeral=True)
 
             bot_data = database.BotData.get_or_none(
-                database.BotData.server_id == interaction.guild_id
+                database.BotData.server_id == str(interaction.guild_id)
             )
             if not bot_data:
                 await interaction.followup.send(
@@ -334,17 +320,15 @@ class RulesCMD(commands.Cog):
                 )
                 return
 
-            # ✅ Clear bad data first
-            bot_data.rule_channel = 0
-            bot_data.rule_message_id = 0
+            bot_data.rule_channel = "0"
+            bot_data.rule_message_id = "0"
             bot_data.save()
 
-            # ✅ Now assign fresh values
-            bot_data.rule_channel = int(channel.id)
+            bot_data.rule_channel = str(channel.id)
 
             rules = (
                 database.Rule.select()
-                .where(database.Rule.guild_id == interaction.guild_id)
+                .where(database.Rule.guild_id == str(interaction.guild_id))
                 .order_by(database.Rule.category, database.Rule.number)
             )
 
@@ -366,7 +350,7 @@ class RulesCMD(commands.Cog):
 
             message = await channel.send(embed=embed)
 
-            bot_data.rule_message_id = int(message.id)
+            bot_data.rule_message_id = str(message.id)
             bot_data.save()
 
             _log.info(

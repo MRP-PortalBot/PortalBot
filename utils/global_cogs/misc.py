@@ -1,12 +1,7 @@
-import ast
-import json
-import random
+import asyncio
 import time
 import psutil
 from datetime import datetime, timedelta
-from pathlib import Path
-import io
-import asyncio
 
 import discord
 from discord.ext import commands, tasks
@@ -16,34 +11,19 @@ from core.checks import has_admin_level
 from core.logging_module import get_log
 from core import database
 
-from PIL import Image, ImageDraw, ImageFont
-
 _log = get_log(__name__)
-
-# List of server rules
-rules = [
-    ":one: **No Harassment**, threats, hate speech, inappropriate language, posts or user names!",
-    ":two: **No spamming** in chat or direct messages!",
-    ":three: **No religious or political topics**, those don’t usually end well!",
-    ":four: **Keep pinging to a minimum**, it is annoying!",
-    ":five: **No sharing personal information**, it is personal for a reason so keep it to yourself!",
-    ":six: **No self-promotion or advertisement outside the appropriate channels!** Want your own realm channel? **Apply for one!**",
-    ":seven: **No realm or server is better than another!** It is **not** a competition.",
-    ":eight: **Have fun** and happy crafting!",
-    ":nine: **Discord Terms of Service apply!** You must be at least **13** years old.",
-]
 
 
 class MiscCMD(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         _log.info("MiscCMD Cog Loaded")
-        self.check_reminders.start()  # Start the background task to check reminders
+        self.check_reminders.start()
 
     def cog_unload(self):
-        self.check_reminders.cancel()  # Stop the background task when the cog is unloaded
+        self.check_reminders.cancel()
 
-    ##======================================================Nick Command===========================================================
+    ##============================== /nick ==================================================
     @app_commands.command(
         name="nick",
         description="Change a user's nickname based on the channel name emoji.",
@@ -59,7 +39,6 @@ class MiscCMD(commands.Cog):
         user: discord.Member,
         channel: discord.TextChannel,
     ):
-        """Slash command to change a user's nickname based on the channel's emoji."""
         try:
             _log.info(
                 f"{interaction.user} initiated nickname change for {user.display_name} using channel {channel.name}"
@@ -67,13 +46,11 @@ class MiscCMD(commands.Cog):
             name = user.display_name
             channel_parts = channel.name.split("-")
 
-            # Determine the emoji and realm format based on the channel name
-            if len(channel_parts) == 2:  # realm-emoji format
+            if len(channel_parts) == 2:
                 realm, emoji = channel_parts
-            else:  # realm-name-emoji format
+            else:
                 realm, emoji = channel_parts[0], channel_parts[-1]
 
-            # Update user's nickname with the emoji
             await user.edit(nick=f"{name} {emoji}")
             await interaction.response.send_message(
                 f"Changed {user.mention}'s nickname!"
@@ -83,57 +60,53 @@ class MiscCMD(commands.Cog):
             )
 
         except Exception as e:
-            _log.error(f"Error in changing nickname for {user.display_name}: {e}")
+            _log.error(f"Error changing nickname: {e}")
             await interaction.response.send_message(
-                "An error occurred while changing the nickname.", ephemeral=True
+                "❌ An error occurred while changing the nickname.", ephemeral=True
             )
 
-    ##======================================================Ping Command===========================================================
+    ##============================== /ping ==================================================
     @app_commands.command(description="Ping the bot")
     async def ping(self, interaction: discord.Interaction):
-        """Display the bot's ping and system resource usage."""
         try:
             _log.info(f"Ping command initiated by {interaction.user}")
             uptime = timedelta(seconds=int(time.time() - self.bot.start_time))
             ping_latency = round(self.bot.latency * 1000)
 
-            pingembed = discord.Embed(
+            memory = psutil.virtual_memory()
+
+            embed = discord.Embed(
                 title="Pong! ⌛",
-                color=discord.Color.purple(),
                 description="Current Discord API Latency",
+                color=discord.Color.purple(),
             )
-            pingembed.set_author(name="PortalBot")
-            pingembed.add_field(
+            embed.set_author(name="PortalBot")
+            embed.add_field(
                 name="Ping & Uptime:",
                 value=f"```diff\n+ Ping: {ping_latency}ms\n+ Uptime: {str(uptime)}\n```",
             )
-
-            # Adding system resource usage details
-            memory = psutil.virtual_memory()
-            pingembed.add_field(
+            embed.add_field(
                 name="System Resource Usage",
                 value=f"```diff\n- CPU Usage: {psutil.cpu_percent()}%\n- Memory Usage: {memory.percent}%\n"
                 f"- Total Memory: {memory.total / (1024**3):.2f} GB\n- Available Memory: {memory.available / (1024**3):.2f} GB\n```",
                 inline=False,
             )
-
-            pingembed.set_footer(
+            embed.set_footer(
                 text=f"PortalBot Version: {self.bot.version}",
                 icon_url=interaction.user.display_avatar.url,
             )
 
-            await interaction.response.send_message(embed=pingembed)
-            _log.info(
-                f"Ping and system resource information sent to {interaction.user}"
-            )
+            await interaction.response.send_message(embed=embed)
+            _log.info("Ping and system resource info sent successfully.")
 
         except Exception as e:
-            _log.error(f"Error in ping command: {e}")
+            _log.error(f"Error in /ping command: {e}")
             await interaction.response.send_message(
-                "An error occurred while fetching the ping information.", ephemeral=True
+                "❌ An error occurred while fetching the ping information.",
+                ephemeral=True,
             )
 
-    ##======================================================Remind Me Command===========================================================
+    ##============================== /remind_me ============================================
     @app_commands.command(
         name="remind_me",
         description="Set a reminder to be notified later about a message.",
@@ -141,62 +114,51 @@ class MiscCMD(commands.Cog):
     async def remind_me(
         self, interaction: discord.Interaction, message_link: str, remind_after: str
     ):
-        """
-        Slash command to set a reminder for a message.
-        Parameters:
-        - message_link: Link to the message the user wants to be reminded about.
-        - remind_after: Duration after which the user wants to be reminded (e.g., '10m', '2h').
-        """
         if not message_link.startswith("https://discord.com/channels/"):
             await interaction.response.send_message(
-                "Please provide a valid Discord message link.", ephemeral=True
+                "⚠️ Please provide a valid Discord message link.", ephemeral=True
             )
             return
 
         try:
-            # Parse the remind_after input
+            # Parse time unit
             time_units = {"s": 1, "m": 60, "h": 3600, "d": 86400}
-            unit = remind_after[-1]
+            unit = remind_after[-1].lower()
             if unit not in time_units:
                 raise ValueError("Invalid time unit.")
             duration = int(remind_after[:-1]) * time_units[unit]
-
             remind_at = datetime.now() + timedelta(seconds=duration)
 
-            # Store reminder in the database
             database.Reminder.create(
-                user_id=interaction.user.id,
+                user_id=str(interaction.user.id),
                 message_link=message_link,
                 remind_at=remind_at,
             )
 
-            # Confirm reminder creation
             await interaction.response.send_message(
-                f"Okay {interaction.user.mention}, I will remind you in {remind_after}.",
+                f"⏰ Okay {interaction.user.mention}, I'll remind you in `{remind_after}`.",
                 ephemeral=True,
             )
             _log.info(
-                f"Set reminder for user {interaction.user} for message: {message_link}"
+                f"Set reminder for {interaction.user} - message: {message_link} at {remind_at}"
             )
 
         except ValueError:
             await interaction.response.send_message(
-                "Invalid time format! Please use a valid format like '10m', '2h', or '1d'.",
+                "⚠️ Invalid time format! Use something like `10m`, `2h`, or `1d`.",
                 ephemeral=True,
             )
         except Exception as e:
-            _log.error(
-                f"Error setting reminder for user {interaction.user}: {e}",
-                exc_info=True,
-            )
+            _log.error(f"Error setting reminder: {e}", exc_info=True)
             await interaction.response.send_message(
-                "An error occurred while setting your reminder.", ephemeral=True
+                "❌ An error occurred while setting your reminder.", ephemeral=True
             )
 
+    ##============================== Background Task =======================================
     @tasks.loop(minutes=1)
     async def check_reminders(self):
         """
-        Background task that runs every minute to check for due reminders.
+        Periodically check for reminders that are due and send DMs.
         """
         try:
             now = datetime.now()
@@ -205,28 +167,24 @@ class MiscCMD(commands.Cog):
             )
 
             for reminder in due_reminders:
-                user = self.bot.get_user(reminder.user_id)
+                user = self.bot.get_user(int(reminder.user_id))
                 if user:
-                    reminder_message = f"Hey {user.mention}, here's your reminder for the message: {reminder.message_link}"
                     try:
-                        await user.send(reminder_message)
+                        await user.send(
+                            f"🔔 Hey {user.mention}, here's your reminder for the message:\n{reminder.message_link}"
+                        )
                         _log.info(
-                            f"Sent reminder to user {user.id} for message: {reminder.message_link}"
+                            f"Reminder sent to {user.id}: {reminder.message_link}"
                         )
                     except Exception as e:
-                        _log.error(
-                            f"Failed to send reminder to user {user.id}: {e}",
-                            exc_info=True,
-                        )
+                        _log.warning(f"Failed to DM reminder to {user.id}: {e}")
 
-                # Delete the reminder after sending it
                 reminder.delete_instance()
 
         except Exception as e:
-            _log.error(f"Error checking reminders: {e}", exc_info=True)
+            _log.error(f"Error in reminder check loop: {e}", exc_info=True)
 
 
-# Set up the cog
 async def setup(bot):
     await bot.add_cog(MiscCMD(bot))
-    _log.info("MiscCMD Cog setup completed")
+    _log.info("MiscCMD Cog setup completed.")

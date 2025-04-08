@@ -13,12 +13,18 @@ from core import database
 
 _log = logging.getLogger(__name__)
 
+# Constants for server/category IDs
 TEST_SERVER_ID = 587495640502763521
 PORTAL_SERVER_ID = 448488274562908170
 REALM_CATEGORY_ID = 587627871216861244
 
 
 def has_admin_level(required_level: int):
+    """
+    Decorator to check if a user has the required admin level.
+    Works with both message and slash command contexts.
+    """
+
     def get_user_id(obj: Union[Context, Interaction]) -> int | None:
         if isinstance(obj, Context):
             return obj.author.id
@@ -27,13 +33,16 @@ def has_admin_level(required_level: int):
         return None
 
     def check_permission(user_id: int) -> bool:
+        """Check if the given user ID has the required admin tier."""
         try:
             database.db.connect(reuse_if_open=True)
             result = (
                 database.Administrators.select()
                 .where(
                     (database.Administrators.TierLevel >= required_level)
-                    & (database.Administrators.discordID == user_id)
+                    & (
+                        database.Administrators.discordID == str(user_id)
+                    )  # IDs now stored as strings
                 )
                 .exists()
             )
@@ -48,19 +57,16 @@ def has_admin_level(required_level: int):
             if not database.db.is_closed():
                 database.db.close()
 
-    # The actual decorator to wrap the target function
     def decorator(func: Callable):
-        # If it's a slash command, use app_commands.check
+        """Actual decorator logic"""
         if isinstance(func, app_commands.Command):
             return app_commands.check(lambda i: check_permission(get_user_id(i)))(func)
 
-        # Otherwise, wrap and apply commands.check manually
         @wraps(func)
         async def wrapper(*args, **kwargs):
             ctx_or_interaction = next(
                 (arg for arg in args if isinstance(arg, (Context, Interaction))), None
             )
-
             if not ctx_or_interaction:
                 _log.error("No Context or Interaction found in arguments.")
                 return
@@ -79,14 +85,17 @@ def has_admin_level(required_level: int):
                     "You do not have permission to use this command.", ephemeral=True
                 )
 
-        # Apply check to the wrapped function
         return commands.check(lambda ctx: check_permission(get_user_id(ctx)))(wrapper)
 
     return decorator
 
 
-# Predicate for owning a realm channel
-def owns_realm_channel(category_id=587627871216861244):
+def owns_realm_channel(category_id=REALM_CATEGORY_ID):
+    """
+    Check if a user owns the realm channel they are currently in.
+    This is based on the role name matching channel name pattern.
+    """
+
     def predicate(interaction: discord.Interaction) -> bool:
         _log.debug(f"Checking if user {interaction.user.id} owns realm channel.")
         if interaction.channel.category_id != category_id:
@@ -95,11 +104,9 @@ def owns_realm_channel(category_id=587627871216861244):
 
         try:
             database.db.connect(reuse_if_open=True)
-            _log.debug(f"Checking admin privileges for user {interaction.user.id}")
-            # Check if the user has a level 3 or above admin tier
             query = database.Administrators.select().where(
                 (database.Administrators.TierLevel >= 1)
-                & (database.Administrators.discordID == interaction.user.id)
+                & (database.Administrators.discordID == str(interaction.user.id))
             )
             if query.exists():
                 _log.info(f"User {interaction.user.id} has admin privileges.")
@@ -112,12 +119,9 @@ def owns_realm_channel(category_id=587627871216861244):
                 database.db.close()
                 _log.debug("Database connection closed.")
 
-        # Extract the realm name from the channel name (removing '-emoji')
         try:
             realm_name = interaction.channel.name.rsplit("-", 1)[0]
             role_name = f"{realm_name} OP"
-
-            # Check if the user has the appropriate role
             member = interaction.guild.get_member(interaction.user.id)
             if any(role.name == role_name for role in member.roles):
                 _log.info(f"User {interaction.user.id} owns the realm {realm_name}.")
@@ -136,22 +140,23 @@ def owns_realm_channel(category_id=587627871216861244):
     return app_commands.check(predicate)
 
 
-# Create the decorator for checking realm channel ownership
 slash_owns_realm_channel = owns_realm_channel()
 
 
-# Predicate for owning a realm channel or having the Realm OP role
 def is_realm_op():
+    """
+    Check if a user is a Realm OP either by role or admin privileges.
+    Used for managing realm-level permissions.
+    """
+
     def predicate(interaction: discord.Interaction) -> bool:
         _log.debug(f"Checking if user {interaction.user.id} is a Realm OP.")
 
         try:
-            # Attempt to connect to the database and check for admin privileges
             database.db.connect(reuse_if_open=True)
-            _log.debug(f"Checking admin level for user {interaction.user.id}")
             query = database.Administrators.select().where(
                 (database.Administrators.TierLevel >= 1)
-                & (database.Administrators.discordID == interaction.user.id)
+                & (database.Administrators.discordID == str(interaction.user.id))
             )
             if query.exists():
                 _log.info(f"User {interaction.user.id} has admin privileges.")
@@ -164,7 +169,6 @@ def is_realm_op():
                 database.db.close()
                 _log.debug("Database connection closed.")
 
-        # Check if the user has the "Realm OP" role or a role matching the realm name
         try:
             member = interaction.guild.get_member(interaction.user.id)
             if any(role.name == "Realm OP" for role in member.roles):
@@ -175,7 +179,6 @@ def is_realm_op():
                     f"User {interaction.user.id} does not have the 'Realm OP' role."
                 )
                 return False
-
         except AttributeError as e:
             _log.error(f"Error checking roles for user {interaction.user.id}: {e}")
             return False
@@ -183,13 +186,16 @@ def is_realm_op():
     return app_commands.check(predicate)
 
 
-# Create the decorator for checking realm channel ownership or admin level
 slash_is_realm_op = is_realm_op()
 
 
 def check_MRP():
+    """
+    Check that a command is only allowed in the TEST or PORTAL server.
+    """
+
     def predicate(interaction: discord.Interaction) -> bool:
-        return interaction.guild.id in {TEST_SERVER_ID, 448488274562908170}
+        return interaction.guild.id in {TEST_SERVER_ID, PORTAL_SERVER_ID}
 
     return app_commands.check(predicate)
 
