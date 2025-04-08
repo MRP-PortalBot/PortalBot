@@ -274,18 +274,24 @@ class QuestionVoteView(discord.ui.View):
                     # Toggle: remove existing upvote
                     vote.delete_instance()
                     question.upvotes = max(0, question.upvotes - 1)
-                    _log.info(f"{interaction.user.display_name} removed upvote on question {self.question_id}.")
+                    _log.info(
+                        f"{interaction.user.display_name} removed upvote on question {self.question_id}."
+                    )
                 else:
                     # Switch from downvote to upvote
                     vote.vote_type = "up"
                     vote.save()
                     question.downvotes = max(0, question.downvotes - 1)
                     question.upvotes += 1
-                    _log.info(f"{interaction.user.display_name} switched to upvote on question {self.question_id}.")
+                    _log.info(
+                        f"{interaction.user.display_name} switched to upvote on question {self.question_id}."
+                    )
             else:
                 # New upvote
                 question.upvotes += 1
-                _log.info(f"{interaction.user.display_name} upvoted question {self.question_id}.")
+                _log.info(
+                    f"{interaction.user.display_name} upvoted question {self.question_id}."
+                )
 
             question.save()
 
@@ -313,18 +319,24 @@ class QuestionVoteView(discord.ui.View):
                     # Toggle: remove existing downvote
                     vote.delete_instance()
                     question.downvotes = max(0, question.downvotes - 1)
-                    _log.info(f"{interaction.user.display_name} removed downvote on question {self.question_id}.")
+                    _log.info(
+                        f"{interaction.user.display_name} removed downvote on question {self.question_id}."
+                    )
                 else:
                     # Switch from upvote to downvote
                     vote.vote_type = "down"
                     vote.save()
                     question.upvotes = max(0, question.upvotes - 1)
                     question.downvotes += 1
-                    _log.info(f"{interaction.user.display_name} switched to downvote on question {self.question_id}.")
+                    _log.info(
+                        f"{interaction.user.display_name} switched to downvote on question {self.question_id}."
+                    )
             else:
                 # New downvote
                 question.downvotes += 1
-                _log.info(f"{interaction.user.display_name} downvoted question {self.question_id}.")
+                _log.info(
+                    f"{interaction.user.display_name} downvoted question {self.question_id}."
+                )
 
             question.save()
 
@@ -337,6 +349,10 @@ class QuestionVoteView(discord.ui.View):
 
         except Exception as e:
             _log.error(f"Error handling downvote: {e}", exc_info=True)
+
+    async def handle_suggest_question(self, interaction: discord.Interaction):
+        await interaction.response.send_modal(SuggestModalNEW(self.bot))
+
 
 # View for users to submit a new question
 class SuggestQuestionFromDQ(discord.ui.View):
