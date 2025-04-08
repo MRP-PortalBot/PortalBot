@@ -418,7 +418,7 @@ class DailyCMD(commands.Cog):
         _log.debug(f"Waiting {seconds_until_target} seconds until {target_time}.")
         await asyncio.sleep(seconds_until_target)
 
-    async def send_daily_question(self, question_id=None):
+    async def send_daily_question(self, question_id: str = None):
         """Send a daily question to the configured channel and store the question ID."""
         try:
             database.ensure_database_connection()
@@ -463,22 +463,7 @@ class DailyCMD(commands.Cog):
                 # Fetch the existing question by its ID
                 question = database.Question.get(display_order=question_id)
 
-            """# Create and send the embed for the daily question
-            embed = discord.Embed(
-                title="❓ QUESTION OF THE DAY ❓",
-                description=f"**{question.question}**",
-                color=0xB10D9F,
-            )
-            embed.set_footer(text=f"Question ID: {question.display_order}")
-
-            view = QuestionVoteView(self.bot, question.display_order)
-            await send_channel.send(embed=embed, view=view)
-
-            _log.info(
-                f"Question ID {question.display_order} sent to channel {send_channel.name}."
-            )"""
             # Create and send the enhanced embed for the daily question
-
             embed = discord.Embed(
                 title="🌟❓Question of the Day❓🌟",
                 description=f"## **{question.question}**",
@@ -618,7 +603,7 @@ class DailyCMD(commands.Cog):
         description="Post a daily question by ID or repeat today's question.",
     )
     @checks.has_admin_level(2)
-    async def postq(self, interaction: discord.Interaction, id: int = None):
+    async def postq(self, interaction: discord.Interaction, id: str = None):
         """Post a daily question by ID or repeat today's question."""
         guild_id = interaction.guild.id
         bot_data = get_cached_bot_data(guild_id)
@@ -712,7 +697,7 @@ class DailyCMD(commands.Cog):
 
     @DQ.command(description="Modify a question!")
     @checks.has_admin_level(2)
-    async def modify(self, interaction: discord.Interaction, id: int, question: str):
+    async def modify(self, interaction: discord.Interaction, id: str, question: str):
         try:
             q: database.Question = database.Question.get(
                 database.Question.display_order == id
@@ -757,7 +742,7 @@ class DailyCMD(commands.Cog):
 
     @DQ.command(description="Delete a question!")
     @checks.has_admin_level(2)
-    async def delete(self, interaction: discord.Interaction, id: int):
+    async def delete(self, interaction: discord.Interaction, id: str):
         try:
             q: database.Question = database.Question.get(
                 database.Question.display_order == id
