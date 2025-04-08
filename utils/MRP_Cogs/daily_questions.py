@@ -271,20 +271,21 @@ class QuestionVoteView(discord.ui.View):
 
             if not created:
                 if vote.vote_type == "up":
-                    # Already upvoted
-                    await interaction.response.send_message(
-                        "You've already upvoted!", ephemeral=True
-                    )
-                    return
+                    # Toggle: remove existing upvote
+                    vote.delete_instance()
+                    question.upvotes = max(0, question.upvotes - 1)
+                    _log.info(f"{interaction.user.display_name} removed upvote on question {self.question_id}.")
                 else:
                     # Switch from downvote to upvote
                     vote.vote_type = "up"
                     vote.save()
                     question.downvotes = max(0, question.downvotes - 1)
                     question.upvotes += 1
+                    _log.info(f"{interaction.user.display_name} switched to upvote on question {self.question_id}.")
             else:
                 # New upvote
                 question.upvotes += 1
+                _log.info(f"{interaction.user.display_name} upvoted question {self.question_id}.")
 
             question.save()
 
@@ -294,9 +295,6 @@ class QuestionVoteView(discord.ui.View):
             self.downvote_button.label = f"👎 {self.downvote_count}"
 
             await interaction.response.edit_message(view=self)
-            _log.info(
-                f"{interaction.user.display_name} upvoted question {self.question_id}."
-            )
 
         except Exception as e:
             _log.error(f"Error handling upvote: {e}", exc_info=True)
@@ -307,25 +305,26 @@ class QuestionVoteView(discord.ui.View):
         try:
             question = database.Question.get(display_order=self.question_id)
             vote, created = database.QuestionVote.get_or_create(
-                question=question, user_id=user_id, defaults={"vote_type": "up"}
+                question=question, user_id=user_id, defaults={"vote_type": "down"}
             )
 
             if not created:
                 if vote.vote_type == "down":
-                    # Already downvoted
-                    await interaction.response.send_message(
-                        "You've already downvoted!", ephemeral=True
-                    )
-                    return
+                    # Toggle: remove existing downvote
+                    vote.delete_instance()
+                    question.downvotes = max(0, question.downvotes - 1)
+                    _log.info(f"{interaction.user.display_name} removed downvote on question {self.question_id}.")
                 else:
-                    # Switch from downvote to downvote
+                    # Switch from upvote to downvote
                     vote.vote_type = "down"
                     vote.save()
-                    question.upvotes = max(0, question.downvotes - 1)
+                    question.upvotes = max(0, question.upvotes - 1)
                     question.downvotes += 1
+                    _log.info(f"{interaction.user.display_name} switched to downvote on question {self.question_id}.")
             else:
-                # New upvote
+                # New downvote
                 question.downvotes += 1
+                _log.info(f"{interaction.user.display_name} downvoted question {self.question_id}.")
 
             question.save()
 
@@ -335,16 +334,9 @@ class QuestionVoteView(discord.ui.View):
             self.downvote_button.label = f"👎 {self.downvote_count}"
 
             await interaction.response.edit_message(view=self)
-            _log.info(
-                f"{interaction.user.display_name} upvoted question {self.question_id}."
-            )
 
         except Exception as e:
-            _log.error(f"Error handling upvote: {e}", exc_info=True)
-
-    async def handle_suggest_question(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(SuggestModalNEW(self.bot))
-
+            _log.error(f"Error handling downvote: {e}", exc_info=True)
 
 # View for users to submit a new question
 class SuggestQuestionFromDQ(discord.ui.View):
