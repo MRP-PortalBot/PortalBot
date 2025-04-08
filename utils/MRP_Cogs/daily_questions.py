@@ -610,7 +610,7 @@ class DailyCMD(commands.Cog):
         channel_id = bot_data.daily_question_channel
 
         # Use the bot to get the channel object
-        send_channel = self.bot.get_channel(channel_id)
+        send_channel = interaction.guild.get_channel(channel_id)
 
         if send_channel is None:
             _log.error(f"Channel with ID {channel_id} not found.")
