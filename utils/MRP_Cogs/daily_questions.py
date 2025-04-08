@@ -92,7 +92,7 @@ class QuestionSuggestionManager(discord.ui.View):
             q = database.QuestionSuggestionQueue.get(
                 database.QuestionSuggestionQueue.message_id == interaction.message.id
             )
-            new_question = database.Question.create(question=q.question, usage=False)
+            new_question = database.Question.create(question=q.question, usage="False")
             q.delete_instance()
             _log.info(
                 f"Question '{q.question}' added by {interaction.user.display_name}."
@@ -450,22 +450,22 @@ class DailyCMD(commands.Cog):
                 # Check if all questions have been used; if so, reset all usage flags
                 unused_questions_count = (
                     database.Question.select()
-                    .where(database.Question.usage == False)
+                    .where(database.Question.usage == "False")
                     .count()
                 )
                 if unused_questions_count == 0:
-                    database.Question.update(usage=False).execute()
+                    database.Question.update(usage="False").execute()
                     _log.info("All questions were used, resetting all to unused.")
 
                 # Select a random unused question
                 question = (
                     database.Question.select()
-                    .where(database.Question.usage == False)
+                    .where(database.Question.usage == "False")
                     .order_by(fn.Rand())
                     .limit(1)
                     .get()
                 )
-                question.usage = True
+                question.usage = "True"
                 question.save()
             else:
                 # Fetch the existing question by its ID
