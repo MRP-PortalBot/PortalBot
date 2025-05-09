@@ -16,6 +16,7 @@ from core import database
 from core.logging_module import get_log
 
 from core.cache_state import bot_data_cache, cache_lock
+from core.database import BotData
 
 # Logger
 _log = get_log(__name__)
@@ -72,6 +73,14 @@ def get_cached_bot_data(server_id: Union[int, str]):
     else:
         _log.warning(f"No cached bot data found for guild {server_id}")
     return bot_data
+
+
+def refresh_bot_data_cache(guild_id: int):
+    """Refresh the bot_data_cache entry for a specific guild from the DB."""
+
+    bot_data = BotData.get_or_none(BotData.server_id == str(guild_id))
+    if bot_data:
+        bot_data_cache[str(guild_id)] = bot_data
 
 
 def load_config() -> Tuple[dict, Path]:

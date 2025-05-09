@@ -5,7 +5,11 @@ from pathlib import Path
 from core import database
 from core.checks import has_admin_level
 from core.logging_module import get_log
-from core.common import get_cached_bot_data, get_bot_data_for_server
+from core.common import (
+    get_cached_bot_data,
+    get_bot_data_for_server,
+    refresh_bot_data_cache,
+)
 
 # Initialize logging
 _log = get_log(__name__)
@@ -201,6 +205,77 @@ class AdminCMD(commands.Cog):
             _log.error(f"Error refreshing bot cache: {e}", exc_info=True)
             await interaction.response.send_message(
                 "An error occurred.", ephemeral=True
+            )
+
+    @Admin.command(
+        name="view_bot_data", description="View the cached bot data for this server."
+    )
+    @has_admin_level(2)
+    async def view_bot_data(self, interaction: discord.Interaction):
+        try:
+            bot_data = get_cached_bot_data(interaction.guild.id)
+
+            if not bot_data:
+                await interaction.response.send_message(
+                    "No bot data found for this server.", ephemeral=True
+                )
+                return
+
+            embed = discord.Embed(
+                title="📊 Cached Bot Data", color=discord.Color.blurple()
+            )
+            embed.add_field(
+                name="Server ID", value=str(bot_data.server_id), inline=False
+            )
+            embed.add_field(
+                name="Daily Questions Enabled",
+                value=str(bot_data.daily_question_enabled),
+                inline=True,
+            )
+            embed.add_field(
+                name="Daily Question Channel",
+                value=f"<#{bot_data.daily_question_channel}>",
+                inline=True,
+            )
+            embed.add_field(
+                name="Last Question Posted",
+                value=str(bot_data.last_question_posted),
+                inline=True,
+            )
+            embed.add_field(
+                name="Last Posted Time",
+                value=(
+                    bot_data.last_question_posted_time.strftime("%Y-%m-%d %H:%M:%S")
+                    if bot_data.last_question_posted_time
+                    else "N/A"
+                ),
+                inline=False,
+            )
+
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+        except Exception as e:
+            _log.error(f"Error retrieving bot data: {e}", exc_info=True)
+            await interaction.response.send_message(
+                "An error occurred while fetching bot data.", ephemeral=True
+            )
+
+    @Admin.command(
+        name="update_bot_data",
+        description="Force-refresh the cached bot data from the database.",
+    )
+    @has_admin_level(2)
+    async def update_bot_data(self, interaction: discord.Interaction):
+        try:
+            refresh_bot_data_cache(interaction.guild.id)
+            _log.info(f"Bot data cache refreshed for guild {interaction.guild.id}")
+            await interaction.response.send_message(
+                "Bot data cache has been updated from the database.", ephemeral=True
+            )
+        except Exception as e:
+            _log.error(f"Error refreshing bot data cache: {e}", exc_info=True)
+            await interaction.response.send_message(
+                "An error occurred while updating the cache.", ephemeral=True
             )
 
 

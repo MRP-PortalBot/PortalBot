@@ -384,14 +384,17 @@ class DailyCMD(commands.Cog):
 
     @tasks.loop(hours=1)
     async def post_question(self):
-        self.before_post_question
+        _log.info("🕒 post_question loop ticked.")
+
         try:
             now = datetime.now(pytz.timezone("America/Chicago"))
-            # Post the question at 10:00 AM
-            if now.hour == 10 and now.minute >= 0 and now.minute <= 10:
-                _log.info("Posting question at 10:00 AM CST (or shortly after).")
+            hour = now.hour
+            minute = now.minute
+
+            if 10 <= hour <= 10 and 0 <= minute <= 10:
+                _log.info("⏰ Attempting 10:00 AM post.")
                 question_id = await self.send_daily_question()
-                # Save the last posted question ID in bot data for persistence
+
                 for guild in self.bot.guilds:
                     bot_data = get_cached_bot_data(guild.id)
                     if bot_data:
@@ -400,441 +403,104 @@ class DailyCMD(commands.Cog):
                             pytz.timezone("America/Chicago")
                         )
                         bot_data.save()
+                        _log.info(f"✅ Saved last_question_posted for {guild.name}.")
 
-            # Post the same question again at 6:00 PM
-            elif now.hour == 18 and now.minute >= 0 and now.minute <= 10:
-                _log.info("Posting question at 6:00 PM CST (or shortly after).")
+            elif 18 <= hour <= 18 and 0 <= minute <= 10:
+                _log.info("⏰ Attempting 6:00 PM repost.")
                 for guild in self.bot.guilds:
                     bot_data = get_cached_bot_data(guild.id)
                     if bot_data and bot_data.last_question_posted:
                         await self.send_daily_question(bot_data.last_question_posted)
                     else:
                         _log.warning(
-                            f"No question ID available to repost at 6:00 PM for guild {guild.id}."
+                            f"⚠️ No question to repost for {guild.name} ({guild.id})."
                         )
 
         except Exception as e:
             _log.error(f"Error in post_question task: {e}", exc_info=True)
 
-    async def wait_until_time(self, hour, minute):
-        """Waits until the next occurrence of the given hour and minute in CST."""
-        now = datetime.now(pytz.timezone("America/Chicago"))
-        target_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-        if target_time < now:
-            target_time += timedelta(days=1)
-        seconds_until_target = (target_time - now).total_seconds()
-        _log.debug(f"Waiting {seconds_until_target} seconds until {target_time}.")
-        await asyncio.sleep(seconds_until_target)
+    @post_question.before_loop
+    async def before_post_question(self):
+        await self.bot.wait_until_ready()
+        _log.info("✅ Bot is ready. Starting post_question loop.")
 
     async def send_daily_question(self, question_id: str = None):
-        """Send a daily question to the configured channel and store the question ID."""
         try:
             database.ensure_database_connection()
-            for guild in self.bot.guilds:
-                bot_data = get_cached_bot_data(guild.id)
-                if not bot_data or not bot_data.daily_question_enabled:
-                    _log.warning(
-                        f"Daily question disabled or no data for guild {guild.id}. Skipping."
-                    )
-                    continue
-
-                send_channel = self.bot.get_channel(bot_data.daily_question_channel)
-
-                if not send_channel:
-                    _log.error(
-                        f"Daily question channel with ID {bot_data.daily_question_channel} not found in guild {guild.id}."
-                    )
-                    continue
 
             if question_id is None:
-                # Check if all questions have been used; if so, reset all usage flags
-                unused_questions_count = (
-                    database.Question.select()
-                    .where(database.Question.usage == False)
-                    .count()
+                unused_questions = database.Question.select().where(
+                    database.Question.usage == "False"
                 )
-                if unused_questions_count == 0:
-                    database.Question.update(usage=False).execute()
-                    _log.info("All questions were used, resetting all to unused.")
+                if not unused_questions.exists():
+                    database.Question.update(usage="False").execute()
+                    _log.info("🔁 Reset all questions to unused.")
 
-                # Select a random unused question
                 question = (
                     database.Question.select()
-                    .where(database.Question.usage == False)
+                    .where(database.Question.usage == "False")
                     .order_by(fn.Rand())
                     .limit(1)
                     .get()
                 )
-                question.usage = True
+                question.usage = "True"
                 question.save()
             else:
-                # Fetch the existing question by its ID
-                question = database.Question.get(display_order=question_id)
+                question = database.Question.get(
+                    database.Question.display_order == question_id
+                )
 
-            # Create and send the enhanced embed for the daily question
             embed = discord.Embed(
                 title="🌟❓Question of the Day❓🌟",
                 description=f"## **{question.question}**",
-                color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
+                color=discord.Color.from_rgb(177, 13, 159),
             )
-
-            # Thumbnail to visually highlight the embed
             embed.set_thumbnail(
-                url="https://cdn.discordapp.com/attachments/788873229136560140/1298745739048124457/MC-QOD.png?ex=671aaeb9&is=67195d39&hm=615018af7912ca3f2d14f48a52b6400226687aafb2bfe8a4630288b2302a9d22&"
-            )  # Replace with a meaningful image
-
-            # Add a discussion field to invite users
+                url="https://cdn.discordapp.com/attachments/788873229136560140/1298745739048124457/MC-QOD.png"
+            )
             embed.add_field(
                 name="🗣️ Discuss",
                 value="We'd love to hear your thoughts! Share your response below and get to know the community better!",
                 inline=False,
             )
-
-            # Add a tip to encourage thoughtful answers
             embed.add_field(
                 name="💡 Tip",
                 value="Remember, thoughtful answers help everyone learn something new!",
                 inline=False,
             )
-
-            # Footer to show appreciation and include a timestamp for context
             embed.set_footer(
                 text=f"Thank you for participating! • Question #{question.display_order}",
                 icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180249748406272/Portal_Design.png",
             )
+            embed.timestamp = datetime.now()
 
-            embed.timestamp = (
-                datetime.now()
-            )  # Timestamp to indicate when the question was posted
-
-            # Loop through all guilds and send the question to configured channels
             for guild in self.bot.guilds:
                 bot_data = get_cached_bot_data(guild.id)
                 if not bot_data or not bot_data.daily_question_enabled:
-                    _log.warning(
-                        f"Daily question disabled or no data for guild {guild.id}. Skipping."
-                    )
+                    _log.warning(f"🚫 Skipping {guild.name}: no bot data or disabled.")
                     continue
 
                 send_channel = self.bot.get_channel(bot_data.daily_question_channel)
-
                 if not send_channel:
                     _log.error(
-                        f"Daily question channel with ID {bot_data.daily_question_channel} not found in guild {guild.id}."
+                        f"❌ Channel ID {bot_data.daily_question_channel} not found in {guild.name}."
                     )
                     continue
 
-                # Send the embed with the view for voting
                 view = QuestionVoteView(self.bot, question.display_order)
                 await send_channel.send(embed=embed, view=view)
                 _log.info(
-                    f"Question ID {question.display_order} sent to channel {send_channel.name} in guild {guild.name} ({guild.id})."
+                    f"📤 Posted Q#{question.display_order} to {send_channel.name} in {guild.name}."
                 )
 
-            # Update the last_question_posted to store the question's ID after sending to all guilds
-            bot_data.last_question_posted = question.display_order
-            bot_data.last_question_posted_time = datetime.now(
-                pytz.timezone("America/Chicago")
-            )
-            bot_data.save()
+            return question.display_order
 
         except database.Question.DoesNotExist:
-            _log.error("Bot data or question not found in the database.")
+            _log.error("❗ Question not found.")
         except Exception as e:
             _log.error(f"Error sending daily question: {e}", exc_info=True)
-
-    @post_question.before_loop
-    async def before_post_question(self):
-        await self.bot.wait_until_ready()
-        _log.debug("Bot is ready. Starting post_question loop.")
-
-    @DQ.command()
-    async def suggest(self, interaction: discord.Interaction):
-        class SuggestModal(discord.ui.Modal, title="Suggest a Question"):
-            def __init__(self, bot):
-                super().__init__(timeout=None)
-                self.bot = bot
-
-            short_description = ui.TextInput(
-                label="Daily Question", style=discord.TextStyle.long, required=True
-            )
-
-            async def on_submit(self, interaction: discord.Interaction):
-                try:
-                    await interaction.response.defer()  # Defers the interaction to give more time
-
-                    # Create embed and log the question suggestion
-                    embed = discord.Embed(
-                        title="Question Suggestion",
-                        description=f"Requested by {interaction.user.mention}",
-                        color=0x18C927,
-                    )
-                    embed.add_field(name="Question", value=self.short_description.value)
-
-                    # Send the suggestion to the log channel
-                    log_channel = await self.bot.fetch_channel(777987716008509490)
-                    msg = await log_channel.send(
-                        embed=embed, view=QuestionSuggestionManager()
-                    )
-
-                    # Save the question to the suggestion queue with the message ID
-                    q = database.QuestionSuggestionQueue.create(
-                        question=self.short_description.value,
-                        discord_id=interaction.user.id,
-                        message_id=msg.id,  # Now we have the actual message ID
-                    )
-                    _log.info(
-                        f"Question '{self.short_description.value}' suggested by {interaction.user.display_name}."
-                    )
-
-                    # Send the follow-up response
-                    await interaction.followup.send(
-                        "Thank you for your suggestion!", ephemeral=True
-                    )
-
-                except Exception as e:
-                    _log.exception("Error submitting question: %s", e)
-                    try:
-                        await interaction.followup.send(
-                            "An error occurred while submitting your suggestion.",
-                            ephemeral=True,
-                        )
-                    except discord.errors.NotFound:
-                        _log.error(
-                            "Interaction follow-up failed because the webhook was not found."
-                        )
-
-        await interaction.response.send_modal(SuggestModal(self.bot))
-
-    @DQ.command(
-        name="post",
-        description="Post a daily question by ID or repeat today's question.",
-    )
-    @checks.has_admin_level(2)
-    async def postq(self, interaction: discord.Interaction, id: str = None):
-        """Post a daily question by ID or repeat today's question."""
-        guild_id = interaction.guild.id
-        bot_data = get_cached_bot_data(guild_id)
-        channel_id = int(bot_data.daily_question_channel)
-
-        # Use the bot to get the channel object
-        send_channel = interaction.guild.get_channel(channel_id)
-
-        if send_channel is None:
-            _log.error(f"Channel with ID {channel_id} not found.")
-            return
-
-        try:
-            _log.info(f"{interaction.user} triggered the post command.")
-
-            _log.debug(f"Retrieved bot data for server: {bot_data.server_id}")
-
-            # Determine which question ID to use
-            if id is None:
-                last_question_id = bot_data.last_question_posted
-                if not last_question_id:
-                    # If no ID was provided and we have no memory of a last posted question, abort.
-                    _log.warning("No last_question_posted found.")
-                    await interaction.response.send_message("No recent question found.")
-                    return
-                question_id_to_post = last_question_id
-            else:
-                question_id_to_post = id
-
-            # Fetch the question from the database using the determined ID
-            question: database.Question = database.Question.get(
-                database.Question.display_order == question_id_to_post
-            )
-            _log.info(
-                f"Posting question ID: {question_id_to_post}, Question: {question.question}"
-            )
-
-            # Create and send the enhanced embed for the daily question
-
-            embed = discord.Embed(
-                title="🌟❓Question of the Day❓🌟",
-                description=f"## **{question.question}**",
-                color=discord.Color.from_rgb(177, 13, 159),  # Keeping the vibrant color
-            )
-
-            # Thumbnail to visually highlight the embed
-            embed.set_thumbnail(
-                url="https://cdn.discordapp.com/attachments/788873229136560140/1298745739048124457/MC-QOD.png?ex=671aaeb9&is=67195d39&hm=615018af7912ca3f2d14f48a52b6400226687aafb2bfe8a4630288b2302a9d22&"
-            )  # Replace with a meaningful image
-
-            # Add a discussion field to invite users
-            embed.add_field(
-                name="🗣️ Discuss",
-                value="We'd love to hear your thoughts! Share your response below and get to know the community better!",
-                inline=False,
-            )
-
-            # Add a tip to encourage thoughtful answers
-            embed.add_field(
-                name="💡 Tip",
-                value="Remember, thoughtful answers help everyone learn something new!",
-                inline=False,
-            )
-
-            # Footer to show appreciation and include a timestamp for context
-            embed.set_footer(
-                text=f"Thank you for participating! • Question #{question.display_order}",
-                icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180249748406272/Portal_Design.png",
-            )
-
-            embed.timestamp = (
-                datetime.now()
-            )  # Timestamp to indicate when the question was posted
-
-            # Send the embed with the view for voting
-            view = QuestionVoteView(self.bot, question.display_order)
-            await send_channel.send(embed=embed, view=view)
-
-            _log.info(
-                f"Question ID {question.display_order} sent to channel {send_channel.name}."
-            )
-
-        except database.Question.DoesNotExist:
-            _log.error(f"No question found for ID: {question_id_to_post}.")
-            await interaction.response.send_message("Question not found.")
-        except Exception as e:
-            _log.error(f"Error in posting question: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "An error occurred while posting the question."
-            )
-
-    @DQ.command(description="Modify a question!")
-    @checks.has_admin_level(2)
-    async def modify(self, interaction: discord.Interaction, id: str, question: str):
-        try:
-            q: database.Question = database.Question.get(
-                database.Question.display_order == id
-            )
-            q.question = question
-            q.save()
-            _log.info(f"Question ID {id} modified by {interaction.user.display_name}.")
-            await interaction.response.send_message(
-                f"Question {id} '{q.question}' has been modified successfully."
-            )
-        except database.Question.DoesNotExist:
-            _log.error(f"Attempted to modify non-existent question ID {id}.")
-            await interaction.response.send_message(
-                "ERROR: This question does not exist!"
-            )
-        except Exception as e:
-            _log.error(f"Error modifying question: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "An error occurred while modifying the question."
-            )
-
-    @DQ.command(description="Add a question!")
-    @checks.has_admin_level(2)
-    async def new(self, interaction: discord.Interaction, question: str):
-        try:
-            database.Question.create(question=question)  # No need to call save()
-            _log.info(
-                f"Question '{question}' added by {interaction.user.display_name}."
-            )
-            await interaction.response.send_message(
-                f"Question '{question}' has been added successfully."
-            )
-        except database.IntegrityError:
-            _log.error(f"Duplicate question detected: '{question}'")
-            await interaction.response.send_message("That question is already taken!")
-        except Exception as e:
-            _log.error(f"Error adding new question: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "An error occurred while adding the question."
-            )
-        renumber_display_order()
-
-    @DQ.command(description="Delete a question!")
-    @checks.has_admin_level(2)
-    async def delete(self, interaction: discord.Interaction, id: str):
-        try:
-            q: database.Question = database.Question.get(
-                database.Question.display_order == id
-            )
-            q.delete_instance()
-            await interaction.response.send_message(
-                f"Question {id} '{q.question}' has been deleted."
-            )
-            _log.info(f"Question ID {id} deleted by {interaction.user.display_name}.")
-        except database.Question.DoesNotExist:
-            _log.error(f"Attempted to delete non-existent question ID {id}.")
-            await interaction.response.send_message("Question not found.")
-        except Exception as e:
-            _log.error(f"Error deleting question: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "An error occurred while deleting the question."
-            )
-        renumber_display_order()
-
-    @DQ.command(description="List every question.")
-    async def list(self, interaction: discord.Interaction, page: int = 1):
-        """List all tags in the database"""
-        renumber_display_order()
-
-        def get_total_pages(page_size: int) -> int:
-            total_questions = database.Question.select().count()
-            return math.ceil(total_questions / page_size)
-
-        async def populate_embed(embed: discord.Embed, page: int):
-            """Used to populate the embed in list command"""
-            embed.clear_fields()
-            questions = (
-                database.Question.select()
-                .order_by(database.Question.display_order)
-                .paginate(page, 10)
-            )
-            if not questions.exists():
-                embed.add_field(name="No Questions", value="No questions found.")
-            else:
-                q_list = "\n".join(
-                    [f"{q.display_order}. {q.question}" for q in questions]
-                )
-                embed.add_field(name=f"Page {page}", value=q_list)
-
-            return embed
-
-        try:
-            total_pages = get_total_pages(10)
-            embed = discord.Embed(title="Question List")
-            await paginate_embed(
-                self.bot, interaction, embed, populate_embed, total_pages, page
-            )
-            _log.info(
-                f"Sent question list to {interaction.user.display_name}, page {page}."
-            )
-        except Exception as e:
-            _log.error(f"Error listing questions: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "An error occurred while listing questions."
-            )
-
-    @DQ.command(
-        name="toggle-daily-question", description="Enable or disable daily questions."
-    )
-    @checks.has_admin_level(2)
-    async def toggle_daily_question(self, interaction: discord.Interaction):
-        try:
-            bot_data = get_cached_bot_data(interaction.guild.id)
-
-            # Toggle the state
-            bot_data.daily_question_enabled = not bot_data.daily_question_enabled
-            bot_data.save()
-
-            state = "enabled" if bot_data.daily_question_enabled else "disabled"
-            await interaction.response.send_message(
-                f"Daily questions have been {state}.", ephemeral=True
-            )
-            _log.info(f"Daily questions {state} for guild {interaction.guild.id}.")
-        except Exception as e:
-            _log.error(f"Error toggling daily questions: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "An error occurred while toggling daily questions.", ephemeral=True
-            )
 
 
 async def setup(bot):
     await bot.add_cog(DailyCMD(bot))
+    _log.info("✅ DailyCMD cog loaded.")
