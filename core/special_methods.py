@@ -41,9 +41,7 @@ async def on_ready_(bot: "PortalBot"):
     for guild in bot.guilds:
         bot_data = get_cached_bot_data(guild.id)
         if not bot_data:
-            _log.warning(
-                f"Bot data not found for guild {guild.id}. Skipping view initialization."
-            )
+            _log.warning(f"Bot data not found for guild {guild.id}. Skipping views.")
             continue
         initialize_persistent_views(bot, bot_data)
 
@@ -56,13 +54,9 @@ async def on_ready_(bot: "PortalBot"):
         if database_source == "localhost"
         else ""
     )
-    database_message = f"{db_color}Selected Database: {database_source} {ConsoleColors.ENDC}\n{db_warning}"
-    _log.info(f"Database source determined: {database_source}")
-
-    _log.info("Bot initialization complete. Stats logged.")
+    database_message = f"{db_color}Selected Database: {database_source}{ConsoleColors.ENDC}\n{db_warning}"
 
     try:
-        _log.info("Attempting to fetch Git version.")
         process = await asyncio.create_subprocess_shell(
             "git describe --always",
             stdout=asyncio.subprocess.PIPE,
@@ -72,8 +66,6 @@ async def on_ready_(bot: "PortalBot"):
         git_version = stdout.decode().strip() if process.returncode == 0 else "ERROR"
         if git_version == "ERROR":
             _log.error(f"Git version fetch failed. Stderr: {stderr.decode().strip()}")
-        else:
-            _log.info(f"Git version fetched: {git_version}")
     except Exception as e:
         git_version = f"ERROR: {str(e)}"
         _log.error(f"Error fetching Git version: {e}", exc_info=True)
@@ -98,28 +90,27 @@ async def on_ready_(bot: "PortalBot"):
     else:
         _log.error("'github-log' channel not found in the guild.")
 
-        # Log bot details to console
     print(
         f"""
-          _____           _        _ ____        _   
-         |  __ \         | |      | |  _ \      | |  
-         | |__) |__  _ __| |_ __ _| | |_) | ___ | |_ 
-         |  ___/ _ \| '__| __/ _  | |  _ < / _ \| __|
-         | |  | (_) | |  | || (_| | | |_) | (_) | |_ 
-         |_|   \___/|_|   \__\__,_|_|____/ \___/ \__|
+      _____           _        _ ____        _   
+     |  __ \         | |      | |  _ \      | |  
+     | |__) |__  _ __| |_ __ _| | |_) | ___ | |_ 
+     |  ___/ _ \| '__| __/ _  | |  _ < / _ \| __|
+     | |  | (_) | |  | || (_| | | |_) | (_) | |_ 
+     |_|   \___/|_|   \__\__,_|_|____/ \___/ \__|
 
-        Bot Account: {bot.user.name} | {bot.user.id}
-        {ConsoleColors.OKCYAN}Discord API Version: {discord.__version__}{ConsoleColors.ENDC}
-        {ConsoleColors.WARNING}PortalBot Version: {git_version}{ConsoleColors.ENDC}
-        {database_message}
+    Bot Account: {bot.user.name} | {bot.user.id}
+    {ConsoleColors.OKCYAN}Discord API Version: {discord.__version__}{ConsoleColors.ENDC}
+    {ConsoleColors.WARNING}PortalBot Version: {git_version}{ConsoleColors.ENDC}
+    {database_message}
 
-        {ConsoleColors.OKCYAN}Current Time: {now}{ConsoleColors.ENDC}
-        {ConsoleColors.OKGREEN}Initialization complete: Cogs, libraries, and views have successfully been loaded.{ConsoleColors.ENDC}
-        ==================================================
-        {ConsoleColors.WARNING}Statistics{ConsoleColors.ENDC}
-        Guilds: {len(bot.guilds)}
-        Members: {len(bot.users)}
-        """
+    {ConsoleColors.OKCYAN}Current Time: {now}{ConsoleColors.ENDC}
+    {ConsoleColors.OKGREEN}Initialization complete: Cogs, libraries, and views have successfully been loaded.{ConsoleColors.ENDC}
+    ==================================================
+    {ConsoleColors.WARNING}Statistics{ConsoleColors.ENDC}
+    Guilds: {len(bot.guilds)}
+    Members: {len(bot.users)}
+    """
     )
 
 
@@ -199,8 +190,7 @@ def _create_bot_data(server_id, initial_channel_id):
 def _create_administrators(owner_ids):
     for owner_id in owner_ids:
         database.Administrators.create(discordID=str(owner_id), TierLevel=4)
-    specific_admin_id = 306070011028439041
-    database.Administrators.create(discordID=str(specific_admin_id), TierLevel=4)
+    database.Administrators.create(discordID="306070011028439041", TierLevel=4)
 
 
 async def on_command_error_(bot, ctx: commands.Context, error: Exception):
@@ -218,7 +208,7 @@ async def on_command_error_(bot, ctx: commands.Context, error: Exception):
 
     if isinstance(error, commands.CommandNotFound):
         cmd = ctx.invoked_with
-        matches = get_close_matches(cmd, [cmd.name for cmd in bot.commands])
+        matches = get_close_matches(cmd, [c.name for c in bot.commands])
         if matches:
             return await ctx.send(
                 f'Command "{cmd}" not found. Did you mean "{matches[0]}"?'
@@ -289,8 +279,8 @@ async def on_app_command_error_(
         return
 
     if isinstance(error, app_commands.CommandNotFound):
-        await interaction.response.send_message(
-            f"Command /{interaction.command.name} not found."
+        await _send_response(
+            interaction, "That command does not exist.", ephemeral=True
         )
         return
 
@@ -319,7 +309,6 @@ async def _notify_error(
     interaction: discord.Interaction, error: Exception, gist_url: str
 ):
     permitlist = get_permitlist()
-
     if interaction.user.id not in permitlist:
         embed = discord.Embed(
             title="Error Detected!",
