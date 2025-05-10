@@ -480,7 +480,9 @@ class DailyCMD(commands.Cog):
                     _log.warning(f"🚫 Skipping {guild.name}: no bot data or disabled.")
                     continue
 
-                send_channel = self.bot.get_channel(bot_data.daily_question_channel)
+                send_channel = self.bot.get_channel(
+                    int(bot_data.daily_question_channel)
+                )
                 if not send_channel:
                     _log.error(
                         f"❌ Channel ID {bot_data.daily_question_channel} not found in {guild.name}."
