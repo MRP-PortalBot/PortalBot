@@ -162,6 +162,13 @@ class PortalBot(commands.Bot):
                     raise commands.ExtensionNotFound(ext)
                 bar()
 
+        # Sync application commands with Discord
+        try:
+            synced = await self.tree.sync()
+            _log.info(f"✅ Synced {len(synced)} slash commands with Discord.")
+        except Exception as e:
+            _log.error(f"❌ Failed to sync application commands: {e}", exc_info=True)
+
     async def is_owner(self, user: discord.User):
         database.db.connect(reuse_if_open=True)
         query = database.Administrators.select().where(
