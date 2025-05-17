@@ -9,7 +9,6 @@ __author__ = "M.R.P Bot Development"
 import logging
 import os
 import time
-import json
 from pathlib import Path
 
 import discord
@@ -21,10 +20,10 @@ from dotenv import load_dotenv
 from pygit2 import Repository, GIT_DESCRIBE_TAGS
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
-from requests.exceptions import HTTPError
 
 from core import database
 from core.common import get_bot_data_for_server, get_cached_bot_data
+from core.constants import DEFAULT_PREFIX
 from core.logging_module import get_log
 from core.special_methods import (
     on_app_command_error_,
@@ -49,12 +48,10 @@ database.iter_table(database.tables)
 
 
 async def preload_bot_data(bot):
-    # Preload bot data for all connected guilds (servers)
     for guild in bot.guilds:
         await get_bot_data_for_server(guild.id)
 
 
-# Function to dynamically load extensions (cogs)
 def get_extensions():
     extensions = ["jishaku"]
     for file in Path("utils").glob("**/*.py"):
@@ -65,7 +62,6 @@ def get_extensions():
     return extensions
 
 
-# Custom Command Tree with error handling
 class PBCommandTree(app_commands.CommandTree):
     def __init__(self, bot):
         super().__init__(bot)
@@ -89,27 +85,17 @@ class PBCommandTree(app_commands.CommandTree):
         await on_app_command_error_(self.bot, interaction, error)
 
 
-# Main bot class
 class PortalBot(commands.Bot):
-    """
-    Generates a PortalBot Instance.
-    """
-
-    def __init__(self, uptime: time.time):
-        # Set default prefix and activity
-        default_prefix = ">"
-        default_activity = discord.Activity(
-            type=discord.ActivityType.watching,
-            name=f"over the Portal! | {default_prefix}help",
-        )
-
+    def __init__(self, uptime: float):
         super().__init__(
-            command_prefix=commands.when_mentioned_or(default_prefix),
+            command_prefix=commands.when_mentioned_or(DEFAULT_PREFIX),
             intents=discord.Intents.all(),
-            case_insensitive=True,
             tree_cls=PBCommandTree,
             status=discord.Status.online,
-            activity=default_activity,
+            activity=discord.Activity(
+                type=discord.ActivityType.watching,
+                name=f"over the Portal! | {DEFAULT_PREFIX}help",
+            ),
         )
         self.help_command = None
         self._start_time = uptime
@@ -117,10 +103,8 @@ class PortalBot(commands.Bot):
 
     async def on_ready(self):
         await on_ready_(self)
-        # Preload bot data for all guilds after bot is ready
         await preload_bot_data(self)
 
-        # Update bot prefix and activity for each guild using cached bot data
         for guild in self.guilds:
             cached_bot_data = get_cached_bot_data(guild.id)
             if cached_bot_data:
@@ -159,10 +143,9 @@ class PortalBot(commands.Bot):
                     _log.warning(f"Reloaded extension: {ext}")
                 except commands.ExtensionNotFound:
                     _log.error(f"Extension not found: {ext}")
-                    raise commands.ExtensionNotFound(ext)
+                    raise
                 bar()
 
-        # Sync application commands with Discord
         try:
             synced = await self.tree.sync()
             _log.info(f"✅ Synced {len(synced)} slash commands with Discord.")
@@ -182,9 +165,6 @@ class PortalBot(commands.Bot):
 
     @property
     def version(self):
-        """
-        Returns the current version of the bot based on the Git repository.
-        """
         try:
             repo = Repository(".")
             current_commit = repo.head
@@ -215,13 +195,11 @@ class PortalBot(commands.Bot):
 
 bot = PortalBot(time.time())
 
-# Sentry configuration for error reporting
 if os.getenv("sentry_dsn"):
     sentry_logging = LoggingIntegration(
-        level=logging.INFO,  # Capture info and above as breadcrumbs
-        event_level=logging.ERROR,  # Send errors as events
+        level=logging.INFO,
+        event_level=logging.ERROR,
     )
-
     use_sentry(
         bot,
         dsn=os.getenv("sentry_dsn"),
@@ -230,7 +208,6 @@ if os.getenv("sentry_dsn"):
     )
     _log.info("Sentry integration enabled.")
 
-# Initialize the database
 initialize_db(bot)
 
 if __name__ == "__main__":
@@ -241,6 +218,6 @@ if __name__ == "__main__":
             exit(1)
 
         _log.info("Running PortalBot...")
-        bot.run(os.getenv("token"))
+        bot.run(token)
     except Exception as e:
         _log.exception(f"Failed to run PortalBot: {e}")
