@@ -1,5 +1,6 @@
 import math
 import discord
+import datetime
 from discord import app_commands
 from discord.ext import commands
 from core import database, checks
@@ -170,6 +171,84 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
             _log.error(f"Error resetting question usage: {e}", exc_info=True)
             await interaction.response.send_message(
                 "❌ Failed to reset question usage.", ephemeral=True
+            )
+
+    @app_commands.command(
+        name="repost", description="Repost the most recently posted question."
+    )
+    @checks.has_admin_level(2)
+    async def repost_last_question(self, interaction: discord.Interaction):
+        try:
+            bot_data = get_cached_bot_data(interaction.guild.id)
+            if not bot_data or not bot_data.last_question_posted:
+                await interaction.response.send_message(
+                    "No previous question found to repost.", ephemeral=True
+                )
+                return
+
+            # Load the question from the database
+            question = database.Question.get(
+                database.Question.display_order == bot_data.last_question_posted
+            )
+
+            # Build the embed
+            embed = discord.Embed(
+                title="🌟❓Question of the Day❓🌟",
+                description=f"## **{question.question}**",
+                color=discord.Color.from_rgb(177, 13, 159),
+            )
+            embed.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/788873229136560140/1298745739048124457/MC-QOD.png"
+            )
+            embed.add_field(
+                name="🗣️ Discuss",
+                value="We'd love to hear your thoughts! Share your response below and get to know the community better!",
+                inline=False,
+            )
+            embed.add_field(
+                name="💡 Tip",
+                value="Remember, thoughtful answers help everyone learn something new!",
+                inline=False,
+            )
+            embed.set_footer(
+                text=f"Thank you for participating! • Question #{question.display_order}",
+                icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180249748406272/Portal_Design.png",
+            )
+            embed.timestamp = datetime.now()
+
+            # Send to the configured channel
+            channel = interaction.guild.get_channel(
+                int(bot_data.daily_question_channel)
+            )
+            if not channel:
+                await interaction.response.send_message(
+                    "Configured daily question channel not found.", ephemeral=True
+                )
+                return
+
+            view = QuestionVoteView(self.bot, question.display_order)
+            await channel.send(embed=embed, view=view)
+
+            await interaction.response.send_message(
+                f"Reposted Question #{question.display_order} in {channel.mention}.",
+                ephemeral=True,
+            )
+
+            _log.info(
+                f"Reposted Question #{question.display_order} to {channel.name} in {interaction.guild.name}"
+            )
+
+        except database.Question.DoesNotExist:
+            await interaction.response.send_message(
+                "Question no longer exists in the database.", ephemeral=True
+            )
+            _log.error(
+                f"Failed to repost: question ID {bot_data.last_question_posted} not found."
+            )
+        except Exception as e:
+            _log.error(f"Error in repost_last_question: {e}", exc_info=True)
+            await interaction.response.send_message(
+                "An error occurred while trying to repost the question.", ephemeral=True
             )
 
 
