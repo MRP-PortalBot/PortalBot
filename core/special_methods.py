@@ -130,7 +130,7 @@ async def preload_bot_data(bot: "PortalBot"):
 
 
 def initialize_persistent_views(bot, bot_data):
-    from utils.daily_questions.dq_main import QuestionSuggestionManager
+    from utils.daily_questions.__dq_views import QuestionSuggestionManager
 
     if not bot_data.persistent_views:
         bot.add_view(QuestionSuggestionManager())
