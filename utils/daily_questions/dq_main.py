@@ -17,7 +17,7 @@ async def setup(bot: commands.Bot):
     await __dq_tasks.setup(bot)
 
     # Register persistent views
-    bot.add_view(__dq_views.QuestionSuggestionManager(bot))
+    bot.add_view(__dq_views.QuestionSuggestionManager())
     bot.add_view(__dq_views.SuggestQuestionFromDQ(bot))
 
     _log.info("✅ Daily Question system initialized (commands, tasks, views).")
