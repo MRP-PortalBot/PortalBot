@@ -6,7 +6,7 @@ from core.logging_module import get_log
 _log = get_log(__name__)
 
 # Import all daily question components
-from . import dq_commands, dq_tasks, dq_views
+from . import __dq_views, dq_commands, dq_tasks
 
 
 async def setup(bot: commands.Bot):
@@ -17,7 +17,7 @@ async def setup(bot: commands.Bot):
     await dq_tasks.setup(bot)
 
     # Register persistent views
-    bot.add_view(dq_views.QuestionSuggestionManager())
-    bot.add_view(dq_views.SuggestQuestionFromDQ())
+    bot.add_view(__dq_views.QuestionSuggestionManager())
+    bot.add_view(__dq_views.SuggestQuestionFromDQ())
 
     _log.info("✅ Daily Question system initialized (commands, tasks, views).")

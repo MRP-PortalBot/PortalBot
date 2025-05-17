@@ -7,8 +7,12 @@ from core.pagination import paginate_embed
 from core.common import get_cached_bot_data
 from core.logging_module import get_log
 
-from .dq_views import QuestionVoteView, SuggestModalNEW
-from .dq_logic import send_daily_question, renumber_display_order, reset_question_usage
+from .__dq_views import QuestionVoteView, SuggestModalNEW
+from .__dq_logic import (
+    send_daily_question,
+    renumber_display_order,
+    reset_question_usage,
+)
 
 
 _log = get_log(__name__)

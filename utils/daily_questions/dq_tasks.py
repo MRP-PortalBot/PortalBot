@@ -5,7 +5,7 @@ from datetime import datetime
 from discord.ext import tasks, commands
 from core.common import get_cached_bot_data
 from core.logging_module import get_log
-from .dq_logic import send_daily_question
+from .__dq_logic import send_daily_question
 
 _log = get_log(__name__)
 

@@ -8,7 +8,7 @@ from peewee import fn
 from core import database
 from core.common import get_cached_bot_data
 from core.logging_module import get_log
-from .dq_views import QuestionVoteView
+from .__dq_views import QuestionVoteView
 
 _log = get_log(__name__)
 
