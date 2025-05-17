@@ -34,6 +34,16 @@ class QuestionVoteView(discord.ui.View):
         self.downvote_button.callback = self.handle_downvote
         self.add_item(self.downvote_button)
 
+        # Suggest a Question Button
+        self.suggest_button = discord.ui.Button(
+            label="Suggest a Question!",
+            style=discord.ButtonStyle.blurple,
+            emoji="📝",
+            custom_id="persistent_view:qsm_sug_question",
+        )
+        self.suggest_button.callback = self.handle_suggest_question
+        self.add_item(self.suggest_button)
+
     async def handle_upvote(self, interaction: discord.Interaction):
         user_id = str(interaction.user.id)
         try:
@@ -87,6 +97,9 @@ class QuestionVoteView(discord.ui.View):
 
         except Exception as e:
             _log.error(f"Error handling downvote: {e}", exc_info=True)
+
+    async def handle_suggest_question(self, interaction: discord.Interaction):
+        await interaction.response.send_modal(SuggestModalNEW(self.bot))
 
     def _update_labels(self, question):
         self.upvote_button.label = f"👍 {question.upvotes}"
