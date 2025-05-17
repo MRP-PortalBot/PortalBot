@@ -26,6 +26,9 @@ cache_lock = Lock()
 bot_data_cache = {}
 
 
+DEFAULT_PREFIX = ">"
+
+
 async def get_bot_data_for_server(server_id: Union[int, str]):
     """
     Fetch and cache BotData for a given server.
