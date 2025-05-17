@@ -1,6 +1,6 @@
 import math
 import discord
-import datetime
+from datetime import datetime
 from discord import app_commands
 from discord.ext import commands
 from core import database, checks
