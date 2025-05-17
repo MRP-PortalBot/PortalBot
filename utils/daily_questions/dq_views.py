@@ -8,6 +8,91 @@ from core.logging_module import get_log
 _log = get_log(__name__)
 
 
+class QuestionVoteView(discord.ui.View):
+    def __init__(self, bot, question_id):
+        super().__init__(timeout=None)
+        self.bot = bot
+        self.question_id = question_id
+
+        question = database.Question.get(display_order=question_id)
+        self.upvote_count = question.upvotes
+        self.downvote_count = question.downvotes
+
+        self.upvote_button = discord.ui.Button(
+            label=f"👍 {self.upvote_count}",
+            style=discord.ButtonStyle.green,
+            custom_id="question_upvote",
+        )
+        self.upvote_button.callback = self.handle_upvote
+        self.add_item(self.upvote_button)
+
+        self.downvote_button = discord.ui.Button(
+            label=f"👎 {self.downvote_count}",
+            style=discord.ButtonStyle.red,
+            custom_id="question_downvote",
+        )
+        self.downvote_button.callback = self.handle_downvote
+        self.add_item(self.downvote_button)
+
+    async def handle_upvote(self, interaction: discord.Interaction):
+        user_id = str(interaction.user.id)
+        try:
+            question = database.Question.get(display_order=self.question_id)
+            vote, created = database.QuestionVote.get_or_create(
+                question=question, user_id=user_id, defaults={"vote_type": "up"}
+            )
+
+            if not created:
+                if vote.vote_type == "up":
+                    vote.delete_instance()
+                    question.upvotes = max(0, question.upvotes - 1)
+                else:
+                    vote.vote_type = "up"
+                    vote.save()
+                    question.downvotes = max(0, question.downvotes - 1)
+                    question.upvotes += 1
+            else:
+                question.upvotes += 1
+
+            question.save()
+            self._update_labels(question)
+            await interaction.response.edit_message(view=self)
+
+        except Exception as e:
+            _log.error(f"Error handling upvote: {e}", exc_info=True)
+
+    async def handle_downvote(self, interaction: discord.Interaction):
+        user_id = str(interaction.user.id)
+        try:
+            question = database.Question.get(display_order=self.question_id)
+            vote, created = database.QuestionVote.get_or_create(
+                question=question, user_id=user_id, defaults={"vote_type": "down"}
+            )
+
+            if not created:
+                if vote.vote_type == "down":
+                    vote.delete_instance()
+                    question.downvotes = max(0, question.downvotes - 1)
+                else:
+                    vote.vote_type = "down"
+                    vote.save()
+                    question.upvotes = max(0, question.upvotes - 1)
+                    question.downvotes += 1
+            else:
+                question.downvotes += 1
+
+            question.save()
+            self._update_labels(question)
+            await interaction.response.edit_message(view=self)
+
+        except Exception as e:
+            _log.error(f"Error handling downvote: {e}", exc_info=True)
+
+    def _update_labels(self, question):
+        self.upvote_button.label = f"👍 {question.upvotes}"
+        self.downvote_button.label = f"👎 {question.downvotes}"
+
+
 class DisabledQuestionSuggestionManager(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
