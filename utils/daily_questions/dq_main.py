@@ -6,15 +6,15 @@ from core.logging_module import get_log
 _log = get_log(__name__)
 
 # Import all daily question components
-from . import __dq_views, dq_commands, dq_tasks
+from . import __dq_commands, __dq_tasks, __dq_views
 
 
 async def setup(bot: commands.Bot):
     # Load command group
-    await dq_commands.setup(bot)
+    await __dq_commands.setup(bot)
 
     # Load task that posts questions
-    await dq_tasks.setup(bot)
+    await __dq_tasks.setup(bot)
 
     # Register persistent views
     bot.add_view(__dq_views.QuestionSuggestionManager())
