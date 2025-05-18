@@ -2,10 +2,9 @@
 
 from discord.ext import commands
 from core.logging_module import get_log
-from .__profile_views import RealmSelectionView
 
 # Import internal modules
-from . import __profile_commands, __profile_tasks, __profile_views
+from . import __profile_commands, __profile_views
 
 _log = get_log(__name__)
 
@@ -19,7 +18,7 @@ async def setup(bot: commands.Bot):
 
     # Register persistent views (if needed in the future)
     bot.add_view(
-        RealmSelectionView(bot, user_id=None)
+        __profile_views.RealmSelectionView(bot, user_id=None)
     )  # Use dummy `user_id` if necessary for persistence
 
     _log.info("✅ Profile system initialized (commands, tasks, views).")
