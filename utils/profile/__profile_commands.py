@@ -129,9 +129,6 @@ class ProfileCommands(commands.GroupCog, name="profile"):
             view=RealmSelectionView(self.bot, interaction.user.id),
             ephemeral=True,
         )
-        await interaction.response.send_message(
-            view=RealmSelectionView(self.bot, interaction.user.id), ephemeral=True
-        )
 
 
 async def setup(bot: commands.Bot):
