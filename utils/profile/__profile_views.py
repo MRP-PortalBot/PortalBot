@@ -70,7 +70,7 @@ class ProfileEditModal(discord.ui.Modal, title="Edit Your Profile"):
             )
 
 
-class RealmSelection(discord.ui.Select):
+class RealmSelectionView(discord.ui.View):
     def __init__(self, bot, user_id):
         self.bot = bot
         self.user_id = user_id
