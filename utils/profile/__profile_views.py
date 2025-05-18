@@ -77,7 +77,7 @@ class RealmSelectionView(discord.ui.View):
 
         # Fetch active realms from the database
         active_realms = [
-            realm.RealmName
+            realm.realm_name
             for realm in database.RealmProfile.select().where(
                 database.RealmProfile.archived == 0
             )
