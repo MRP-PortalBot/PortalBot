@@ -40,12 +40,6 @@ class ScoreIncrement(commands.Cog):
         username = str(message.author.name)
         current_time = time.time()
 
-        # Cooldown check:
-        if current_time - score.LastMessageTimestamp < cooldown_time:
-            remaining = cooldown_time - (current_time - score.LastMessageTimestamp)
-            server_score_log.info(f"{username} still on cooldown ({remaining:.2f}s left).")
-            return
-
         score_increment = random.randint(points_per_message, points_per_message * 3)
 
         try:
@@ -55,6 +49,14 @@ class ScoreIncrement(commands.Cog):
                 ServerID=str(message.guild.id),
                 defaults={"Score": 0, "Level": 1, "Progress": 0},
             )
+
+            # Cooldown check:
+            if current_time - score.LastMessageTimestamp < cooldown_time:
+                remaining = cooldown_time - (current_time - score.LastMessageTimestamp)
+                server_score_log.info(
+                    f"{username} still on cooldown ({remaining:.2f}s left)."
+                )
+                return
 
             previous_level = score.Level
             score.Score += score_increment
@@ -93,6 +95,7 @@ class ScoreIncrement(commands.Cog):
         # After updating score and saving:
         score.LastMessageTimestamp = current_time
         score.save()
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(ScoreIncrement(bot))
