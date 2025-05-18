@@ -217,7 +217,7 @@ class AdminCommands(commands.GroupCog, name="admin"):
 
                 await ctx.send(
                     embed=discord.Embed(
-                        color=discord.Color.gold,
+                        color=EmbedColors.gold,
                         title="Confirm Global Sync",
                         description="Are you sure you want to sync all commands?",
                     ),
@@ -227,7 +227,7 @@ class AdminCommands(commands.GroupCog, name="admin"):
             _log.error(f"sync_command error: {e}", exc_info=True)
             await ctx.send(
                 embed=discord.Embed(
-                    color=discord.Color.red,
+                    color=EmbedColors.red,
                     title="Sync Error",
                     description=f"❌ {e}",
                 )

@@ -20,8 +20,9 @@ class EmbedColors:
     red = discord.Color.red()
     green = discord.Color.green()
     blue = discord.Color.blue()
-    yellow = discord.Color.gold()
+    yellow = discord.Color.yellow()
     default = discord.Color.blurple()
+    gold = discord.Color.gold()
 
 
 class BotAssets:
