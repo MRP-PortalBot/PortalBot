@@ -12,6 +12,7 @@ from . import (
     __operator_commands,
 )
 
+
 async def setup(bot: commands.Bot):
     # Load grouped command cogs
     await __admin_commands.setup(bot)
