@@ -85,7 +85,7 @@ class RealmSelection(discord.ui.Select):
         active_names = [realm.realm_name for realm in active_realms]
 
         # Fetch user profile
-        profile = get_profile_record(str(user_id))
+        profile = get_profile_record(self.bot, str(user_id))
         existing = []
 
         if profile and profile.RealmsJoined and profile.RealmsJoined != "None":
@@ -110,7 +110,7 @@ class RealmSelection(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         try:
-            profile = get_profile_record(str(self.user_id))
+            profile = get_profile_record(self.bot, str(self.user_id))
             if not profile:
                 await interaction.response.send_message(
                     "Profile not found.", ephemeral=True
