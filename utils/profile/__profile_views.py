@@ -70,25 +70,46 @@ class ProfileEditModal(discord.ui.Modal, title="Edit Your Profile"):
             )
 
 
-class RealmSelectionView(discord.ui.View):
+class RealmSelection(discord.ui.Select):
     def __init__(self, bot, user_id):
-        super().__init__(timeout=300)
         self.bot = bot
         self.user_id = user_id
 
-        # Load realm names from active realms
-        active_realms = (
-            database.RealmProfile.select()
-            .where(database.RealmProfile.archived == 0)
-            .order_by(database.RealmProfile.realm_name.asc())
-        )
-        options = [
-            discord.SelectOption(label=realm.realm_name, value=realm.realm_name)
-            for realm in active_realms
+        # Fetch active realms from the database
+        active_realms = [
+            realm.RealmName
+            for realm in database.RealmProfile.select().where(
+                database.RealmProfile.Archived == 0
+            )
         ]
 
-        self.add_item(RealmDropdown("Joined Realms", "joined", options))
-        self.add_item(RealmDropdown("Admin Realms", "admin", options))
+        # Fetch the user's current realm affiliations
+        profile = database.PortalbotProfile.get_or_none(
+            database.PortalbotProfile.DiscordLongID == str(user_id)
+        )
+        selected_realms = (
+            set(map(str.strip, profile.RealmsJoined.split(",")))
+            if profile and profile.RealmsJoined != "None"
+            else set()
+        )
+
+        # Build select options with default selected if already in user's list
+        options = [
+            discord.SelectOption(
+                label=realm_name,
+                value=realm_name,
+                default=realm_name in selected_realms,
+            )
+            for realm_name in active_realms
+        ]
+
+        super().__init__(
+            placeholder="Select your realms...",
+            min_values=0,
+            max_values=len(options),
+            options=options,
+            custom_id="profile_set_realms",
+        )
 
 
 class RealmDropdown(discord.ui.Select):
