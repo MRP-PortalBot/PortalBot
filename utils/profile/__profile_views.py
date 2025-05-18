@@ -146,20 +146,21 @@ class RealmSelectionView(discord.ui.View):
             RealmSelection(
                 bot,
                 user_id,
-                field="RealmsJoined",
-                label="Member Realms",
-                placeholder="Select realms you are a member of...",
+                field="RealmsAdmin",
+                label="OP Realms",
+                placeholder="Select realms you are an OP in...",
             )
         )
         self.add_item(
             RealmSelection(
                 bot,
                 user_id,
-                field="RealmsAdmin",
-                label="Admin Realms",
-                placeholder="Select realms you admin...",
+                field="RealmsJoined",
+                label="Member Realms",
+                placeholder="Select realms you are a member of...",
             )
         )
+
 
 
 class RealmDropdown(discord.ui.Select):

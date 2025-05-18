@@ -118,6 +118,18 @@ class ProfileCommands(commands.GroupCog, name="profile"):
     )
     async def set_realm(self, interaction: discord.Interaction):
         await interaction.response.send_message(
+            embed=discord.Embed(
+                title="Select Your Realms",
+                description=(
+                    "**🛡️ Realms you are an OP in:**\nUse the first dropdown below to select realms where you're an operator.\n\n"
+                    "**🏰 Realms you are a member of:**\nUse the second dropdown to select realms you’ve joined."
+                ),
+                color=discord.Color.blurple(),
+            ),
+            view=RealmSelectionView(self.bot, interaction.user.id),
+            ephemeral=True,
+        )
+        await interaction.response.send_message(
             view=RealmSelectionView(self.bot, interaction.user.id), ephemeral=True
         )
 
