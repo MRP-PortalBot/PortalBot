@@ -1,23 +1,19 @@
 import discord
-from discord import app_commands, ui
 from discord.ext import commands
+from discord import app_commands, ui
 from pathlib import Path
 from typing import Union, Literal
+
 from core import database
 from core.checks import has_admin_level
-from core.logging_module import get_log
-from core.common import (
-    get_cached_bot_data,
-    get_bot_data_for_server,
-    refresh_bot_data_cache,
-)
 from core.constants import EmbedColors
+from core.logging_module import get_log
 
 _log = get_log(__name__)
 
 
 class AdminCommands(commands.GroupCog, name="admin"):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @app_commands.command(
@@ -47,7 +43,6 @@ class AdminCommands(commands.GroupCog, name="admin"):
                 "Database file sent to your DMs.", ephemeral=True
             )
             _log.info(f"{interaction.user} requested and received database file.")
-
         except Exception as e:
             _log.error(f"requestdb error: {e}", exc_info=True)
             await interaction.response.send_message(
@@ -75,7 +70,6 @@ class AdminCommands(commands.GroupCog, name="admin"):
                 await interaction.response.send_message(
                     "Database file does not exist.", ephemeral=True
                 )
-
         except Exception as e:
             _log.error(f"deletedb error: {e}", exc_info=True)
             await interaction.response.send_message(
@@ -124,74 +118,10 @@ class AdminCommands(commands.GroupCog, name="admin"):
                 "Database replaced successfully.", ephemeral=True
             )
             _log.info(f"{interaction.user} replaced the database file.")
-
         except Exception as e:
             _log.error(f"replacedb error: {e}", exc_info=True)
             await interaction.response.send_message(
                 "Failed to replace database file.", ephemeral=True
-            )
-
-    @app_commands.command(
-        name="view", description="View cached bot data for this server."
-    )
-    @has_admin_level(2)
-    async def view_bot_cache(self, interaction: discord.Interaction):
-        try:
-            bot_data = get_cached_bot_data(interaction.guild.id)
-            if not bot_data:
-                await interaction.response.send_message(
-                    "No bot data found for this server.", ephemeral=True
-                )
-                return
-
-            embed = discord.Embed(
-                title="📊 Cached Bot Data",
-                color=discord.Color.blurple(),
-                description=f"Server ID: `{interaction.guild.id}`",
-            )
-            for field, value in bot_data.__data__.items():
-                embed.add_field(name=field, value=str(value), inline=False)
-
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-
-        except Exception as e:
-            _log.error(f"view_bot_cache error: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "Failed to view cache.", ephemeral=True
-            )
-
-    @app_commands.command(
-        name="update-cache", description="Refresh cache from database."
-    )
-    @has_admin_level(4)
-    async def update_cache(self, interaction: discord.Interaction):
-        try:
-            get_bot_data_for_server(interaction.guild.id)
-            await interaction.response.send_message(
-                "Cache refreshed from database.", ephemeral=True
-            )
-            _log.info(f"Cache refreshed for {interaction.guild.id}.")
-        except Exception as e:
-            _log.error(f"update_cache error: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "Failed to update cache.", ephemeral=True
-            )
-
-    @app_commands.command(
-        name="update_bot_data", description="Force-refresh cached bot data."
-    )
-    @has_admin_level(2)
-    async def update_bot_data(self, interaction: discord.Interaction):
-        try:
-            refresh_bot_data_cache(interaction.guild.id)
-            await interaction.response.send_message(
-                "Bot data cache updated.", ephemeral=True
-            )
-            _log.info(f"Bot data cache updated for {interaction.guild.id}.")
-        except Exception as e:
-            _log.error(f"update_bot_data error: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "Failed to update bot data.", ephemeral=True
             )
 
     @commands.command(name="sync")
@@ -287,24 +217,23 @@ class AdminCommands(commands.GroupCog, name="admin"):
 
                 await ctx.send(
                     embed=discord.Embed(
-                        color=discord.Color.gold(),
+                        color=discord.Color.gold,
                         title="Confirm Global Sync",
                         description="Are you sure you want to sync all commands?",
                     ),
                     view=view,
                 )
-
         except Exception as e:
             _log.error(f"sync_command error: {e}", exc_info=True)
             await ctx.send(
                 embed=discord.Embed(
-                    color=discord.Color.red(),
+                    color=discord.Color.red,
                     title="Sync Error",
                     description=f"❌ {e}",
                 )
             )
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot):
     await bot.add_cog(AdminCommands(bot))
     _log.info("✅ AdminCommands cog loaded.")
