@@ -9,8 +9,16 @@ from core.common import get_cached_bot_data
 
 _log = get_log(__name__)
 
+
 class BanishBlacklistForm(ui.Modal, title="Blacklist Form"):
-    def __init__(self, bot, user: discord.User, gamertag: str, originating_realm: str, type_of_ban: str):
+    def __init__(
+        self,
+        bot,
+        user: discord.User,
+        gamertag: str,
+        originating_realm: str,
+        type_of_ban: str,
+    ):
         super().__init__(timeout=None)
         self.bot = bot
         self.user = user
@@ -77,25 +85,65 @@ class BanishBlacklistForm(ui.Modal, title="Blacklist Form"):
                 color=discord.Color.red(),
                 timestamp=datetime.datetime.now(),
             )
-            embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/788873229136560140/1290737175666888875/no_entry.png")
-            embed.add_field(name="🔹 Discord Username", value=f"`{self.discord_username.value}`", inline=True)
-            embed.add_field(name="🔹 Discord ID", value=f"`{self.user.id}`", inline=True)
+            embed.set_thumbnail(
+                url="https://cdn.discordapp.com/attachments/788873229136560140/1290737175666888875/no_entry.png"
+            )
+            embed.add_field(
+                name="🔹 Discord Username",
+                value=f"`{self.discord_username.value}`",
+                inline=True,
+            )
+            embed.add_field(
+                name="🔹 Discord ID", value=f"`{self.user.id}`", inline=True
+            )
             embed.add_field(name="🎮 Gamertag", value=f"`{self.gamertag}`", inline=True)
-            embed.add_field(name="🏰 Realm Banned From", value=f"`{self.originating_realm}`", inline=True)
-            embed.add_field(name="👥 Known Alts", value=f"`{self.known_alts.value}`", inline=True)
-            embed.add_field(name="⚠️ Ban Reason", value=f"`{self.reason.value}`", inline=False)
-            embed.add_field(name="📅 Date of Incident", value=f"`{self.date_of_ban.value}`", inline=True)
-            embed.add_field(name="⏳ Type of Ban", value=f"`{self.type_of_ban}`", inline=True)
-            embed.add_field(name="⌛ Ban End Date", value=f"`{self.ban_end_date.value}`", inline=True)
-            embed.set_footer(text=f"Entry ID: {q.entryid} | Reported by {interaction.user.display_name}",
-                             icon_url=interaction.user.display_avatar.url)
+            embed.add_field(
+                name="🏰 Realm Banned From",
+                value=f"`{self.originating_realm}`",
+                inline=True,
+            )
+            embed.add_field(
+                name="👥 Known Alts", value=f"`{self.known_alts.value}`", inline=True
+            )
+            embed.add_field(
+                name="⚠️ Ban Reason", value=f"`{self.reason.value}`", inline=False
+            )
+            embed.add_field(
+                name="📅 Date of Incident",
+                value=f"`{self.date_of_ban.value}`",
+                inline=True,
+            )
+            embed.add_field(
+                name="⏳ Type of Ban", value=f"`{self.type_of_ban}`", inline=True
+            )
+            embed.add_field(
+                name="⌛ Ban End Date",
+                value=f"`{self.ban_end_date.value}`",
+                inline=True,
+            )
+            embed.set_footer(
+                text=f"Entry ID: {q.entryid} | Reported by {interaction.user.display_name}",
+                icon_url=interaction.user.display_avatar.url,
+            )
 
             if log_channel:
                 await log_channel.send(embed=embed)
-                await interaction.followup.send("✅ Banned User Added Successfully", ephemeral=True)
+                await interaction.followup.send(
+                    "✅ Banned User Added Successfully", ephemeral=True
+                )
             else:
-                await interaction.followup.send("⚠️ Log channel not found!", ephemeral=True)
+                await interaction.followup.send(
+                    "⚠️ Log channel not found!", ephemeral=True
+                )
 
         except Exception as e:
             _log.error(f"Error in blacklist submission: {e}", exc_info=True)
-            await interaction.followup.send("❌ Error occurred during submission.", ephemeral=True)
+            await interaction.followup.send(
+                "❌ Error occurred during submission.", ephemeral=True
+            )
+
+
+def return_banishblacklistform_modal(
+    bot, user: discord.User, gamertag: str, originating_realm: str, type_of_ban: str
+):
+    return BanishBlacklistForm(bot, user, gamertag, originating_realm, type_of_ban)
