@@ -7,10 +7,10 @@ from discord import app_commands, ui
 from discord.ext import commands
 from core import database
 from core.logging_module import get_log
-from core.common import load_config
+from core.common import load_config, get_cached_bot_data
 from core.pagination import paginate_embed
 
-from .__bl_logic import create_ban_embed, send_to_log_channel
+from .__bl_logic import create_ban_embed, send_to_log_channel, entry_to_user_data_dict
 from .__bl_views import return_banishblacklistform_modal
 
 _log = get_log(__name__)
@@ -50,7 +50,7 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
     @app_commands.describe(search_term="The term to search for in the banned list")
     @app_commands.checks.has_role("Realm OP")
     async def search(self, interaction: discord.Interaction, *, search_term: str):
-        databaseData = [
+        database_fields = [
             database.MRP_Blacklist_Data.DiscUsername,
             database.MRP_Blacklist_Data.DiscID,
             database.MRP_Blacklist_Data.Gamertag,
@@ -65,8 +65,8 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
         ]
 
         results = []
-        for data in databaseData:
-            query = database.MRP_Blacklist_Data.select().where(data.contains(search_term))
+        for field in database_fields:
+            query = database.MRP_Blacklist_Data.select().where(field.contains(search_term))
             if query.exists():
                 results.extend(query)
 
@@ -74,7 +74,7 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
             embed = discord.Embed(
                 title="Bannedlist Search",
                 description=f"Requested by: {interaction.user.mention}",
-                color=discord.Color.green()
+                color=discord.Color.green(),
             )
             embed.add_field(name="No Results!", value=f"No results found for '{search_term}'")
             await interaction.response.send_message(embed=embed)
@@ -82,31 +82,13 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
 
         total_pages = len(results)
 
-        async def populate_page(embed: discord.Embed, page: int):
+        async def populate_page(_, page: int):
             entry = results[page - 1]
-            embed.clear_fields()
-            embed.add_field(name="🔹 Discord Username", value=f"`{entry.DiscUsername}`", inline=True)
-            embed.add_field(name="🔹 Discord ID", value=f"`{entry.DiscID}`", inline=True)
-            embed.add_field(name="🎮 Gamertag", value=f"`{entry.Gamertag}`", inline=True)
-            embed.add_field(name="🏰 Realm Banned From", value=f"`{entry.BannedFrom}`", inline=True)
-            embed.add_field(name="👥 Known Alts", value=f"`{entry.KnownAlts}`", inline=True)
-            embed.add_field(name="⚠️ Ban Reason", value=f"`{entry.ReasonforBan}`", inline=False)
-            embed.add_field(name="📅 Date of Incident", value=f"`{entry.DateofIncident}`", inline=True)
-            embed.add_field(name="⏳ Type of Ban", value=f"`{entry.TypeofBan}`", inline=True)
-            embed.add_field(
-                name="⌛ Ban End Date",
-                value=f"`{entry.DatetheBanEnds or 'Permanent'}`",
-                inline=True,
-            )
-            embed.set_footer(text=f"Entry ID: {entry.entryid} | Page {page}/{total_pages}")
-            return embed
+            user_data = entry_to_user_data_dict(entry)
+            return create_ban_embed(entry.entryid, interaction, user_data, config)
 
-        embed = discord.Embed(
-            title="Banned User Information",
-            description=f"Requested by: {interaction.user.mention}",
-            color=discord.Color.red()
-        )
-        await paginate_embed(self.bot, interaction, embed, populate_page, total_pages)
+        base_embed = discord.Embed(title="🔍 Banned User Search Results")
+        await paginate_embed(self.bot, interaction, base_embed, populate_page, total_pages)
 
     @app_commands.command(name="edit", description="Edit a banned list entry.")
     @app_commands.checks.has_role("Realm OP")
@@ -156,6 +138,21 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
         old_value = getattr(query, field_mapping[modify])
         setattr(query, field_mapping[modify], new_value)
         query.save()
+        
+        # Log the update to the configured banned list channel
+        bot_data = get_cached_bot_data(interaction.guild.id)
+        log_channel = self.bot.get_channel(bot_data.bannedlist_channel)
+
+        log_embed = discord.Embed(
+            title="✏️ Blacklist Entry Updated",
+            description=f"{interaction.user.mention} updated **{modify}** on Entry ID `{entry_id}`.",
+            color=discord.Color.orange()
+        )
+        log_embed.add_field(name="Old Value", value=f"`{old_value}`", inline=True)
+        log_embed.add_field(name="New Value", value=f"`{new_value}`", inline=True)
+        log_embed.set_footer(text=f"Updated by {interaction.user.display_name}", icon_url=interaction.user.display_avatar.url)
+
+        await send_to_log_channel(interaction, log_channel, log_embed)
 
         await interaction.response.send_message(
             f"✅ Updated **{modify}** from **{old_value}** to **{new_value}** for Entry ID: `{entry_id}`.",

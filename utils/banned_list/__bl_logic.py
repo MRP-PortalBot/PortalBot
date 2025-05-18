@@ -48,3 +48,16 @@ async def send_to_log_channel(interaction, log_channel, embed):
     else:
         _log.warning("Log channel not found!")
         await interaction.followup.send("An Error Occurred, Try Again", ephemeral=True)
+
+def entry_to_user_data_dict(entry) -> dict:
+    return {
+        "discord_username": entry.DiscUsername,
+        "disc_id": entry.DiscID,
+        "gamertag": entry.Gamertag,
+        "originating_realm": entry.BannedFrom,
+        "known_alts": entry.KnownAlts,
+        "reason_for_ban": entry.ReasonforBan,
+        "date_of_ban": entry.DateofIncident,
+        "type_of_ban": entry.TypeofBan,
+        "ban_end_date": entry.DatetheBanEnds,
+    }
