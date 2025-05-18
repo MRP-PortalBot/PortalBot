@@ -80,9 +80,9 @@ class RealmSelection(discord.ui.Select):
         active_realms = (
             database.RealmProfile.select()
             .where(database.RealmProfile.archived == False)
-            .order_by(database.RealmProfile.realm_name)
+            .order_by(database.RealmProfile.RealmName)
         )
-        active_names = [realm.name for realm in active_realms]
+        active_names = [realm.RealmName for realm in active_realms]
 
         # Fetch user profile
         profile = get_profile_record(str(user_id))
@@ -106,7 +106,6 @@ class RealmSelection(discord.ui.Select):
             min_values=0,
             max_values=len(options),
             options=options,
-            custom_id="profile_set_realms",
         )
 
     async def callback(self, interaction: discord.Interaction):
