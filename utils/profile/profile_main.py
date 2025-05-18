@@ -1,33 +1,25 @@
-import discord
+# utils/profile/__profile_main.py
+
 from discord.ext import commands
-from discord import app_commands
-import logging
+from core.logging_module import get_log
+from .__profile_views import RealmSelectionView
 
-_log = logging.getLogger(__name__)
+# Import internal modules
+from . import __profile_commands, __profile_tasks, __profile_views
 
-
-class ProfileCMD(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+_log = get_log(__name__)
 
 
-async def setup(bot):
-    from .__profile_visual import add_visual_commands
-    from .__profile_embed import add_embed_commands
-    from .__profile_edit import add_edit_commands
+async def setup(bot: commands.Bot):
+    # Register slash command group
+    bot.tree.add_command(__profile_commands.Profile)
 
-    # Create the top-level slash command group
-    profile_group = app_commands.Group(
-        name="profile", description="Commands for User Profiles"
-    )
+    # Load the commands as a cog
+    await __profile_commands.setup(bot)
 
-    # Inject subcommands into the group
-    add_visual_commands(profile_group)
-    add_embed_commands(profile_group)
-    add_edit_commands(profile_group)
+    # Register persistent views (if needed in the future)
+    bot.add_view(
+        RealmSelectionView(bot, user_id=None)
+    )  # Use dummy `user_id` if necessary for persistence
 
-    # Register the group with the app command tree
-    bot.tree.add_command(profile_group)
-
-    # Add the cog
-    await bot.add_cog(ProfileCMD(bot))
+    _log.info("✅ Profile system initialized (commands, tasks, views).")
