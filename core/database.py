@@ -12,6 +12,7 @@ from peewee import (
     MySQLDatabase,
     OperationalError,
     ForeignKeyField,
+    FloatField,
 )
 from playhouse.shortcuts import ReconnectMixin
 from flask import Flask
@@ -309,6 +310,7 @@ class ServerScores(BaseModel):
     Score = IntegerField()  # Score in the particular server
     Level = IntegerField(default=0)  # Current level of the user
     Progress = IntegerField(default=0)  # Progress toward the next level
+    LastMessageTimestamp = FloatField(default=0)  # Unix timestamp of last message
 
 
 class LeveledRoles(BaseModel):
