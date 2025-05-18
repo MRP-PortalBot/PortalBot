@@ -1,3 +1,5 @@
+# utils/admin/__operator_commands.py
+
 from typing import Literal
 import discord
 from discord import app_commands
@@ -8,16 +10,14 @@ from core.checks import slash_is_realm_op
 _log = get_log(__name__)
 
 
-class OperatorCMD(commands.Cog):
+class OperatorCommands(commands.GroupCog, name="operator"):
     def __init__(self, bot):
         self.bot = bot
-        _log.info("OperatorCMD cog initialized.")
+        _log.info("OperatorCommands group loaded.")
 
-    OP = app_commands.Group(
-        name="operator", description="Realm/Server Owner level commands."
+    @app_commands.command(
+        name="manage_operators", description="Manage your realm admins here."
     )
-
-    @OP.command(name="manage_operators", description="Manage your realm admins here.")
     @app_commands.describe(
         action="Whether to add or remove a Realm OP Role",
         user="The user to add or remove the role from",
@@ -33,12 +33,10 @@ class OperatorCMD(commands.Cog):
         role: discord.Role,
     ):
         try:
-            # Log the interaction details
             _log.info(
-                f"{interaction.user} initiated manage_operators command: action={action}, user={user}, role={role}"
+                f"{interaction.user} initiated manage_operators: action={action}, user={user}, role={role}"
             )
 
-            # Check if the role is an OP role
             if "OP" not in role.name:
                 _log.warning(f"Role '{role}' is not an OP role.")
                 await interaction.response.send_message(
@@ -47,34 +45,25 @@ class OperatorCMD(commands.Cog):
                 )
                 return
 
-            # Ensure the interacting user has the required role
             if role not in interaction.user.roles:
-                _log.warning(
-                    f"{interaction.user} does not have role '{role}' and attempted to use it."
-                )
+                _log.warning(f"{interaction.user} lacks role '{role}'.")
                 await interaction.response.send_message(
                     f"You don't have the role '{str(role)}'. Please contact an Admin if you are having trouble!",
                     ephemeral=True,
                 )
                 return
 
-            # Prevent giving out the "Realm OP" role itself
             if role.id == 683430456490065959:
-                _log.warning(
-                    f"{interaction.user} attempted to give out the 'Realm OP' role."
-                )
+                _log.warning(f"{interaction.user} attempted to grant Realm OP role.")
                 await interaction.response.send_message(
                     "You are not allowed to give out the `Realm OP` role.",
                     ephemeral=True,
                 )
                 return
 
-            # Add or remove the role based on action
             if action == "add":
                 await user.add_roles(role)
-                _log.info(
-                    f"Added role '{role}' to user '{user}' by '{interaction.user}'."
-                )
+                _log.info(f"Added {role} to {user} by {interaction.user}")
                 embed = discord.Embed(
                     title="Realm Operator Command",
                     description=f"{user.mention} now has {role.mention}!\nPlease remember you require Spider Sniper or above in order to get the Realm OP role!",
@@ -86,36 +75,34 @@ class OperatorCMD(commands.Cog):
                 )
             else:
                 await user.remove_roles(role)
-                _log.info(
-                    f"Removed role '{role}' from user '{user}' by '{interaction.user}'."
-                )
+                _log.info(f"Removed {role} from {user} by {interaction.user}")
                 embed = discord.Embed(
                     title="Realm Operator Command",
-                    description=f"**Operator** {user.mention} removed {role.mention} from {user.name}",
+                    description=f"**Operator** {interaction.user.mention} removed {role.mention} from {user.name}",
                     color=0x4287F5,
                 )
                 await interaction.response.send_message(embed=embed)
 
         except discord.Forbidden:
-            _log.error("Bot does not have permission to manage roles.")
+            _log.error("Missing permissions to manage roles.")
             await interaction.response.send_message(
                 "I do not have permission to manage roles. Please check my permissions and try again.",
                 ephemeral=True,
             )
         except discord.HTTPException as e:
-            _log.error(f"HTTP Exception occurred: {e}")
+            _log.error(f"HTTP Exception: {e}")
             await interaction.response.send_message(
                 "An error occurred while managing the role. Please try again later.",
                 ephemeral=True,
             )
         except Exception as e:
-            _log.exception(f"Unexpected error occurred in manage_operators: {e}")
+            _log.exception(f"Unexpected error in manage_operators: {e}")
             await interaction.response.send_message(
                 "An unexpected error occurred. Please contact an administrator.",
                 ephemeral=True,
             )
 
 
-async def setup(bot):
-    await bot.add_cog(OperatorCMD(bot))
-    _log.info("OperatorCMD cog loaded.")
+async def setup(bot: commands.Bot):
+    await bot.add_cog(OperatorCommands(bot))
+    _log.info("✅ OperatorCommands loaded.")
