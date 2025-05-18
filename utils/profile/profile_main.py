@@ -14,8 +14,5 @@ async def setup(bot: commands.Bot):
     await __profile_commands.setup(bot)
 
     # Register persistent views (if needed in the future)
-    bot.add_view(
-        __profile_views.RealmSelectionView(bot, user_id=None)
-    )  # Use dummy `user_id` if necessary for persistence
 
     _log.info("✅ Profile system initialized (commands, tasks, views).")
