@@ -72,11 +72,12 @@ class ProfileEditModal(discord.ui.Modal, title="Edit Your Profile"):
 
 
 class RealmSelection(discord.ui.Select):
-    def __init__(self, bot, user_id: int):
+    def __init__(self, bot, user_id: int, field: str, label: str, placeholder: str):
         self.bot = bot
         self.user_id = user_id
+        self.field = field  # Either 'RealmsJoined' or 'RealmsAdmin'
 
-        # Fetch active realms from RealmProfile (archived = 0)
+        # Fetch active realms
         active_realms = (
             database.RealmProfile.select()
             .where(database.RealmProfile.archived == False)
@@ -87,9 +88,10 @@ class RealmSelection(discord.ui.Select):
         # Fetch user profile
         profile = get_profile_record(self.bot, str(user_id))
         existing = []
-
-        if profile and profile.RealmsJoined and profile.RealmsJoined != "None":
-            existing = [r.strip() for r in profile.RealmsJoined.split(",")]
+        if profile:
+            current_value = getattr(profile, self.field, "None")
+            if current_value and current_value != "None":
+                existing = [r.strip() for r in current_value.split(",")]
 
         # Build options
         options = [
@@ -102,10 +104,12 @@ class RealmSelection(discord.ui.Select):
         ]
 
         super().__init__(
-            placeholder="Select your realms...",
+            placeholder=placeholder,
             min_values=0,
             max_values=len(options),
             options=options,
+            custom_id=f"profile_set_realms_{field.lower()}",
+            row=0 if field == "RealmsJoined" else 1,
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -117,15 +121,16 @@ class RealmSelection(discord.ui.Select):
                 )
                 return
 
-            # Update and save profile
-            profile.RealmsJoined = ", ".join(self.values) if self.values else "None"
+            setattr(
+                profile, self.field, ", ".join(self.values) if self.values else "None"
+            )
             profile.save()
 
-            await interaction.response.send_message(
-                "✅ Your realms have been updated!", ephemeral=True
-            )
             _log.info(
-                f"Updated RealmsJoined for {interaction.user.display_name}: {profile.RealmsJoined}"
+                f"{self.field} updated for {interaction.user.display_name}: {getattr(profile, self.field)}"
+            )
+            await interaction.response.send_message(
+                f"✅ Your {self.field} realms have been updated!", ephemeral=True
             )
         except Exception as e:
             _log.error("Error in realm selection callback", exc_info=True)
@@ -137,7 +142,24 @@ class RealmSelection(discord.ui.Select):
 class RealmSelectionView(discord.ui.View):
     def __init__(self, bot, user_id: int):
         super().__init__(timeout=None)
-        self.add_item(RealmSelection(bot, user_id))
+        self.add_item(
+            RealmSelection(
+                bot,
+                user_id,
+                field="RealmsJoined",
+                label="Member Realms",
+                placeholder="Select realms you are a member of...",
+            )
+        )
+        self.add_item(
+            RealmSelection(
+                bot,
+                user_id,
+                field="RealmsAdmin",
+                label="Admin Realms",
+                placeholder="Select realms you admin...",
+            )
+        )
 
 
 class RealmDropdown(discord.ui.Select):
