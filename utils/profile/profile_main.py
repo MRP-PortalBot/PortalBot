@@ -10,9 +10,6 @@ _log = get_log(__name__)
 
 
 async def setup(bot: commands.Bot):
-    # Register slash command group
-    bot.tree.add_command(__profile_commands.Profile)
-
     # Load the commands as a cog
     await __profile_commands.setup(bot)
 
