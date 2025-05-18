@@ -80,9 +80,9 @@ class RealmSelection(discord.ui.Select):
         active_realms = (
             database.RealmProfile.select()
             .where(database.RealmProfile.archived == False)
-            .order_by(database.RealmProfile.RealmName)
+            .order_by(database.RealmProfile.realm_name)
         )
-        active_names = [realm.RealmName for realm in active_realms]
+        active_names = [realm.realm_name for realm in active_realms]
 
         # Fetch user profile
         profile = get_profile_record(str(user_id))
