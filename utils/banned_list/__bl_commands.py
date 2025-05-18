@@ -66,7 +66,9 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
 
         results = []
         for field in database_fields:
-            query = database.MRP_Blacklist_Data.select().where(field.contains(search_term))
+            query = database.MRP_Blacklist_Data.select().where(
+                field.contains(search_term)
+            )
             if query.exists():
                 results.extend(query)
 
@@ -76,19 +78,27 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
                 description=f"Requested by: {interaction.user.mention}",
                 color=discord.Color.green(),
             )
-            embed.add_field(name="No Results!", value=f"No results found for '{search_term}'")
+            embed.add_field(
+                name="No Results!", value=f"No results found for '{search_term}'"
+            )
             await interaction.response.send_message(embed=embed)
             return
 
         total_pages = len(results)
 
-        async def populate_page(_, page: int):
+        async def populate_page(embed: discord.Embed, page: int):
             entry = results[page - 1]
             user_data = entry_to_user_data_dict(entry)
             return create_ban_embed(entry.entryid, interaction, user_data, config)
 
+        # This is a blank embed used to start
         base_embed = discord.Embed(title="🔍 Banned User Search Results")
-        await paginate_embed(self.bot, interaction, base_embed, populate_page, total_pages)
+        await paginate_embed(
+            interaction,
+            base_embed,  # Embed (required)
+            populate_page,  # Async function (required)
+            total_pages,  # Int: total number of pages
+        )
 
     @app_commands.command(name="edit", description="Edit a banned list entry.")
     @app_commands.checks.has_role("Realm OP")
@@ -97,9 +107,16 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
         interaction: discord.Interaction,
         entry_id: int,
         modify: Literal[
-            "Ban Reporter", "Discord Username", "Discord ID", "Gamertag",
-            "Realm Banned from", "Known Alts", "Ban Reason",
-            "Date of Incident", "Type of Ban", "Ban End Date"
+            "Ban Reporter",
+            "Discord Username",
+            "Discord ID",
+            "Gamertag",
+            "Realm Banned from",
+            "Known Alts",
+            "Ban Reason",
+            "Date of Incident",
+            "Type of Ban",
+            "Ban End Date",
         ],
         new_value: str,
     ):
@@ -138,7 +155,7 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
         old_value = getattr(query, field_mapping[modify])
         setattr(query, field_mapping[modify], new_value)
         query.save()
-        
+
         # Log the update to the configured banned list channel
         bot_data = get_cached_bot_data(interaction.guild.id)
         log_channel = self.bot.get_channel(bot_data.bannedlist_channel)
@@ -146,11 +163,14 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
         log_embed = discord.Embed(
             title="✏️ Blacklist Entry Updated",
             description=f"{interaction.user.mention} updated **{modify}** on Entry ID `{entry_id}`.",
-            color=discord.Color.orange()
+            color=discord.Color.orange(),
         )
         log_embed.add_field(name="Old Value", value=f"`{old_value}`", inline=True)
         log_embed.add_field(name="New Value", value=f"`{new_value}`", inline=True)
-        log_embed.set_footer(text=f"Updated by {interaction.user.display_name}", icon_url=interaction.user.display_avatar.url)
+        log_embed.set_footer(
+            text=f"Updated by {interaction.user.display_name}",
+            icon_url=interaction.user.display_avatar.url,
+        )
 
         await send_to_log_channel(interaction, log_channel, log_embed)
 
@@ -163,11 +183,15 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
         try:
             return await self.bot.fetch_user(discord_id)
         except discord.NotFound:
-            await interaction.response.send_message("Invalid Discord ID!", ephemeral=True)
+            await interaction.response.send_message(
+                "Invalid Discord ID!", ephemeral=True
+            )
             return None
         except Exception as e:
             _log.error(f"fetch_user error: {e}", exc_info=True)
-            await interaction.response.send_message("Error fetching user.", ephemeral=True)
+            await interaction.response.send_message(
+                "Error fetching user.", ephemeral=True
+            )
             return None
 
 
