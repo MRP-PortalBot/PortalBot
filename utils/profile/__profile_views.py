@@ -4,6 +4,7 @@ import discord
 from discord import ui
 from core.logging_module import get_log
 from core import database
+from core.common import get_profile_record
 
 _log = get_log(__name__)
 
@@ -79,12 +80,12 @@ class RealmSelection(discord.ui.Select):
         active_realms = (
             database.RealmProfile.select()
             .where(database.RealmProfile.archived == False)
-            .order_by(database.RealmProfile.name)
+            .order_by(database.RealmProfile.realm_name)
         )
         active_names = [realm.name for realm in active_realms]
 
         # Fetch user profile
-        profile = self.bot.get_profile_record(str(user_id))
+        profile = get_profile_record(str(user_id))
         existing = []
 
         if profile and profile.RealmsJoined and profile.RealmsJoined != "None":
@@ -110,7 +111,7 @@ class RealmSelection(discord.ui.Select):
 
     async def callback(self, interaction: discord.Interaction):
         try:
-            profile = self.bot.get_profile_record(str(self.user_id))
+            profile = get_profile_record(str(self.user_id))
             if not profile:
                 await interaction.response.send_message(
                     "Profile not found.", ephemeral=True
