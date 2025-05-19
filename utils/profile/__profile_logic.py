@@ -2,7 +2,7 @@ import io
 from PIL import Image, ImageDraw, ImageFont
 from discord import File, Embed, Member
 from utils.database import __database
-from utils.core_features.common import calculate_level, get_user_rank, ensure_profile_exists
+from utils.core_features.__common import calculate_level, get_user_rank, ensure_profile_exists
 
 # Constants
 FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"

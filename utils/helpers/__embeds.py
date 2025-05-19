@@ -1,5 +1,5 @@
 import discord
-from utils.core_features.constants import EmbedColors
+from utils.core_features.__constants import EmbedColors
 from data import images
 
 

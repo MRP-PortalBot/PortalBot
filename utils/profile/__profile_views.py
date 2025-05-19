@@ -4,7 +4,7 @@ import discord
 from discord import ui
 from utils.helpers.__logging_module import get_log
 from utils.database import __database
-from utils.core_features.common import get_profile_record
+from utils.core_features.__common import get_profile_record
 
 _log = get_log(__name__)
 

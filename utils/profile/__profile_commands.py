@@ -8,7 +8,7 @@ from discord import File
 from utils.database import __database
 from utils.helpers import __checks
 from utils.helpers.__logging_module import get_log
-from utils.core_features.common import ensure_profile_exists
+from utils.core_features.__common import ensure_profile_exists
 from .__profile_logic import (
     generate_profile_embed,
     generate_profile_card,

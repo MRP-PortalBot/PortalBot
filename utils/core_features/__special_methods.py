@@ -13,12 +13,12 @@ from discord import app_commands
 from discord.ext import commands
 
 from utils.database import __database
-from utils.core_features.common import (
+from utils.core_features.__common import (
     get_cached_bot_data,
     get_bot_data_for_server,
     get_permitlist,
 )
-from utils.core_features.constants import ConsoleColors, EmbedColors, BotAssets, Dev
+from utils.core_features.__constants import ConsoleColors, EmbedColors, BotAssets, Dev
 from utils.helpers.__logging_module import get_log
 from utils.helpers.__embeds import (
     permission_error_embed,

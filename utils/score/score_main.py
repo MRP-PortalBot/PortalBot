@@ -3,7 +3,7 @@ import random
 import time
 from discord.ext import commands
 from utils.database import __database
-from utils.core_features.common import calculate_level
+from utils.core_features.__common import calculate_level
 from utils.helpers.__logging_module import get_log
 from .__score_logic import get_role_for_level
 from .__score_state import cooldowns

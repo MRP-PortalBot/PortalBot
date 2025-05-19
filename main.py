@@ -22,10 +22,10 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from utils.database import __database
-from utils.core_features.common import get_bot_data_for_server, get_cached_bot_data
-from utils.core_features.constants import DEFAULT_PREFIX
+from utils.core_features.__common import get_bot_data_for_server, get_cached_bot_data
+from utils.core_features.__constants import DEFAULT_PREFIX
 from utils.helpers.__logging_module import get_log
-from utils.core_features.special_methods import (
+from utils.core_features.__special_methods import (
     on_app_command_error_,
     initialize_db,
     on_ready_,

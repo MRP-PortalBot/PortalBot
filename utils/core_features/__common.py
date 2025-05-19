@@ -269,9 +269,9 @@ def ensure_profile_exists(profile: object) -> __database.PortalbotProfile | None
     finally:
         if not __database.db.is_closed():
             __database.db.close()
-            
+
+
 def get_profile_record(self, user_id: str):
     return __database.PortalbotProfile.get(
         __database.PortalbotProfile.DiscordLongID == user_id
     )
-

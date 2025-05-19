@@ -5,7 +5,7 @@ from discord.ext import commands
 from tatsu.wrapper import ApiWrapper
 import asyncio  # Import asyncio for sleep function
 from utils.database import __database
-from utils.core_features.common import load_config, calculate_level
+from utils.core_features.__common import load_config, calculate_level
 from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
