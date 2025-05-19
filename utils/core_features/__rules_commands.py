@@ -3,7 +3,6 @@ from discord import app_commands
 from utils.database import __database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
-from admin.bot_management.__bm_logic import get_cached_bot_data
 
 from .__rules_logic import update_rule_embed
 
