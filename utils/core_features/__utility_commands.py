@@ -9,7 +9,7 @@ from discord import app_commands
 
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
-from utils.database import database
+from utils.database import __database
 
 from .__utility_logic import run_reminder_loop
 
@@ -125,7 +125,7 @@ class UtilityCommands(app_commands.Group):
             duration = int(remind_after[:-1]) * units[unit]
             remind_at = datetime.now() + timedelta(seconds=duration)
 
-            database.Reminder.create(
+            __database.Reminder.create(
                 user_id=str(interaction.user.id),
                 message_link=message_link,
                 remind_at=remind_at,

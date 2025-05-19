@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-from utils.database import database
+from utils.database import __database
 from utils.helpers.__logging_module import get_log
 import functools
 
@@ -20,16 +20,16 @@ class LeveledRoles(commands.Cog):
         @functools.wraps(func)
         async def wrapper(self, *args, **kwargs):
             try:
-                if database.db.is_closed():
-                    database.db.connect(reuse_if_open=True)
+                if __database.db.is_closed():
+                    __database.db.connect(reuse_if_open=True)
                     leveled_roles_log.debug("Database connection opened.")
                 result = await func(self, *args, **kwargs)
                 return result
             except Exception as e:
                 leveled_roles_log.error(f"Database operation failed: {e}")
             finally:
-                if not database.db.is_closed():
-                    database.db.close()
+                if not __database.db.is_closed():
+                    __database.db.close()
                     leveled_roles_log.debug("Database connection closed.")
 
         return wrapper
@@ -47,9 +47,9 @@ class LeveledRoles(commands.Cog):
                 f"Checking roles for {member.display_name} (Level {new_level})."
             )
             leveled_roles = (
-                database.LeveledRoles.select()
-                .where(database.LeveledRoles.ServerID == str(guild_id))
-                .order_by(database.LeveledRoles.LevelThreshold.desc())
+                __database.LeveledRoles.select()
+                .where(__database.LeveledRoles.ServerID == str(guild_id))
+                .order_by(__database.LeveledRoles.LevelThreshold.desc())
             )
 
             role_to_assign = None
@@ -97,8 +97,8 @@ class LeveledRoles(commands.Cog):
         Removes all leveled roles from a member except the one they should keep.
         """
         try:
-            leveled_roles = database.LeveledRoles.select().where(
-                database.LeveledRoles.ServerID == str(guild_id)
+            leveled_roles = __database.LeveledRoles.select().where(
+                __database.LeveledRoles.ServerID == str(guild_id)
             )
 
             for role_entry in leveled_roles:
@@ -133,7 +133,7 @@ class LeveledRoles(commands.Cog):
         )
 
         try:
-            entry, created = database.LeveledRoles.get_or_create(
+            entry, created = __database.LeveledRoles.get_or_create(
                 RoleID=str(role.id),
                 ServerID=str(guild_id),
                 defaults={"RoleName": role.name, "LevelThreshold": level_threshold},
@@ -166,9 +166,9 @@ class LeveledRoles(commands.Cog):
         )
 
         try:
-            entry = database.LeveledRoles.get_or_none(
-                database.LeveledRoles.RoleID == str(role.id),
-                database.LeveledRoles.ServerID == str(guild_id),
+            entry = __database.LeveledRoles.get_or_none(
+                __database.LeveledRoles.RoleID == str(role.id),
+                __database.LeveledRoles.ServerID == str(guild_id),
             )
 
             if entry:
@@ -199,9 +199,9 @@ class LeveledRoles(commands.Cog):
         guild_id = message.guild.id
 
         try:
-            score = database.ServerScores.get_or_none(
-                (database.ServerScores.DiscordLongID == str(member.id))
-                & (database.ServerScores.ServerID == str(guild_id))
+            score = __database.ServerScores.get_or_none(
+                (__database.ServerScores.DiscordLongID == str(member.id))
+                & (__database.ServerScores.ServerID == str(guild_id))
             )
 
             if score:

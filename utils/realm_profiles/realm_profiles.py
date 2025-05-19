@@ -3,8 +3,8 @@ from discord import app_commands
 from discord.ext import commands
 from discord import Interaction
 from discord.app_commands.errors import CheckFailure
-from utils.database import database
-from utils.database.database import RealmProfile
+from utils.database import __database
+from utils.database.__database import RealmProfile
 from PIL import Image, ImageDraw, ImageFont
 from utils.helpers.__logging_module import get_log
 import io
@@ -32,7 +32,7 @@ class RealmProfiles(commands.Cog):
         """
         Autocomplete function to suggest realm names based on user input.
         """
-        realm_names = [realm.realm_name for realm in database.RealmProfile.select()]
+        realm_names = [realm.realm_name for realm in __database.RealmProfile.select()]
         return [
             app_commands.Choice(name=realm, value=realm)
             for realm in realm_names
@@ -188,8 +188,8 @@ class RealmProfiles(commands.Cog):
             await interaction.response.defer()
 
             # Fetch the realm profile from the database
-            realm_profile = database.RealmProfile.get_or_none(
-                database.RealmProfile.realm_name == realm_name
+            realm_profile = __database.RealmProfile.get_or_none(
+                __database.RealmProfile.realm_name == realm_name
             )
 
             if not realm_profile:

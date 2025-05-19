@@ -4,7 +4,7 @@ from discord import app_commands
 from discord.ext import commands
 from tatsu.wrapper import ApiWrapper
 import asyncio  # Import asyncio for sleep function
-from utils.database import database
+from utils.database import __database
 from utils.core_features.common import load_config, calculate_level
 from utils.helpers.__logging_module import get_log
 
@@ -28,9 +28,9 @@ class TatsuScoreCog(commands.Cog):
             user_rank = result.rank  # Not used but available
 
             # Check if this user already has a score entry
-            score_entry = database.ServerScores.get_or_none(
-                (database.ServerScores.DiscordLongID == str(user_id))
-                & (database.ServerScores.ServerID == str(guild_id))
+            score_entry = __database.ServerScores.get_or_none(
+                (__database.ServerScores.DiscordLongID == str(user_id))
+                & (__database.ServerScores.ServerID == str(guild_id))
             )
 
             if score_entry:
@@ -43,7 +43,7 @@ class TatsuScoreCog(commands.Cog):
                 # Create new score entry with default level/progress
                 level, progress, next_level_score = calculate_level(user_score)
 
-                database.ServerScores.create(
+                __database.ServerScores.create(
                     DiscordName=user_name,
                     DiscordLongID=str(user_id),
                     ServerID=str(guild_id),

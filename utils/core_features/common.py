@@ -12,11 +12,11 @@ import inspect
 import discord
 from discord import ButtonStyle, ui, SelectOption
 
-from utils.database import database
+from utils.database import __database
 from utils.helpers.__logging_module import get_log
 
 from utils.helpers.__cache_state import bot_data_cache, cache_lock
-from utils.database.database import BotData
+from utils.database.__database import BotData
 
 # Logger
 _log = get_log(__name__)
@@ -39,8 +39,8 @@ async def get_bot_data_for_server(server_id: Union[int, str]):
     try:
         # Fetch outside lock to avoid blocking
         bot_info = (
-            database.BotData.select()
-            .where(database.BotData.server_id == str(server_id))
+            __database.BotData.select()
+            .where(__database.BotData.server_id == str(server_id))
             .get()
         )
         async with cache_lock:
@@ -50,7 +50,7 @@ async def get_bot_data_for_server(server_id: Union[int, str]):
             f"Prefix: {bot_info.prefix}, Server ID: {bot_info.server_id}"
         )
         return bot_info
-    except database.DoesNotExist:
+    except __database.DoesNotExist:
         _log.error(f"No BotData found for server ID: {server_id}")
         return None
     except Exception as e:
@@ -202,9 +202,9 @@ def get_user_rank(server_id: Union[int, str], user_id: Union[int, str]):
     """
     try:
         query = (
-            database.ServerScores.select(database.ServerScores.DiscordLongID)
-            .where(database.ServerScores.ServerID == str(server_id))
-            .order_by(database.ServerScores.Score.desc())
+            __database.ServerScores.select(__database.ServerScores.DiscordLongID)
+            .where(__database.ServerScores.ServerID == str(server_id))
+            .order_by(__database.ServerScores.Score.desc())
         )
         rank = 1
         for entry in query:
@@ -224,9 +224,9 @@ def get_bot_data_for_guild(interaction: discord.Interaction):
     """
     try:
         guild_id = str(interaction.guild.id)
-        bot_data = database.BotData.get(database.BotData.server_id == guild_id)
+        bot_data = __database.BotData.get(__database.BotData.server_id == guild_id)
         return bot_data
-    except database.BotData.DoesNotExist:
+    except __database.BotData.DoesNotExist:
         return None
     except Exception as e:
         _log.error(f"Error fetching bot data for guild {guild_id}: {e}")
@@ -239,13 +239,13 @@ def get_permitlist(min_level=3):
     """
     return [
         admin.discordID
-        for admin in database.Administrators.select().where(
-            database.Administrators.TierLevel >= min_level
+        for admin in __database.Administrators.select().where(
+            __database.Administrators.TierLevel >= min_level
         )
     ]
 
 
-def ensure_profile_exists(profile: object) -> database.PortalbotProfile | None:
+def ensure_profile_exists(profile: object) -> __database.PortalbotProfile | None:
     """
     Ensure the given Discord Member has a profile in the database.
     Creates one if missing. Returns the profile or None on failure.
@@ -254,8 +254,8 @@ def ensure_profile_exists(profile: object) -> database.PortalbotProfile | None:
     discordname = f"{profile.name}#{profile.discriminator}"
 
     try:
-        database.db.connect(reuse_if_open=True)
-        profile_record, created = database.PortalbotProfile.get_or_create(
+        __database.db.connect(reuse_if_open=True)
+        profile_record, created = __database.PortalbotProfile.get_or_create(
             DiscordLongID=user_id, defaults={"DiscordName": discordname}
         )
         if created:
@@ -267,11 +267,11 @@ def ensure_profile_exists(profile: object) -> database.PortalbotProfile | None:
         return None
 
     finally:
-        if not database.db.is_closed():
-            database.db.close()
+        if not __database.db.is_closed():
+            __database.db.close()
             
 def get_profile_record(self, user_id: str):
-    return database.PortalbotProfile.get(
-        database.PortalbotProfile.DiscordLongID == user_id
+    return __database.PortalbotProfile.get(
+        __database.PortalbotProfile.DiscordLongID == user_id
     )
 

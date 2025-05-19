@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from utils.database import database
+from utils.database import __database
 from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
@@ -121,7 +121,7 @@ class LeveledRolesCMD(commands.Cog):
                 created_roles.append((role, level))
 
                 # Save role to database
-                database.LeveledRoles.get_or_create(
+                __database.LeveledRoles.get_or_create(
                     RoleID=role.id,
                     ServerID=str(guild.id),
                     defaults={"RoleName": role_name, "LevelThreshold": level},

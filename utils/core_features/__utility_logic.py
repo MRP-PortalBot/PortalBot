@@ -1,6 +1,6 @@
 import discord
 from datetime import datetime
-from utils.database import database
+from utils.database import __database
 from utils.helpers.__logging_module import get_log
 
 _log = get_log("reminder_logic")
@@ -12,7 +12,7 @@ async def run_reminder_loop(bot: discord.Client):
     """
     try:
         now = datetime.now()
-        due = database.Reminder.select().where(database.Reminder.remind_at <= now)
+        due = __database.Reminder.select().where(__database.Reminder.remind_at <= now)
 
         for reminder in due:
             user = bot.get_user(int(reminder.user_id))

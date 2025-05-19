@@ -2,7 +2,7 @@
 import discord
 import json
 from discord import app_commands
-from utils.database import database
+from utils.database import __database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 from .__bm_logic import fetch_admins_by_level
@@ -46,10 +46,10 @@ class PermitCommands(app_commands.Group):
             await interaction.response.send_message("Permit level must be 1–4.", ephemeral=True)
             return
 
-        database.db.connect(reuse_if_open=True)
+        __database.db.connect(reuse_if_open=True)
         try:
-            query = database.Administrators.get_or_none(
-                database.Administrators.discordID == str(user.id)
+            query = __database.Administrators.get_or_none(
+                __database.Administrators.discordID == str(user.id)
             )
             if query:
                 query.TierLevel = level
@@ -57,7 +57,7 @@ class PermitCommands(app_commands.Group):
                 query.save()
                 msg = f"{user.name}'s permit level updated to `{level}`."
             else:
-                database.Administrators.create(
+                __database.Administrators.create(
                     discordID=str(user.id), discord_name=user.name, TierLevel=level
                 )
                 msg = f"{user.name} added with permit level `{level}`."
@@ -73,17 +73,17 @@ class PermitCommands(app_commands.Group):
             _log.error(f"Error adding/updating {user}: {e}", exc_info=True)
             await interaction.response.send_message("Failed to update user.", ephemeral=True)
         finally:
-            if not database.db.is_closed():
-                database.db.close()
+            if not __database.db.is_closed():
+                __database.db.close()
 
     @app_commands.command(name="remove", description="Remove a bot administrator.")
     @app_commands.describe(user="User to remove")
     @has_admin_level(4)
     async def remove(self, interaction: discord.Interaction, user: discord.User):
-        database.db.connect(reuse_if_open=True)
+        __database.db.connect(reuse_if_open=True)
         try:
-            query = database.Administrators.get_or_none(
-                database.Administrators.discordID == str(user.id)
+            query = __database.Administrators.get_or_none(
+                __database.Administrators.discordID == str(user.id)
             )
             if query:
                 query.delete_instance()
@@ -104,8 +104,8 @@ class PermitCommands(app_commands.Group):
             _log.error(f"Error removing {user}: {e}", exc_info=True)
             await interaction.response.send_message("Failed to remove user.", ephemeral=True)
         finally:
-            if not database.db.is_closed():
-                database.db.close()
+            if not __database.db.is_closed():
+                __database.db.close()
 
 
 class ConfigCommands(app_commands.Group):

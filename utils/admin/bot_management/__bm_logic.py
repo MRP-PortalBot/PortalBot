@@ -1,4 +1,4 @@
-from utils.database import database
+from utils.database import __database
 from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
@@ -6,9 +6,9 @@ _log = get_log(__name__)
 async def fetch_admins_by_level(bot, level: int):
     try:
         _log.debug(f"Fetching administrators with permit level {level}")
-        database.db.connect(reuse_if_open=True)
-        query = database.Administrators.select().where(
-            database.Administrators.TierLevel == level
+        __database.db.connect(reuse_if_open=True)
+        query = __database.Administrators.select().where(
+            __database.Administrators.TierLevel == level
         )
 
         admin_list = []
@@ -22,5 +22,5 @@ async def fetch_admins_by_level(bot, level: int):
 
         return admin_list or ["None"]
     finally:
-        if not database.db.is_closed():
-            database.db.close()
+        if not __database.db.is_closed():
+            __database.db.close()

@@ -1,4 +1,4 @@
-from utils.database import database
+from utils.database import __database
 from utils.helpers.__logging_module import get_log
 
 _log = get_log("server_score_logic")
@@ -10,14 +10,14 @@ async def get_role_for_level(level: int, guild) -> str | None:
     """
     try:
         _log.debug(f"Fetching role for level {level} in guild {guild.name}.")
-        database.db.connect(reuse_if_open=True)
-        leveled_role = database.LeveledRoles.get_or_none(
-            database.LeveledRoles.Level == level
+        __database.db.connect(reuse_if_open=True)
+        leveled_role = __database.LeveledRoles.get_or_none(
+            __database.LeveledRoles.Level == level
         )
         return leveled_role.RoleName if leveled_role else None
     except Exception as e:
         _log.error(f"Error fetching role for level {level}: {e}")
         return None
     finally:
-        if not database.db.is_closed():
-            database.db.close()
+        if not __database.db.is_closed():
+            __database.db.close()

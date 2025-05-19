@@ -1,6 +1,6 @@
 import discord
 from discord import app_commands
-from utils.database import database
+from utils.database import __database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 from admin.bot_management.__bm_logic import get_cached_bot_data
@@ -25,11 +25,11 @@ class RulesCommands(app_commands.Group):
     ):
         try:
             rule = (
-                database.Rule.select()
+                __database.Rule.select()
                 .where(
-                    (database.Rule.guild_id == str(interaction.guild_id))
-                    & (database.Rule.category == category)
-                    & (database.Rule.number == number)
+                    (__database.Rule.guild_id == str(interaction.guild_id))
+                    & (__database.Rule.category == category)
+                    & (__database.Rule.number == number)
                 )
                 .first()
             )
@@ -58,8 +58,8 @@ class RulesCommands(app_commands.Group):
     ):
         try:
             query = (
-                database.Rule.select(database.Rule.category)
-                .where(database.Rule.guild_id == str(interaction.guild_id))
+                __database.Rule.select(__database.Rule.category)
+                .where(__database.Rule.guild_id == str(interaction.guild_id))
                 .distinct()
             )
             choices = [
@@ -80,12 +80,12 @@ class RulesCommands(app_commands.Group):
         try:
             category = interaction.namespace.category
             query = (
-                database.Rule.select(database.Rule.number)
+                __database.Rule.select(__database.Rule.number)
                 .where(
-                    (database.Rule.guild_id == str(interaction.guild_id))
-                    & (database.Rule.category == category)
+                    (__database.Rule.guild_id == str(interaction.guild_id))
+                    & (__database.Rule.category == category)
                 )
-                .order_by(database.Rule.number)
+                .order_by(__database.Rule.number)
             )
             return [
                 app_commands.Choice(name=f"Rule #{r.number}", value=r.number)
@@ -100,9 +100,9 @@ class RulesCommands(app_commands.Group):
     @app_commands.command(name="list", description="List all server rules.")
     async def list_rules(self, interaction: discord.Interaction):
         rules = (
-            database.Rule.select()
-            .where(database.Rule.guild_id == str(interaction.guild_id))
-            .order_by(database.Rule.category, database.Rule.number)
+            __database.Rule.select()
+            .where(__database.Rule.guild_id == str(interaction.guild_id))
+            .order_by(__database.Rule.category, __database.Rule.number)
         )
 
         if not rules.exists():
@@ -136,14 +136,14 @@ class RulesCommands(app_commands.Group):
     ):
         guild_id = str(interaction.guild_id)
         count = (
-            database.Rule.select()
+            __database.Rule.select()
             .where(
-                (database.Rule.guild_id == guild_id)
-                & (database.Rule.category == category)
+                (__database.Rule.guild_id == guild_id)
+                & (__database.Rule.category == category)
             )
             .count()
         )
-        rule = database.Rule.create(
+        rule = __database.Rule.create(
             guild_id=guild_id,
             category=category,
             number=count + 1,
@@ -167,11 +167,11 @@ class RulesCommands(app_commands.Group):
     ):
         guild_id = str(interaction.guild_id)
         rule = (
-            database.Rule.select()
+            __database.Rule.select()
             .where(
-                (database.Rule.guild_id == guild_id)
-                & (database.Rule.category == category)
-                & (database.Rule.number == number)
+                (__database.Rule.guild_id == guild_id)
+                & (__database.Rule.category == category)
+                & (__database.Rule.number == number)
             )
             .first()
         )
@@ -183,12 +183,12 @@ class RulesCommands(app_commands.Group):
         rule.delete_instance()
 
         remaining_rules = (
-            database.Rule.select()
+            __database.Rule.select()
             .where(
-                (database.Rule.guild_id == guild_id)
-                & (database.Rule.category == category)
+                (__database.Rule.guild_id == guild_id)
+                & (__database.Rule.category == category)
             )
-            .order_by(database.Rule.number)
+            .order_by(__database.Rule.number)
         )
 
         for i, r in enumerate(remaining_rules, start=1):
@@ -215,11 +215,11 @@ class RulesCommands(app_commands.Group):
         new_text: str,
     ):
         rule = (
-            database.Rule.select()
+            __database.Rule.select()
             .where(
-                (database.Rule.guild_id == str(interaction.guild_id))
-                & (database.Rule.category == category)
-                & (database.Rule.number == number)
+                (__database.Rule.guild_id == str(interaction.guild_id))
+                & (__database.Rule.category == category)
+                & (__database.Rule.number == number)
             )
             .first()
         )
@@ -244,8 +244,8 @@ class RulesCommands(app_commands.Group):
     ):
         try:
             await interaction.response.defer(ephemeral=True)
-            bot_data = database.BotData.get_or_none(
-                database.BotData.server_id == str(interaction.guild_id)
+            bot_data = __database.BotData.get_or_none(
+                __database.BotData.server_id == str(interaction.guild_id)
             )
 
             if not bot_data:

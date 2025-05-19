@@ -5,7 +5,7 @@ import discord
 from datetime import datetime
 from peewee import fn
 
-from utils.database import database
+from utils.database import __database
 from admin.bot_management.__bm_logic import get_cached_bot_data
 
 from utils.helpers.__logging_module import get_log
@@ -17,8 +17,8 @@ _log = get_log(__name__)
 def renumber_display_order():
     """Reassign sequential display_order to all questions based on creation order."""
     try:
-        database.ensure_database_connection()
-        questions = database.Question.select().order_by(database.Question.id)
+        __database.ensure_database_connection()
+        questions = __database.Question.select().order_by(__database.Question.id)
         for new_order, question in enumerate(questions, start=1):
             question.display_order = new_order
             question.save()
@@ -30,20 +30,20 @@ def renumber_display_order():
 async def send_daily_question(bot, question_id: str = None) -> str | None:
     """Selects and sends a daily question embed to configured channels in all guilds."""
     try:
-        database.ensure_database_connection()
+        __database.ensure_database_connection()
 
         # Pick unused or specific question
         if question_id is None:
-            unused = database.Question.select().where(
-                database.Question.usage == "False"
+            unused = __database.Question.select().where(
+                __database.Question.usage == "False"
             )
             if not unused.exists():
-                database.Question.update(usage="False").execute()
+                __database.Question.update(usage="False").execute()
                 _log.info("🔄 All questions used — resetting usage flags.")
 
             question = (
-                database.Question.select()
-                .where(database.Question.usage == "False")
+                __database.Question.select()
+                .where(__database.Question.usage == "False")
                 .order_by(fn.Rand())
                 .limit(1)
                 .get()
@@ -51,8 +51,8 @@ async def send_daily_question(bot, question_id: str = None) -> str | None:
             question.usage = "True"
             question.save()
         else:
-            question = database.Question.get(
-                database.Question.display_order == question_id
+            question = __database.Question.get(
+                __database.Question.display_order == question_id
             )
 
         # Create embed
@@ -104,7 +104,7 @@ async def send_daily_question(bot, question_id: str = None) -> str | None:
 
         return question.display_order
 
-    except database.Question.DoesNotExist:
+    except __database.Question.DoesNotExist:
         _log.error("❗ Question not found.")
     except Exception as e:
         _log.error(f"❌ Error posting daily question: {e}", exc_info=True)
@@ -118,8 +118,8 @@ def reset_question_usage() -> int:
         int: Number of questions updated.
     """
     try:
-        database.ensure_database_connection()
-        updated = database.Question.update(usage="False").execute()
+        __database.ensure_database_connection()
+        updated = __database.Question.update(usage="False").execute()
         _log.info(f"🔄 Reset usage for {updated} questions.")
         return updated
     except Exception as e:

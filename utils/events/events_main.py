@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from utils.database import database
+from utils.database import __database
 from admin.bot_management.__bm_logic import get_cached_bot_data
 
 from utils.helpers.__logging_module import get_log
@@ -23,9 +23,9 @@ class Events(commands.Cog):
         _log.info(f"Member joined: {discordname} in guild: {guild.name} ({guild_id})")
 
         try:
-            database.db.connect(reuse_if_open=True)
+            __database.db.connect(reuse_if_open=True)
 
-            profile, created = database.PortalbotProfile.get_or_create(
+            profile, created = __database.PortalbotProfile.get_or_create(
                 DiscordLongID=user_id, defaults={"DiscordName": discordname}
             )
 
@@ -56,8 +56,8 @@ class Events(commands.Cog):
                     f"An error occurred while processing {discordname}'s join event."
                 )
         finally:
-            if not database.db.is_closed():
-                database.db.close()
+            if not __database.db.is_closed():
+                __database.db.close()
                 _log.debug("Database connection closed.")
 
         await self.send_welcome_message(member)
