@@ -1,9 +1,9 @@
 import discord
 from discord.ext import commands
 from discord import app_commands, ui
-from core.cache_state import bot_data_cache
-from core.checks import has_admin_level
-from core.logging_module import get_log
+from utils.helpers.cache_state import bot_data_cache
+from utils.helpers.checks import has_admin_level
+from utils.helpers.logging_module import get_log
 
 _log = get_log(__name__)
 

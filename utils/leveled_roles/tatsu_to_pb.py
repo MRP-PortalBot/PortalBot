@@ -4,9 +4,9 @@ from discord import app_commands
 from discord.ext import commands
 from tatsu.wrapper import ApiWrapper
 import asyncio  # Import asyncio for sleep function
-from core import database
-from core.common import load_config, calculate_level
-from core.logging_module import get_log
+from utils.database import database
+from utils.core_features.common import load_config, calculate_level
+from utils.helpers.logging_module import get_log
 
 _log = get_log(__name__)
 

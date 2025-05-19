@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands, ui
 from difflib import get_close_matches
-from core.logging_module import get_log
+from utils.helpers.logging_module import get_log
 from .__help_views import HelpPaginator
 
 

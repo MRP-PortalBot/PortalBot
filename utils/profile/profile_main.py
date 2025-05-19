@@ -1,7 +1,7 @@
 # utils/profile/__profile_main.py
 
 from discord.ext import commands
-from core.logging_module import get_log
+from utils.helpers.logging_module import get_log
 
 # Import internal modules
 from . import __profile_commands, __profile_views

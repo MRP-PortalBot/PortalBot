@@ -12,20 +12,20 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from core import database
-from core.common import (
+from utils.database import database
+from utils.core_features.common import (
     get_cached_bot_data,
     get_bot_data_for_server,
     get_permitlist,
 )
-from core.constants import ConsoleColors, EmbedColors, BotAssets, Dev
-from core.logging_module import get_log
-from core.utils.embeds import (
+from utils.core_features.constants import ConsoleColors, EmbedColors, BotAssets, Dev
+from utils.helpers.logging_module import get_log
+from utils.helpers.embeds import (
     permission_error_embed,
     argument_error_embed,
     cooldown_embed,
 )
-from core.utils.gist import create_gist_from_traceback
+from utils.helpers.gist import create_gist_from_traceback
 
 if TYPE_CHECKING:
     from main import PortalBot

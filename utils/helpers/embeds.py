@@ -1,5 +1,5 @@
 import discord
-from core.constants import EmbedColors
+from utils.core_features.constants import EmbedColors
 
 
 def permission_error_embed():

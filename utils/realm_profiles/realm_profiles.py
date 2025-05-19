@@ -3,10 +3,10 @@ from discord import app_commands
 from discord.ext import commands
 from discord import Interaction
 from discord.app_commands.errors import CheckFailure
-from core import database
-from core.database import RealmProfile
+from utils.database import database
+from utils.database.database import RealmProfile
 from PIL import Image, ImageDraw, ImageFont
-from core.logging_module import get_log
+from utils.helpers.logging_module import get_log
 import io
 import requests
 import os

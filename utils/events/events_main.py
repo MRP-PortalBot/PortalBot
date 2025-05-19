@@ -1,8 +1,9 @@
 import discord
 from discord.ext import commands
-from core import database
-from core.common import get_cached_bot_data
-from core.logging_module import get_log
+from utils.database import database
+from admin.bot_management.__bm_logic import get_cached_bot_data
+
+from utils.helpers.logging_module import get_log
 
 _log = get_log(__name__)
 
@@ -29,12 +30,16 @@ class Events(commands.Cog):
             )
 
             if created:
-                message = f"{profile.DiscordName}'s profile has been created successfully."
+                message = (
+                    f"{profile.DiscordName}'s profile has been created successfully."
+                )
                 _log.info(f"Profile created for {discordname}")
             else:
                 profile.DiscordName = discordname
                 profile.save()
-                message = f"{profile.DiscordName}'s profile has been updated successfully."
+                message = (
+                    f"{profile.DiscordName}'s profile has been updated successfully."
+                )
                 _log.info(f"Profile updated for {discordname}")
 
             if log_channel:
@@ -43,9 +48,13 @@ class Events(commands.Cog):
                 _log.warning(f"Log channel not found in guild: {guild.name}")
 
         except Exception as e:
-            _log.error(f"Error processing join event for {discordname}: {e}", exc_info=True)
+            _log.error(
+                f"Error processing join event for {discordname}: {e}", exc_info=True
+            )
             if log_channel:
-                await log_channel.send(f"An error occurred while processing {discordname}'s join event.")
+                await log_channel.send(
+                    f"An error occurred while processing {discordname}'s join event."
+                )
         finally:
             if not database.db.is_closed():
                 database.db.close()
@@ -65,12 +74,16 @@ class Events(commands.Cog):
 
             welcome_channel_id = bot_data.welcome_channel
             if not welcome_channel_id:
-                _log.warning(f"No welcome message channel configured for guild {guild_id}")
+                _log.warning(
+                    f"No welcome message channel configured for guild {guild_id}"
+                )
                 return
 
             channel = guild.get_channel(int(welcome_channel_id))
             if not channel:
-                _log.warning(f"Channel with ID {welcome_channel_id} not found in guild {guild_id}")
+                _log.warning(
+                    f"Channel with ID {welcome_channel_id} not found in guild {guild_id}"
+                )
                 return
 
             count = guild.member_count
@@ -88,13 +101,17 @@ class Events(commands.Cog):
             if member.avatar:
                 embed.set_thumbnail(url=member.avatar.url)
             if guild.icon:
-                embed.set_footer(text=f"Welcome to {guild.name}!", icon_url=guild.icon.url)
+                embed.set_footer(
+                    text=f"Welcome to {guild.name}!", icon_url=guild.icon.url
+                )
 
             await channel.send(embed=embed)
             _log.info(f"Sent welcome message to {member.name} in guild {guild.name}.")
 
         except Exception as e:
-            _log.error(f"Error sending welcome message to {member.name}: {e}", exc_info=True)
+            _log.error(
+                f"Error sending welcome message to {member.name}: {e}", exc_info=True
+            )
 
 
 async def setup(bot: commands.Bot):

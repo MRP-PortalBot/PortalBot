@@ -1,9 +1,10 @@
 import discord
 from discord import app_commands
-from core import database
-from core.checks import has_admin_level
-from core.logging_module import get_log
-from core.common import get_cached_bot_data
+from utils.database import database
+from utils.helpers.checks import has_admin_level
+from utils.helpers.logging_module import get_log
+from admin.bot_management.__bm_logic import get_cached_bot_data
+
 from .__rules_logic import update_rule_embed
 
 _log = get_log(__name__)

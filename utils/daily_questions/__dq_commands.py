@@ -3,10 +3,12 @@ import discord
 from datetime import datetime
 from discord import app_commands
 from discord.ext import commands
-from core import database, checks
-from core.pagination import paginate_embed
-from core.common import get_cached_bot_data
-from core.logging_module import get_log
+from utils.database import database
+from utils.helpers import checks
+from utils.helpers.pagination import paginate_embed
+from admin.bot_management.__bm_logic import get_cached_bot_data
+
+from utils.helpers.logging_module import get_log
 
 from .__dq_views import QuestionVoteView, SuggestModalNEW
 from .__dq_logic import (

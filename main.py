@@ -21,11 +21,11 @@ from pygit2 import Repository, GIT_DESCRIBE_TAGS
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
-from core import database
-from core.common import get_bot_data_for_server, get_cached_bot_data
-from core.constants import DEFAULT_PREFIX
-from core.logging_module import get_log
-from core.special_methods import (
+from utils.database import database
+from utils.core_features.common import get_bot_data_for_server, get_cached_bot_data
+from utils.core_features.constants import DEFAULT_PREFIX
+from utils.helpers.logging_module import get_log
+from utils.core_features.special_methods import (
     on_app_command_error_,
     initialize_db,
     on_ready_,

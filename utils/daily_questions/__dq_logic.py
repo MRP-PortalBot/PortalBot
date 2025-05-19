@@ -5,9 +5,10 @@ import discord
 from datetime import datetime
 from peewee import fn
 
-from core import database
-from core.common import get_cached_bot_data
-from core.logging_module import get_log
+from utils.database import database
+from admin.bot_management.__bm_logic import get_cached_bot_data
+
+from utils.helpers.logging_module import get_log
 from .__dq_views import QuestionVoteView
 
 _log = get_log(__name__)

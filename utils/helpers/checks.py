@@ -9,7 +9,7 @@ from discord.ext.commands import Context
 from peewee import OperationalError
 import logging
 
-from core import database
+from utils.database import database
 
 _log = logging.getLogger(__name__)
 

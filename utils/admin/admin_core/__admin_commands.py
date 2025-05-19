@@ -4,10 +4,10 @@ from discord import app_commands, ui
 from pathlib import Path
 from typing import Union, Literal
 
-from core import database
-from core.checks import has_admin_level
-from core.constants import EmbedColors
-from core.logging_module import get_log
+from utils.database import database
+from utils.helpers.checks import has_admin_level
+from utils.core_features.constants import EmbedColors
+from utils.helpers.logging_module import get_log
 
 _log = get_log(__name__)
 

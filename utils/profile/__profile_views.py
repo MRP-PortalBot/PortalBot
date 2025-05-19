@@ -2,9 +2,9 @@
 
 import discord
 from discord import ui
-from core.logging_module import get_log
-from core import database
-from core.common import get_profile_record
+from utils.helpers.logging_module import get_log
+from utils.database import database
+from utils.core_features.common import get_profile_record
 
 _log = get_log(__name__)
 

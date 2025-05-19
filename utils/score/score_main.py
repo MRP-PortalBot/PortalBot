@@ -2,9 +2,9 @@ import discord
 import random
 import time
 from discord.ext import commands
-from core import database
-from core.common import calculate_level
-from core.logging_module import get_log
+from utils.database import database
+from utils.core_features.common import calculate_level
+from utils.helpers.logging_module import get_log
 from .__score_logic import get_role_for_level
 from .__score_state import cooldowns
 
