@@ -23,7 +23,7 @@ from core.common import (
     get_cached_bot_data,
     get_bot_data_for_server
 )
-from core.logging_module import get_log
+utils.helpers.__logging_module import get_log
 
 # Logger setup
 _log = get_log(__name__)

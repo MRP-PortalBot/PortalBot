@@ -5,7 +5,7 @@ import xbox
 from discord import app_commands
 from discord.ext import commands
 
-from core.logging_module import get_log
+utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
 

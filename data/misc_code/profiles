@@ -8,7 +8,7 @@ from discord import File
 from discord.ext import commands
 from discord import app_commands
 from core import database
-from core.logging_module import get_log
+utils.helpers.__logging_module import get_log
 from core.common import calculate_level  # Import your helper function here
 from core.common import get_user_rank
 import emoji as em
