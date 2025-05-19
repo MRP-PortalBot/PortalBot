@@ -7,8 +7,8 @@ import discord
 from discord.ext import tasks
 from discord import app_commands
 
-from utils.helpers.checks import has_admin_level
-from utils.helpers.logging_module import get_log
+from utils.helpers.__checks import has_admin_level
+from utils.helpers.__logging_module import get_log
 from utils.database import database
 
 from .__utility_logic import run_reminder_loop

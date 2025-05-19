@@ -1,7 +1,7 @@
 import discord
 from datetime import datetime
 from utils.database import database
-from utils.helpers.logging_module import get_log
+from utils.helpers.__logging_module import get_log
 
 _log = get_log("reminder_logic")
 

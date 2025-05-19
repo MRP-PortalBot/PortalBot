@@ -24,7 +24,7 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 from utils.database import database
 from utils.core_features.common import get_bot_data_for_server, get_cached_bot_data
 from utils.core_features.constants import DEFAULT_PREFIX
-from utils.helpers.logging_module import get_log
+from utils.helpers.__logging_module import get_log
 from utils.core_features.special_methods import (
     on_app_command_error_,
     initialize_db,

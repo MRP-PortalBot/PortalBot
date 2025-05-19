@@ -19,8 +19,8 @@ from flask import Flask
 from dotenv import load_dotenv
 import json
 
-from utils.helpers.logging_module import get_log
-from utils.helpers.decorators import cache_updated
+from utils.helpers.__logging_module import get_log
+from utils.helpers.__decorators import cache_updated
 
 # Load environment variables
 load_dotenv()

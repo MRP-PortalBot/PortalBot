@@ -1,7 +1,7 @@
 # utils/admin/admin_main.py
 
 from discord.ext import commands
-from utils.helpers.logging_module import get_log
+from utils.helpers.__logging_module import get_log
 from . import __admin_commands, __admin_realm_management
 
 _log = get_log(__name__)

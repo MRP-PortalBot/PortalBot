@@ -2,7 +2,7 @@
 
 import discord
 import datetime
-from utils.helpers.logging_module import get_log
+from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
 

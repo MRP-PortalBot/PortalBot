@@ -1,5 +1,6 @@
 import discord
 from utils.core_features.constants import EmbedColors
+from data import images
 
 
 def permission_error_embed():
@@ -9,7 +10,7 @@ def permission_error_embed():
             description="You don't have the required role or permissions for this command.",
             color=EmbedColors.red,
         )
-        .set_thumbnail(url=Others.error_png)
+        .set_thumbnail(url=images.no_entry.png)
         .set_footer(text="Try /help or !help for more info.")
     )
 
@@ -21,7 +22,7 @@ def argument_error_embed(title: str, signature: str):
             description=f"Usage:\n`{signature}`",
             color=EmbedColors.red,
         )
-        .set_thumbnail(url=Others.error_png)
+        .set_thumbnail(url=images.no_entry.png)
         .set_footer(text="Try /help or !help for more info.")
     )
 

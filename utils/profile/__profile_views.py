@@ -2,7 +2,7 @@
 
 import discord
 from discord import ui
-from utils.helpers.logging_module import get_log
+from utils.helpers.__logging_module import get_log
 from utils.database import database
 from utils.core_features.common import get_profile_record
 

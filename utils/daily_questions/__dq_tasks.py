@@ -5,7 +5,7 @@ from datetime import datetime
 from discord.ext import tasks, commands
 from admin.bot_management.__bm_logic import get_cached_bot_data
 
-from utils.helpers.logging_module import get_log
+from utils.helpers.__logging_module import get_log
 from admin.bot_management.__bm_commands import update_bot_data
 from .__dq_logic import send_daily_question
 

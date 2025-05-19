@@ -1,7 +1,7 @@
 # utils/banned_list/bl_main.py
 
 from discord.ext import commands
-from utils.helpers.logging_module import get_log
+from utils.helpers.__logging_module import get_log
 
 # Import internal structure
 from . import __bl_commands, __bl_logic, __bl_views

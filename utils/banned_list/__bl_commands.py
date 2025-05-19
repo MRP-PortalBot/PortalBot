@@ -6,9 +6,9 @@ from typing import Literal
 from discord import app_commands, ui
 from discord.ext import commands
 from utils.database import database
-from utils.helpers.logging_module import get_log
+from utils.helpers.__logging_module import get_log
 from utils.core_features.common import load_config, get_cached_bot_data
-from utils.helpers.pagination import paginate_embed
+from utils.helpers.__pagination import paginate_embed
 
 from .__bl_logic import create_ban_embed, send_to_log_channel, entry_to_user_data_dict
 from .__bl_views import return_banishblacklistform_modal

@@ -4,8 +4,8 @@ from typing import Literal
 import discord
 from discord import app_commands
 from discord.ext import commands
-from utils.helpers.logging_module import get_log
-from utils.helpers.checks import slash_is_realm_op
+from utils.helpers.__logging_module import get_log
+from utils.helpers.__checks import slash_is_realm_op
 
 _log = get_log(__name__)
 
