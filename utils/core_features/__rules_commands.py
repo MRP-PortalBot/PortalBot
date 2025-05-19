@@ -1,83 +1,19 @@
 import discord
-from discord.ext import commands
 from discord import app_commands
 from core import database
-from core.logging_module import get_log
 from core.checks import has_admin_level
+from core.logging_module import get_log
 from core.common import get_cached_bot_data
+from .__rules_logic import update_rule_embed
 
 _log = get_log(__name__)
 
 
-class RulesCMD(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-        _log.info("RulesCMD Cog Loaded")
+class RulesCommands(app_commands.Group):
+    def __init__(self):
+        super().__init__(name="rules", description="Manage or view server rules")
 
-    rules_group = app_commands.Group(
-        name="rules", description="Manage or view server rules"
-    )
-
-    async def update_rule_embed(self, guild: discord.Guild):
-        bot_data = get_cached_bot_data(str(guild.id))
-        if not bot_data or not bot_data.rule_channel:
-            _log.warning(
-                f"No rule channel configured for guild {guild.name} ({guild.id})"
-            )
-            return
-
-        channel = guild.get_channel(int(bot_data.rule_channel))
-        if not channel:
-            _log.error(
-                f"Configured rule channel {bot_data.rule_channel} not found in guild {guild.name}"
-            )
-            return
-
-        rules = (
-            database.Rule.select()
-            .where(database.Rule.guild_id == str(guild.id))
-            .order_by(database.Rule.category, database.Rule.number)
-        )
-
-        if not rules.exists():
-            await channel.send("No rules configured for this server.")
-            return
-
-        embed = discord.Embed(
-            title=f"{guild.name} - Server Rules",
-            description="These rules are actively enforced. Please read carefully.",
-            color=discord.Color.blurple(),
-        )
-
-        categories = {}
-        for rule in rules:
-            categories.setdefault(rule.category, []).append((rule.number, rule.text))
-
-        for category, rule_list in categories.items():
-            value = "\n".join([f"**{num}.** {text}" for num, text in rule_list])
-            embed.add_field(name=category, value=value, inline=False)
-
-        try:
-            if bot_data.rule_message_id:
-                try:
-                    msg = await channel.fetch_message(int(bot_data.rule_message_id))
-                    await msg.edit(embed=embed)
-                    return
-                except discord.NotFound:
-                    _log.warning("Rule message ID not found. Reposting rule embed.")
-                    bot_data.rule_message_id = "0"
-
-            new_msg = await channel.send(embed=embed)
-            bot_data.rule_message_id = str(new_msg.id)
-            bot_data.save()
-            _log.info(f"Rule embed message ID saved: {new_msg.id}")
-
-        except Exception as e:
-            _log.error(
-                f"Failed to update rule embed in {channel.name}: {e}", exc_info=True
-            )
-
-    @rules_group.command(
+    @app_commands.command(
         name="show", description="Show a specific rule by category and number."
     )
     @app_commands.describe(
@@ -96,7 +32,6 @@ class RulesCMD(commands.Cog):
                 )
                 .first()
             )
-
             if not rule:
                 await interaction.response.send_message(
                     "Rule not found.", ephemeral=True
@@ -119,14 +54,13 @@ class RulesCMD(commands.Cog):
     @show_rule.autocomplete("category")
     async def autocomplete_category(
         self, interaction: discord.Interaction, current: str
-    ) -> list[app_commands.Choice[str]]:
+    ):
         try:
             query = (
                 database.Rule.select(database.Rule.category)
                 .where(database.Rule.guild_id == str(interaction.guild_id))
                 .distinct()
             )
-
             choices = [
                 r.category
                 for r in query
@@ -141,7 +75,7 @@ class RulesCMD(commands.Cog):
     @show_rule.autocomplete("number")
     async def autocomplete_rule_number(
         self, interaction: discord.Interaction, current: int
-    ) -> list[app_commands.Choice[int]]:
+    ):
         try:
             category = interaction.namespace.category
             query = (
@@ -152,7 +86,6 @@ class RulesCMD(commands.Cog):
                 )
                 .order_by(database.Rule.number)
             )
-
             return [
                 app_commands.Choice(name=f"Rule #{r.number}", value=r.number)
                 for r in query
@@ -163,7 +96,7 @@ class RulesCMD(commands.Cog):
             _log.error(f"Autocomplete rule number failed: {e}", exc_info=True)
             return []
 
-    @rules_group.command(name="list", description="List all server rules.")
+    @app_commands.command(name="list", description="List all server rules.")
     async def list_rules(self, interaction: discord.Interaction):
         rules = (
             database.Rule.select()
@@ -192,7 +125,7 @@ class RulesCMD(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
-    @rules_group.command(name="add", description="Add a rule to the server.")
+    @app_commands.command(name="add", description="Add a rule to the server.")
     @app_commands.describe(
         category="The category for this rule", text="The text of the rule"
     )
@@ -219,9 +152,9 @@ class RulesCMD(commands.Cog):
         await interaction.response.send_message(
             f"✅ Rule added in **{category}** as #{rule.number}.", ephemeral=True
         )
-        await self.update_rule_embed(interaction.guild)
+        await update_rule_embed(interaction.guild)
 
-    @rules_group.command(
+    @app_commands.command(
         name="remove", description="Remove a rule by number and category."
     )
     @app_commands.describe(
@@ -264,9 +197,9 @@ class RulesCMD(commands.Cog):
         await interaction.response.send_message(
             f"❌ Rule #{number} removed from **{category}**.", ephemeral=True
         )
-        await self.update_rule_embed(interaction.guild)
+        await update_rule_embed(interaction.guild)
 
-    @rules_group.command(name="edit", description="Edit a rule's text.")
+    @app_commands.command(name="edit", description="Edit a rule's text.")
     @app_commands.describe(
         category="The category of the rule",
         number="The rule number",
@@ -299,9 +232,9 @@ class RulesCMD(commands.Cog):
         await interaction.response.send_message(
             f"✏️ Rule #{number} in **{category}** updated.", ephemeral=True
         )
-        await self.update_rule_embed(interaction.guild)
+        await update_rule_embed(interaction.guild)
 
-    @rules_group.command(
+    @app_commands.command(
         name="set_channel", description="Set the channel to post server rules."
     )
     @has_admin_level(2)
@@ -310,53 +243,21 @@ class RulesCMD(commands.Cog):
     ):
         try:
             await interaction.response.defer(ephemeral=True)
-
             bot_data = database.BotData.get_or_none(
                 database.BotData.server_id == str(interaction.guild_id)
             )
+
             if not bot_data:
                 await interaction.followup.send(
                     "Bot data not found for this server.", ephemeral=True
                 )
                 return
 
-            bot_data.rule_channel = "0"
+            bot_data.rule_channel = str(channel.id)
             bot_data.rule_message_id = "0"
             bot_data.save()
 
-            bot_data.rule_channel = str(channel.id)
-
-            rules = (
-                database.Rule.select()
-                .where(database.Rule.guild_id == str(interaction.guild_id))
-                .order_by(database.Rule.category, database.Rule.number)
-            )
-
-            embed = discord.Embed(
-                title=f"{interaction.guild.name} - Server Rules",
-                description="These rules are actively enforced. Please read carefully.",
-                color=discord.Color.blurple(),
-            )
-
-            categories = {}
-            for rule in rules:
-                categories.setdefault(rule.category, []).append(
-                    (rule.number, rule.text)
-                )
-
-            for category, rule_list in categories.items():
-                value = "\n".join([f"**{num}.** {text}" for num, text in rule_list])
-                embed.add_field(name=category, value=value, inline=False)
-
-            message = await channel.send(embed=embed)
-
-            bot_data.rule_message_id = str(message.id)
-            bot_data.save()
-
-            _log.info(
-                f"Rule channel set to {channel.name} ({channel.id}) for guild {interaction.guild.name}"
-            )
-
+            await update_rule_embed(interaction.guild)
             await interaction.followup.send(
                 f"✅ Rule channel set to {channel.mention} and rules posted.",
                 ephemeral=True,
@@ -371,6 +272,5 @@ class RulesCMD(commands.Cog):
             )
 
 
-async def setup(bot):
-    await bot.add_cog(RulesCMD(bot))
-    _log.info("RulesCMD Cog setup complete.")
+async def setup(bot: discord.Client):
+    bot.tree.add_command(RulesCommands())
