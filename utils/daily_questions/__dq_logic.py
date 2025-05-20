@@ -6,7 +6,7 @@ from datetime import datetime
 from peewee import fn
 
 from utils.database import __database
-from admin.bot_management.__bm_logic import get_cached_bot_data
+from utils.admin.bot_management.__bm_logic import get_cached_bot_data
 
 from utils.helpers.__logging_module import get_log
 from .__dq_views import QuestionVoteView

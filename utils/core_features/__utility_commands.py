@@ -18,13 +18,14 @@ _log = get_log(__name__)
 
 
 class UtilityCommands(app_commands.Group):
-    def __init__(self):
+    def __init__(self, bot: discord.Client):
         super().__init__(name="utility", description="General utility commands")
+        self.bot = bot  # 🔧 Save it here
         self.check_reminders.start()
 
     def cog_unload(self):
         self.check_reminders.cancel()
-        
+
     @tasks.loop(minutes=1)
     async def check_reminders(self):
         await run_reminder_loop(self.bot)
@@ -52,7 +53,7 @@ class UtilityCommands(app_commands.Group):
             embed.add_field(
                 name="System Resource Usage",
                 value=f"```diff\n- CPU Usage: {psutil.cpu_percent()}%\n- Memory Usage: {memory.percent}%\n"
-                      f"- Total Memory: {memory.total / (1024**3):.2f} GB\n- Available Memory: {memory.available / (1024**3):.2f} GB\n```",
+                f"- Total Memory: {memory.total / (1024**3):.2f} GB\n- Available Memory: {memory.available / (1024**3):.2f} GB\n```",
                 inline=False,
             )
             embed.set_footer(
@@ -85,13 +86,17 @@ class UtilityCommands(app_commands.Group):
         channel: discord.TextChannel,
     ):
         try:
-            _log.info(f"{interaction.user} initiated nickname change for {user.display_name} using {channel.name}")
+            _log.info(
+                f"{interaction.user} initiated nickname change for {user.display_name} using {channel.name}"
+            )
             name = user.display_name
             parts = channel.name.split("-")
 
             realm, emoji = (parts[0], parts[-1]) if len(parts) != 2 else parts
             await user.edit(nick=f"{name} {emoji}")
-            await interaction.response.send_message(f"Changed {user.mention}'s nickname!")
+            await interaction.response.send_message(
+                f"Changed {user.mention}'s nickname!"
+            )
 
         except Exception as e:
             _log.error(f"Error changing nickname: {e}")
@@ -146,5 +151,6 @@ class UtilityCommands(app_commands.Group):
                 "❌ Failed to set reminder.", ephemeral=True
             )
 
+
 async def setup(bot: discord.Client):
-    bot.tree.add_command(UtilityCommands())
+    bot.tree.add_command(UtilityCommands(bot))  # ✅ Pass it in
