@@ -19,9 +19,9 @@ async def setup(bot: commands.Bot):
     cog = CoreFeatures(bot)
     await bot.add_cog(cog)
 
-    # Register each slash command group
-    bot.tree.add_command(HelpCommands())
-    bot.tree.add_command(RulesCommands())
-    bot.tree.add_command(UtilityCommands())
+    # Register slash command groups
+    bot.tree.add_command(HelpCommands(bot))
+    bot.tree.add_command(RulesCommands(bot))
+    bot.tree.add_command(UtilityCommands(bot))  # ✅ Pass bot here
 
     _log.info("✅ CoreFeatures groups registered: help, rules, utility.")
