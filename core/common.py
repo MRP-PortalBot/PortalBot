@@ -41,7 +41,11 @@ async def paginate_embed(bot: discord.Client,
     emotes = ["◀️", "▶️"]
 
     async def check_reaction(reaction, user):
-        return await user == ctx.author and str(reaction.emoji) in emotes
+        # `user` is not awaitable. Attempting to await it will raise a
+        # ``TypeError``. The intention here is to simply check that the
+        # reaction author matches the command author and that the emoji is one
+        # of the expected navigation emotes.
+        return user == ctx.author and str(reaction.emoji) in emotes
 
     embed = await population_func(embed, page)
     if isinstance(embed, discord.Embed):

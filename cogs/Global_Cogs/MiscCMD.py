@@ -182,8 +182,15 @@ class MiscCMD(commands.Cog):
             db = Path("data.db")
             if db.exists():
                 db.unlink()
+
+            if not ctx.message.attachments:
+                await ctx.send("No attachment found to replace database.")
+                return
+
+            attachment = ctx.message.attachments[0]
             with db.open(mode="wb+") as f:
-                await ctx.message.attachments.save(f)
+                await attachment.save(f)
+            await ctx.send("Database file replaced.")
         else:
             await ctx.send("Cannot replace; database is currently in use.")
 
