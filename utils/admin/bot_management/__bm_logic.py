@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import Union
 
-from database.__database import database
+from utils.database.__database import database
 from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
