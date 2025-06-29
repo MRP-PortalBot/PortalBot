@@ -5,7 +5,7 @@ from discord import app_commands
 from discord.ext import commands
 from utils.database.__database import RealmProfile
 from utils.realm_profiles.__rp_logic import (
-    fetch_realm_autocomplete,
+    realm_name_autocomplete,
     has_realm_operator_role,
 )
 from utils.realm_profiles.__rp_views import RealmManagerPanel
@@ -20,7 +20,7 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
         self.bot = bot
 
     @app_commands.command(name="view", description="View a Realm Profile")
-    @app_commands.autocomplete(realm_name=fetch_realm_autocomplete)
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def view(self, interaction: discord.Interaction, realm_name: str = None):
         realm_name = realm_name or interaction.channel.name
         profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)

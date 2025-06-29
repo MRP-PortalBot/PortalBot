@@ -13,7 +13,7 @@ import requests
 _log = get_log(__name__)
 
 
-def fetch_realm_autocomplete(interaction: discord.Interaction, current: str):
+async def realm_name_autocomplete(interaction: discord.Interaction, current: str):
     """
     Return autocomplete choices for realm names based on current input.
     """
