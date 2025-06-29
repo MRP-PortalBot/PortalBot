@@ -14,6 +14,6 @@ async def setup(bot: commands.Bot):
     await __rp_commands.setup(bot)
 
     # Register persistent views (selects/modals)
-    await __rp_views.setup(bot)
+    __rp_views.setup(bot)
 
     _log.info("✅ Realm Profile system initialized (commands, views)")
