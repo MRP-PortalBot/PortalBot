@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import Union
 
-from utils.database.__database import database
+from utils.database import __database
 from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
@@ -14,9 +14,9 @@ _log = get_log(__name__)
 async def fetch_admins_by_level(bot, level: int):
     try:
         _log.debug(f"Fetching administrators with permit level {level}")
-        database.db.connect(reuse_if_open=True)
-        query = database.Administrators.select().where(
-            database.Administrators.TierLevel == level
+        __database.db.connect(reuse_if_open=True)
+        query = __database.Administrators.select().where(
+            __database.Administrators.TierLevel == level
         )
 
         admin_list = []
@@ -32,8 +32,8 @@ async def fetch_admins_by_level(bot, level: int):
 
         return admin_list or ["None"]
     finally:
-        if not database.db.is_closed():
-            database.db.close()
+        if not __database.db.is_closed():
+            __database.db.close()
 
 
 # ========== BotData Cache ==========
@@ -54,8 +54,8 @@ async def get_bot_data_for_server(server_id: Union[int, str]):
 
     try:
         bot_info = (
-            database.BotData.select()
-            .where(database.BotData.server_id == str(server_id))
+            __database.BotData.select()
+            .where(__database.BotData.server_id == str(server_id))
             .get()
         )
         async with cache_lock:
@@ -65,7 +65,7 @@ async def get_bot_data_for_server(server_id: Union[int, str]):
             f"Prefix: {bot_info.prefix}, Server ID: {bot_info.server_id}"
         )
         return bot_info
-    except database.DoesNotExist:
+    except __database.DoesNotExist:
         _log.error(f"No BotData found for server ID: {server_id}")
         return None
     except Exception as e:
@@ -92,7 +92,9 @@ def get_cached_bot_data(server_id: Union[int, str]):
 
 def refresh_bot_data_cache(guild_id: int):
     """Refresh the bot_data_cache entry for a specific guild from the DB."""
-    bot_data = database.BotData.get_or_none(database.BotData.server_id == str(guild_id))
+    bot_data = __database.BotData.get_or_none(
+        __database.BotData.server_id == str(guild_id)
+    )
     if bot_data:
         bot_data_cache[str(guild_id)] = bot_data
 
