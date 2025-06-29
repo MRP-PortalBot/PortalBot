@@ -4,7 +4,7 @@ from datetime import datetime
 from discord import app_commands
 from discord.ext import commands
 from utils.database import __database
-from utils.helpers import __checks
+from utils.helpers.__checks import has_admin_level
 from utils.helpers.__pagination import paginate_embed
 from utils.admin.bot_management.__bm_logic import get_cached_bot_data
 
@@ -29,7 +29,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
         name="post",
         description="Post a daily question by ID or repeat today's question.",
     )
-    @__checks.has_admin_level(2)
+    @has_admin_level(2)
     async def post(self, interaction: discord.Interaction, id: str = None):
         bot_data = get_cached_bot_data(interaction.guild.id)
         if not bot_data:
@@ -51,7 +51,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
         )
 
     @app_commands.command(name="modify", description="Modify a question by ID.")
-    @__checks.has_admin_level(2)
+    @has_admin_level(2)
     async def modify(self, interaction: discord.Interaction, id: str, question: str):
         try:
             q = __database.Question.get(__database.Question.display_order == id)
@@ -67,7 +67,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
             )
 
     @app_commands.command(name="new", description="Add a new daily question.")
-    @__checks.has_admin_level(2)
+    @has_admin_level(2)
     async def new(self, interaction: discord.Interaction, question: str):
         try:
             __database.Question.create(question=question, usage="False")
@@ -83,7 +83,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
             )
 
     @app_commands.command(name="delete", description="Delete a question by ID.")
-    @__checks.has_admin_level(2)
+    @has_admin_level(2)
     async def delete(self, interaction: discord.Interaction, id: str):
         try:
             q = __database.Question.get(__database.Question.display_order == id)
@@ -137,7 +137,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
         name="toggle-daily-question",
         description="Enable or disable daily question posting.",
     )
-    @__checks.has_admin_level(2)
+    @has_admin_level(2)
     async def toggle(self, interaction: discord.Interaction):
         try:
             bot_data = get_cached_bot_data(interaction.guild.id)
@@ -161,7 +161,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
     @app_commands.command(
         name="reset-usage", description="Reset usage flag for all daily questions."
     )
-    @__checks.has_admin_level(2)
+    @has_admin_level(2)
     async def reset_usage(self, interaction: discord.Interaction):
         try:
             count = reset_question_usage()
@@ -178,7 +178,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
     @app_commands.command(
         name="repost", description="Repost the most recently posted question."
     )
-    @__checks.has_admin_level(2)
+    @has_admin_level(2)
     async def repost_last_question(self, interaction: discord.Interaction):
         try:
             bot_data = get_cached_bot_data(interaction.guild.id)

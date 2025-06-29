@@ -6,7 +6,7 @@ from discord import app_commands
 from discord.ext import commands
 from discord import File
 from utils.database import __database
-from utils.helpers import __checks
+from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 from utils.core_features.__common import ensure_profile_exists
 from .__profile_logic import (
