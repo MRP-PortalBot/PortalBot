@@ -145,6 +145,7 @@ class BotData(BaseModel):
     )  # Channel ID for realm channel responses
     general_channel = TextField(default=0)  # General Channel ID
     mod_channel = TextField(default=0)  # MOderator Channel ID
+    log_channel = TextField(default=0)  # Log Channel ID
     daily_question_enabled = BooleanField(default=True)
     last_question_posted = TextField(null=True)  # Last question that was posted
     last_question_posted_time = TimestampField()  # Last time a question was posted
