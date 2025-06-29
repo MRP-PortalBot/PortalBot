@@ -6,7 +6,7 @@ from utils.helpers.__logging_module import get_log
 from utils.realm_profiles.__rp_logic import (
     generate_realm_profile_card,
     save_image_from_url,
-    ensure_realm_profile_exists
+    ensure_realm_profile_exists,
 )
 
 _log = get_log(__name__)
@@ -30,14 +30,14 @@ class RealmManagerPanel(View):
         if interaction.user.id != self.user.id or expected_role_name not in user_roles:
             await interaction.response.send_message(
                 f"🚫 You must have the `{expected_role_name}` role to manage this realm.",
-                ephemeral=True
+                ephemeral=True,
             )
             return False
         return True
 
 
-
 # ---------- Buttons ----------
+
 
 class ViewProfileButton(Button):
     def __init__(self, label: str):
@@ -59,7 +59,9 @@ class UploadLogoModalButton(Button):
         super().__init__(style=discord.ButtonStyle.secondary, label=label)
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(UploadImageModal("logo", self.view.realm_name))
+        await interaction.response.send_modal(
+            UploadImageModal("logo", self.view.realm_name)
+        )
 
 
 class UploadBannerModalButton(Button):
@@ -67,7 +69,9 @@ class UploadBannerModalButton(Button):
         super().__init__(style=discord.ButtonStyle.secondary, label=label)
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(UploadImageModal("banner", self.view.realm_name))
+        await interaction.response.send_modal(
+            UploadImageModal("banner", self.view.realm_name)
+        )
 
 
 class UploadConfirmButton(Button):
@@ -76,11 +80,13 @@ class UploadConfirmButton(Button):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_message(
-            f"✅ Your updates to **{self.view.realm_name}** have been saved.", ephemeral=True
+            f"✅ Your updates to **{self.view.realm_name}** have been saved.",
+            ephemeral=True,
         )
 
 
 # ---------- Modal ----------
+
 
 class UploadImageModal(Modal):
     def __init__(self, image_type: str, realm_name: str):
@@ -89,7 +95,11 @@ class UploadImageModal(Modal):
         self.image_type = image_type
         self.realm_name = realm_name
 
-        self.url = TextInput(label=f"{image_type.capitalize()} Image URL", placeholder="Paste a valid image URL...", required=True)
+        self.url = TextInput(
+            label=f"{image_type.capitalize()} Image URL",
+            placeholder="Paste a valid image URL...",
+            required=True,
+        )
         self.add_item(self.url)
 
     async def on_submit(self, interaction: discord.Interaction):
@@ -109,3 +119,8 @@ class UploadImageModal(Modal):
                 "❌ Failed to upload the image. Make sure the URL points to a valid image.",
                 ephemeral=True,
             )
+
+
+# At the bottom of __rp_views.py
+def setup(bot):
+    bot.add_view(RealmManagerPanel())
