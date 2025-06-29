@@ -121,6 +121,5 @@ class UploadImageModal(Modal):
             )
 
 
-# At the bottom of __rp_views.py
 def setup(bot):
-    bot.add_view(RealmManagerPanel())
+    pass  # no persistent views needed right now
