@@ -168,3 +168,20 @@ async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name:
     except Exception as e:
         _log.error(f"Error syncing Tatsu score for {user_id}: {e}", exc_info=True)
 
+def get_role_for_level(level: int, guild: discord.Guild):
+    """
+    Return the role matching a level from the LeveledRoles table.
+    """
+    from utils.database.__database import LeveledRoles  # import inside to avoid circular dependency
+
+    try:
+        role_entry = LeveledRoles.get_or_none(
+            (LeveledRoles.LevelThreshold == level) &
+            (LeveledRoles.ServerID == str(guild.id))
+        )
+        if role_entry:
+            return discord.utils.get(guild.roles, id=role_entry.RoleID)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Error fetching role for level {level}: {e}")
+    return None
