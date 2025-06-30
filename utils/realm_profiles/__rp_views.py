@@ -46,12 +46,13 @@ class ViewProfileButton(Button):
     async def callback(self, interaction: discord.Interaction):
         try:
             await interaction.response.defer()
-            image_bytes = generate_realm_profile_card(self.view.realm_name)
+            image_bytes = generate_realm_profile_card(interaction.user, self.view.realm_name)
             file = discord.File(image_bytes, filename="realm_card.png")
             await interaction.followup.send(file=file, ephemeral=True)
         except Exception as e:
             _log.error(f"Error viewing profile: {e}", exc_info=True)
             await interaction.followup.send("Failed to load profile.", ephemeral=True)
+
 
 
 class UploadLogoModalButton(Button):
