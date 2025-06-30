@@ -15,9 +15,6 @@ class CoreFeatures(commands.GroupCog, name="core"):
 
 
 async def setup(bot: commands.Bot):
-    cog = CoreFeatures(bot)
-    await bot.add_cog(cog)
-
     bot.tree.add_command(__help_commands.HelpCommands())
     bot.tree.add_command(__rules_commands.RulesCommands())
     bot.tree.add_command(__utility_commands.UtilityCommands(bot))  # ⬅️ bot passed here

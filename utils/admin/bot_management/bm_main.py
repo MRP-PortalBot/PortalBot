@@ -11,8 +11,6 @@ class BotManagement(commands.GroupCog, name="bot"):
 
 
 async def setup(bot: commands.Bot):
-    cog = BotManagement(bot)
-    await bot.add_cog(cog)
     await __bm_commands.setup(bot)
 
     # Optional: log success
