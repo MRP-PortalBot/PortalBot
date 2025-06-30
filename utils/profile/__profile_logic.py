@@ -9,12 +9,12 @@ from utils.core_features.__common import (
 )
 
 # Constants
-FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"
-EMOJI_FONT_PATH = "./core/fonts/NotoColorEmoji-Regular.ttf"
-BACKGROUND_IMAGE_PATH = "./core/images/profilebackground4.png"
-PS_LOGO_PATH = "./core/images/ps-logo.png"
-XBOX_LOGO_PATH = "./core/images/xbox-logo.png"
-NS_LOGO_PATH = "./core/images/ns-logo.png"
+FONT_PATH = "./data/fonts/Minecraft-Seven_v2-1.ttf"
+EMOJI_FONT_PATH = "./data/fonts/NotoColorEmoji-Regular.ttf"
+BACKGROUND_IMAGE_PATH = "./data/images/profilebackground4.png"
+PS_LOGO_PATH = "./data/images/ps-logo.png"
+XBOX_LOGO_PATH = "./data/images/xbox-logo.png"
+NS_LOGO_PATH = "./data/images/ns-logo.png"
 
 AVATAR_SIZE = 145
 PADDING = 25
