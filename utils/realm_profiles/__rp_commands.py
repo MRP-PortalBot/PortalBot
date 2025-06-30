@@ -50,6 +50,7 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
                 f"No profile found for realm '{realm_name}'", ephemeral=True
             )
 
+    @app_commands.command(name="edit", description="Edit a Realm Profile")
     @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def open_realm_panel(self, interaction: discord.Interaction, realm_name: str):
         if not has_realm_operator_role(interaction.user, realm_name):
