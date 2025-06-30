@@ -5,7 +5,7 @@ import datetime
 import discord
 from discord import app_commands, ui
 from discord.ext import commands
-from utils.database import __database
+from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level, slash_check_MRP
 from utils.helpers.__logging_module import get_log
 from utils.admin.bot_management.__bm_logic import get_cached_bot_data
@@ -75,7 +75,7 @@ def build_realm_application_modal(bot):
 
         async def save_application(self, interaction: discord.Interaction):
             try:
-                __database.RealmApplications.create(
+                database.RealmApplications.create(
                     discord_id=interaction.user.id,
                     discord_name=interaction.user.display_name,
                     realm_name=self.realm_name.value,
@@ -191,12 +191,12 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
 
         # Fetch application
         try:
-            q: __database.RealmApplications = (
-                __database.RealmApplications.select()
-                .where(__database.RealmApplications.id == app_number)
+            q: database.RealmApplications = (
+                database.RealmApplications.select()
+                .where(database.RealmApplications.id == app_number)
                 .get()
             )
-        except __database.RealmApplications.DoesNotExist:
+        except database.RealmApplications.DoesNotExist:
             return await interaction.followup.send(
                 "❌ Application not found with that ID.", ephemeral=True
             )

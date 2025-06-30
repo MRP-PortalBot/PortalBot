@@ -12,7 +12,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from utils.database import __database
+from utils.database import __database as database
 from utils.core_features.__common import (
     get_cached_bot_data,
     get_bot_data_for_server,
@@ -144,23 +144,23 @@ def initialize_persistent_views(bot, bot_data):
 def initialize_db(bot):
     try:
         _log.info("Initializing database...")
-        __database.db.connect(reuse_if_open=True)
+        database.db.connect(reuse_if_open=True)
         for guild in bot.guilds:
-            bot_data = __database.BotData.select().where(
-                __database.BotData.server_id == str(guild.id)
+            bot_data = database.BotData.select().where(
+                database.BotData.server_id == str(guild.id)
             )
             if not bot_data.exists():
                 initial_channel_id = (
                     guild.system_channel.id if guild.system_channel else None
                 )
                 _create_bot_data(guild.id, initial_channel_id)
-        if __database.Administrators.select().count() == 0:
+        if database.Administrators.select().count() == 0:
             _create_administrators(bot.owner_ids)
     except Exception as e:
         _log.error(f"Error during database initialization: {e}")
     finally:
-        if not __database.db.is_closed():
-            __database.db.close()
+        if not database.db.is_closed():
+            database.db.close()
 
 
 def _create_bot_data(server_id, initial_channel_id):
@@ -169,7 +169,7 @@ def _create_bot_data(server_id, initial_channel_id):
             f"No initial channel found for server {server_id}, skipping creation."
         )
         return
-    __database.BotData.create(
+    database.BotData.create(
         server_id=server_id,
         prefix=">",
         persistent_views=False,
@@ -189,8 +189,8 @@ def _create_bot_data(server_id, initial_channel_id):
 
 def _create_administrators(owner_ids):
     for owner_id in owner_ids:
-        __database.Administrators.create(discordID=str(owner_id), TierLevel=4)
-    __database.Administrators.create(discordID="306070011028439041", TierLevel=4)
+        database.Administrators.create(discordID=str(owner_id), TierLevel=4)
+    database.Administrators.create(discordID="306070011028439041", TierLevel=4)
 
 
 async def on_command_error_(bot, ctx: commands.Context, error: Exception):

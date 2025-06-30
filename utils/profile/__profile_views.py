@@ -3,7 +3,7 @@
 import discord
 from discord import ui
 from utils.helpers.__logging_module import get_log
-from utils.database import __database
+from utils.database import __database as database
 from utils.core_features.__common import get_profile_record
 
 _log = get_log(__name__)
@@ -42,8 +42,8 @@ class ProfileEditModal(discord.ui.Modal, title="Edit Your Profile"):
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
-            profile = __database.PortalbotProfile.get_or_none(
-                __database.PortalbotProfile.DiscordLongID == str(self.user_id)
+            profile = database.PortalbotProfile.get_or_none(
+                database.PortalbotProfile.DiscordLongID == str(self.user_id)
             )
 
             if not profile:
@@ -79,9 +79,9 @@ class RealmSelection(discord.ui.Select):
 
         # Fetch active realms
         active_realms = (
-            __database.RealmProfile.select()
-            .where(__database.RealmProfile.archived == False)
-            .order_by(__database.RealmProfile.realm_name)
+            database.RealmProfile.select()
+            .where(database.RealmProfile.archived == False)
+            .order_by(database.RealmProfile.realm_name)
         )
         active_names = [realm.realm_name for realm in active_realms]
 
@@ -162,7 +162,6 @@ class RealmSelectionView(discord.ui.View):
         )
 
 
-
 class RealmDropdown(discord.ui.Select):
     def __init__(
         self, label: str, realm_type: str, options: list[discord.SelectOption]
@@ -177,8 +176,8 @@ class RealmDropdown(discord.ui.Select):
         self.realm_type = realm_type
 
     async def callback(self, interaction: discord.Interaction):
-        profile = __database.PortalbotProfile.get(
-            __database.PortalbotProfile.DiscordLongID == str(interaction.user.id)
+        profile = database.PortalbotProfile.get(
+            database.PortalbotProfile.DiscordLongID == str(interaction.user.id)
         )
 
         selected_realms = ", ".join(self.values) if self.values else "None"

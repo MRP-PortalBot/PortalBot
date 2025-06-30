@@ -21,7 +21,7 @@ from pygit2 import Repository, GIT_DESCRIBE_TAGS
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
-from utils.database import __database
+from utils.database import __database as database
 from utils.core_features.__common import get_bot_data_for_server, get_cached_bot_data
 from utils.core_features.__constants import DEFAULT_PREFIX
 from utils.helpers.__logging_module import get_log
@@ -44,7 +44,7 @@ _log.info("Starting PortalBot...")
 load_dotenv()
 
 # Ensure all tables are created
-__database.iter_table(__database.tables)
+database.iter_table(database.tables)
 
 
 async def preload_bot_data(bot):
@@ -153,13 +153,13 @@ class PortalBot(commands.Bot):
             _log.error(f"❌ Failed to sync application commands: {e}", exc_info=True)
 
     async def is_owner(self, user: discord.User):
-        __database.db.connect(reuse_if_open=True)
-        query = __database.Administrators.select().where(
-            (__database.Administrators.TierLevel >= 3)
-            & (__database.Administrators.discordID == user.id)
+        database.db.connect(reuse_if_open=True)
+        query = database.Administrators.select().where(
+            (database.Administrators.TierLevel >= 3)
+            & (database.Administrators.discordID == user.id)
         )
         is_owner = query.exists()
-        __database.db.close()
+        database.db.close()
         _log.info(f"User {user} owner check: {'Yes' if is_owner else 'No'}")
         return is_owner or await super().is_owner(user)
 

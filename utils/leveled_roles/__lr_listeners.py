@@ -5,7 +5,7 @@ import random
 import time
 from discord.ext import commands
 
-from utils.database import __database
+from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 from utils.leveled_roles.__lr_logic import calculate_level, get_role_for_level
 
@@ -22,7 +22,9 @@ class LevelRoleListener(commands.Cog):
         if message.author.bot or message.guild is None:
             return
 
-        bot_data = __database.BotData.get_or_none(__database.BotData.server_id == str(message.guild.id))
+        bot_data = database.BotData.get_or_none(
+            database.BotData.server_id == str(message.guild.id)
+        )
         if not bot_data:
             return
 
@@ -37,9 +39,9 @@ class LevelRoleListener(commands.Cog):
         current_time = time.time()
 
         try:
-            __database.db.connect(reuse_if_open=True)
+            database.db.connect(reuse_if_open=True)
 
-            score, created = __database.ServerScores.get_or_create(
+            score, created = database.ServerScores.get_or_create(
                 DiscordLongID=user_id,
                 ServerID=str(message.guild.id),
                 defaults={"Score": 0, "Level": 1, "Progress": 0},
@@ -68,7 +70,9 @@ class LevelRoleListener(commands.Cog):
                     role = discord.utils.get(message.guild.roles, name=role_name)
                     if role:
                         await message.author.add_roles(role)
-                        score_log.info(f"Assigned role '{role.name}' to {username} (Level {new_level})")
+                        score_log.info(
+                            f"Assigned role '{role.name}' to {username} (Level {new_level})"
+                        )
 
                         await message.channel.send(
                             f"🎉 {message.author.mention} has leveled up to **Level {new_level}**!"
@@ -77,8 +81,8 @@ class LevelRoleListener(commands.Cog):
         except Exception as e:
             _log.error(f"Error processing message from {username}: {e}", exc_info=True)
         finally:
-            if not __database.db.is_closed():
-                __database.db.close()
+            if not database.db.is_closed():
+                database.db.close()
 
 
 async def setup(bot: commands.Bot):

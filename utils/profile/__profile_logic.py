@@ -1,8 +1,12 @@
 import io
 from PIL import Image, ImageDraw, ImageFont
 from discord import File, Embed, Member
-from utils.database import __database
-from utils.core_features.__common import calculate_level, get_user_rank, ensure_profile_exists
+from utils.database import __database as database
+from utils.core_features.__common import (
+    calculate_level,
+    get_user_rank,
+    ensure_profile_exists,
+)
 
 # Constants
 FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"
@@ -41,15 +45,15 @@ async def generate_profile_card(bot, interaction, profile):
     user_id = str(profile.id)
     discordname = f"{profile.name}#{profile.discriminator}"
     try:
-        __database.db.connect(reuse_if_open=True)
-        profile_record, _ = __database.PortalbotProfile.get_or_create(
+        database.db.connect(reuse_if_open=True)
+        profile_record, _ = database.PortalbotProfile.get_or_create(
             DiscordLongID=user_id, defaults={"DiscordName": discordname}
         )
     except Exception:
         return None, "An error occurred while loading your profile."
     finally:
-        if not __database.db.is_closed():
-            __database.db.close()
+        if not database.db.is_closed():
+            database.db.close()
 
     image = Image.open(BACKGROUND_IMAGE_PATH).convert("RGBA").copy()
 
@@ -105,15 +109,15 @@ async def generate_profile_embed(profile: Member, guild_id: int) -> Embed | None
     avatar_url = profile.display_avatar.url
 
     try:
-        query = __database.PortalbotProfile.get(
-            __database.PortalbotProfile.DiscordLongID == longid
+        query = database.PortalbotProfile.get(
+            database.PortalbotProfile.DiscordLongID == longid
         )
-    except __database.PortalbotProfile.DoesNotExist:
+    except database.PortalbotProfile.DoesNotExist:
         return None
 
-    score_query = __database.ServerScores.get_or_none(
-        (__database.ServerScores.DiscordLongID == longid)
-        & (__database.ServerScores.ServerID == str(guild_id))
+    score_query = database.ServerScores.get_or_none(
+        (database.ServerScores.DiscordLongID == longid)
+        & (database.ServerScores.ServerID == str(guild_id))
     )
     server_score = score_query.Score if score_query else "N/A"
     level, progress, next_level_score = (
@@ -170,26 +174,26 @@ async def generate_profile_embed(profile: Member, guild_id: int) -> Embed | None
 def fetch_profile_data(profile, guild_id):
     longid = str(profile.id)
     try:
-        query = __database.PortalbotProfile.get(
-            __database.PortalbotProfile.DiscordLongID == longid
+        query = database.PortalbotProfile.get(
+            database.PortalbotProfile.DiscordLongID == longid
         )
-    except __database.PortalbotProfile.DoesNotExist:
+    except database.PortalbotProfile.DoesNotExist:
         return None, None, None
 
-    score_query = __database.ServerScores.get_or_none(
-        (__database.ServerScores.DiscordLongID == longid)
-        & (__database.ServerScores.ServerID == str(guild_id))
+    score_query = database.ServerScores.get_or_none(
+        (database.ServerScores.DiscordLongID == longid)
+        & (database.ServerScores.ServerID == str(guild_id))
     )
     server_score = score_query.Score if score_query else "N/A"
     current_level = score_query.Level if score_query else 0
 
     next_role_query = (
-        __database.LeveledRoles.select()
+        database.LeveledRoles.select()
         .where(
-            (__database.LeveledRoles.ServerID == str(guild_id))
-            & (__database.LeveledRoles.LevelThreshold > current_level)
+            (database.LeveledRoles.ServerID == str(guild_id))
+            & (database.LeveledRoles.LevelThreshold > current_level)
         )
-        .order_by(__database.LeveledRoles.LevelThreshold.asc())
+        .order_by(database.LeveledRoles.LevelThreshold.asc())
         .first()
     )
     next_role_name = next_role_query.RoleName if next_role_query else "None"

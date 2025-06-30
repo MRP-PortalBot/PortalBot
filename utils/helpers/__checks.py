@@ -9,7 +9,7 @@ from discord.ext.commands import Context
 from peewee import OperationalError
 import logging
 
-from utils.database import __database
+from utils.database import __database as database
 
 _log = logging.getLogger(__name__)
 
@@ -35,13 +35,13 @@ def has_admin_level(required_level: int):
     def check_permission(user_id: int) -> bool:
         """Check if the given user ID has the required admin tier."""
         try:
-            __database.db.connect(reuse_if_open=True)
+            database.db.connect(reuse_if_open=True)
             result = (
-                __database.Administrators.select()
+                database.Administrators.select()
                 .where(
-                    (__database.Administrators.TierLevel >= required_level)
+                    (database.Administrators.TierLevel >= required_level)
                     & (
-                        __database.Administrators.discordID == str(user_id)
+                        database.Administrators.discordID == str(user_id)
                     )  # IDs now stored as strings
                 )
                 .exists()
@@ -54,8 +54,8 @@ def has_admin_level(required_level: int):
             _log.error(f"Database error during admin check: {e}")
             return False
         finally:
-            if not __database.db.is_closed():
-                __database.db.close()
+            if not database.db.is_closed():
+                database.db.close()
 
     def decorator(func: Callable):
         """Actual decorator logic"""
@@ -103,10 +103,10 @@ def owns_realm_channel(category_id=REALM_CATEGORY_ID):
             return False
 
         try:
-            __database.db.connect(reuse_if_open=True)
-            query = __database.Administrators.select().where(
-                (__database.Administrators.TierLevel >= 1)
-                & (__database.Administrators.discordID == str(interaction.user.id))
+            database.db.connect(reuse_if_open=True)
+            query = database.Administrators.select().where(
+                (database.Administrators.TierLevel >= 1)
+                & (database.Administrators.discordID == str(interaction.user.id))
             )
             if query.exists():
                 _log.info(f"User {interaction.user.id} has admin privileges.")
@@ -115,8 +115,8 @@ def owns_realm_channel(category_id=REALM_CATEGORY_ID):
             _log.error(f"Database connection error: {e}")
             return False
         finally:
-            if not __database.db.is_closed():
-                __database.db.close()
+            if not database.db.is_closed():
+                database.db.close()
                 _log.debug("Database connection closed.")
 
         try:
@@ -153,10 +153,10 @@ def is_realm_op():
         _log.debug(f"Checking if user {interaction.user.id} is a Realm OP.")
 
         try:
-            __database.db.connect(reuse_if_open=True)
-            query = __database.Administrators.select().where(
-                (__database.Administrators.TierLevel >= 1)
-                & (__database.Administrators.discordID == str(interaction.user.id))
+            database.db.connect(reuse_if_open=True)
+            query = database.Administrators.select().where(
+                (database.Administrators.TierLevel >= 1)
+                & (database.Administrators.discordID == str(interaction.user.id))
             )
             if query.exists():
                 _log.info(f"User {interaction.user.id} has admin privileges.")
@@ -165,8 +165,8 @@ def is_realm_op():
             _log.error(f"Database connection error: {e}")
             return False
         finally:
-            if not __database.db.is_closed():
-                __database.db.close()
+            if not database.db.is_closed():
+                database.db.close()
                 _log.debug("Database connection closed.")
 
         try:

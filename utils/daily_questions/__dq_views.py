@@ -2,7 +2,7 @@
 
 import discord
 from discord import ui
-from utils.database import __database
+from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
@@ -14,7 +14,7 @@ class QuestionVoteView(discord.ui.View):
         self.bot = bot
         self.question_id = question_id
 
-        question = __database.Question.get(display_order=question_id)
+        question = database.Question.get(display_order=question_id)
         self.upvote_count = question.upvotes
         self.downvote_count = question.downvotes
 
@@ -47,8 +47,8 @@ class QuestionVoteView(discord.ui.View):
     async def handle_upvote(self, interaction: discord.Interaction):
         user_id = str(interaction.user.id)
         try:
-            question = __database.Question.get(display_order=self.question_id)
-            vote, created = __database.QuestionVote.get_or_create(
+            question = database.Question.get(display_order=self.question_id)
+            vote, created = database.QuestionVote.get_or_create(
                 question=question, user_id=user_id, defaults={"vote_type": "up"}
             )
 
@@ -74,8 +74,8 @@ class QuestionVoteView(discord.ui.View):
     async def handle_downvote(self, interaction: discord.Interaction):
         user_id = str(interaction.user.id)
         try:
-            question = __database.Question.get(display_order=self.question_id)
-            vote, created = __database.QuestionVote.get_or_create(
+            question = database.Question.get(display_order=self.question_id)
+            vote, created = database.QuestionVote.get_or_create(
                 question=question, user_id=user_id, defaults={"vote_type": "down"}
             )
 
@@ -149,10 +149,10 @@ class QuestionSuggestionManager(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         try:
-            q = __database.QuestionSuggestionQueue.get(
-                __database.QuestionSuggestionQueue.message_id == interaction.message.id
+            q = database.QuestionSuggestionQueue.get(
+                database.QuestionSuggestionQueue.message_id == interaction.message.id
             )
-            new_q = __database.Question.create(question=q.question, usage="False")
+            new_q = database.Question.create(question=q.question, usage="False")
             q.delete_instance()
 
             embed = discord.Embed(
@@ -182,8 +182,8 @@ class QuestionSuggestionManager(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         try:
-            q = __database.QuestionSuggestionQueue.get(
-                __database.QuestionSuggestionQueue.message_id == interaction.message.id
+            q = database.QuestionSuggestionQueue.get(
+                database.QuestionSuggestionQueue.message_id == interaction.message.id
             )
             q.delete_instance()
 
@@ -227,7 +227,7 @@ class SuggestModalNEW(discord.ui.Modal, title="Suggest a Question"):
             log_channel = await self.bot.fetch_channel(777987716008509490)
             msg = await log_channel.send(embed=embed, view=QuestionSuggestionManager())
 
-            __database.QuestionSuggestionQueue.create(
+            database.QuestionSuggestionQueue.create(
                 question=self.short_description.value,
                 discord_id=interaction.user.id,
                 message_id=msg.id,

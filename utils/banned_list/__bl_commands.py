@@ -5,7 +5,7 @@ import datetime
 from typing import Literal
 from discord import app_commands, ui
 from discord.ext import commands
-from utils.database import __database
+from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 from utils.core_features.__common import load_config, get_cached_bot_data
 from utils.helpers.__pagination import paginate_embed
@@ -51,22 +51,22 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
     @app_commands.checks.has_role("Realm OP")
     async def search(self, interaction: discord.Interaction, *, search_term: str):
         database_fields = [
-            __database.MRP_Blacklist_Data.DiscUsername,
-            __database.MRP_Blacklist_Data.DiscID,
-            __database.MRP_Blacklist_Data.Gamertag,
-            __database.MRP_Blacklist_Data.BannedFrom,
-            __database.MRP_Blacklist_Data.KnownAlts,
-            __database.MRP_Blacklist_Data.ReasonforBan,
-            __database.MRP_Blacklist_Data.DateofIncident,
-            __database.MRP_Blacklist_Data.TypeofBan,
-            __database.MRP_Blacklist_Data.DatetheBanEnds,
-            __database.MRP_Blacklist_Data.entryid,
-            __database.MRP_Blacklist_Data.BanReporter,
+            database.MRP_Blacklist_Data.DiscUsername,
+            database.MRP_Blacklist_Data.DiscID,
+            database.MRP_Blacklist_Data.Gamertag,
+            database.MRP_Blacklist_Data.BannedFrom,
+            database.MRP_Blacklist_Data.KnownAlts,
+            database.MRP_Blacklist_Data.ReasonforBan,
+            database.MRP_Blacklist_Data.DateofIncident,
+            database.MRP_Blacklist_Data.TypeofBan,
+            database.MRP_Blacklist_Data.DatetheBanEnds,
+            database.MRP_Blacklist_Data.entryid,
+            database.MRP_Blacklist_Data.BanReporter,
         ]
 
         results = []
         for field in database_fields:
-            query = __database.MRP_Blacklist_Data.select().where(
+            query = database.MRP_Blacklist_Data.select().where(
                 field.contains(search_term)
             )
             if query.exists():
@@ -120,8 +120,8 @@ class BannedListCommands(commands.GroupCog, name="banned-list"):
         ],
         new_value: str,
     ):
-        query = __database.MRP_Blacklist_Data.get_or_none(
-            __database.MRP_Blacklist_Data.entryid == entry_id
+        query = database.MRP_Blacklist_Data.get_or_none(
+            database.MRP_Blacklist_Data.entryid == entry_id
         )
 
         if not query:

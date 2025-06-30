@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from utils.database import __database
+from utils.database import __database as database
 from utils.admin.bot_management.__bm_logic import get_cached_bot_data
 from utils.helpers.__logging_module import get_log
 
@@ -22,19 +22,23 @@ class MemberJoinListener(commands.Cog):
         _log.info(f"Member joined: {discordname} in guild: {guild.name} ({guild_id})")
 
         try:
-            __database.db.connect(reuse_if_open=True)
+            database.db.connect(reuse_if_open=True)
 
-            profile, created = __database.PortalbotProfile.get_or_create(
+            profile, created = database.PortalbotProfile.get_or_create(
                 DiscordLongID=user_id, defaults={"DiscordName": discordname}
             )
 
             if created:
-                message = f"{profile.DiscordName}'s profile has been created successfully."
+                message = (
+                    f"{profile.DiscordName}'s profile has been created successfully."
+                )
                 _log.info(f"Profile created for {discordname}")
             else:
                 profile.DiscordName = discordname
                 profile.save()
-                message = f"{profile.DiscordName}'s profile has been updated successfully."
+                message = (
+                    f"{profile.DiscordName}'s profile has been updated successfully."
+                )
                 _log.info(f"Profile updated for {discordname}")
 
             if log_channel:
@@ -43,12 +47,16 @@ class MemberJoinListener(commands.Cog):
                 _log.warning(f"Log channel not found in guild: {guild.name}")
 
         except Exception as e:
-            _log.error(f"Error processing join event for {discordname}: {e}", exc_info=True)
+            _log.error(
+                f"Error processing join event for {discordname}: {e}", exc_info=True
+            )
             if log_channel:
-                await log_channel.send(f"An error occurred while processing {discordname}'s join event.")
+                await log_channel.send(
+                    f"An error occurred while processing {discordname}'s join event."
+                )
         finally:
-            if not __database.db.is_closed():
-                __database.db.close()
+            if not database.db.is_closed():
+                database.db.close()
                 _log.debug("Database connection closed.")
 
         await self.send_welcome_message(member)
@@ -65,12 +73,16 @@ class MemberJoinListener(commands.Cog):
 
             welcome_channel_id = bot_data.welcome_channel
             if not welcome_channel_id:
-                _log.warning(f"No welcome message channel configured for guild {guild_id}")
+                _log.warning(
+                    f"No welcome message channel configured for guild {guild_id}"
+                )
                 return
 
             channel = guild.get_channel(int(welcome_channel_id))
             if not channel:
-                _log.warning(f"Channel with ID {welcome_channel_id} not found in guild {guild_id}")
+                _log.warning(
+                    f"Channel with ID {welcome_channel_id} not found in guild {guild_id}"
+                )
                 return
 
             count = guild.member_count
@@ -88,13 +100,17 @@ class MemberJoinListener(commands.Cog):
             if member.avatar:
                 embed.set_thumbnail(url=member.avatar.url)
             if guild.icon:
-                embed.set_footer(text=f"Welcome to {guild.name}!", icon_url=guild.icon.url)
+                embed.set_footer(
+                    text=f"Welcome to {guild.name}!", icon_url=guild.icon.url
+                )
 
             await channel.send(embed=embed)
             _log.info(f"Sent welcome message to {member.name} in guild {guild.name}.")
 
         except Exception as e:
-            _log.error(f"Error sending welcome message to {member.name}: {e}", exc_info=True)
+            _log.error(
+                f"Error sending welcome message to {member.name}: {e}", exc_info=True
+            )
 
 
 async def setup(bot: commands.Bot):

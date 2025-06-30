@@ -1,5 +1,5 @@
 import discord
-from utils.database import __database
+from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 
 _log = get_log("rules_logic")
@@ -10,8 +10,8 @@ async def update_rule_embed(guild: discord.Guild):
     Update (or post) the full rules embed in the configured rule channel for the given guild.
     """
     try:
-        bot_data = __database.BotData.get_or_none(
-            __database.BotData.server_id == str(guild.id)
+        bot_data = database.BotData.get_or_none(
+            database.BotData.server_id == str(guild.id)
         )
         if not bot_data or not bot_data.rule_channel:
             _log.warning(f"No rule channel configured for guild: {guild.name}")
@@ -25,9 +25,9 @@ async def update_rule_embed(guild: discord.Guild):
             return
 
         rules = (
-            __database.Rule.select()
-            .where(__database.Rule.guild_id == str(guild.id))
-            .order_by(__database.Rule.category, __database.Rule.number)
+            database.Rule.select()
+            .where(database.Rule.guild_id == str(guild.id))
+            .order_by(database.Rule.category, database.Rule.number)
         )
 
         if not rules.exists():

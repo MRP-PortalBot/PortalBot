@@ -1,7 +1,7 @@
 # utils/events/__events_logic.py
 
 import discord
-from utils.database import __database
+from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
@@ -13,8 +13,8 @@ def handle_profile_update(member: discord.Member) -> str:
     discordname = f"{member.name}#{member.discriminator}"
 
     try:
-        __database.db.connect(reuse_if_open=True)
-        profile, created = __database.PortalbotProfile.get_or_create(
+        database.db.connect(reuse_if_open=True)
+        profile, created = database.PortalbotProfile.get_or_create(
             DiscordLongID=user_id, defaults={"DiscordName": discordname}
         )
         if created:
@@ -26,8 +26,8 @@ def handle_profile_update(member: discord.Member) -> str:
             _log.info(f"Profile updated for {discordname}")
             return f"{profile.DiscordName}'s profile has been updated successfully."
     finally:
-        if not __database.db.is_closed():
-            __database.db.close()
+        if not database.db.is_closed():
+            database.db.close()
             _log.debug("Database connection closed.")
 
 
@@ -47,7 +47,5 @@ def build_welcome_embed(guild: discord.Guild, member: discord.Member) -> discord
     if member.avatar:
         embed.set_thumbnail(url=member.avatar.url)
     if guild.icon:
-        embed.set_footer(
-            text=f"Welcome to {guild.name}!", icon_url=guild.icon.url
-        )
+        embed.set_footer(text=f"Welcome to {guild.name}!", icon_url=guild.icon.url)
     return embed

@@ -4,7 +4,7 @@ from discord import app_commands, ui
 from pathlib import Path
 from typing import Union, Literal
 
-from utils.database import __database
+from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level
 from utils.core_features.__constants import EmbedColors
 from utils.helpers.__logging_module import get_log
@@ -53,7 +53,7 @@ class AdminCommands(commands.GroupCog, name="admin"):
     @has_admin_level(4)
     async def deletedb(self, interaction: discord.Interaction):
         try:
-            if not __database.db.is_closed():
+            if not database.db.is_closed():
                 await interaction.response.send_message(
                     "Database is in use. Cannot delete.", ephemeral=True
                 )
@@ -82,7 +82,7 @@ class AdminCommands(commands.GroupCog, name="admin"):
     @has_admin_level(4)
     async def replacedb(self, interaction: discord.Interaction):
         try:
-            if not __database.db.is_closed():
+            if not database.db.is_closed():
                 await interaction.response.send_message(
                     "Database is in use. Cannot replace.", ephemeral=True
                 )

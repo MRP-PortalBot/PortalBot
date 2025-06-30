@@ -2,7 +2,7 @@ import discord
 import random
 import time
 from discord.ext import commands
-from utils.database import __database
+from utils.database import __database as database
 from utils.core_features.__common import calculate_level
 from utils.helpers.__logging_module import get_log
 from .__score_logic import get_role_for_level
@@ -23,7 +23,7 @@ class ScoreIncrement(commands.Cog):
         if message.author.bot or message.guild is None:
             return
 
-        bot_data = __database.BotData.get_or_none(__database.BotData.id == 1)
+        bot_data = database.BotData.get_or_none(database.BotData.id == 1)
         if not bot_data:
             return
 
@@ -43,8 +43,8 @@ class ScoreIncrement(commands.Cog):
         score_increment = random.randint(points_per_message, points_per_message * 3)
 
         try:
-            __database.db.connect(reuse_if_open=True)
-            score, created = __database.ServerScores.get_or_create(
+            database.db.connect(reuse_if_open=True)
+            score, created = database.ServerScores.get_or_create(
                 DiscordLongID=user_id,
                 ServerID=str(message.guild.id),
                 defaults={"Score": 0, "Level": 1, "Progress": 0},
@@ -89,8 +89,8 @@ class ScoreIncrement(commands.Cog):
             )
 
         finally:
-            if not __database.db.is_closed():
-                __database.db.close()
+            if not database.db.is_closed():
+                database.db.close()
 
         # After updating score and saving:
         score.LastMessageTimestamp = current_time

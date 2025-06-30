@@ -3,7 +3,7 @@ import discord
 from datetime import datetime
 from discord import app_commands
 from discord.ext import commands
-from utils.database import __database
+from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__pagination import paginate_embed
 from utils.admin.bot_management.__bm_logic import get_cached_bot_data
@@ -54,14 +54,14 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
     @has_admin_level(2)
     async def modify(self, interaction: discord.Interaction, id: str, question: str):
         try:
-            q = __database.Question.get(__database.Question.display_order == id)
+            q = database.Question.get(database.Question.display_order == id)
             q.question = question
             q.save()
             _log.info(f"Modified question {id}")
             await interaction.response.send_message(
                 f"✅ Modified question {id}.", ephemeral=True
             )
-        except __database.Question.DoesNotExist:
+        except database.Question.DoesNotExist:
             await interaction.response.send_message(
                 "❌ Question not found.", ephemeral=True
             )
@@ -70,7 +70,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
     @has_admin_level(2)
     async def new(self, interaction: discord.Interaction, question: str):
         try:
-            __database.Question.create(question=question, usage="False")
+            database.Question.create(question=question, usage="False")
             _log.info(f"Added question: {question}")
             renumber_display_order()
             await interaction.response.send_message(
@@ -86,13 +86,13 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
     @has_admin_level(2)
     async def delete(self, interaction: discord.Interaction, id: str):
         try:
-            q = __database.Question.get(__database.Question.display_order == id)
+            q = database.Question.get(database.Question.display_order == id)
             q.delete_instance()
             renumber_display_order()
             await interaction.response.send_message(
                 f"🗑️ Question `{id}` deleted.", ephemeral=True
             )
-        except __database.Question.DoesNotExist:
+        except database.Question.DoesNotExist:
             await interaction.response.send_message(
                 "❌ Question not found.", ephemeral=True
             )
@@ -102,14 +102,14 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
         renumber_display_order()
 
         def get_total_pages(page_size: int) -> int:
-            total = __database.Question.select().count()
+            total = database.Question.select().count()
             return math.ceil(total / page_size)
 
         async def populate_embed(embed: discord.Embed, page: int):
             embed.clear_fields()
             questions = (
-                __database.Question.select()
-                .order_by(__database.Question.display_order)
+                database.Question.select()
+                .order_by(database.Question.display_order)
                 .paginate(page, 10)
             )
             if not questions.exists():
@@ -189,8 +189,8 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
                 return
 
             # Load the question from the database
-            question = __database.Question.get(
-                __database.Question.display_order == bot_data.last_question_posted
+            question = database.Question.get(
+                database.Question.display_order == bot_data.last_question_posted
             )
 
             # Build the embed
@@ -240,7 +240,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
                 f"Reposted Question #{question.display_order} to {channel.name} in {interaction.guild.name}"
             )
 
-        except __database.Question.DoesNotExist:
+        except database.Question.DoesNotExist:
             await interaction.response.send_message(
                 "Question no longer exists in the database.", ephemeral=True
             )

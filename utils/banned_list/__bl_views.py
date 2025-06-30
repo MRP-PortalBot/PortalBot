@@ -3,7 +3,7 @@
 import datetime
 import discord
 from discord import ui
-from utils.database import __database
+from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 from utils.admin.bot_management.__bm_logic import get_cached_bot_data
 
@@ -69,7 +69,7 @@ async def on_submit(self, interaction: discord.Interaction):
         log_channel = self.bot.get_channel(bot_data.bannedlist_channel)
 
         # Save to database
-        entry = __database.MRP_Blacklist_Data.create(
+        entry = database.MRP_Blacklist_Data.create(
             BanReporter=interaction.user.display_name,
             DiscUsername=self.discord_username.value,
             DiscID=self.user.id,
