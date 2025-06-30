@@ -16,9 +16,6 @@ class AdminSystem(commands.GroupCog, name="admin"):
 
 
 async def setup(bot: commands.Bot):
-    cog = AdminSystem(bot)
-    await bot.add_cog(cog)
-
     await __admin_commands.setup(bot)
     await __admin_realm_management.setup(bot)
     await __operator_commands.setup(bot)
