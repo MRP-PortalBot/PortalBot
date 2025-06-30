@@ -12,6 +12,7 @@ _log = get_log(__name__)
 class AdminSystem(commands.GroupCog, name="admin"):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        super().__init__()  # Ensure GroupCog is properly initialized
 
 
 async def setup(bot: commands.Bot):
