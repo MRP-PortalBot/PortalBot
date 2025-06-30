@@ -6,6 +6,10 @@ from typing import Union
 from utils.database import __database
 from utils.helpers.__logging_module import get_log
 
+# utils/admin/bot_management/__bm_logic.py
+
+from utils.core_features.__common import refresh_bot_data_cache
+
 _log = get_log(__name__)
 
 # ========== Admin Helpers ==========
@@ -97,6 +101,16 @@ def refresh_bot_data_cache(guild_id: int):
     )
     if bot_data:
         bot_data_cache[str(guild_id)] = bot_data
+
+
+async def update_bot_data_cache_for_guild(guild_id: int):
+    try:
+        refresh_bot_data_cache(str(guild_id))
+        _log.info(f"Bot data cache updated for guild: {guild_id}")
+        return True
+    except Exception as e:
+        _log.error(f"Error updating bot data cache: {e}", exc_info=True)
+        return False
 
 
 # ========== Config Loader ==========

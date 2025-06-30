@@ -6,7 +6,6 @@ from discord.ext import tasks, commands
 from utils.admin.bot_management.__bm_logic import get_cached_bot_data
 
 from utils.helpers.__logging_module import get_log
-from utils.admin.bot_management.__bm_commands import update_bot_data
 from .__dq_logic import send_daily_question
 
 _log = get_log(__name__)
