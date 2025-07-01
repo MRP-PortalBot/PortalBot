@@ -12,6 +12,7 @@ from utils.core_features.__common import ensure_profile_exists
 from .__profile_logic import (
     generate_profile_embed,
     generate_profile_card,
+    open_realm_selection_panel
 )
 from .__profile_views import ProfileEditLauncherView, RealmSelectionView
 
@@ -122,18 +123,8 @@ class ProfileCommands(commands.GroupCog, name="profile"):
         name="set_realm", description="Update the realms you are a member or admin of."
     )
     async def set_realm(self, interaction: discord.Interaction):
-        await interaction.response.send_message(
-            embed=discord.Embed(
-                title="Select Your Realms",
-                description=(
-                    "**🛡️ Realms you are an OP in:**\nUse the first dropdown below to select realms where you're an operator.\n\n"
-                    "**🏰 Realms you are a member of:**\nUse the second dropdown to select realms you’ve joined."
-                ),
-                color=discord.Color.blurple(),
-            ),
-            view=RealmSelectionView(self.bot, interaction.user.id),
-            ephemeral=True,
-        )
+        await open_realm_selection_panel(self.bot, interaction)
+
 
 
 async def setup(bot: commands.Bot):

@@ -1,4 +1,5 @@
 import io
+import discord
 from PIL import Image, ImageDraw, ImageFont
 from discord import File, Embed, Member
 from utils.database import __database as database
@@ -7,6 +8,7 @@ from utils.core_features.__common import (
     get_user_rank,
     ensure_profile_exists,
 )
+from profile.__profile_views import RealmSelectionView
 
 # Constants
 FONT_PATH = "./data/fonts/Minecraft-Seven_v2-1.ttf"
@@ -353,3 +355,18 @@ def add_rounded_corners(image, radius):
     rounded_image = Image.new("RGBA", image.size)
     rounded_image.paste(image, (0, 0), mask=mask)
     return rounded_image
+
+
+async def open_realm_selection_panel(bot, interaction):
+    await interaction.response.send_message(
+        embed=discord.Embed(
+            title="Select Your Realms",
+            description=(
+                "**🛡️ Realms you are an OP in:**\nUse the first dropdown below to select realms where you're an operator.\n\n"
+                "**🏰 Realms you are a member of:**\nUse the second dropdown to select realms you’ve joined."
+            ),
+            color=discord.Color.blurple(),
+        ),
+        view=RealmSelectionView(bot, interaction.user.id),
+        ephemeral=True,
+    )

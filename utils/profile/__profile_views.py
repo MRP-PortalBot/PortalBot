@@ -5,6 +5,7 @@ from discord.ui import View, Button, Modal, TextInput
 from utils.helpers.__logging_module import get_log
 from utils.database import __database as database
 from utils.core_features.__common import get_profile_record
+from profile.__profile_logic import open_realm_selection_panel
 
 _log = get_log(__name__)
 
@@ -117,7 +118,7 @@ class ProfileEditLauncherView(View):
         self.bot = bot
         self.user_id = user_id
         self.add_item(GameUsernamesButton())
-        self.add_item(RealmInfoButton())
+        self.add_item(EditRealmButton(bot))
 
 
 class GameUsernamesButton(Button):
@@ -128,13 +129,13 @@ class GameUsernamesButton(Button):
         await interaction.response.send_modal(GameUsernamesModal())
 
 
-class RealmInfoButton(Button):
-    def __init__(self):
-        super().__init__(label="Realm Info", style=discord.ButtonStyle.secondary)
+class EditRealmButton(discord.ui.Button):
+    def __init__(self, bot):
+        super().__init__(label="🛠 Edit Realms", style=discord.ButtonStyle.primary)
+        self.bot = bot
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(RealmInfoModal())
-
+        await open_realm_selection_panel(self.bot, interaction)
 
 class RealmSelection(discord.ui.Select):
     def __init__(self, bot, user_id: int, field: str, label: str, placeholder: str):
