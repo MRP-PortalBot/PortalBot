@@ -1,7 +1,7 @@
 # utils/profile/__profile_views.py
 
 import discord
-from discord import ui
+from discord.ui import View, Button, Modal, TextInput
 from utils.helpers.__logging_module import get_log
 from utils.database import __database as database
 from utils.core_features.__common import get_profile_record
@@ -9,66 +9,131 @@ from utils.core_features.__common import get_profile_record
 _log = get_log(__name__)
 
 
-class ProfileEditModal(discord.ui.Modal, title="Edit Your Profile"):
-    def __init__(self, bot, user_id):
+# ---------- Game Usernames Modal ----------
+class GameUsernamesModal(Modal, title="Game Usernames"):
+    def __init__(self):
         super().__init__(timeout=None)
-        self.bot = bot
-        self.user_id = user_id
+        self.xbox = TextInput(label="Xbox Username", required=False, max_length=100)
+        self.playstation = TextInput(
+            label="PlayStation Username", required=False, max_length=100
+        )
+        self.switch = TextInput(label="Switch Username", required=False, max_length=100)
+        self.nnid = TextInput(
+            label="Nintendo Network ID", required=False, max_length=100
+        )
 
-    xbox = ui.TextInput(
-        label="Xbox Username (Optional)", required=False, max_length=100
-    )
-    playstation = ui.TextInput(
-        label="PlayStation Username (Optional)", required=False, max_length=100
-    )
-    switch = ui.TextInput(
-        label="Nintendo Switch Username (Optional)", required=False, max_length=100
-    )
-    nnid = ui.TextInput(
-        label="Nintendo Network ID (Optional)", required=False, max_length=100
-    )
-    realms_joined = ui.TextInput(
-        label="Realms You Are In (Optional)",
-        required=False,
-        placeholder="Comma-separated list",
-        max_length=250,
-    )
-    realms_admin = ui.TextInput(
-        label="Realms You Admin (Optional)",
-        required=False,
-        placeholder="Comma-separated list",
-        max_length=250,
-    )
+        self.add_item(self.xbox)
+        self.add_item(self.playstation)
+        self.add_item(self.switch)
+        self.add_item(self.nnid)
 
     async def on_submit(self, interaction: discord.Interaction):
         try:
             profile = database.PortalbotProfile.get_or_none(
-                database.PortalbotProfile.DiscordLongID == str(self.user_id)
+                database.PortalbotProfile.DiscordLongID == str(interaction.user.id)
             )
-
             if not profile:
                 await interaction.response.send_message(
-                    "❌ Your profile could not be found.", ephemeral=True
+                    "❌ Profile not found.", ephemeral=True
                 )
                 return
 
-            profile.XBOX = self.xbox.value or "None"
-            profile.Playstation = self.playstation.value or "None"
-            profile.Switch = self.switch.value or "None"
-            profile.SwitchNNID = self.nnid.value or "None"
-            profile.RealmsJoined = self.realms_joined.value or "None"
-            profile.RealmsAdmin = self.realms_admin.value or "None"
+            profile.XBOX = self.xbox.value.strip() or "None"
+            profile.Playstation = self.playstation.value.strip() or "None"
+            profile.Switch = self.switch.value.strip() or "None"
+            profile.SwitchNNID = self.nnid.value.strip() or "None"
             profile.save()
 
+            _log.info(f"Updated game usernames for {interaction.user.name}")
             await interaction.response.send_message(
-                "✅ Your profile has been updated!", ephemeral=True
+                "✅ Game usernames updated successfully!", ephemeral=True
             )
-            _log.info(f"Profile updated for user {interaction.user.display_name}")
+
         except Exception as e:
-            _log.error(f"Error updating profile: {e}", exc_info=True)
+            _log.error(f"Error updating game usernames: {e}", exc_info=True)
             await interaction.response.send_message(
-                "An error occurred while updating your profile.", ephemeral=True
+                "❌ Failed to update game usernames.", ephemeral=True
             )
+
+
+# ---------- Realm Info Modal ----------
+class RealmInfoModal(Modal, title="Realm Information"):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.joined = TextInput(
+            label="Realms You Are In",
+            required=False,
+            placeholder="Comma-separated list",
+            max_length=250,
+        )
+        self.admin = TextInput(
+            label="Realms You Admin",
+            required=False,
+            placeholder="Comma-separated list",
+            max_length=250,
+        )
+
+        self.add_item(self.joined)
+        self.add_item(self.admin)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            profile = database.PortalbotProfile.get_or_none(
+                database.PortalbotProfile.DiscordLongID == str(interaction.user.id)
+            )
+            if not profile:
+                await interaction.response.send_message(
+                    "❌ Profile not found.", ephemeral=True
+                )
+                return
+
+            profile.RealmsJoined = self.clean_field(self.joined.value)
+            profile.RealmsAdmin = self.clean_field(self.admin.value)
+            profile.save()
+
+            _log.info(f"Updated realm info for {interaction.user.name}")
+            await interaction.response.send_message(
+                "✅ Realm information updated successfully!", ephemeral=True
+            )
+
+        except Exception as e:
+            _log.error(f"Error updating realm info: {e}", exc_info=True)
+            await interaction.response.send_message(
+                "❌ Failed to update realm information.", ephemeral=True
+            )
+
+    def clean_field(self, raw_input: str) -> str:
+        """Clean and normalize comma-separated field input."""
+        if not raw_input.strip():
+            return "None"
+        items = [item.strip() for item in raw_input.split(",") if item.strip()]
+        return ", ".join(items) if items else "None"
+
+
+# ---------- Profile Edit Launcher View ----------
+class ProfileEditLauncherView(View):
+    def __init__(self, bot, user_id):
+        super().__init__(timeout=180)
+        self.bot = bot
+        self.user_id = user_id
+        self.add_item(GameUsernamesButton())
+        self.add_item(RealmInfoButton())
+
+
+class GameUsernamesButton(Button):
+    def __init__(self):
+        super().__init__(label="Game Usernames", style=discord.ButtonStyle.primary)
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_modal(GameUsernamesModal())
+
+
+class RealmInfoButton(Button):
+    def __init__(self):
+        super().__init__(label="Realm Info", style=discord.ButtonStyle.secondary)
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_modal(RealmInfoModal())
 
 
 class RealmSelection(discord.ui.Select):
