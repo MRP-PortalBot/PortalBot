@@ -13,7 +13,7 @@ from .__profile_logic import (
     generate_profile_embed,
     generate_profile_card,
 )
-from .__profile_views import ProfileEditModal, RealmSelectionView
+from .__profile_views import ProfileEditLauncherView, RealmSelectionView
 
 _log = get_log(__name__)
 
@@ -104,7 +104,11 @@ class ProfileCommands(commands.GroupCog, name="profile"):
             )
             return
         try:
-            await interaction.response.send_modal(ProfileEditModal(self.bot, user.id))
+            await interaction.response.send_message(
+                "Choose what you'd like to edit:",
+                view=ProfileEditLauncherView(self, user.id),
+                ephemeral=True,
+            )
         except Exception as e:
             _log.error(
                 f"Unexpected error while opening profile modal for {user.id}: {e}",
