@@ -8,7 +8,7 @@ from utils.core_features.__common import (
     get_user_rank,
     ensure_profile_exists,
 )
-from profile.__profile_views import RealmSelectionView
+from .__profile_views import RealmSelectionView
 
 # Constants
 FONT_PATH = "./data/fonts/Minecraft-Seven_v2-1.ttf"
