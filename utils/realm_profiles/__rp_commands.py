@@ -22,33 +22,36 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
     @app_commands.command(name="view", description="View a Realm Profile")
     @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def view(self, interaction: discord.Interaction, realm_name: str = None):
+        """View the details of a Realm Profile, as a card if possible, or fallback to embed."""
         realm_name = realm_name or interaction.channel.name
-        profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
+        realm_profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
 
-        if profile:
-            embed = discord.Embed(
-                title=f"{profile.emoji} {profile.realm_name} - Realm Profile",
-                color=discord.Color.blue(),
-            )
-            embed.add_field(name="Realm Name", value=profile.realm_name, inline=False)
-            embed.add_field(name="Description", value=profile.long_desc, inline=False)
-            embed.add_field(
-                name="PvP", value="Enabled" if profile.pvp else "Disabled", inline=True
-            )
-            embed.add_field(
-                name="One Player Sleep",
-                value="Enabled" if profile.percent_player_sleep else "Disabled",
-                inline=True,
-            )
-            embed.add_field(name="World Age", value=profile.world_age, inline=True)
-            embed.add_field(name="Realm Style", value=profile.play_style, inline=True)
-            embed.add_field(name="Game Mode", value=profile.gamemode, inline=True)
-
-            await interaction.response.send_message(embed=embed)
-        else:
+        if not realm_profile:
             await interaction.response.send_message(
                 f"No profile found for realm '{realm_name}'", ephemeral=True
             )
+            return
+
+        try:
+            # Defer the response while generating the image
+            await interaction.response.defer()
+
+            # Generate the image buffer from your existing generator function
+            from utils.realm_profiles.__rp_logic import generate_realm_profile_card
+
+            image_bytes = await generate_realm_profile_card(realm_name)
+            file = discord.File(image_bytes, filename="realm_profile_card.png")
+
+            await interaction.followup.send(file=file, ephemeral=True)
+
+        except Exception as e:
+            _log.error(
+                f"Error generating realm card for {realm_name}: {e}", exc_info=True
+            )
+            from utils.realm_profiles.__rp_logic import create_realm_embed
+
+            embed = create_realm_embed(realm_profile)
+            await interaction.followup.send(embed=embed, ephemeral=True)
 
     @app_commands.command(name="edit", description="Edit a Realm Profile")
     @app_commands.autocomplete(realm_name=realm_name_autocomplete)

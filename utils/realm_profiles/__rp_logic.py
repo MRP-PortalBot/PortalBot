@@ -24,6 +24,29 @@ async def realm_name_autocomplete(interaction: discord.Interaction, current: str
         if current.lower() in name.lower()
     ]
 
+def create_realm_embed(realm_profile: RealmProfile) -> discord.Embed:
+    """Builds a fallback embed for a Realm Profile."""
+    embed = discord.Embed(
+        title=f"{realm_profile.emoji} {realm_profile.realm_name} - Realm Profile",
+        color=discord.Color.blue(),
+    )
+
+    embed.add_field(name="Realm Name", value=realm_profile.realm_name, inline=False)
+    embed.add_field(name="Description", value=realm_profile.long_desc, inline=False)
+    embed.add_field(
+        name="PvP", value="Enabled" if realm_profile.pvp else "Disabled", inline=True
+    )
+    embed.add_field(
+        name="One Player Sleep",
+        value="Enabled" if realm_profile.percent_player_sleep else "Disabled",
+        inline=True,
+    )
+    embed.add_field(name="World Age", value=realm_profile.world_age, inline=True)
+    embed.add_field(name="Realm Style", value=realm_profile.play_style, inline=True)
+    embed.add_field(name="Game Mode", value=realm_profile.gamemode, inline=True)
+
+    return embed
+
 
 async def generate_realm_profile_card(
     interaction: discord.Interaction, realm_name: str
