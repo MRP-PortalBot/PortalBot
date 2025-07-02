@@ -12,9 +12,8 @@ from utils.core_features.__common import ensure_profile_exists
 from .__profile_logic import (
     generate_profile_embed,
     generate_profile_card,
-    open_realm_selection_panel
 )
-from .__profile_views import ProfileEditLauncherView, RealmSelectionView
+from .__profile_views import ProfileEditLauncherView, RealmSelectionView, open_realm_selection_panel
 
 _log = get_log(__name__)
 

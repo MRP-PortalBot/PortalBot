@@ -5,7 +5,6 @@ from discord.ui import View, Button, Modal, TextInput
 from utils.helpers.__logging_module import get_log
 from utils.database import __database as database
 from utils.core_features.__common import get_profile_record
-from .__profile_logic import open_realm_selection_panel
 
 _log = get_log(__name__)
 
@@ -257,3 +256,17 @@ class RealmDropdown(discord.ui.Select):
             f"✅ Updated your {self.placeholder.lower()} to: {selected_realms}",
             ephemeral=True,
         )
+        
+async def open_realm_selection_panel(bot, interaction):
+    await interaction.response.send_message(
+        embed=discord.Embed(
+            title="Select Your Realms",
+            description=(
+                "**🛡️ Realms you are an OP in:**\nUse the first dropdown below to select realms where you're an operator.\n\n"
+                "**🏰 Realms you are a member of:**\nUse the second dropdown to select realms you’ve joined."
+            ),
+            color=discord.Color.blurple(),
+        ),
+        view=RealmSelectionView(bot, interaction.user.id),
+        ephemeral=True,
+    )
