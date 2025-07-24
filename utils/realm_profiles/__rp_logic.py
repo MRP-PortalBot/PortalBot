@@ -48,18 +48,13 @@ def create_realm_embed(realm_profile: RealmProfile) -> discord.Embed:
     return embed
 
 
-async def generate_realm_profile_card(
-    interaction: discord.Interaction, realm_name: str
-):
+async def generate_realm_profile_card(interaction: discord.Interaction, realm_name: str):
     """
-    Builds and sends the realm profile card with banner/logo and overlaid text.
+    Builds and returns the realm profile card with banner/logo and overlaid text.
     """
-    await interaction.response.defer()
-
     profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
     if not profile:
-        await interaction.followup.send("Invalid realm name provided.", ephemeral=True)
-        return
+        return None, "Invalid realm name provided."
 
     try:
         background_path = "./core/images/realm_background4.png"
@@ -87,15 +82,12 @@ async def generate_realm_profile_card(
         card.save(buffer, format="PNG")
         buffer.seek(0)
 
-        await interaction.followup.send(
-            file=discord.File(buffer, "realm_profile_card.png")
-        )
         _log.info(f"Realm profile card generated for {realm_name}")
+        return buffer, None
+
     except Exception as e:
         _log.error(f"Failed to generate card: {e}", exc_info=True)
-        await interaction.followup.send(
-            "Error generating profile card.", ephemeral=True
-        )
+        return None, "Error generating profile card."
 
 
 async def update_realm_logo_attachment(
