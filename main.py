@@ -22,7 +22,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from utils.database import __database as database
-from utils.admin.bot_management.__bm_logic import get_bot_data
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 from utils.core_features.__constants import DEFAULT_PREFIX
 from utils.helpers.__logging_module import get_log
 from utils.core_features.__special_methods import (
@@ -98,7 +98,7 @@ class PortalBot(commands.Bot):
 
     async def get_prefix(self, message: discord.Message):
         if message.guild:
-            bot_data = get_bot_data(message.guild.id)
+            bot_data = get_bot_data_for_server(message.guild.id)
             if bot_data and bot_data.prefix:
                 return commands.when_mentioned_or(bot_data.prefix)(self, message)
         return commands.when_mentioned_or(DEFAULT_PREFIX)(self, message)

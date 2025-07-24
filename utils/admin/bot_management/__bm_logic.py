@@ -44,7 +44,9 @@ async def fetch_admins_by_level(bot, level: int):
 def get_bot_data_for_server(guild_id: Union[int, str]):
     """Fetch BotData directly from the database for the specified guild."""
     try:
-        bot_data = database.BotData.get_or_none(database.BotData.server_id == str(guild_id))
+        bot_data = database.BotData.get_or_none(
+            database.BotData.server_id == str(guild_id)
+        )
         if bot_data:
             _log.info(
                 f"BotData loaded from DB: Prefix: {bot_data.prefix}, Server ID: {bot_data.server_id}"
@@ -55,7 +57,6 @@ def get_bot_data_for_server(guild_id: Union[int, str]):
     except Exception as e:
         _log.error(f"Error fetching BotData for guild {guild_id}: {e}", exc_info=True)
         return None
-
 
 
 # ========== Config Loader ==========

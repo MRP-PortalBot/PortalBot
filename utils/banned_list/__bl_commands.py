@@ -7,7 +7,10 @@ from discord import app_commands, ui
 from discord.ext import commands
 from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
-from utils.admin.bot_management.__bm_logic import load_config, get_bot_data_for_server
+from utils.admin.bot_management.__bm_logic import (
+    load_config,
+    get_bot_data_for_server,
+)
 from utils.helpers.__pagination import paginate_embed
 
 from .__bl_logic import create_ban_embed, send_to_log_channel, entry_to_user_data_dict
