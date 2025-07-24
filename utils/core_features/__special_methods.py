@@ -14,8 +14,7 @@ from discord.ext import commands
 
 from utils.database import __database as database
 from utils.admin.bot_management.__bm_logic import (
-    get_bot_data_for_server,
-    get_permitlist,
+    get_bot_data_for_server
 )
 from utils.core_features.__constants import ConsoleColors, EmbedColors, BotAssets, Dev
 from utils.helpers.__logging_module import get_log
@@ -31,6 +30,16 @@ if TYPE_CHECKING:
 
 _log = get_log(__name__)
 
+
+def get_permitlist() -> list[int]:
+    """
+    Returns a hardcoded list of developer IDs with permission to view full tracebacks.
+    """
+    return [
+        306070011028439041,  # Your dev ID
+        1064878683823605851,  # Secondary admin/dev
+        1158653259171659797,  # PortalBot
+    ]
 
 async def on_ready_(bot: "PortalBot"):
     now = datetime.now()
