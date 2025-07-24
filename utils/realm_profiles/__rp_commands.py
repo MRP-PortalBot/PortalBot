@@ -39,7 +39,7 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
             # Generate the image buffer from your existing generator function
             from utils.realm_profiles.__rp_logic import generate_realm_profile_card
 
-            image_bytes = generate_realm_profile_card(realm_name)
+            image_bytes = generate_realm_profile_card(interaction,realm_name)
             file = discord.File(image_bytes, filename="realm_profile_card.png")
 
             await interaction.followup.send(file=file, ephemeral=True)
