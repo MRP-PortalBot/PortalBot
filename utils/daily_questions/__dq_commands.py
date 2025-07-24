@@ -31,7 +31,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
     )
     @has_admin_level(2)
     async def post(self, interaction: discord.Interaction, id: str = None):
-        bot_data = get_cached_bot_data(interaction.guild.id)
+        bot_data = get_cached_bot_data(str(interaction.guild.id))
         if not bot_data:
             await interaction.response.send_message(
                 "No bot data found.", ephemeral=True
