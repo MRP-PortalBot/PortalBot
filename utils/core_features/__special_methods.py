@@ -13,8 +13,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from utils.database import __database as database
-from utils.core_features.__common import (
-    get_cached_bot_data,
+from utils.admin.bot_management.__bm_logic import (
     get_bot_data_for_server,
     get_permitlist,
 )
@@ -39,7 +38,7 @@ async def on_ready_(bot: "PortalBot"):
     await preload_bot_data(bot)
 
     for guild in bot.guilds:
-        bot_data = get_cached_bot_data(guild.id)
+        bot_data = get_bot_data_for_server(guild.id)
         if not bot_data:
             _log.warning(f"Bot data not found for guild {guild.id}. Skipping views.")
             continue
@@ -73,7 +72,7 @@ async def on_ready_(bot: "PortalBot"):
     print(f"Bot Account: {bot.user.name} | {bot.user.id}")
     _log.info("Bot initialization complete. Stats logged.")
 
-    bot_data = get_cached_bot_data(448488274562908170)
+    bot_data = get_bot_data_for_server(448488274562908170)
     if not bot_data or not hasattr(bot_data, "pb_test_server_id"):
         _log.error("pb_test_server_id not found in bot data.")
         return

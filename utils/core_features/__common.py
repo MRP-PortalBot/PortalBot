@@ -21,92 +21,6 @@ from utils.database.__database import BotData
 # Logger
 _log = get_log(__name__)
 
-# Local fallback cache for bot data
-cache_lock = Lock()
-bot_data_cache = {}
-
-
-async def get_bot_data_for_server(server_id: Union[int, str]):
-    """
-    Fetch and cache BotData for a given server.
-    Uses string-based ID comparison to support TextField storage.
-    """
-    async with cache_lock:
-        if str(server_id) in bot_data_cache:
-            _log.info(f"Returning cached bot data for server {server_id}")
-            return bot_data_cache[str(server_id)]
-
-    try:
-        # Fetch outside lock to avoid blocking
-        bot_info = (
-            database.BotData.select()
-            .where(database.BotData.server_id == str(server_id))
-            .get()
-        )
-        async with cache_lock:
-            bot_data_cache[str(server_id)] = bot_info
-        _log.info(
-            f"Bot data fetched and cached for guild {server_id}: "
-            f"Prefix: {bot_info.prefix}, Server ID: {bot_info.server_id}"
-        )
-        return bot_info
-    except database.DoesNotExist:
-        _log.error(f"No BotData found for server ID: {server_id}")
-        return None
-    except Exception as e:
-        _log.error(
-            f"Error fetching bot data for server ID {server_id}: {e}", exc_info=True
-        )
-        return None
-
-
-def get_cached_bot_data(server_id: Union[int, str]):
-    """
-    Return cached BotData for the given server ID if it exists.
-    """
-    bot_data = bot_data_cache.get(str(server_id))
-    if bot_data:
-        _log.info(
-            f"Cached bot data fetched for guild {server_id}: "
-            f"Prefix: {bot_data.prefix}, Server ID: {bot_data.server_id}"
-        )
-    else:
-        _log.warning(f"No cached bot data found for guild {server_id}")
-    return bot_data
-
-
-def refresh_bot_data_cache(guild_id: int):
-    """Refresh the bot_data_cache entry for a specific guild from the DB."""
-
-    bot_data = BotData.get_or_none(BotData.server_id == str(guild_id))
-    if bot_data:
-        bot_data_cache[str(guild_id)] = bot_data
-
-
-def load_config() -> Tuple[dict, Path]:
-    """
-    Load config from botconfig.json.
-
-    Returns:
-        Tuple[dict, Path]: The config dictionary and the Path object.
-    """
-    config_file = Path("botconfig.json")
-    try:
-        config_file.touch(exist_ok=True)
-        if config_file.read_text() == "":
-            config_file.write_text("{}")
-        with config_file.open("r") as f:
-            config = json.load(f)
-    except (IOError, json.JSONDecodeError) as e:
-        _log.error(f"Failed to load configuration: {e}")
-        raise e
-    return config, config_file
-
-
-# Load on startup
-config, config_file = load_config()
-
-
 def solve(s: str) -> str:
     """
     Capitalizes each word in a string.
@@ -216,22 +130,6 @@ def get_user_rank(server_id: Union[int, str], user_id: Union[int, str]):
         return None
 
     return None
-
-
-def get_bot_data_for_guild(interaction: discord.Interaction):
-    """
-    Returns BotData from database for the given interaction's guild.
-    """
-    try:
-        guild_id = str(interaction.guild.id)
-        bot_data = database.BotData.get(database.BotData.server_id == guild_id)
-        return bot_data
-    except database.BotData.DoesNotExist:
-        return None
-    except Exception as e:
-        _log.error(f"Error fetching bot data for guild {guild_id}: {e}")
-        return None
-
 
 def get_permitlist(min_level=3):
     """

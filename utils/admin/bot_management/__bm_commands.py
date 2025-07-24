@@ -6,10 +6,8 @@ from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 from .__bm_logic import fetch_admins_by_level
-from utils.core_features.__common import (
-    get_cached_bot_data,
+from utils.admin.bot_management.__bm_logic import (
     get_bot_data_for_server,
-    refresh_bot_data_cache,
 )
 from utils.core_features.__constants import EmbedColors
 
@@ -237,71 +235,6 @@ class ConfigCommands(app_commands.Group):
             inline=False,
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
-
-    @app_commands.command(
-        name="view_bot_cache", description="View cached bot data for this server."
-    )
-    @has_admin_level(2)
-    async def view_bot_cache(self, interaction: discord.Interaction):
-        try:
-            bot_data = get_cached_bot_data(interaction.guild.id)
-            if not bot_data:
-                await interaction.response.send_message(
-                    "No bot data found for this server.", ephemeral=True
-                )
-                return
-
-            embed = discord.Embed(
-                title="📊 Cached Bot Data",
-                color=discord.Color.blurple(),
-                description=f"Server ID: `{interaction.guild.id}`",
-            )
-
-            for field, value in bot_data.__data__.items():
-                embed.add_field(name=field, value=str(value), inline=False)
-
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-        except Exception as e:
-            _log.error(f"view_bot_cache error: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "Failed to view cache.", ephemeral=True
-            )
-
-    @app_commands.command(
-        name="update_cache",
-        description="Refresh this server's cache from the database.",
-    )
-    @has_admin_level(4)
-    async def update_cache(self, interaction: discord.Interaction):
-        try:
-            get_bot_data_for_server(interaction.guild.id)
-            await interaction.response.send_message(
-                "Cache refreshed from database.", ephemeral=True
-            )
-            _log.info(f"Cache refreshed for {interaction.guild.id}.")
-        except Exception as e:
-            _log.error(f"update_cache error: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "Failed to update cache.", ephemeral=True
-            )
-
-    @app_commands.command(
-        name="update_bot_data",
-        description="Force-refresh the bot data cache for this server.",
-    )
-    @has_admin_level(2)
-    async def update_bot_data(self, interaction: discord.Interaction):
-        try:
-            refresh_bot_data_cache(interaction.guild.id)
-            await interaction.response.send_message(
-                "Bot data cache updated.", ephemeral=True
-            )
-            _log.info(f"Bot data cache updated for {interaction.guild.id}.")
-        except Exception as e:
-            _log.error(f"update_bot_data error: {e}", exc_info=True)
-            await interaction.response.send_message(
-                "Failed to update bot data.", ephemeral=True
-            )
 
 
 # Register both slash command groups with the bot in the setup function
