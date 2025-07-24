@@ -24,6 +24,7 @@ async def realm_name_autocomplete(interaction: discord.Interaction, current: str
         if current.lower() in name.lower()
     ]
 
+
 def create_realm_embed(realm_profile: RealmProfile) -> discord.Embed:
     """Builds a fallback embed for a Realm Profile."""
     embed = discord.Embed(
@@ -48,7 +49,9 @@ def create_realm_embed(realm_profile: RealmProfile) -> discord.Embed:
     return embed
 
 
-async def generate_realm_profile_card(interaction: discord.Interaction, realm_name: str):
+async def generate_realm_profile_card(
+    interaction: discord.Interaction, realm_name: str
+):
     """
     Builds and returns the realm profile card with banner/logo and overlaid text.
     """
@@ -57,8 +60,8 @@ async def generate_realm_profile_card(interaction: discord.Interaction, realm_na
         return None, "Invalid realm name provided."
 
     try:
-        background_path = "./core/images/realm_background4.png"
-        fallback_banner = "./core/images/realm_backround_banner.png"
+        background_path = "./data/images/realm_background4.png"
+        fallback_banner = "./data/images/realm_backround_banner.png"
         fallback_logo = Image.new("RGBA", (200, 200), (255, 0, 0, 255))
 
         base = Image.open(background_path).convert("RGBA")
