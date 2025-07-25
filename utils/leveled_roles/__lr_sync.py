@@ -4,7 +4,7 @@ from discord import app_commands
 
 from utils.helpers.__logging_module import get_log
 from utils.leveled_roles.__lr_logic import sync_tatsu_score_for_user
-from utils.core_features.__common import config
+from utils.admin.bot_management.__bm_logic import config
 
 _log = get_log(__name__)
 

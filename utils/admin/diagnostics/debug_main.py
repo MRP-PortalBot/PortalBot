@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 from discord import app_commands, ui
-from utils.helpers.__cache_state import bot_data_cache
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 

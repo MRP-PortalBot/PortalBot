@@ -15,7 +15,6 @@ from discord import ButtonStyle, ui, SelectOption
 from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 
-from utils.helpers.__cache_state import bot_data_cache, cache_lock
 from utils.database.__database import BotData
 
 # Logger
