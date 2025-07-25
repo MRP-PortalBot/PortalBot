@@ -144,7 +144,7 @@ async def preload_bot_data(bot: "PortalBot"):
 
     for guild in bot.guilds:
         _log.info(f"Guild Data {guild}: {guild.id}")
-        bot_init = await get_bot_data_for_server(guild.id)
+        bot_init = get_bot_data_for_server(guild.id)
 
         if bot_init is None:
             _log.warning(

@@ -13,9 +13,7 @@ from discord import app_commands
 from discord.ext import commands
 
 from utils.database import __database as database
-from utils.admin.bot_management.__bm_logic import (
-    get_bot_data_for_server
-)
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 from utils.core_features.__constants import ConsoleColors, EmbedColors, BotAssets, Dev
 from utils.helpers.__logging_module import get_log
 from utils.helpers.__embeds import (
@@ -40,6 +38,7 @@ def get_permitlist() -> list[int]:
         1064878683823605851,  # Secondary admin/dev
         1158653259171659797,  # PortalBot
     ]
+
 
 async def on_ready_(bot: "PortalBot"):
     now = datetime.now()
@@ -126,7 +125,7 @@ async def preload_bot_data(bot: "PortalBot"):
     _log.info("Preloading bot data for all guilds...")
     for guild in bot.guilds:
         _log.info(f"Guild Data {guild}: {guild.id}")
-        bot_init = await get_bot_data_for_server(guild.id)
+        bot_init = get_bot_data_for_server(guild.id)
         if bot_init is None:
             _log.warning(
                 f"No bot data initialized for guild {guild.id}. Attempting to create default bot data."

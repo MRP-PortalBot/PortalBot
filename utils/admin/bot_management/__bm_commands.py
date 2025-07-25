@@ -118,7 +118,7 @@ class ConfigCommands(app_commands.Group):
     @app_commands.command(name="set_cooldown", description="Set score cooldown time.")
     @has_admin_level(3)
     async def set_cooldown(self, interaction: discord.Interaction, cooldown: int):
-        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
+        bot_data = get_bot_data_for_server(str(interaction.guild.id))
         if bot_data:
             bot_data.cooldown_time = cooldown
             bot_data.save()
@@ -133,7 +133,7 @@ class ConfigCommands(app_commands.Group):
     )
     @has_admin_level(3)
     async def set_points(self, interaction: discord.Interaction, points: int):
-        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
+        bot_data = get_bot_data_for_server(str(interaction.guild.id))
         if bot_data:
             bot_data.points_per_message = points
             bot_data.save()
@@ -148,7 +148,7 @@ class ConfigCommands(app_commands.Group):
     async def add_blocked_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
-        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
+        bot_data = get_bot_data_for_server(str(interaction.guild.id))
         if not bot_data:
             await interaction.response.send_message("BotData not found.")
             return
@@ -179,7 +179,7 @@ class ConfigCommands(app_commands.Group):
     async def remove_blocked_channel(
         self, interaction: discord.Interaction, channel: discord.TextChannel
     ):
-        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
+        bot_data = get_bot_data_for_server(str(interaction.guild.id))
         if not bot_data:
             await interaction.response.send_message("BotData not found.")
             return
@@ -200,7 +200,7 @@ class ConfigCommands(app_commands.Group):
     @app_commands.command(name="view", description="View current bot configuration.")
     @has_admin_level(3)
     async def view_config(self, interaction: discord.Interaction):
-        bot_data = await get_bot_data_for_server(str(interaction.guild.id))
+        bot_data = get_bot_data_for_server(str(interaction.guild.id))
         if not bot_data:
             await interaction.response.send_message(
                 "BotData not found.", ephemeral=True
