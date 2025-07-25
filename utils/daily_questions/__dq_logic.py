@@ -6,7 +6,7 @@ from datetime import datetime
 from peewee import fn
 
 from utils.database import __database as database
-from utils.admin.bot_management.__bm_logic import get_cached_bot_data
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
 from utils.helpers.__logging_module import get_log
 from .__dq_views import QuestionVoteView
@@ -82,7 +82,7 @@ async def send_daily_question(bot, question_id: str = None) -> str | None:
 
         # Send to all enabled guilds
         for guild in bot.guilds:
-            bot_data = get_cached_bot_data(guild.id)
+            bot_data = get_bot_data_for_server(guild.id)
             if not bot_data or not bot_data.daily_question_enabled:
                 _log.debug(
                     f"⏭️ Skipping guild {guild.id} (not enabled or missing data)."

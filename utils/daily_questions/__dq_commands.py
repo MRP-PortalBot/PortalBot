@@ -6,7 +6,7 @@ from discord.ext import commands
 from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__pagination import paginate_embed
-from utils.admin.bot_management.__bm_logic import get_cached_bot_data
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
 from utils.helpers.__logging_module import get_log
 
@@ -31,7 +31,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
     )
     @has_admin_level(2)
     async def post(self, interaction: discord.Interaction, id: str = None):
-        bot_data = get_cached_bot_data(str(interaction.guild.id))
+        bot_data = get_bot_data_for_server(str(interaction.guild.id))
         if not bot_data:
             await interaction.response.send_message(
                 "No bot data found.", ephemeral=True
@@ -140,7 +140,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
     @has_admin_level(2)
     async def toggle(self, interaction: discord.Interaction):
         try:
-            bot_data = get_cached_bot_data(interaction.guild.id)
+            bot_data = get_bot_data_for_server(interaction.guild.id)
             bot_data.daily_question_enabled = not bot_data.daily_question_enabled
             bot_data.save()
             status = "enabled" if bot_data.daily_question_enabled else "disabled"
@@ -181,7 +181,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
     @has_admin_level(2)
     async def repost_last_question(self, interaction: discord.Interaction):
         try:
-            bot_data = get_cached_bot_data(interaction.guild.id)
+            bot_data = get_bot_data_for_server(interaction.guild.id)
             if not bot_data or not bot_data.last_question_posted:
                 await interaction.response.send_message(
                     "No previous question found to repost.", ephemeral=True

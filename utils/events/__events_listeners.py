@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from utils.database import __database as database
-from utils.admin.bot_management.__bm_logic import get_cached_bot_data
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
@@ -65,7 +65,7 @@ class MemberJoinListener(commands.Cog):
         try:
             guild = member.guild
             guild_id = str(guild.id)
-            bot_data = get_cached_bot_data(guild_id)
+            bot_data = get_bot_data_for_server(guild_id)
 
             if not bot_data:
                 _log.warning(f"No cached bot data found for guild {guild_id}")

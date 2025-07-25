@@ -3,7 +3,7 @@
 import pytz
 from datetime import datetime
 from discord.ext import tasks, commands
-from utils.admin.bot_management.__bm_logic import get_cached_bot_data
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
 from utils.helpers.__logging_module import get_log
 from .__dq_logic import send_daily_question
@@ -31,7 +31,7 @@ class DailyQuestionPoster(commands.Cog):
                 question_id = await send_daily_question(self.bot)
 
                 for guild in self.bot.guilds:
-                    bot_data = get_cached_bot_data(guild.id)
+                    bot_data = get_bot_data_for_server(guild.id)
                     if bot_data:
                         bot_data.last_question_posted = question_id
                         bot_data.last_question_posted_time = now
@@ -41,7 +41,7 @@ class DailyQuestionPoster(commands.Cog):
             elif 18 == hour and 0 <= minute <= 10:
                 _log.info("⏰ Attempting 6:00 PM repost.")
                 for guild in self.bot.guilds:
-                    bot_data = get_cached_bot_data(guild.id)
+                    bot_data = get_bot_data_for_server(guild.id)
                     if bot_data and bot_data.last_question_posted:
                         await send_daily_question(
                             self.bot, bot_data.last_question_posted

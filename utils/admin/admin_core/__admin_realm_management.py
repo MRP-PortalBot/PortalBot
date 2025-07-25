@@ -8,7 +8,7 @@ from discord.ext import commands
 from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level, slash_check_MRP
 from utils.helpers.__logging_module import get_log
-from utils.admin.bot_management.__bm_logic import get_cached_bot_data
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
 
 _log = get_log(__name__)
@@ -52,7 +52,7 @@ def build_realm_application_modal(bot):
             )
 
         async def on_submit(self, interaction: discord.Interaction):
-            bot_data = get_cached_bot_data(interaction.guild.id)
+            bot_data = get_bot_data_for_server(interaction.guild.id)
             try:
                 _log.info(
                     f"Realm application submitted by {interaction.user.display_name} for '{self.realm_name.value}'"
@@ -185,7 +185,7 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
     @has_admin_level(3)
     async def approve_realm(self, interaction: discord.Interaction, app_number: int):
         await interaction.response.defer(thinking=True)
-        bot_data = get_cached_bot_data(interaction.guild.id)
+        bot_data = get_bot_data_for_server(interaction.guild.id)
         guild = interaction.guild
         author = interaction.user
 

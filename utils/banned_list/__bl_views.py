@@ -5,7 +5,7 @@ import discord
 from discord import ui
 from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
-from utils.admin.bot_management.__bm_logic import get_cached_bot_data
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
 from .__bl_logic import create_ban_embed, send_to_log_channel, entry_to_user_data_dict
 
@@ -65,7 +65,7 @@ class BanishBlacklistForm(ui.Modal, title="Blacklist Form"):
 async def on_submit(self, interaction: discord.Interaction):
     try:
         await interaction.response.defer()
-        bot_data = get_cached_bot_data(interaction.guild.id)
+        bot_data = get_bot_data_for_server(interaction.guild.id)
         log_channel = self.bot.get_channel(bot_data.bannedlist_channel)
 
         # Save to database
@@ -89,7 +89,7 @@ async def on_submit(self, interaction: discord.Interaction):
             entry.entryid,
             interaction,
             user_data,
-            get_cached_bot_data(interaction.guild.id).asdict(),
+            get_bot_data_for_server(interaction.guild.id).asdict(),
         )
 
         await send_to_log_channel(interaction, log_channel, embed)
