@@ -62,6 +62,7 @@ async def update_rule_embed(guild: discord.Guild):
         # Post new embed and save message ID
         new_msg = await channel.send(embed=embed)
         bot_data.rule_message_id = str(new_msg.id)
+        _log.info(f"Rule message ID {bot_data.rule_message_id}.")
         bot_data.save()
         _log.info(f"Posted new rule embed and saved message ID for {guild.name}.")
 
