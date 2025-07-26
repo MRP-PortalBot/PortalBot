@@ -8,7 +8,12 @@ from utils.database import __database as database
 from utils.admin.admin_core.__admin_commands import has_admin_level
 from utils.admin.bot_management.__bm_logic import config
 from utils.helpers.__logging_module import get_log
-from .__ls_logic import create_and_order_roles, sync_tatsu_score_for_user, calculate_level
+from .__ls_logic import (
+    create_and_order_roles,
+    sync_tatsu_score_for_user,
+    calculate_level,
+    get_role_for_level,
+)
 
 from .__ls_views import LeaderboardView  # Add this import at the top
 
@@ -158,6 +163,94 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
         embed.add_field(name="XP to Next Level", value=str(to_next))
 
         await interaction.followup.send(embed=embed)
+
+    @app_commands.command(
+        name="audit_roles",
+        description="Recheck and fix level roles for all server members.",
+    )
+    @has_admin_level(3)
+    async def audit_roles(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        guild = interaction.guild
+        bot_data = database.BotData.get_or_none(
+            database.BotData.server_id == str(guild.id)
+        )
+        if not bot_data or not bot_data.member_log:
+            await interaction.followup.send(
+                "⚠️ No member log channel configured in BotData."
+            )
+            return
+
+        log_channel = guild.get_channel(int(bot_data.member_log))
+        if not log_channel:
+            await interaction.followup.send(
+                "⚠️ Could not find the configured log channel."
+            )
+            return
+
+        level_roles = database.LeveledRoles.select().where(
+            database.LeveledRoles.ServerID == str(guild.id)
+        )
+        level_role_ids = {int(role.RoleID) for role in level_roles if role.RoleID}
+
+        updated_count = 0
+
+        for member in guild.members:
+            if member.bot:
+                continue
+
+            score = database.ServerScores.get_or_none(
+                (database.ServerScores.DiscordLongID == str(member.id))
+                & (database.ServerScores.ServerID == str(guild.id))
+            )
+            if not score:
+                continue
+
+            # Determine correct role
+            correct_role = await get_role_for_level(score.Level, guild)
+            current_roles = [r for r in member.roles if r.id in level_role_ids]
+
+            needs_fix = False
+
+            # Remove incorrect roles
+            to_remove = [
+                r
+                for r in current_roles
+                if correct_role is None or r.id != correct_role.id
+            ]
+            if to_remove:
+                await member.remove_roles(*to_remove)
+                needs_fix = True
+
+            # Add correct role if not present
+            if correct_role and correct_role not in member.roles:
+                await member.add_roles(correct_role)
+                needs_fix = True
+
+            if needs_fix:
+                updated_count += 1
+                embed = discord.Embed(
+                    title="🔧 Leveled Role Adjusted",
+                    description=(
+                        f"**User:** {member.mention} (`{member.name}`)\n"
+                        f"**Level:** {score.Level}\n"
+                        f"**Assigned Role:** {correct_role.mention if correct_role else '❌ None'}"
+                    ),
+                    color=discord.Color.orange(),
+                    timestamp=discord.utils.utcnow(),
+                )
+                embed.set_footer(text=f"User ID: {member.id}")
+                embed.set_thumbnail(url=member.display_avatar.url)
+
+                try:
+                    await log_channel.send(embed=embed)
+                except discord.Forbidden:
+                    _log.warning(f"Cannot send audit log to #{log_channel.name}")
+
+        await interaction.followup.send(
+            f"✅ Audit complete. {updated_count} member(s) had level roles fixed."
+        )
 
 
 async def setup(bot: commands.Bot):
