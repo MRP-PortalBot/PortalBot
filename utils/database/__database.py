@@ -119,6 +119,8 @@ class BotData(BaseModel):
     """
 
     id = AutoField()  # Database Entry ID (ALWAYS QUERY 1)
+    server_name = TextField(default="0")  # Server Name where the bot is active
+    server_desc = TextField(default="0")  # Server Description where the bot is active
     server_id = TextField(default="0")  # Server ID where the bot is active
     bot_id = TextField(default="0")  # Discord Bot ID
     bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
@@ -149,7 +151,9 @@ class BotData(BaseModel):
     server_log = TextField(default="0")  # Server Log Channel ID
     daily_question_enabled = BooleanField(default=True)
     last_question_posted = TextField(null=True)  # Last question that was posted
-    last_question_posted_time = DateTimeField(null=True)  # Last time a question was posted
+    last_question_posted_time = DateTimeField(
+        null=True
+    )  # Last time a question was posted
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
     points_per_message = IntegerField(default=10)  # Default is 10 points
     blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs

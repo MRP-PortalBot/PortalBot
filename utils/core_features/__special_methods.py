@@ -160,7 +160,7 @@ def initialize_db(bot):
                 initial_channel_id = (
                     guild.system_channel.id if guild.system_channel else None
                 )
-                _create_bot_data(guild.id, initial_channel_id)
+                _create_bot_data(guild.name, guild.id, initial_channel_id)
         if database.Administrators.select().count() == 0:
             _create_administrators(bot.owner_ids)
     except Exception as e:
@@ -170,13 +170,15 @@ def initialize_db(bot):
             database.db.close()
 
 
-def _create_bot_data(server_id, initial_channel_id):
+def _create_bot_data(server_name, server_id, initial_channel_id):
     if initial_channel_id is None:
         _log.warning(
             f"No initial channel found for server {server_id}, skipping creation."
         )
         return
     database.BotData.create(
+        server_name=server_name,
+        server_desc="",
         server_id=server_id,
         prefix=">",
         persistent_views=False,
