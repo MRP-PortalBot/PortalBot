@@ -48,7 +48,7 @@ async def update_rule_embed(guild: discord.Guild):
             embed.add_field(name=category, value=text, inline=False)
 
         # Update existing message or send new one
-        if bot_data.rule_message_id and bot_data.rule_message_id != "0":
+        if bot_data.rule_message_id != "0":
             try:
                 message = await channel.fetch_message(int(bot_data.rule_message_id))
                 await message.edit(embed=embed)
@@ -59,12 +59,14 @@ async def update_rule_embed(guild: discord.Guild):
                     f"Rule message ID {bot_data.rule_message_id} not found; will re-post."
                 )
 
-        # Post new embed and save message ID
-        new_msg = await channel.send(embed=embed)
-        bot_data.rule_message_id = str(new_msg.id)
-        _log.info(f"Rule message ID {bot_data.rule_message_id}.")
-        bot_data.save()
-        _log.info(f"Posted new rule embed and saved message ID for {guild.name}.")
+                # Post new embed and save message ID
+                new_msg = await channel.send(embed=embed)
+                bot_data.rule_message_id = str(new_msg.id)
+                _log.info(f"Rule message ID {bot_data.rule_message_id}.")
+                bot_data.save()
+                _log.info(
+                    f"Posted new rule embed and saved message ID for {guild.name}."
+                )
 
     except Exception as e:
         _log.error(f"Failed to update rule embed for {guild.name}: {e}", exc_info=True)
