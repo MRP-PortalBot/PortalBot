@@ -108,6 +108,57 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
 
         await interaction.followup.send(embed=view.get_embed(), view=view)
 
+    @app_commands.command(
+        name="rank", description="Check your XP rank and level in this server."
+    )
+    @app_commands.describe(user="The member to check (defaults to you)")
+    async def rank(self, interaction: discord.Interaction, user: discord.Member = None):
+        await interaction.response.defer()
+
+        target = user or interaction.user
+
+        # Get this user's score
+        score_entry = database.ServerScores.get_or_none(
+            (database.ServerScores.DiscordLongID == str(target.id))
+            & (database.ServerScores.ServerID == str(interaction.guild.id))
+        )
+
+        if not score_entry:
+            await interaction.followup.send(
+                f"{target.display_name} has no XP recorded."
+            )
+            return
+
+        # Calculate their rank
+        all_scores = (
+            database.ServerScores.select()
+            .where(database.ServerScores.ServerID == str(interaction.guild.id))
+            .order_by(database.ServerScores.Score.desc())
+        )
+
+        rank = 1
+        for entry in all_scores:
+            if entry.DiscordLongID == str(target.id):
+                break
+            rank += 1
+
+        # Progress to next level
+        current_level = score_entry.Level
+        current_score = score_entry.Score
+        _, progress, next_level_score = calculate_level(current_score)
+        to_next = next_level_score - current_score
+
+        embed = discord.Embed(
+            title=f"📊 {target.display_name}'s Level Stats", color=discord.Color.blue()
+        )
+        embed.set_thumbnail(url=target.display_avatar.url)
+        embed.add_field(name="Level", value=str(current_level))
+        embed.add_field(name="XP", value=str(current_score))
+        embed.add_field(name="Rank", value=f"#{rank}")
+        embed.add_field(name="XP to Next Level", value=str(to_next))
+
+        await interaction.followup.send(embed=embed)
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(LevelSystemCommands(bot))
