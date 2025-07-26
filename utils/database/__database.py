@@ -121,12 +121,13 @@ class BotData(BaseModel):
     id = AutoField()  # Database Entry ID (ALWAYS QUERY 1)
     server_name = TextField(default="0")  # Server Name where the bot is active
     server_desc = TextField(default="0")  # Server Description where the bot is active
-        # Optional: defaults shown if you want them
+    server_invite = TextField(default="0")  # Server Invite where the bot is active
+    # Optional: defaults shown if you want them
     other_info_1_title = TextField(default="Additional Info")
     other_info_1_text = TextField(default="")
     other_info_2_title = TextField(default="More Information")
     other_info_2_text = TextField(default="")
-        # Bot Info
+    # Bot Info
     server_id = TextField(default="0")  # Server ID where the bot is active
     bot_id = TextField(default="0")  # Discord Bot ID
     bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
