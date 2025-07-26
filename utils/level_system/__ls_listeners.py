@@ -47,62 +47,72 @@ class LevelSystemListener(commands.Cog):
                 defaults={"Score": 0, "Level": 1, "Progress": 0},
             )
 
-            # Fix future timestamp bug
-            if score.LastMessageTimestamp > current_time:
+            # Fix future timestamp issues
+            if score.LastMessageTimestamp and score.LastMessageTimestamp > current_time:
                 score_log.warning(
-                    f"{username}'s LastMessageTimestamp is in the future! Resetting."
+                    f"{username}'s timestamp was in the future. Resetting."
                 )
                 score.LastMessageTimestamp = current_time
-                score.save()
 
             # Cooldown check
-            if hasattr(score, "LastMessageTimestamp") and score.LastMessageTimestamp:
-                if current_time - score.LastMessageTimestamp < cooldown_time:
-                    remaining = cooldown_time - (
-                        current_time - score.LastMessageTimestamp
-                    )
-                    score_log.debug(
-                        f"{username} is on cooldown ({remaining:.2f}s left)."
-                    )
-                    return
+            if (
+                score.LastMessageTimestamp
+                and current_time - score.LastMessageTimestamp < cooldown_time
+            ):
+                remaining = cooldown_time - (current_time - score.LastMessageTimestamp)
+                score_log.debug(f"{username} is on cooldown ({remaining:.2f}s left).")
+                return
 
-            # Score increment
+            # Add XP and calculate level
             score_increment = random.randint(points_per_message, points_per_message * 3)
             previous_level = score.Level
             score.Score += score_increment
-
-            # Recalculate level
             new_level, progress, next_level_score = calculate_level(score.Score)
+
+            score_log.debug(
+                f"{username} gained {score_increment} XP → Score: {score.Score}, "
+                f"Level: {previous_level} → {new_level}, Next: {next_level_score}"
+            )
+
             score.DiscordName = username
             score.Level = new_level
             score.Progress = next_level_score
             score.LastMessageTimestamp = current_time
             score.save()
 
-            # If level-up occurred
+            # Level-up logic
             if new_level > previous_level:
-                # Get all known level roles from DB for this guild
+                score_log.info(
+                    f"{username} leveled up from {previous_level} → {new_level}"
+                )
+
+                # Remove old level roles
                 all_roles = database.LeveledRoles.select().where(
                     database.LeveledRoles.ServerID == str(message.guild.id)
                 )
                 level_role_ids = {entry.RoleID for entry in all_roles}
+                old_roles = [r for r in message.author.roles if r.id in level_role_ids]
 
-                # Get current user roles that are level-based
-                user_roles_to_remove = [
-                    r for r in message.author.roles if r.id in level_role_ids
-                ]
+                if old_roles:
+                    await message.author.remove_roles(*old_roles)
+                    score_log.debug(
+                        f"Removed old level roles from {username}: {[r.name for r in old_roles]}"
+                    )
 
-                # Remove old level roles
-                if user_roles_to_remove:
-                    await message.author.remove_roles(*user_roles_to_remove)
-
-                # Add new role
+                # Add new level role
                 new_role = await get_role_for_level(new_level, message.guild)
                 if new_role:
                     await message.author.add_roles(new_role)
-                    score_log.info(
-                        f"Updated {username}'s role to '{new_role.name}' for Level {new_level}"
+                    score_log.info(f"Assigned role '{new_role.name}' to {username}")
+                else:
+                    score_log.warning(
+                        f"No role found for Level {new_level} in {message.guild.name}"
                     )
+
+                # Send level-up message
+                await message.channel.send(
+                    f"🎉 {message.author.mention} has leveled up to **Level {new_level}**! Congrats!"
+                )
 
         except Exception as e:
             _log.error(f"Error processing XP for {message.author}: {e}", exc_info=True)
