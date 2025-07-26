@@ -47,6 +47,14 @@ class LevelSystemListener(commands.Cog):
                 defaults={"Score": 0, "Level": 1, "Progress": 0},
             )
 
+            # Fix future timestamp bug
+            if score.LastMessageTimestamp > current_time:
+                score_log.warning(
+                    f"{username}'s LastMessageTimestamp is in the future! Resetting."
+                )
+                score.LastMessageTimestamp = current_time
+                score.save()
+
             # Cooldown check
             if hasattr(score, "LastMessageTimestamp") and score.LastMessageTimestamp:
                 if current_time - score.LastMessageTimestamp < cooldown_time:
