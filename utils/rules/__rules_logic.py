@@ -6,9 +6,6 @@ _log = get_log("rules_logic")
 
 
 async def update_rule_embed(guild: discord.Guild):
-    """
-    Update (or post) the full rules embed in the configured rule channel for the given guild.
-    """
     try:
         bot_data = database.BotData.get_or_none(
             database.BotData.server_id == str(guild.id)
@@ -34,43 +31,61 @@ async def update_rule_embed(guild: discord.Guild):
             _log.info(f"No rules found for guild: {guild.name}")
             return
 
-        embed = discord.Embed(
-            title=f"📜 {guild.name} Server Rules",
-            color=discord.Color.blurple(),
-        )
+        # Flatten all rules into a numbered list
+        flat_rules = [f"{r.number}: {r.text}" for r in rules]
+        rules_text = "\n".join(flat_rules)
 
-        categorized = {}
-        for rule in rules:
-            categorized.setdefault(rule.category, []).append((rule.number, rule.text))
+        # Build the full message string
+        full_message = f"""__**About {bot_data.server_name.strip()}**__
+{bot_data.server_desc.strip()}
 
-        for category, rule_list in categorized.items():
-            rule_lines = [f"• {text}" for num, text in rule_list]
-            combined = "\n".join(rule_lines)
+════════════════════════════════════
 
-            # Truncate to avoid Discord embed field limit
-            if len(combined) > 1024:
-                combined = combined[:1021] + "..."
+📣 **Invite your friends! The more the merrier**
+{bot_data.server_invite.strip()}
 
-            embed.add_field(name=f"🗂️ {category}", value=combined, inline=False)
+════════════════════════════════════
 
-        # Update existing message or send new one
+📏 **Rules**
+{rules_text}"""
+
+        # Optional: Append Other Info Section 1
+        if bot_data.other_info_1_text.strip():
+            full_message += f"""
+
+════════════════════════════════════
+
+📌 **{bot_data.other_info_1_title.strip()}**
+{bot_data.other_info_1_text.strip()}"""
+
+        # Optional: Append Other Info Section 2
+        if bot_data.other_info_2_text.strip():
+            full_message += f"""
+
+════════════════════════════════════
+
+📌 **{bot_data.other_info_2_title.strip()}**
+{bot_data.other_info_2_text.strip()}"""
+
+        # Send or update the message
         if bot_data.rule_message_id != "0":
             try:
                 message = await channel.fetch_message(int(bot_data.rule_message_id))
-                await message.edit(embed=embed)
-                _log.info(f"Updated rule embed for guild {guild.name}.")
+                await message.edit(content=full_message, embed=None)
+                _log.info(f"Updated rule message for guild {guild.name}.")
                 return
             except discord.NotFound:
                 _log.warning(
                     f"Rule message ID {bot_data.rule_message_id} not found; will re-post."
                 )
 
-        # Post new embed and save message ID
-        new_msg = await channel.send(embed=embed)
+        # Post new message
+        new_msg = await channel.send(content=full_message)
         bot_data.rule_message_id = str(new_msg.id)
-        _log.info(f"Rule message ID {bot_data.rule_message_id}.")
         bot_data.save()
-        _log.info(f"Posted new rule embed and saved message ID for {guild.name}.")
+        _log.info(f"Posted new rule message and saved ID for {guild.name}.")
 
     except Exception as e:
-        _log.error(f"Failed to update rule embed for {guild.name}: {e}", exc_info=True)
+        _log.error(
+            f"Failed to update rule message for {guild.name}: {e}", exc_info=True
+        )
