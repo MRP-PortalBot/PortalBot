@@ -44,8 +44,14 @@ async def update_rule_embed(guild: discord.Guild):
             categorized.setdefault(rule.category, []).append((rule.number, rule.text))
 
         for category, rule_list in categorized.items():
-            text = "\n".join([f"**{num}.** {text}" for num, text in rule_list])
-            embed.add_field(name=category, value=text, inline=False)
+            rule_lines = [f"• {text}" for num, text in rule_list]
+            combined = "\n".join(rule_lines)
+
+            # Truncate to avoid Discord embed field limit
+            if len(combined) > 1024:
+                combined = combined[:1021] + "..."
+
+            embed.add_field(name=f"🗂️ {category}", value=combined, inline=False)
 
         # Update existing message or send new one
         if bot_data.rule_message_id != "0":
