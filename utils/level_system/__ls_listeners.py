@@ -82,34 +82,31 @@ class LevelSystemListener(commands.Cog):
 
             # Level-up logic
             if new_level > previous_level:
-                score_log.info(
-                    f"{username} leveled up from {previous_level} → {new_level}"
-                )
+                score_log.info(f"{username} leveled up from {previous_level} → {new_level}")
 
-                # Remove old level roles
-                all_roles = database.LeveledRoles.select().where(
-                    database.LeveledRoles.ServerID == str(message.guild.id)
+                # Get all level role IDs for this server
+                all_roles = (
+                    database.LeveledRoles
+                    .select()
+                    .where(database.LeveledRoles.ServerID == str(message.guild.id))
                 )
-                level_role_ids = {entry.RoleID for entry in all_roles}
+                level_role_ids = {int(entry.RoleID) for entry in all_roles if entry.RoleID}
+
+                # Remove existing level roles
                 old_roles = [r for r in message.author.roles if r.id in level_role_ids]
-
                 if old_roles:
                     await message.author.remove_roles(*old_roles)
-                    score_log.debug(
-                        f"Removed old level roles from {username}: {[r.name for r in old_roles]}"
-                    )
+                    score_log.debug(f"Removed old level roles from {username}: {[r.name for r in old_roles]}")
 
-                # Add new level role
+                # Assign new level role
                 new_role = await get_role_for_level(new_level, message.guild)
                 if new_role:
                     await message.author.add_roles(new_role)
                     score_log.info(f"Assigned role '{new_role.name}' to {username}")
                 else:
-                    score_log.warning(
-                        f"No role found for Level {new_level} in {message.guild.name}"
-                    )
+                    score_log.warning(f"No role found for Level {new_level} in {message.guild.name}")
 
-                # Send level-up message
+                # Announce level-up
                 await message.channel.send(
                     f"🎉 {message.author.mention} has leveled up to **Level {new_level}**! Congrats!"
                 )
