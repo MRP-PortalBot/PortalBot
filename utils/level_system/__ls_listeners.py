@@ -73,16 +73,28 @@ class LevelSystemListener(commands.Cog):
 
             # If level-up occurred
             if new_level > previous_level:
-                role = await get_role_for_level(new_level, message.guild)
-                if role:
-                    await message.author.add_roles(role)
-                    score_log.info(
-                        f"Assigned role '{role.name}' to {username} (Level {new_level})"
-                    )
-
-                await message.channel.send(
-                    f"🎉 {message.author.mention} has leveled up to **Level {new_level}**! Congrats!"
+                # Get all known level roles from DB for this guild
+                all_roles = database.LeveledRoles.select().where(
+                    database.LeveledRoles.ServerID == str(message.guild.id)
                 )
+                level_role_ids = {entry.RoleID for entry in all_roles}
+
+                # Get current user roles that are level-based
+                user_roles_to_remove = [
+                    r for r in message.author.roles if r.id in level_role_ids
+                ]
+
+                # Remove old level roles
+                if user_roles_to_remove:
+                    await message.author.remove_roles(*user_roles_to_remove)
+
+                # Add new role
+                new_role = await get_role_for_level(new_level, message.guild)
+                if new_role:
+                    await message.author.add_roles(new_role)
+                    score_log.info(
+                        f"Updated {username}'s role to '{new_role.name}' for Level {new_level}"
+                    )
 
         except Exception as e:
             _log.error(f"Error processing XP for {message.author}: {e}", exc_info=True)
