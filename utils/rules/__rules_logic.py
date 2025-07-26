@@ -31,11 +31,22 @@ async def update_rule_embed(guild: discord.Guild):
             _log.info(f"No rules found for guild: {guild.name}")
             return
 
-        # Format rules
-        flat_rules = [f"{r.number}: {r.text}" for r in rules]
-        rules_text = "\n".join(flat_rules)
+        # Group rules by category
+        categorized = {}
+        for rule in rules:
+            categorized.setdefault(rule.category, []).append((rule.number, rule.text))
+
+        # Format each category block
+        formatted_blocks = []
+        for category, rule_list in categorized.items():
+            formatted_rules = "\n".join([f"{num}: {text}" for num, text in rule_list])
+            formatted_blocks.append(f"• **{category}**\n{formatted_rules}")
+
+        # Combine final rules text
+        rules_text = "\n\n".join(formatted_blocks)
         if len(rules_text) > 1024:
             rules_text = rules_text[:1021] + "..."
+
 
         # Create embed
         embed = discord.Embed(
