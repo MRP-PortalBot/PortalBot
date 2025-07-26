@@ -255,11 +255,10 @@ class RulesCommands(app_commands.Group):
 
             _log.info(f"Channel ID is {str(channel.id)}")
 
-            bot_data.rule_channel = "0"
-            bot_data.save()
-
             bot_data.rule_channel = str(channel.id)
-            _log.info(f"Bot Data Channel ID is {bot_data.rule_channel}")
+            for field in bot_data._meta.sorted_fields:
+                value = getattr(bot_data, field.name)
+                print(f"{field.name}: {value!r} ({type(value)})")
             bot_data.save()
 
             await update_rule_embed(interaction.guild)
