@@ -26,7 +26,11 @@ class LevelAuditScheduler(commands.Cog):
             bot_data = database.BotData.get_or_none(
                 database.BotData.server_id == str(guild.id)
             )
-            if not bot_data or not bot_data.member_log:
+            if (
+                not bot_data
+                or not bot_data.member_log
+                or not bot_data.enable_weekly_audit
+            ):
                 continue
 
             log_channel = guild.get_channel(int(bot_data.member_log))
@@ -34,10 +38,8 @@ class LevelAuditScheduler(commands.Cog):
                 continue
 
             try:
-                level_roles = (
-                    database.LeveledRoles
-                    .select()
-                    .where(database.LeveledRoles.ServerID == str(guild.id))
+                level_roles = database.LeveledRoles.select().where(
+                    database.LeveledRoles.ServerID == str(guild.id)
                 )
                 level_role_ids = {int(r.RoleID) for r in level_roles if r.RoleID}
 
@@ -48,8 +50,8 @@ class LevelAuditScheduler(commands.Cog):
                         continue
 
                     score = database.ServerScores.get_or_none(
-                        (database.ServerScores.DiscordLongID == str(member.id)) &
-                        (database.ServerScores.ServerID == str(guild.id))
+                        (database.ServerScores.DiscordLongID == str(member.id))
+                        & (database.ServerScores.ServerID == str(guild.id))
                     )
                     if not score:
                         continue
@@ -57,8 +59,14 @@ class LevelAuditScheduler(commands.Cog):
                     correct_role = await get_role_for_level(score.Level, guild)
                     current_roles = [r for r in member.roles if r.id in level_role_ids]
 
-                    to_remove = [r for r in current_roles if correct_role is None or r.id != correct_role.id]
-                    needs_fix = bool(to_remove or (correct_role and correct_role not in member.roles))
+                    to_remove = [
+                        r
+                        for r in current_roles
+                        if correct_role is None or r.id != correct_role.id
+                    ]
+                    needs_fix = bool(
+                        to_remove or (correct_role and correct_role not in member.roles)
+                    )
 
                     if needs_fix:
                         if to_remove:
@@ -76,7 +84,7 @@ class LevelAuditScheduler(commands.Cog):
                                 f"**Assigned Role:** {correct_role.mention if correct_role else '❌ None'}"
                             ),
                             color=discord.Color.teal(),
-                            timestamp=discord.utils.utcnow()
+                            timestamp=discord.utils.utcnow(),
                         )
                         embed.set_footer(text=f"User ID: {member.id}")
                         embed.set_thumbnail(url=member.display_avatar.url)

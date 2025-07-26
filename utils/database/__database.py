@@ -155,6 +155,8 @@ class BotData(BaseModel):
     blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs
     rule_channel = TextField(default=0)
     rule_message_id = TextField(default=0)
+    enable_weekly_audit = BooleanField(default=True)
+
 
     def get_blocked_channels(self):
         return json.loads(self.blocked_channels)
