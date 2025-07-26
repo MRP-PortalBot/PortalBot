@@ -8,7 +8,7 @@ from utils.database import __database as database
 from utils.admin.admin_core.__admin_commands import has_admin_level
 from utils.admin.bot_management.__bm_logic import config
 from utils.helpers.__logging_module import get_log
-from .__ls_logic import create_and_order_roles, sync_tatsu_score_for_user
+from .__ls_logic import create_and_order_roles, sync_tatsu_score_for_user, calculate_level
 
 from .__ls_views import LeaderboardView  # Add this import at the top
 
