@@ -253,7 +253,7 @@ class RealmApplications(BaseModel):
     realm_addons = TextField()  # Addons or mods associated with the realm
     pvp = TextField()  # PvP enabled or not
     percent_player_sleep = TextField()  # Percent of players for sleep
-    timestamp = TimestampField()  # Timestamp of the application
+    timestamp = DateTimeField(null=True)  # Timestamp of the application
     approval = BooleanField()  # Approved or Denied
 
 
@@ -328,7 +328,7 @@ class Reminder(BaseModel):
     id = AutoField()  # Unique ID for each reminder
     user_id = TextField()  # Discord user ID of the user who set the reminder
     message_link = TextField()  # Link to the message to remind the user about
-    remind_at = TimestampField()  # When to send the reminder
+    remind_at = DateTimeField(null=True)  # When to send the reminder
 
 
 class Rule(BaseModel):
