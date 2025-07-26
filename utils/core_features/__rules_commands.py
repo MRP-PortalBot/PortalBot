@@ -253,6 +253,8 @@ class RulesCommands(app_commands.Group):
                 )
                 return
 
+            _log.info(f"Channel ID is {str(channel.id)}")
+
             bot_data.rule_channel = str(channel.id)
             bot_data.save()
 
