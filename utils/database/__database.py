@@ -119,44 +119,43 @@ class BotData(BaseModel):
     """
 
     id = AutoField()  # Database Entry ID (ALWAYS QUERY 1)
-    server_id = TextField(default=0)  # Server ID where the bot is active
-    bot_id = TextField(default=0)  # Discord Bot ID
+    server_id = TextField(default="0")  # Server ID where the bot is active
+    bot_id = TextField(default="0")  # Discord Bot ID
     bot_type = TextField(default="Stable")  # Bot type (e.g., "Stable", "Dev")
     pb_test_server_id = TextField(
         default=448488274562908170
     )  # Portal Bot Test Server ID
     prefix = TextField(default=">")  # Bot prefix
-    admin_role = TextField(default=0)  # Admin role for the server
+    admin_role = TextField(default="0")  # Admin role for the server
     persistent_views = BooleanField(
         default=False
     )  # Whether or not persistent views are enabled
-    welcome_channel = TextField(default=0)  # Welcome Channel ID
+    welcome_channel = TextField(default="0")  # Welcome Channel ID
     bannedlist_response_channel = TextField(
-        default=0
+        default="0"
     )  # Channel ID for blacklist responses
-    daily_question_channel = TextField(default=0)  # Channel ID for daily questions
+    daily_question_channel = TextField(default="0")  # Channel ID for daily questions
     question_suggest_channel = TextField(
-        default=0
+        default="0"
     )  # Channel ID for question suggestions
-    bot_spam_channel = TextField(default=0)  # Channel ID for bot spam
+    bot_spam_channel = TextField(default="0")  # Channel ID for bot spam
     realm_channel_response = TextField(
-        default=0
+        default="0"
     )  # Channel ID for realm channel responses
-    general_channel = TextField(default=0)  # General Channel ID
-    mod_channel = TextField(default=0)  # MOderator Channel ID
-    message_log = TextField(default=0)  # Message Log Channel ID
-    member_log = TextField(default=0)  # Member Log Channel ID
-    server_log = TextField(default=0)  # Server Log Channel ID
+    general_channel = TextField(default="0")  # General Channel ID
+    mod_channel = TextField(default="0")  # MOderator Channel ID
+    message_log = TextField(default="0")  # Message Log Channel ID
+    member_log = TextField(default="0")  # Member Log Channel ID
+    server_log = TextField(default="0")  # Server Log Channel ID
     daily_question_enabled = BooleanField(default=True)
     last_question_posted = TextField(null=True)  # Last question that was posted
     last_question_posted_time = TimestampField()  # Last time a question was posted
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
     points_per_message = IntegerField(default=10)  # Default is 10 points
     blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs
-    rule_channel = TextField(default=0)
-    rule_message_id = TextField(default=0)
+    rule_channel = TextField(default="0")
+    rule_message_id = TextField(default="0")
     enable_weekly_audit = BooleanField(default=True)
-
 
     def get_blocked_channels(self):
         return json.loads(self.blocked_channels)
