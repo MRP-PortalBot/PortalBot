@@ -1,14 +1,12 @@
-# utils/leveled_roles/__lr_logic.py
+# utils/level_system/__ls_logic.py
 
-import discord
-from utils.database import __database as database
-from utils.helpers.__logging_module import get_log
 import os
+import discord
 from tatsu.wrapper import ApiWrapper
-from utils.helpers.__logging_module import get_log
-from utils.database import __database as database
-from utils.core_features.__common import calculate_level
 
+from utils.database import __database as database
+from utils.helpers.__logging_module import get_log
+from utils.core_features.__common import calculate_level
 
 _log = get_log(__name__)
 wrapper = ApiWrapper(os.getenv("tatsu_api_key"))
@@ -16,8 +14,8 @@ wrapper = ApiWrapper(os.getenv("tatsu_api_key"))
 
 async def create_and_order_roles(guild: discord.Guild):
     """
-    Creates roles based on level data, assigns colors, and reorders them.
-    Also inserts them into the database if not already present.
+    Creates, colors, and orders leveled roles for the guild,
+    inserting any missing roles into the database.
     """
     roles_data = [
         (1, "Just Spawned", "2eb0aa"),
@@ -102,8 +100,6 @@ async def create_and_order_roles(guild: discord.Guild):
         (80, "Ender Dragon Conqueror", "1919dc"),
     ]
 
-    _log.info(f"Starting leveled role setup for guild: {guild.name} ({guild.id})")
-
     existing_roles = {role.name: role for role in guild.roles}
     created_roles = []
 
@@ -114,8 +110,8 @@ async def create_and_order_roles(guild: discord.Guild):
         if not role:
             _log.info(f"Creating role '{role_name}' with color #{hex_color}")
             role = await guild.create_role(name=role_name, color=role_color)
-        elif role.color != role_color:
-            _log.info(f"Updating role color for '{role_name}' to #{hex_color}")
+        elif role.color.value != role_color.value:
+            _log.info(f"Updating color for '{role_name}' to #{hex_color}")
             await role.edit(color=role_color)
 
         created_roles.append((role, level))
@@ -125,18 +121,12 @@ async def create_and_order_roles(guild: discord.Guild):
             ServerID=str(guild.id),
             defaults={"RoleName": role_name, "LevelThreshold": level},
         )
-        _log.debug(f"Role '{role_name}' synced to DB with Level {level}")
 
-    # Reorder roles by level
-    sorted_roles = sorted(created_roles, key=lambda item: item[1])
-    position_map = {
-        role: index for index, (role, _) in enumerate(sorted_roles, start=1)
-    }
+    # Reorder roles
+    sorted_roles = sorted(created_roles, key=lambda r: r[1])
+    await guild.edit_role_positions(positions={r: i+1 for i, (r, _) in enumerate(sorted_roles)})
 
-    _log.info(f"Reordering roles in {guild.name}")
-    await guild.edit_role_positions(positions=position_map)
-
-    _log.info(f"Completed leveled role setup for {guild.name}")
+    _log.info(f"Leveled roles created and ordered in {guild.name}.")
 
 
 async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name: str):
@@ -144,50 +134,42 @@ async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name:
         result = await wrapper.get_member_ranking(guild_id, user_id)
         user_score = result.score
 
-        score_entry = database.ServerScores.get_or_none(
-            (database.ServerScores.DiscordLongID == str(user_id))
-            & (database.ServerScores.ServerID == str(guild_id))
+        entry = database.ServerScores.get_or_none(
+            (database.ServerScores.DiscordLongID == str(user_id)) &
+            (database.ServerScores.ServerID == str(guild_id))
         )
 
-        if score_entry:
-            score_entry.Score = user_score
-            score_entry.DiscordName = user_name
-            score_entry.save()
-            _log.info(f"Updated Tatsu score for {user_name}: {user_score}")
+        if entry:
+            entry.Score = user_score
+            entry.DiscordName = user_name
+            entry.save()
+            _log.info(f"Updated Tatsu score for {user_name} ({user_score})")
         else:
-            level, progress, next_level_score = calculate_level(user_score)
+            level, progress, next_score = calculate_level(user_score)
             database.ServerScores.create(
                 DiscordName=user_name,
                 DiscordLongID=str(user_id),
                 ServerID=str(guild_id),
                 Score=user_score,
                 Level=level,
-                Progress=next_level_score,
+                Progress=next_score
             )
-            _log.info(
-                f"Created Tatsu score for {user_name} (Level {level}, Score {user_score})"
-            )
+            _log.info(f"Created new Tatsu entry for {user_name} (Level {level})")
     except Exception as e:
         _log.error(f"Error syncing Tatsu score for {user_id}: {e}", exc_info=True)
 
 
-def get_role_for_level(level: int, guild: discord.Guild):
+async def get_role_for_level(level: int, guild: discord.Guild) -> discord.Role | None:
     """
-    Return the role matching a level from the LeveledRoles table.
+    Retrieve the role object for a given level from the LeveledRoles DB.
     """
-    from utils.database.__database import (
-        LeveledRoles,
-    )  # import inside to avoid circular dependency
-
     try:
-        role_entry = LeveledRoles.get_or_none(
-            (LeveledRoles.LevelThreshold == level)
-            & (LeveledRoles.ServerID == str(guild.id))
+        entry = database.LeveledRoles.get_or_none(
+            (database.LeveledRoles.LevelThreshold == level) &
+            (database.LeveledRoles.ServerID == str(guild.id))
         )
-        if role_entry:
-            return discord.utils.get(guild.roles, id=role_entry.RoleID)
+        if entry:
+            return discord.utils.get(guild.roles, id=entry.RoleID)
     except Exception as e:
-        import logging
-
-        logging.getLogger(__name__).error(f"Error fetching role for level {level}: {e}")
+        _log.error(f"Error retrieving role for level {level}: {e}")
     return None
