@@ -255,7 +255,7 @@ class RulesCommands(app_commands.Group):
 
             _log.info(f"Channel ID is {str(channel.id)}")
 
-            bot_data.rule_channel = channel.id
+            bot_data.rule_channel = str(channel.id)
             bot_data.save()
 
             await update_rule_embed(interaction.guild)
