@@ -4,10 +4,13 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from utils.database import __database as database
 from utils.admin.admin_core.__admin_commands import has_admin_level
 from utils.admin.bot_management.__bm_logic import config
 from utils.helpers.__logging_module import get_log
 from .__ls_logic import create_and_order_roles, sync_tatsu_score_for_user
+
+from .__ls_views import LeaderboardView  # Add this import at the top
 
 _log = get_log(__name__)
 
@@ -81,6 +84,29 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
             )
 
         await interaction.followup.send("✅ Tatsu scores updated.", ephemeral=True)
+
+    @app_commands.command(
+        name="leaderboard",
+        description="View the top XP earners in this server (paginated).",
+    )
+    async def leaderboard(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        top_scores = (
+            database.ServerScores.select()
+            .where(database.ServerScores.ServerID == str(interaction.guild.id))
+            .order_by(database.ServerScores.Score.desc())
+        )
+
+        entries = list(top_scores)
+        if not entries:
+            await interaction.followup.send("No users with XP found for this server.")
+            return
+
+        view = LeaderboardView(interaction, entries)
+        view.update_buttons()
+
+        await interaction.followup.send(embed=view.get_embed(), view=view)
 
 
 async def setup(bot: commands.Bot):
