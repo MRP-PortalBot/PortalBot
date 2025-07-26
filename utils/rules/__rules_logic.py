@@ -39,43 +39,59 @@ async def update_rule_embed(guild: discord.Guild):
 
         # Create embed
         embed = discord.Embed(
-            title=f"📜 About {bot_data.server_name.strip()}",
+            title=f"__📜 About {bot_data.server_name.strip()}__",
             description=bot_data.server_desc.strip() + "\n\u200b",
             color=discord.Color.blurple(),
         )
 
-        embed.add_field(name="═══════", value="\u200b", inline=False)
+        embed.add_field(
+            name="════════════════════════════════════", value="\u200b", inline=False
+        )
 
         embed.add_field(
-            name="📣 Invite your friends! The more the merrier",
+            name="~~📣 Invite your friends! The more the merrier~~",
             value=bot_data.server_invite.strip() + "\n\u200b",
             inline=False,
         )
 
-        embed.add_field(name="═══════", value="\u200b", inline=False)
+        embed.add_field(
+            name="════════════════════════════════════", value="\u200b", inline=False
+        )
 
-        embed.add_field(name="📏 Rules", value=rules_text + "\n\u200b", inline=False)
+        embed.add_field(
+            name="__📏 Rules__", value=rules_text + "\n\u200b", inline=False
+        )
 
         # Optional Section 1
         if bot_data.other_info_1_text.strip():
-            embed.add_field(name="═══════", value="\u200b", inline=False)
             embed.add_field(
-                name=f"📌 {bot_data.other_info_1_title.strip()}",
+                name="════════════════════════════════════",
+                value="\u200b",
+                inline=False,
+            )
+            embed.add_field(
+                name=f"__{bot_data.other_info_1_title.strip()}__",
                 value=bot_data.other_info_1_text.strip() + "\n\u200b",
                 inline=False,
             )
 
         # Optional Section 2
         if bot_data.other_info_2_text.strip():
-            embed.add_field(name="═══════", value="\u200b", inline=False)
             embed.add_field(
-                name=f"📌 {bot_data.other_info_2_title.strip()}",
+                name="════════════════════════════════════",
+                value="\u200b",
+                inline=False,
+            )
+            embed.add_field(
+                name=f"__{bot_data.other_info_2_title.strip()}__",
                 value=bot_data.other_info_2_text.strip() + "\n\u200b",
                 inline=False,
             )
 
         # Final divider before footer
-        embed.add_field(name="═══════", value="\u200b", inline=False)
+        embed.add_field(
+            name="════════════════════════════════════", value="\u200b", inline=False
+        )
 
         embed.set_footer(text="Last updated")
         embed.timestamp = discord.utils.utcnow()
