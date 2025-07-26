@@ -144,7 +144,9 @@ class BotData(BaseModel):
     )  # Channel ID for realm channel responses
     general_channel = TextField(default=0)  # General Channel ID
     mod_channel = TextField(default=0)  # MOderator Channel ID
-    log_channel = TextField(default=0)  # Log Channel ID
+    message_log = TextField(default=0)  # Message Log Channel ID
+    member_log = TextField(default=0)  # Member Log Channel ID
+    server_log = TextField(default=0)  # Server Log Channel ID
     daily_question_enabled = BooleanField(default=True)
     last_question_posted = TextField(null=True)  # Last question that was posted
     last_question_posted_time = TimestampField()  # Last time a question was posted
@@ -159,7 +161,6 @@ class BotData(BaseModel):
 
     def set_blocked_channels(self, channel_ids):
         self.blocked_channels = json.dumps(channel_ids)
-
 
 
 class Tag(BaseModel):
