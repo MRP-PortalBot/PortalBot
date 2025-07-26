@@ -47,7 +47,6 @@ async def update_rule_embed(guild: discord.Guild):
         if len(rules_text) > 1024:
             rules_text = rules_text[:1021] + "..."
 
-
         # Create embed
         embed = discord.Embed(
             title=f"__📜 About {bot_data.server_name.strip()}__",
@@ -70,7 +69,11 @@ async def update_rule_embed(guild: discord.Guild):
         )
 
         embed.add_field(
-            name="__📏 Rules__", value=rules_text + "\n\u200b", inline=False
+            name="__📏 Rules__",
+            value="\u200b\n"
+            + rules_text
+            + "\n\u200b",  # Adds blank line before and after
+            inline=False,
         )
 
         # Optional Section 1
