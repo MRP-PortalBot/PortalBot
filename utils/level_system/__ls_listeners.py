@@ -82,21 +82,25 @@ class LevelSystemListener(commands.Cog):
 
             # Level-up logic
             if new_level > previous_level:
-                score_log.info(f"{username} leveled up from {previous_level} → {new_level}")
+                score_log.info(
+                    f"{username} leveled up from {previous_level} → {new_level}"
+                )
 
                 # Get all level role IDs for this server
-                all_roles = (
-                    database.LeveledRoles
-                    .select()
-                    .where(database.LeveledRoles.ServerID == str(message.guild.id))
+                all_roles = database.LeveledRoles.select().where(
+                    database.LeveledRoles.ServerID == str(message.guild.id)
                 )
-                level_role_ids = {int(entry.RoleID) for entry in all_roles if entry.RoleID}
+                level_role_ids = {
+                    int(entry.RoleID) for entry in all_roles if entry.RoleID
+                }
 
                 # Remove existing level roles
                 old_roles = [r for r in message.author.roles if r.id in level_role_ids]
                 if old_roles:
                     await message.author.remove_roles(*old_roles)
-                    score_log.debug(f"Removed old level roles from {username}: {[r.name for r in old_roles]}")
+                    score_log.debug(
+                        f"Removed old level roles from {username}: {[r.name for r in old_roles]}"
+                    )
 
                 # Assign new level role
                 new_role = await get_role_for_level(new_level, message.guild)
@@ -104,12 +108,38 @@ class LevelSystemListener(commands.Cog):
                     await message.author.add_roles(new_role)
                     score_log.info(f"Assigned role '{new_role.name}' to {username}")
                 else:
-                    score_log.warning(f"No role found for Level {new_level} in {message.guild.name}")
+                    score_log.warning(
+                        f"No role found for Level {new_level} in {message.guild.name}"
+                    )
 
                 # Announce level-up
                 await message.channel.send(
                     f"🎉 {message.author.mention} has leveled up to **Level {new_level}**! Congrats!"
                 )
+
+                # Send level-up log to member_log channel from BotData
+                if bot_data.member_log:
+                    log_channel = message.guild.get_channel(int(bot_data.member_log))
+                    if log_channel:
+                        embed = discord.Embed(
+                            title=f"📈 {username} leveled up!",
+                            description=(
+                                f"**User:** {message.author.mention} (`{username}`)\n"
+                                f"**New Level:** {new_level}\n"
+                                f"**Server:** {message.guild.name}"
+                            ),
+                            color=discord.Color.green(),
+                            timestamp=discord.utils.utcnow(),
+                        )
+                        embed.set_footer(text=f"User ID: {message.author.id}")
+                        embed.set_thumbnail(url=message.author.display_avatar.url)
+
+                        try:
+                            await log_channel.send(embed=embed)
+                        except discord.Forbidden:
+                            score_log.warning(
+                                f"Cannot send level-up embed to #{log_channel.name} (Missing permissions)."
+                            )
 
         except Exception as e:
             _log.error(f"Error processing XP for {message.author}: {e}", exc_info=True)
