@@ -49,7 +49,7 @@ async def update_rule_embed(guild: discord.Guild):
         )
 
         embed.add_field(
-            name="~~📣 Invite your friends! The more the merrier~~",
+            name="*📣 Invite your friends! The more the merrier*",
             value=bot_data.server_invite.strip() + "\n\u200b",
             inline=False,
         )
