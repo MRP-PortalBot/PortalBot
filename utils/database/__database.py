@@ -8,7 +8,7 @@ from peewee import (
     SqliteDatabase,
     TextField,
     BooleanField,
-    TimestampField,
+    DateTimeField,
     MySQLDatabase,
     OperationalError,
     ForeignKeyField,
@@ -149,7 +149,7 @@ class BotData(BaseModel):
     server_log = TextField(default="0")  # Server Log Channel ID
     daily_question_enabled = BooleanField(default=True)
     last_question_posted = TextField(null=True)  # Last question that was posted
-    last_question_posted_time = TimestampField()  # Last time a question was posted
+    last_question_posted_time = DateTimeField(null=True)  # Last time a question was posted
     cooldown_time = IntegerField(default=120)  # Default is 120 seconds
     points_per_message = IntegerField(default=10)  # Default is 10 points
     blocked_channels = TextField(default="[]")  # New field to store blocked channel IDs
