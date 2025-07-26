@@ -114,7 +114,7 @@ class LevelSystemListener(commands.Cog):
 
                 # Announce level-up
                 await message.channel.send(
-                    f"🎉 {message.author.mention} has leveled up to **Level {new_level}**! Congrats!"
+                    f"🎉 {message.author.mention} reached **Level {new_level}** and earned the role {new_role.mention}!"
                 )
 
                 # Send level-up log to member_log channel from BotData
@@ -126,11 +126,13 @@ class LevelSystemListener(commands.Cog):
                             description=(
                                 f"**User:** {message.author.mention} (`{username}`)\n"
                                 f"**New Level:** {new_level}\n"
+                                f"**Assigned Role:** {new_role.mention if new_role else 'None'}\n"
                                 f"**Server:** {message.guild.name}"
                             ),
                             color=discord.Color.green(),
                             timestamp=discord.utils.utcnow(),
                         )
+
                         embed.set_footer(text=f"User ID: {message.author.id}")
                         embed.set_thumbnail(url=message.author.display_avatar.url)
 
