@@ -6,6 +6,7 @@ from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 from .__bm_logic import fetch_admins_by_level
+from .__bm_views import BotConfigSectionDropdown
 from utils.admin.bot_management.__bm_logic import (
     get_bot_data_for_server,
 )
@@ -114,6 +115,130 @@ class PermitCommands(app_commands.Group):
 class ConfigCommands(app_commands.Group):
     def __init__(self):
         super().__init__(name="configure", description="Bot configuration commands")
+
+    @app_commands.command(
+        name="edit_data", description="Edit server bot configuration."
+    )
+    @has_admin_level(2)
+    async def edit_data(self, interaction: discord.Interaction):
+        await interaction.defer(ephemeral=True)
+
+        bot_data = database.BotData.get_or_none(
+            database.BotData.server_id == str(interaction.guild.id)
+        )
+
+        if not bot_data:
+            await interaction.followup.send(
+                "❌ BotData not found for this server.", ephemeral=True
+            )
+            return
+
+        # Convert model to dict for ease of use
+        bot_data_dict = {
+            field.name: getattr(bot_data, field.name)
+            for field in bot_data._meta.sorted_fields
+        }
+
+        # Show select dropdown
+        view = discord.ui.View(timeout=180)
+        dropdown = BotConfigSectionDropdown(bot_data_dict, self.handle_botdata_update)
+        view.add_item(dropdown)
+
+        await interaction.followup.send(
+            "🛠 Choose a section to edit from the dropdown menu:",
+            ephemeral=True,
+            view=view,
+        )
+
+    # Callback to apply modal changes
+    async def handle_botdata_update(
+        self, interaction: discord.Interaction, updated_fields: dict
+    ):
+        try:
+            bot_data = database.BotData.get_or_none(
+                database.BotData.server_id == str(interaction.guild.id)
+            )
+            if not bot_data:
+                await interaction.followup.send("❌ BotData not found.", ephemeral=True)
+                return
+
+            for key, value in updated_fields.items():
+                setattr(bot_data, key, value)
+
+            bot_data.save()
+            await interaction.followup.send("✅ Bot settings updated.", ephemeral=True)
+
+        except Exception as e:
+            _log.error(f"Error updating bot data: {e}", exc_info=True)
+            await interaction.followup.send(
+                "❌ Failed to update settings.", ephemeral=True
+            )
+
+    @app_commands.command(
+        name="view_data", description="View current bot configuration for this server."
+    )
+    @has_admin_level(2)
+    async def view_data(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        bot_data = database.BotData.get_or_none(
+            database.BotData.server_id == str(interaction.guild.id)
+        )
+
+        if not bot_data:
+            await interaction.followup.send("❌ BotData not found.", ephemeral=True)
+            return
+
+        embed = discord.Embed(
+            title="🔎 Bot Configuration", color=discord.Color.blurple()
+        )
+
+        for field in bot_data._meta.sorted_fields:
+            value = getattr(bot_data, field.name)
+            display_value = str(value)
+            if field.name in {"blocked_channels"}:
+                display_value = "\n".join(json.loads(value)) if value else "[]"
+            elif field.name.endswith("_channel") or field.name.endswith("_log"):
+                display_value = f"<#{value}>" if value and value.isdigit() else value
+            elif len(display_value) > 1024:
+                display_value = display_value[:1021] + "..."
+            embed.add_field(
+                name=field.name, value=display_value or "None", inline=False
+            )
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @app_commands.command(
+        name="setup", description="Initialize bot configuration for this server."
+    )
+    @has_admin_level(2)
+    async def setup(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        existing = database.BotData.get_or_none(
+            database.BotData.server_id == str(interaction.guild.id)
+        )
+
+        if existing:
+            await interaction.followup.send(
+                "ℹ️ Bot configuration already exists.", ephemeral=True
+            )
+            return
+
+        try:
+            database.BotData.create(
+                server_id=str(interaction.guild.id),
+                server_name=interaction.guild.name,
+                bot_id=str(interaction.client.user.id),
+            )
+            await interaction.followup.send(
+                "✅ Bot configuration initialized.", ephemeral=True
+            )
+        except Exception as e:
+            _log.error(f"Bot setup failed: {e}", exc_info=True)
+            await interaction.followup.send(
+                "❌ Failed to initialize BotData.", ephemeral=True
+            )
 
     @app_commands.command(name="set_cooldown", description="Set score cooldown time.")
     @has_admin_level(3)
