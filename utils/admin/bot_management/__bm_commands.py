@@ -19,7 +19,7 @@ class ConfigCommands(app_commands.Group):
         name="edit_data", description="Edit server bot configuration."
     )
     @has_admin_level(2)
-    async def edit_data(self, interaction: discord.Interaction):
+    async def bot_data(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
         bot_data = database.BotData.get_or_none(
