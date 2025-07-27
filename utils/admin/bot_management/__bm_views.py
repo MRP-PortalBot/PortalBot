@@ -145,7 +145,8 @@ class BotWelcomeRuleChannelView(discord.ui.View):
         self.add_item(ChannelButton("Rule Channel", "rule_channel"))
 
 
-class BotConfigModal_BotSettings(discord.ui.Modal, title="Edit Bot Settings"):
+# -------- Modal: Bot Settings Section (Page 1) -------- #
+class BotConfigModal_BotSettings(discord.ui.Modal, title="Edit Bot Settings (1/2)"):
     def __init__(self, bot_data: dict, on_submit_callback: Callable):
         super().__init__()
         self.bot_data = bot_data
@@ -154,32 +155,29 @@ class BotConfigModal_BotSettings(discord.ui.Modal, title="Edit Bot Settings"):
         self.prefix = discord.ui.TextInput(
             label="Bot Prefix", default=bot_data.get("prefix", "!"), max_length=5
         )
-        self.add_item(self.prefix)
-
         self.admin_role = discord.ui.TextInput(
-            label="Admin Role ID", default=bot_data.get("admin_role", ""), max_length=20
+            label="Admin Role ID", default=bot_data.get("admin_role", ""), max_length=25
         )
-        self.add_item(self.admin_role)
-
         self.cooldown_time = discord.ui.TextInput(
-            label="Cooldown Time (seconds)",
+            label="Cooldown Time (sec)",
             default=str(bot_data.get("cooldown_time", 120)),
             max_length=5,
         )
-        self.add_item(self.cooldown_time)
-
         self.points_per_message = discord.ui.TextInput(
             label="Points per Message",
             default=str(bot_data.get("points_per_message", 10)),
             max_length=5,
         )
-        self.add_item(self.points_per_message)
-
         self.daily_question_enabled = discord.ui.TextInput(
-            label="Daily Questions Enabled (True/False)",
+            label="Enable Daily Questions (True/False)",
             default=str(bot_data.get("daily_question_enabled", True)),
             max_length=5,
         )
+
+        self.add_item(self.prefix)
+        self.add_item(self.admin_role)
+        self.add_item(self.cooldown_time)
+        self.add_item(self.points_per_message)
         self.add_item(self.daily_question_enabled)
 
     async def on_submit(self, interaction: discord.Interaction):
@@ -189,26 +187,19 @@ class BotConfigModal_BotSettings(discord.ui.Modal, title="Edit Bot Settings"):
             "cooldown_time": int(self.cooldown_time.value.strip()),
             "points_per_message": int(self.points_per_message.value.strip()),
             "daily_question_enabled": self.daily_question_enabled.value.strip().lower()
-            in ["true", "1", "yes", "y"],
+            in ("true", "1", "yes", "y"),
         }
 
-        # Acknowledge the interaction before launching the second modal
-        await interaction.response.send_message(
-            "✅ Base settings saved. Continue to advanced settings...", ephemeral=True
-        )
-
-        # Call back to save first half
         await self.on_submit_callback(interaction, new_data)
 
-        # Show second modal
-        await interaction.followup.send_modal(
+        # Automatically trigger the advanced modal
+        await interaction.response.send_modal(
             BotConfigModal_BotSettingsAdvanced(self.bot_data, self.on_submit_callback)
         )
 
 
-class BotConfigModal_BotSettingsAdvanced(
-    discord.ui.Modal, title="Advanced Bot Settings"
-):
+# -------- Modal: Bot Settings Section (Page 2) -------- #
+class BotConfigModal_BotSettingsAdvanced(discord.ui.Modal, title="Bot Settings (2/2)"):
     def __init__(self, bot_data: dict, on_submit_callback: Callable):
         super().__init__()
         self.bot_data = bot_data
@@ -216,33 +207,29 @@ class BotConfigModal_BotSettingsAdvanced(
 
         self.blocked_channels = discord.ui.TextInput(
             label="Blocked Channel IDs (comma-separated)",
-            default=(
-                ", ".join(bot_data.get("blocked_channels", []))
-                if isinstance(bot_data.get("blocked_channels"), list)
-                else bot_data.get("blocked_channels", "")
-            ),
+            default=bot_data.get("blocked_channels", ""),
             placeholder="1234567890,0987654321",
             max_length=500,
         )
-        self.add_item(self.blocked_channels)
-
         self.enable_weekly_audit = discord.ui.TextInput(
             label="Enable Weekly Audit (True/False)",
             default=str(bot_data.get("enable_weekly_audit", True)),
             max_length=5,
         )
+
+        self.add_item(self.blocked_channels)
         self.add_item(self.enable_weekly_audit)
 
     async def on_submit(self, interaction: discord.Interaction):
-        raw_channels = self.blocked_channels.value.strip()
+        raw = self.blocked_channels.value.strip()
         new_data = {
-            "blocked_channels": [
-                ch.strip() for ch in raw_channels.split(",") if ch.strip()
-            ],
+            "blocked_channels": [ch.strip() for ch in raw.split(",") if ch.strip()],
             "enable_weekly_audit": self.enable_weekly_audit.value.strip().lower()
-            in ["true", "1", "yes", "y"],
+            in ("true", "1", "yes", "y"),
         }
+
         await self.on_submit_callback(interaction, new_data)
+        await interaction.followup.send("✅ Bot settings updated.", ephemeral=True)
 
 
 class BotChannelAssignmentView(discord.ui.View):
