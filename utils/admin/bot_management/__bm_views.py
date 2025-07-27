@@ -5,13 +5,11 @@ from utils.database import __database as database
 import asyncio
 
 
-# -------- Section Selector View -------- #
 class BotConfigSectionSelect(View):
     def __init__(self, bot_data: dict, on_submit_callback: Callable):
         super().__init__(timeout=60)
         self.bot_data = bot_data
         self.on_submit_callback = on_submit_callback
-
         self.add_item(BotConfigSectionDropdown(bot_data, on_submit_callback))
 
 
@@ -58,7 +56,7 @@ class BotConfigSectionDropdown(Select):
             await interaction.followup.send(
                 "📥 Select which channel to assign (optional):",
                 ephemeral=True,
-                view=BotWelcomeRuleChannelView(self.bot_data, self.on_submit_callback)
+                view=BotWelcomeRuleChannelView(self.bot_data, self.on_submit_callback),
             )
 
         elif section == "settings":
@@ -82,7 +80,7 @@ class BotConfigSectionDropdown(Select):
                 ),
             )
 
-# -------- Modal: Welcome/Rules Section -------- #
+
 class BotConfigModal_WelcomeRules(
     discord.ui.Modal, title="Edit Welcome / Rules Settings"
 ):
@@ -135,7 +133,8 @@ class BotConfigModal_WelcomeRules(
             "other_info_1_text": self.other_info_1_text.value.strip(),
         }
         await self.on_submit_callback(interaction, new_data)
-        
+
+
 class BotWelcomeRuleChannelView(discord.ui.View):
     def __init__(self, bot_data: dict, on_channel_updated: Callable):
         super().__init__(timeout=120)
@@ -144,6 +143,7 @@ class BotWelcomeRuleChannelView(discord.ui.View):
 
         self.add_item(ChannelButton("Welcome Channel", "welcome_channel"))
         self.add_item(ChannelButton("Rule Channel", "rule_channel"))
+
 
 class BotConfigModal_BotSettings(discord.ui.Modal, title="Edit Bot Settings"):
     def __init__(self, bot_data: dict, on_submit_callback: Callable):
@@ -193,7 +193,6 @@ class BotConfigModal_BotSettings(discord.ui.Modal, title="Edit Bot Settings"):
         }
         await self.on_submit_callback(interaction, new_data)
 
-        # Immediately show advanced modal after saving base settings
         await interaction.response.send_modal(
             BotConfigModal_BotSettingsAdvanced(self.bot_data, self.on_submit_callback)
         )
@@ -305,5 +304,5 @@ class ChannelButton(discord.ui.Button):
 
         except asyncio.TimeoutError:
             await interaction.followup.send(
-                f"❌ Timed out waiting for channel mention.", ephemeral=True
+                "❌ Timed out waiting for channel mention.", ephemeral=True
             )
