@@ -139,15 +139,9 @@ class ConfigCommands(app_commands.Group):
             for field in bot_data._meta.sorted_fields
         }
 
-        # Show select dropdown
-        view = discord.ui.View(timeout=180)
-        dropdown = BotConfigSectionSelectView(bot_data_dict, self.handle_botdata_update)
-        view.add_item(dropdown)
-
-        await interaction.followup.send(
-            "🛠 Choose a section to edit from the dropdown menu:",
-            ephemeral=True,
-            view=view,
+        view = BotConfigSectionSelectView(bot_data, callback)
+        await interaction.response.send_message(
+            "Edit config:", view=view, ephemeral=True
         )
 
     # Callback to apply modal changes
