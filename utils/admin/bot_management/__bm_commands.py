@@ -121,7 +121,7 @@ class ConfigCommands(app_commands.Group):
     )
     @has_admin_level(2)
     async def edit_data(self, interaction: discord.Interaction):
-        await interaction.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral=True)
 
         bot_data = database.BotData.get_or_none(
             database.BotData.server_id == str(interaction.guild.id)
