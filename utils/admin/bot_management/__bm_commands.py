@@ -6,7 +6,7 @@ from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 from .__bm_logic import fetch_admins_by_level
-from .__bm_views import BotConfigSectionDropdown
+from .__bm_views import BotConfigSectionSelectView
 from utils.admin.bot_management.__bm_logic import (
     get_bot_data_for_server,
 )
@@ -141,7 +141,7 @@ class ConfigCommands(app_commands.Group):
 
         # Show select dropdown
         view = discord.ui.View(timeout=180)
-        dropdown = BotConfigSectionDropdown(bot_data_dict, self.handle_botdata_update)
+        dropdown = BotConfigSectionSelectView(bot_data_dict, self.handle_botdata_update)
         view.add_item(dropdown)
 
         await interaction.followup.send(
