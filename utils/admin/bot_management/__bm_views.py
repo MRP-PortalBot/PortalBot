@@ -191,9 +191,17 @@ class BotConfigModal_BotSettings(discord.ui.Modal, title="Edit Bot Settings"):
             "daily_question_enabled": self.daily_question_enabled.value.strip().lower()
             in ["true", "1", "yes", "y"],
         }
+
+        # Acknowledge the interaction before launching the second modal
+        await interaction.response.send_message(
+            "✅ Base settings saved. Continue to advanced settings...", ephemeral=True
+        )
+
+        # Call back to save first half
         await self.on_submit_callback(interaction, new_data)
 
-        await interaction.response.send_modal(
+        # Show second modal
+        await interaction.followup.send_modal(
             BotConfigModal_BotSettingsAdvanced(self.bot_data, self.on_submit_callback)
         )
 
