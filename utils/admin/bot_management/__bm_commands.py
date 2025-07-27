@@ -15,9 +15,7 @@ class ConfigCommands(app_commands.Group):
     def __init__(self):
         super().__init__(name="configure", description="Bot configuration commands")
 
-    @app_commands.command(
-        name="edit_data", description="Edit server bot configuration."
-    )
+    @app_commands.command(name="bot_data", description="Edit server bot configuration.")
     @has_admin_level(2)
     async def bot_data(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
