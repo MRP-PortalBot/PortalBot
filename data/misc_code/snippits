@@ -1,0 +1,3 @@
+            for field in bot_data._meta.sorted_fields:
+                value = getattr(bot_data, field.name)
+                print(f"{field.name}: {value!r} ({type(value)})")

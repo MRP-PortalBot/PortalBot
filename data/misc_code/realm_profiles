@@ -1,0 +1,420 @@
+import discord
+from discord import app_commands
+from discord.ext import commands
+from discord import Interaction
+from discord.app_commands.errors import CheckFailure
+from utils.database import __database as database
+from utils.database.__database import RealmProfile
+from PIL import Image, ImageDraw, ImageFont
+from utils.helpers.__logging_module import get_log
+import io
+import requests
+import os
+
+_log = get_log(__name__)
+
+
+class RealmProfiles(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    # Constants
+    BACKGROUND_IMAGE_PATH = "./core/images/realm_background4.png"  # Path to the Nether Portal background image
+    FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"  # Example font path
+    BANNER_IMAGE_PATH = "./core/images/realm_backround_banner.png"
+    AVATAR_SIZE = 100
+    PADDING = 20
+    TEXT_COLOR = (255, 255, 255, 255)
+
+    async def realm_name_autocomplete(
+        self, interaction: discord.Interaction, current: str
+    ) -> list[app_commands.Choice[str]]:
+        """
+        Autocomplete function to suggest realm names based on user input.
+        """
+        realm_names = [realm.realm_name for realm in database.RealmProfile.select()]
+        return [
+            app_commands.Choice(name=realm, value=realm)
+            for realm in realm_names
+            if current.lower() in realm.lower()
+        ]
+
+    RP = app_commands.Group(
+        name="realm-profile",
+        description="View/Configure your Realm Profile.",
+    )
+
+    @RP.command(description="View a Realm Profile")
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
+    async def view(self, interaction: discord.Interaction, realm_name: str = None):
+        """View the details of a Realm Profile."""
+        # Use the provided realm_name or default to the channel name
+        realm_name = realm_name if realm_name else interaction.channel.name
+
+        # Query the RealmProfile from the database
+        realm_profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
+
+        if realm_profile:
+            # Create an embed to display the profile information
+            embed = discord.Embed(
+                title=f"{realm_profile.emoji} {realm_profile.realm_name} - Realm Profile",
+                color=discord.Color.blue(),
+            )
+            embed.add_field(
+                name="Realm Name", value=realm_profile.realm_name, inline=False
+            )
+            embed.add_field(
+                name="Description", value=realm_profile.long_desc, inline=False
+            )
+            embed.add_field(
+                name="PvP",
+                value="Enabled" if realm_profile.pvp else "Disabled",
+                inline=True,
+            )
+            embed.add_field(
+                name="One Player Sleep",
+                value="Enabled" if realm_profile.percent_player_sleep else "Disabled",
+                inline=True,
+            )
+            embed.add_field(
+                name="World Age", value=realm_profile.world_age, inline=True
+            )
+            embed.add_field(
+                name="Realm Style", value=realm_profile.play_style, inline=True
+            )
+            embed.add_field(name="Game Mode", value=realm_profile.gamemode, inline=True)
+
+            await interaction.response.send_message(embed=embed)
+        else:
+            # Send a message if no profile was found for the specified realm
+            await interaction.response.send_message(
+                f"No profile found for realm '{realm_name}'", ephemeral=True
+            )
+
+    @RP.command(description="Configure a Realm Profile")
+    async def setup(
+        self,
+        interaction: Interaction,
+        realm_name: str,
+        realm_emoji: str,
+        pvp: bool,
+        percent_player_sleep: bool,
+        world_age: str,
+        play_style: str,
+        gamemode: str,
+    ):
+        """Configure your Realm Profile."""
+        try:
+            # Use the provided realm_name or default to the channel name
+            realm_name = realm_name if realm_name else interaction.channel.name
+
+            realm_profile, created = RealmProfile.get_or_create(
+                realm_name=realm_name,
+                defaults={
+                    "emoji": realm_emoji,
+                    "pvp": pvp,
+                    "percent_player_sleep": percent_player_sleep,
+                    "world_age": world_age,
+                    "play_style": play_style,
+                    "gamemode": gamemode,
+                },
+            )
+
+            if not created:
+                # Update the existing profile
+                realm_profile.emoji = realm_emoji
+                realm_profile.pvp = pvp
+                realm_profile.percent_player_sleep = percent_player_sleep
+                realm_profile.world_age = world_age
+                realm_profile.play_style = play_style
+                realm_profile.gamemode = gamemode
+                realm_profile.save()
+
+            embed = discord.Embed(
+                title="Realm Profile Configured",
+                description=f"{realm_emoji} {realm_name} has been successfully configured.",
+                color=discord.Color.green(),
+            )
+            embed.add_field(
+                name="PvP", value="Enabled" if pvp else "Disabled", inline=True
+            )
+            embed.add_field(
+                name="One Player Sleep",
+                value="Enabled" if percent_player_sleep else "Disabled",
+                inline=True,
+            )
+            embed.add_field(name="World Age", value=world_age, inline=True)
+            embed.add_field(name="Realm Style", value=play_style, inline=True)
+            embed.add_field(name="Game Mode", value=gamemode, inline=True)
+
+            await interaction.response.send_message(embed=embed)
+
+        except CheckFailure:
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "You do not own this realm channel or lack permissions.",
+                    ephemeral=True,
+                )
+
+    # Error handling to avoid responding multiple times
+    async def on_app_command_error(self, interaction: Interaction, error):
+        if isinstance(error, CheckFailure):
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "Check failed: You don't have permission to run this command.",
+                    ephemeral=True,
+                )
+        else:
+            if not interaction.response.is_done():
+                await interaction.response.send_message(
+                    "An error occurred while processing your command.", ephemeral=True
+                )
+
+        # ------------------View Realm Profile Card-------------------------------------------------------------------
+
+    @RP.command(
+        name="generate_realm_profile",
+        description="Generate a profile card for a Minecraft Realm.",
+    )
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
+    async def generate_realm_profile(
+        self, interaction: discord.Interaction, realm_name: str
+    ):
+        """
+        Slash command to generate a profile card for a realm.
+        """
+        try:
+            # Defer interaction response
+            await interaction.response.defer()
+
+            # Fetch the realm profile from the database
+            realm_profile = database.RealmProfile.get_or_none(
+                database.RealmProfile.realm_name == realm_name
+            )
+
+            if not realm_profile:
+                await interaction.followup.send(
+                    f"Invalid realm name. Please choose a valid realm.",
+                    ephemeral=True,
+                )
+                return
+
+            # Load the background image
+            background_image = Image.open(self.BACKGROUND_IMAGE_PATH).convert("RGBA")
+            image = background_image.copy()
+
+            # Load the banner image from the local path or use default
+            try:
+                banner_image = Image.open(realm_profile.banner_url).convert("RGBA")
+            except Exception as e:
+                _log.error(f"Error loading banner image: {e}")
+                banner_image = Image.open(self.BANNER_IMAGE_PATH).convert("RGBA")
+            banner_height = 260
+
+            # Create a new image to paste the banner behind the background
+            final_image = Image.new("RGBA", image.size, (0, 0, 0, 0))
+            final_image.paste(banner_image, (5, 5), banner_image)
+            final_image.paste(image, (0, 0), image)
+
+            # Draw on the image
+            draw = ImageDraw.Draw(final_image)
+            font = ImageFont.truetype(self.FONT_PATH, 60)  # Increased default font size
+
+            # Draw the Realm Logo (top of the image)
+            try:
+                realm_logo = (
+                    Image.open(realm_profile.logo_url)
+                    .convert("RGBA")
+                    .resize((200, 200))
+                )
+            except Exception as e:
+                _log.error(f"Error loading realm logo: {e}")
+                realm_logo = Image.new(
+                    "RGBA", (200, 200), (255, 0, 0, 255)
+                )  # Placeholder red box
+
+            logo_width, logo_height = realm_logo.size
+            final_image.paste(
+                realm_logo,
+                (self.PADDING + 25, 194),
+                realm_logo,
+            )
+
+            # Find Realm Name Box Size
+            box_x = 276
+            box_y = 236
+            box_x2 = 732
+            box_y2 = 408
+            box_width = box_x2 - box_x
+            box_height = box_y2 - box_y
+
+            # Adjust font size to fit the realm name within box_width and box_height
+            realm_name_font_size = 60
+            words = realm_name.split()
+            while (
+                font.getbbox(" ".join(words[:2]))[2] > box_width - 50
+                or len(words) > 2
+                and font.getbbox(" ".join(words[2:]))[3] * 2 > box_height
+                and realm_name_font_size > 10
+            ):
+                realm_name_font_size -= 2
+                font = ImageFont.truetype(self.FONT_PATH, realm_name_font_size)
+
+            # Wrap text after the second word
+            realm_name_lines = [" ".join(words[:2])]
+            if len(words) > 2:
+                realm_name_lines.append(" ".join(words[2:]))
+
+            # Calculate the total height of the text block
+            total_text_height = sum(
+                [font.getbbox(line)[3] + 5 for line in realm_name_lines]
+            )
+
+            # Adjust text_y to center the text vertically in the black rectangle
+            text_y = box_y + (box_height - total_text_height) // 2
+
+            # Draw the text centered in the black rectangle
+            for line in realm_name_lines:
+                text_width = font.getbbox(line)[2]
+                text_x = box_x + (box_width - text_width) // 2
+                draw.text(
+                    (text_x, text_y),
+                    line,
+                    font=font,
+                    fill=self.TEXT_COLOR,
+                )
+                text_y += font.getbbox(line)[3] + 5
+
+            # Save the image to a buffer
+            buffer_output = io.BytesIO()
+            final_image.save(buffer_output, format="PNG")
+            buffer_output.seek(0)
+
+            # Send the final image as a Discord message
+            await interaction.followup.send(
+                file=discord.File(buffer_output, "realm_profile_card.png")
+            )
+            _log.info(f"Successfully generated realm profile card for {realm_name}.")
+
+        except Exception as e:
+            _log.error(
+                f"Error during realm profile generation for {realm_name}: {e}",
+                exc_info=True,
+            )
+            await interaction.followup.send(
+                "An error occurred while generating the realm profile card.",
+                ephemeral=True,
+            )
+
+    def wrap_text(self, text, font, max_width):
+        """
+        Wrap text to fit within the max_width.
+        """
+        lines = []
+        words = text.split()
+        current_line = ""
+
+        for word in words:
+            test_line = f"{current_line} {word}" if current_line else word
+            if font.getbbox(test_line)[2] <= max_width:
+                current_line = test_line
+            else:
+                lines.append(current_line)
+                current_line = word
+
+        if current_line:
+            lines.append(current_line)
+
+        return lines
+
+    @RP.command(name="upload_logo", description="Upload a logo for your realm.")
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
+    async def upload_logo(
+        self, interaction: Interaction, realm_name: str, attachment: discord.Attachment
+    ):
+        """
+        Command for uploading a logo for a realm.
+        """
+        try:
+            if not attachment.content_type.startswith("image"):
+                await interaction.response.send_message(
+                    "Please upload a valid image.", ephemeral=True
+                )
+                return
+
+            # Ensure directory exists
+            os.makedirs("./core/images/realms/logos/", exist_ok=True)
+
+            file_path = f"./core/images/realms/logos/{realm_name}_logo.png"
+            await attachment.save(file_path)
+
+            # Update the realm profile with the new logo path
+            realm_profile = RealmProfile.get_or_none(
+                RealmProfile.realm_name == realm_name
+            )
+            if realm_profile:
+                realm_profile.logo_url = file_path
+                realm_profile.save()
+                await interaction.response.send_message(
+                    f"Logo uploaded successfully for {realm_name}.", ephemeral=True
+                )
+            else:
+                await interaction.response.send_message(
+                    f"Realm '{realm_name}' not found.", ephemeral=True
+                )
+
+        except Exception as e:
+            _log.error(
+                f"Error uploading logo for realm '{realm_name}': {e}", exc_info=True
+            )
+            await interaction.response.send_message(
+                "An error occurred while uploading the logo.", ephemeral=True
+            )
+
+    @RP.command(name="upload_banner", description="Upload a banner for your realm.")
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
+    async def upload_banner(
+        self, interaction: Interaction, realm_name: str, attachment: discord.Attachment
+    ):
+        """
+        Command for uploading a banner for a realm.
+        """
+        try:
+            if not attachment.content_type.startswith("image"):
+                await interaction.response.send_message(
+                    "Please upload a valid image.", ephemeral=True
+                )
+                return
+
+            # Ensure directory exists
+            os.makedirs("./core/images/realms/banners/", exist_ok=True)
+
+            file_path = f"./core/images/realms/banners/{realm_name}_banner.png"
+            await attachment.save(file_path)
+
+            # Update the realm profile with the new banner path
+            realm_profile = RealmProfile.get_or_none(
+                RealmProfile.realm_name == realm_name
+            )
+            if realm_profile:
+                realm_profile.banner_url = file_path
+                realm_profile.save()
+                await interaction.response.send_message(
+                    f"Banner uploaded successfully for {realm_name}.", ephemeral=True
+                )
+            else:
+                await interaction.response.send_message(
+                    f"Realm '{realm_name}' not found.", ephemeral=True
+                )
+
+        except Exception as e:
+            _log.error(
+                f"Error uploading banner for realm '{realm_name}': {e}", exc_info=True
+            )
+            await interaction.response.send_message(
+                "An error occurred while uploading the banner.", ephemeral=True
+            )
+
+
+async def setup(bot):
+    await bot.add_cog(RealmProfiles(bot))
