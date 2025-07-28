@@ -26,7 +26,7 @@ class DailyQuestionPoster(commands.Cog):
             hour = now.hour
             minute = now.minute
 
-            if 10 == hour and 0 <= minute <= 10:
+            if 10 == hour and 0 <= minute <= 59:
                 _log.info("⏰ Attempting 10:00 AM post.")
                 question_id = await send_daily_question(self.bot)
 
@@ -38,7 +38,7 @@ class DailyQuestionPoster(commands.Cog):
                         bot_data.save()
                         _log.info(f"✅ Saved last_question_posted for {guild.name}.")
 
-            elif 18 == hour and 0 <= minute <= 10:
+            elif 18 == hour and 0 <= minute <= 59:
                 _log.info("⏰ Attempting 6:00 PM repost.")
                 for guild in self.bot.guilds:
                     bot_data = get_bot_data_for_server(guild.id)
