@@ -101,7 +101,7 @@ class ChannelSelectDropdown(Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await self.callback(interaction, self.field_name, self.values[0])
+        await self.callback(interaction, {self.field_name: self.values[0]})
 
 
 # ---------- Multi-select Dropdown for Blocked Channels ---------- #
@@ -124,7 +124,7 @@ class MultiChannelSelectDropdown(Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await self.callback(interaction, self.field_name, list(self.values))
+        await self.callback(interaction, {self.field_name: self.values})
 
 
 # ---------- Dropdown for Role Selection ---------- #
@@ -143,7 +143,7 @@ class RoleSelectDropdown(Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await self.callback(interaction, self.field_name, self.values[0])
+        await self.callback(interaction, {self.field_name: self.values[0]})
 
 
 # ---------- Setting Button ---------- #
