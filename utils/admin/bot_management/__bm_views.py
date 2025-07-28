@@ -1,7 +1,6 @@
 import discord
 from discord.ui import View, Select, Button, Modal, TextInput
-from typing import Callable, List
-from utils.database import __database as database
+from typing import Callable
 
 
 # ---------- Base Section Select View ---------- #
@@ -56,7 +55,7 @@ class ConfigSectionButton(Button):
             )
         elif self.section == "log_channels":
             await interaction.response.send_message(
-                "📋 Edit Log Channels",
+                "🧾 Edit Log Channels",
                 view=LogChannelAssignmentView(self.bot_data, self.on_update),
                 ephemeral=True,
             )
@@ -64,86 +63,85 @@ class ConfigSectionButton(Button):
 
 # ---------- Modal for Text/Number/Boolean ---------- #
 class SingleValueInputModal(Modal):
-    def __init__(self, field_name: str, default: str, callback: Callable):
+    def __init__(self, field_name: str, default: str, on_update: Callable):
         super().__init__(title=f"Set {field_name.replace('_', ' ').title()}")
         self.field_name = field_name
-        self.callback = callback
+        self.on_update = on_update
 
         self.input = TextInput(
-            label="New Value",
-            default=default,
-            required=True,
-            max_length=300,
+            label="New Value", default=default, required=True, max_length=300
         )
         self.add_item(self.input)
 
     async def on_submit(self, interaction: discord.Interaction):
-        await self.callback(interaction, self.field_name, self.input.value)
+        await self.on_update(interaction, {self.field_name: self.input.value})
 
 
-# ---------- Dropdown for Channel Selection ---------- #
+# ---------- Channel Dropdown ---------- #
 class ChannelSelectDropdown(Select):
     def __init__(
-        self, field_name: str, channels: List[discord.TextChannel], callback: Callable
+        self, field_name: str, channels: list[discord.TextChannel], on_update: Callable
     ):
         self.field_name = field_name
-        self.callback = callback
+        self.on_update = on_update
+
         options = [
-            discord.SelectOption(label=ch.name, value=str(ch.id))
-            for ch in channels[:25]
+            discord.SelectOption(label=ch.name, value=str(ch.id)) for ch in channels
         ]
 
         super().__init__(
             placeholder="Choose a channel...",
-            options=options,
+            options=options[:25],
             min_values=1,
             max_values=1,
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await self.callback(interaction, {self.field_name: self.values[0]})
+        await self.on_update(interaction, {self.field_name: self.values[0]})
 
 
-# ---------- Multi-select Dropdown for Blocked Channels ---------- #
-class MultiChannelSelectDropdown(Select):
-    def __init__(
-        self, field_name: str, channels: List[discord.TextChannel], callback: Callable
-    ):
+# ---------- Role Dropdown ---------- #
+class RoleSelectDropdown(Select):
+    def __init__(self, field_name: str, roles: list[discord.Role], on_update: Callable):
         self.field_name = field_name
-        self.callback = callback
+        self.on_update = on_update
+
         options = [
-            discord.SelectOption(label=ch.name, value=str(ch.id))
-            for ch in channels[:25]
+            discord.SelectOption(label=role.name, value=str(role.id)) for role in roles
         ]
 
         super().__init__(
-            placeholder="Select one or more blocked channels...",
-            options=options,
+            placeholder="Choose a role...",
+            options=options[:25],
             min_values=1,
-            max_values=len(options),
+            max_values=1,
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await self.callback(interaction, {self.field_name: self.values})
+        await self.on_update(interaction, {self.field_name: self.values[0]})
 
 
-# ---------- Dropdown for Role Selection ---------- #
-class RoleSelectDropdown(Select):
-    def __init__(self, field_name: str, roles: List[discord.Role], callback: Callable):
+# ---------- Multi-Select for Blocked Channels ---------- #
+class MultiChannelSelectDropdown(Select):
+    def __init__(
+        self, field_name: str, channels: list[discord.TextChannel], on_update: Callable
+    ):
         self.field_name = field_name
-        self.callback = callback
+        self.on_update = on_update
+
         options = [
-            discord.SelectOption(label=role.name, value=str(role.id))
-            for role in sorted(roles, key=lambda r: r.position, reverse=True)
-            if not role.is_default()
-        ][:25]
+            discord.SelectOption(label=ch.name, value=str(ch.id)) for ch in channels
+        ]
 
         super().__init__(
-            placeholder="Choose a role...", options=options, min_values=1, max_values=1
+            placeholder="Select blocked channels...",
+            options=options[:25],
+            min_values=0,
+            max_values=min(25, len(options)),
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await self.callback(interaction, {self.field_name: self.values[0]})
+        await self.on_update(interaction, {self.field_name: list(self.values)})
 
 
 # ---------- Setting Button ---------- #
@@ -157,48 +155,40 @@ class SettingButton(Button):
         on_update: Callable,
     ):
         super().__init__(label=label, style=discord.ButtonStyle.secondary)
-        self.label = label
         self.field_name = field_name
         self.is_channel = is_channel
         self.bot_data = bot_data
         self.on_update = on_update
 
     async def callback(self, interaction: discord.Interaction):
-        # Special case: role picker
         if self.field_name == "admin_role":
-            roles = [role for role in interaction.guild.roles if not role.is_default()]
+            roles = interaction.guild.roles
             view = View()
             view.add_item(RoleSelectDropdown(self.field_name, roles, self.on_update))
             await interaction.response.send_message(
-                f"Select a role for **{self.label}**:",
-                ephemeral=True,
-                view=view,
+                f"Select a role for **{self.label}**:", view=view, ephemeral=True
             )
-        # Special case: blocked channel multi-select
+
         elif self.field_name == "blocked_channels":
-            channels = [ch for ch in interaction.guild.text_channels]
+            channels = interaction.guild.text_channels
             view = View()
             view.add_item(
                 MultiChannelSelectDropdown(self.field_name, channels, self.on_update)
             )
             await interaction.response.send_message(
-                f"Select blocked channels:",
-                ephemeral=True,
-                view=view,
+                "Select blocked channels:", view=view, ephemeral=True
             )
-        # Regular channel select
+
         elif self.is_channel:
-            channels = [ch for ch in interaction.guild.text_channels]
+            channels = interaction.guild.text_channels
             view = View()
             view.add_item(
                 ChannelSelectDropdown(self.field_name, channels, self.on_update)
             )
             await interaction.response.send_message(
-                f"Select a new channel for **{self.label}**:",
-                ephemeral=True,
-                view=view,
+                f"Select a new channel for **{self.label}**:", view=view, ephemeral=True
             )
-        # Fallback to text modal
+
         else:
             await interaction.response.send_modal(
                 SingleValueInputModal(
@@ -213,9 +203,6 @@ class SettingButton(Button):
 class WelcomeRulesView(View):
     def __init__(self, bot_data: dict, on_update: Callable):
         super().__init__(timeout=180)
-        self.bot_data = bot_data
-        self.on_update = on_update
-
         self.add_item(
             SettingButton("Server Name", "server_name", False, bot_data, on_update)
         )
@@ -260,9 +247,6 @@ class WelcomeRulesView(View):
 class BotSettingsView(View):
     def __init__(self, bot_data: dict, on_update: Callable):
         super().__init__(timeout=180)
-        self.bot_data = bot_data
-        self.on_update = on_update
-
         self.add_item(SettingButton("Prefix", "prefix", False, bot_data, on_update))
         self.add_item(
             SettingButton("Admin Role ID", "admin_role", False, bot_data, on_update)
@@ -299,74 +283,44 @@ class BotSettingsView(View):
 class ChannelAssignmentView(View):
     def __init__(self, bot_data: dict, on_update: Callable):
         super().__init__(timeout=180)
-        self.bot_data = bot_data
-        self.on_update = on_update
-
         self.add_item(
             SettingButton(
-                "Banned List Channel",
-                "bannedlist_response_channel",
-                True,
-                bot_data,
-                on_update,
+                "Banned List", "bannedlist_response_channel", True, bot_data, on_update
             )
         )
         self.add_item(
             SettingButton(
-                "Daily Question Channel",
-                "daily_question_channel",
-                True,
-                bot_data,
-                on_update,
+                "Daily Question", "daily_question_channel", True, bot_data, on_update
             )
         )
         self.add_item(
             SettingButton(
-                "Suggestions Channel",
-                "question_suggest_channel",
-                True,
-                bot_data,
-                on_update,
+                "Suggestions", "question_suggest_channel", True, bot_data, on_update
             )
+        )
+        self.add_item(
+            SettingButton("Bot Spam", "bot_spam_channel", True, bot_data, on_update)
         )
         self.add_item(
             SettingButton(
-                "Bot Spam Channel", "bot_spam_channel", True, bot_data, on_update
+                "Realm Response", "realm_channel_response", True, bot_data, on_update
             )
         )
         self.add_item(
-            SettingButton(
-                "Realm Response Channel",
-                "realm_channel_response",
-                True,
-                bot_data,
-                on_update,
-            )
+            SettingButton("General", "general_channel", True, bot_data, on_update)
         )
-        self.add_item(
-            SettingButton(
-                "General Channel", "general_channel", True, bot_data, on_update
-            )
-        )
-        self.add_item(
-            SettingButton("Mod Channel", "mod_channel", True, bot_data, on_update)
-        )
+        self.add_item(SettingButton("Mod", "mod_channel", True, bot_data, on_update))
 
 
 class LogChannelAssignmentView(View):
     def __init__(self, bot_data: dict, on_update: Callable):
         super().__init__(timeout=180)
-        self.bot_data = bot_data
-        self.on_update = on_update
-
         self.add_item(
-            SettingButton(
-                "Message Log Channel", "message_log", True, bot_data, on_update
-            )
+            SettingButton("Message Log", "message_log", True, bot_data, on_update)
         )
         self.add_item(
-            SettingButton("Member Log Channel", "member_log", True, bot_data, on_update)
+            SettingButton("Member Log", "member_log", True, bot_data, on_update)
         )
         self.add_item(
-            SettingButton("Server Log Channel", "server_log", True, bot_data, on_update)
+            SettingButton("Server Log", "server_log", True, bot_data, on_update)
         )
