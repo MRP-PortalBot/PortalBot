@@ -141,7 +141,9 @@ class SingleSelectDropdown(Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)  # <--- ADD THIS
         await self._wrapped_callback(interaction)
+
 
 
 class MultiSelectDropdown(Select):
@@ -159,7 +161,9 @@ class MultiSelectDropdown(Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)  # <--- ADD THIS
         await self._wrapped_callback(interaction)
+
 
 
 # ---------- Buttons ---------- #
