@@ -4,8 +4,110 @@ import discord
 from discord import ui
 from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
+from typing import Callable, Optional
 
 _log = get_log(__name__)
+
+
+# ──────────────── NEW: Daily QOD Manager Interface ──────────────── #
+class DailyQuestionActionView(discord.ui.View):
+    def __init__(
+        self, callback_provider: Callable[[str], Callable], timeout: Optional[int] = 180
+    ):
+        super().__init__(timeout=timeout)
+        self.callback_provider = callback_provider
+
+        self.add_item(DQButton("📤 Post Question", "post"))
+        self.add_item(DQButton("♻️ Repost Last", "repost"))
+        self.add_item(DQButton("🆕 Add", "new"))
+        self.add_item(DQButton("✏️ Modify", "modify"))
+        self.add_item(DQButton("🗑️ Delete", "delete"))
+        self.add_item(DQButton("📋 List", "list"))
+        self.add_item(DQButton("🧪 Reset Usage", "reset-usage"))
+        self.add_item(DQButton("🔁 Toggle QOD", "toggle"))
+        self.add_item(DQButton("💡 Suggest", "suggest"))
+
+
+class DQButton(discord.ui.Button):
+    def __init__(self, label: str, action: str):
+        super().__init__(label=label, style=discord.ButtonStyle.primary)
+        self.action = action
+
+    async def callback(self, interaction: discord.Interaction):
+        view: DailyQuestionActionView = self.view  # type: ignore
+        callback_func = view.callback_provider(self.action)
+
+        if self.action == "new":
+            await interaction.response.send_modal(
+                QuestionInputModal(
+                    "Add New Question", "Question Text", callback=callback_func
+                )
+            )
+        elif self.action == "modify":
+            await interaction.response.send_modal(
+                IDAndQuestionInputModal(callback=callback_func)
+            )
+        elif self.action in {"delete", "post"}:
+            await interaction.response.send_modal(
+                QuestionIDInputModal(
+                    "Enter Question ID", "Question ID", callback=callback_func
+                )
+            )
+        elif self.action == "suggest":
+            await callback_func(interaction)
+        else:
+            await callback_func(interaction)
+
+
+class QuestionInputModal(discord.ui.Modal):
+    def __init__(
+        self, title: str, label: str, default: str = "", callback: Callable = None
+    ):
+        super().__init__(title=title)
+        self.callback_func = callback
+        self.input = ui.TextInput(
+            label=label, default=default, max_length=400, required=True
+        )
+        self.add_item(self.input)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        if self.callback_func:
+            await self.callback_func(interaction, self.input.value)
+
+
+class IDAndQuestionInputModal(discord.ui.Modal):
+    def __init__(self, callback: Callable):
+        super().__init__(title="Modify Question")
+        self.callback_func = callback
+
+        self.id_input = ui.TextInput(
+            label="Question ID", placeholder="e.g., 5", required=True
+        )
+        self.question_input = ui.TextInput(
+            label="New Question Text", style=discord.TextStyle.paragraph, required=True
+        )
+
+        self.add_item(self.id_input)
+        self.add_item(self.question_input)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await self.callback_func(
+            interaction, self.id_input.value, self.question_input.value
+        )
+
+
+class QuestionIDInputModal(discord.ui.Modal):
+    def __init__(self, title: str, label: str, callback: Callable):
+        super().__init__(title=title)
+        self.callback_func = callback
+        self.id_input = ui.TextInput(label=label, placeholder="e.g., 5", required=True)
+        self.add_item(self.id_input)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await self.callback_func(interaction, self.id_input.value)
+
+
+# ──────────────── EXISTING COMPONENTS: UNCHANGED ──────────────── #
 
 
 class QuestionVoteView(discord.ui.View):
@@ -34,7 +136,6 @@ class QuestionVoteView(discord.ui.View):
         self.downvote_button.callback = self.handle_downvote
         self.add_item(self.downvote_button)
 
-        # Suggest a Question Button
         self.suggest_button = discord.ui.Button(
             label="Suggest a Question!",
             style=discord.ButtonStyle.blurple,
@@ -166,7 +267,6 @@ class QuestionSuggestionManager(discord.ui.View):
             await interaction.message.edit(
                 embed=embed, view=DisabledQuestionSuggestionManager()
             )
-
             await interaction.response.send_message("Added.", ephemeral=True)
         except Exception as e:
             _log.exception("Error adding suggested question: %s", e)
@@ -198,7 +298,6 @@ class QuestionSuggestionManager(discord.ui.View):
             await interaction.message.edit(
                 embed=embed, view=DisabledQuestionSuggestionManager()
             )
-
             await interaction.response.send_message("Discarded.", ephemeral=True)
         except Exception as e:
             _log.exception("Error discarding question: %s", e)
