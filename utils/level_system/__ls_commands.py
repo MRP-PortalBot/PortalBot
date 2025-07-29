@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+import asyncio
 from utils.database import __database as database
 from utils.admin.admin_core.__admin_commands import has_admin_level
 from utils.admin.bot_management.__bm_logic import config
@@ -13,6 +14,7 @@ from .__ls_logic import (
     sync_tatsu_score_for_user,
     calculate_level,
     get_role_for_level,
+    get_tatsu_score,
 )
 
 from .__ls_views import LeaderboardView  # Add this import at the top
@@ -65,7 +67,7 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
         description="Sync scores from Tatsu for all users (MRP guild only).",
     )
     async def sync_tatsu_scores(self, interaction: discord.Interaction):
-        """Fetches current Tatsu XP and updates local ServerScores for all users."""
+        """Fetch and update Tatsu XP only for users with outdated scores."""
         await interaction.response.defer(ephemeral=True)
 
         MRPguild_id = config.get("MRP")
@@ -77,18 +79,59 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
 
         members = [m for m in interaction.guild.members if not m.bot]
         _log.info(
-            f"Starting Tatsu sync for {len(members)} members in {interaction.guild.name}"
+            f"Starting Tatsu sync (only outdated) for {len(members)} members in {interaction.guild.name}"
         )
 
-        for member in members:
-            await sync_tatsu_score_for_user(
-                self.bot,
-                guild_id=member.guild.id,
-                user_id=member.id,
-                user_name=member.name,
-            )
+        updated = 0
+        skipped = 0
+        failed = 0
 
-        await interaction.followup.send("✅ Tatsu scores updated.", ephemeral=True)
+        for index, member in enumerate(members, start=1):
+            try:
+                # Get local XP
+                local_entry = database.ServerScore.get_or_none(
+                    (database.ServerScore.server_id == str(interaction.guild.id))
+                    & (database.ServerScore.user_id == str(member.id))
+                )
+                local_xp = (
+                    int(local_entry.tatsu_xp)
+                    if local_entry and local_entry.tatsu_xp
+                    else 0
+                )
+
+                # Get current Tatsu XP via API
+                tatsu_data = await get_tatsu_score(member.id, interaction.guild.id)
+                if tatsu_data is None:
+                    failed += 1
+                    continue
+
+                current_xp = tatsu_data["score"]
+
+                # Compare and update if different
+                if current_xp != local_xp:
+                    await sync_tatsu_score_for_user(
+                        self.bot,
+                        guild_id=member.guild.id,
+                        user_id=member.id,
+                        user_name=member.name,
+                    )
+                    updated += 1
+                else:
+                    skipped += 1
+
+            except Exception as e:
+                _log.warning(f"Tatsu sync failed for {member.name}: {e}", exc_info=True)
+                failed += 1
+
+            await asyncio.sleep(1.2)  # Respect rate limits
+
+            if index % 10 == 0:
+                _log.info(f"Tatsu sync progress: {index}/{len(members)}")
+
+        await interaction.followup.send(
+            f"✅ Tatsu sync completed.\nUpdated: **{updated}**\nSkipped (already up to date): **{skipped}**\nFailed: **{failed}**",
+            ephemeral=True,
+        )
 
     @app_commands.command(
         name="leaderboard",

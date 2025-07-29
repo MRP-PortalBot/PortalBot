@@ -1,4 +1,7 @@
-# utils/level_system/__ls_logic.py
+# utils/leveled_roles/__lr_logic.py
+
+import aiohttp
+from utils.core_features.__constants import TATSU_API_KEY
 
 import os
 import discord
@@ -124,39 +127,66 @@ async def create_and_order_roles(guild: discord.Guild):
 
     # Reorder roles
     sorted_roles = sorted(created_roles, key=lambda r: r[1])
-    await guild.edit_role_positions(positions={r: i+1 for i, (r, _) in enumerate(sorted_roles)})
+    await guild.edit_role_positions(
+        positions={r: i + 1 for i, (r, _) in enumerate(sorted_roles)}
+    )
 
     _log.info(f"Leveled roles created and ordered in {guild.name}.")
 
 
 async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name: str):
-    try:
-        result = await wrapper.get_member_ranking(guild_id, user_id)
-        user_score = result.score
+    """
+    Syncs a user's Tatsu XP and level from the API and updates their ServerScore entry
+    if the values have changed.
+    """
+    stats = await get_tatsu_score(user_id, guild_id)
+    if not stats:
+        return  # API failed or user not found
 
-        entry = database.ServerScores.get_or_none(
-            (database.ServerScores.DiscordLongID == str(user_id)) &
-            (database.ServerScores.ServerID == str(guild_id))
+    score = stats["score"]
+    level = stats["level"]
+
+    existing = database.ServerScore.get_or_none(
+        (database.ServerScore.server_id == str(guild_id))
+        & (database.ServerScore.user_id == str(user_id))
+    )
+
+    if existing:
+        # Skip update if the score is unchanged
+        if existing.total_xp == score:
+            return
+
+        existing.total_xp = score
+        existing.level = level
+        existing.username = user_name
+        existing.save()
+    else:
+        database.ServerScore.create(
+            server_id=str(guild_id),
+            user_id=str(user_id),
+            username=user_name,
+            total_xp=score,
+            level=level,
         )
 
-        if entry:
-            entry.Score = user_score
-            entry.DiscordName = user_name
-            entry.save()
-            _log.info(f"Updated Tatsu score for {user_name} ({user_score})")
-        else:
-            level, progress, next_score = calculate_level(user_score)
-            database.ServerScores.create(
-                DiscordName=user_name,
-                DiscordLongID=str(user_id),
-                ServerID=str(guild_id),
-                Score=user_score,
-                Level=level,
-                Progress=next_score
-            )
-            _log.info(f"Created new Tatsu entry for {user_name} (Level {level})")
+
+# utils/leveled_roles/__lr_logic.py
+
+
+async def get_tatsu_score(user_id: int, guild_id: int) -> dict | None:
+    """
+    Fetch Tatsu XP and level for a specific user from the Tatsu API.
+    Returns a dictionary with 'score' and 'level', or None if the request fails.
+    """
+    try:
+        stats = await wrapper.get_user_stats(str(user_id), str(guild_id))
+        return {
+            "score": stats.get("score", 0),
+            "level": stats.get("level", 0),
+        }
     except Exception as e:
-        _log.error(f"Error syncing Tatsu score for {user_id}: {e}", exc_info=True)
+        _log.warning(f"Failed to fetch Tatsu stats for {user_id}: {e}")
+        return None
 
 
 async def get_role_for_level(level: int, guild: discord.Guild) -> discord.Role | None:
@@ -170,4 +200,3 @@ async def get_role_for_level(level: int, guild: discord.Guild) -> discord.Role |
     except Exception as e:
         _log.error(f"Error retrieving role for level {level}: {e}")
     return None
-
