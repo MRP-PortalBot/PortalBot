@@ -172,20 +172,13 @@ async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name:
 # utils/leveled_roles/__lr_logic.py
 
 
-async def get_tatsu_score(user_id: int, guild_id: int) -> dict | None:
-    """
-    Fetch Tatsu XP and level for a specific user from the Tatsu API.
-    Returns a dictionary with 'score' and 'level', or None if the request fails.
-    """
+async def get_tatsu_score(user_id: int, server_id: int) -> int:
     try:
-        stats = await wrapper.get_user_stats(str(user_id), str(guild_id))
-        return {
-            "score": stats.get("score", 0),
-            "level": stats.get("level", 0),
-        }
+        result = await wrapper.get_member_ranking(server_id, user_id)
+        return result.get("score", 0)
     except Exception as e:
-        _log.warning(f"Failed to fetch Tatsu stats for {user_id}: {e}")
-        return None
+        _log.warning(f"Failed to fetch Tatsu stats for {user_id} in {server_id}: {e}")
+        return 0
 
 
 async def get_role_for_level(level: int, guild: discord.Guild) -> discord.Role | None:
