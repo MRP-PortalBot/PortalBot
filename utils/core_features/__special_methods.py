@@ -170,28 +170,13 @@ def initialize_db(bot):
             database.db.close()
 
 
-def _create_bot_data(server_name, server_id, initial_channel_id):
-    if initial_channel_id is None:
-        _log.warning(
-            f"No initial channel found for server {server_id}, skipping creation."
-        )
-        return
+def _create_bot_data(server_name, server_id):
     database.BotData.create(
         server_name=server_name,
         server_desc="",
         server_id=server_id,
         prefix=">",
         persistent_views=False,
-        bannedlist_response_channel=initial_channel_id,
-        question_suggest_channel=initial_channel_id,
-        bot_spam_channel=initial_channel_id,
-        realm_channel_response=initial_channel_id,
-        daily_question_enabled=True,
-        last_question_posted=None,
-        last_question_posted_time=None,
-        daily_question_channel=initial_channel_id,
-        welcome_channel=initial_channel_id,
-        mod_log_channel=initial_channel_id,
         pb_test_server_id=448488274562908170,
     )
 
