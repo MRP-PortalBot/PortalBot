@@ -132,11 +132,17 @@ async def create_and_order_roles(guild: discord.Guild):
 
     _log.info(f"Leveled roles created and ordered in {guild.name}.")
 
+
 async def get_tatsu_score(user_id: int, server_id: int):
     try:
-        return await wrapper.get_member_ranking(server_id, user_id)
+        result = await wrapper.get_member_ranking(server_id, user_id)
+        _log.debug(f"Fetching Tatsu score for user {user_id} in server {server_id}. Score is:{result.score}")
+        return result
     except Exception as e:
-        _log.warning(f"Failed to fetch Tatsu stats for {user_id} in {server_id}: {e}")
+        _log.warning(
+            f"Failed to fetch Tatsu stats for {user_id} in {server_id}: {e}",
+            exc_info=True,
+        )
         return None
 
 
@@ -149,18 +155,18 @@ async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name:
         return
 
     score = stats.score
-    level = stats.level
 
     entry = database.ServerScores.get_or_none(
-        (database.ServerScores.ServerID == str(guild_id)) &
-        (database.ServerScores.DiscordLongID == str(user_id))
+        (database.ServerScores.ServerID == str(guild_id))
+        & (database.ServerScores.DiscordLongID == str(user_id))
     )
 
     if entry:
-        if str(entry.TatsuXP) == str(score):
+        if str(entry.Score) == str(score):
+            entry.TatsuXP = score
             return  # No update needed
+        entry.Score = score
         entry.TatsuXP = score
-        entry.Level = level
         entry.DiscordName = user_name
         entry.save()
     else:
@@ -168,9 +174,10 @@ async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name:
             ServerID=str(guild_id),
             DiscordLongID=str(user_id),
             DiscordName=user_name,
+            Score=score,
             TatsuXP=score,
-            Level=level,
         )
+
 
 async def get_role_for_level(level: int, guild: discord.Guild) -> discord.Role | None:
     try:
