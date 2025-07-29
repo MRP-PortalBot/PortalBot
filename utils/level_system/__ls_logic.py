@@ -1,7 +1,6 @@
 # utils/leveled_roles/__lr_logic.py
 
 import aiohttp
-from utils.core_features.__constants import TATSU_API_KEY
 
 import os
 import discord
