@@ -96,7 +96,7 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
                 local_xp = int(local_entry.TatsuXP) if local_entry else 0
 
                 # Get current Tatsu XP via API
-                current_xp = await get_tatsu_score(member.id)
+                current_xp = await get_tatsu_score(member.id, member.guild.id)
 
                 # Compare and update if different
                 if current_xp != local_xp:
