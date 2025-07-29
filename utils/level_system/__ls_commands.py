@@ -2,7 +2,7 @@
 
 import discord
 from discord.ext import commands
-from discord import app_commands
+from discord import app_commands, Embed, Color, File
 
 import asyncio
 from utils.database import __database as database
@@ -299,6 +299,42 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
         await interaction.followup.send(
             f"✅ Audit complete. {updated_count} member(s) had level roles fixed."
         )
+
+
+    @app_commands.command(name="list_roles", description="List level-up reward roles for this server.")
+    async def list_roles(self, interaction: discord.Interaction):
+        roles = (
+            database.LeveledRoles.select()
+            .where(database.LeveledRoles.ServerID == str(interaction.guild.id))
+            .order_by(database.LeveledRoles.LevelThreshold)
+        )
+
+        if not roles:
+            await interaction.response.send_message("⚠️ No leveled roles configured for this server.", ephemeral=True)
+            return
+
+        embed = Embed(
+            title="🪙 **Activity Role Rewards for Minecraft Realm Portal**",
+            description="Chat to earn 🗨️ Server Score to be awarded with these roles!",
+            color=Color.dark_purple()
+        )
+
+        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/788873229136560140/1169441679121576067/nether-portal.png")  # Replace with actual portal image
+
+        description_lines = []
+        for i, role_entry in enumerate(roles, start=1):
+            role = interaction.guild.get_role(int(role_entry.RoleID))
+            if not role:
+                name = "@unknown-role"
+            else:
+                name = role.mention
+
+            description_lines.append(f"**[{i}]** {name} ({role_entry.LevelThreshold:,})")
+
+        # Group by 10 per "column" block visually, if you want to split sections:
+        embed.description += "\n" + "\n".join(description_lines)
+
+        await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot: commands.Bot):
