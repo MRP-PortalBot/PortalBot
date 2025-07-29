@@ -93,11 +93,16 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
                     (database.ServerScores.ServerID == str(interaction.guild.id))
                     & (database.ServerScores.DiscordLongID == str(member.id))
                 )
-                local_xp = int(local_entry.TatsuXP) if local_entry and local_entry.TatsuXP else 0
+                local_xp = (
+                    int(local_entry.Score) if local_entry and local_entry.Score else 0
+                )
 
                 # Get current Tatsu XP via API
                 result = await get_tatsu_score(member.id, member.guild.id)
                 current_xp = int(result.score) if result else 0
+                _log.debug(
+                    f"Fetching Tatsu score for user {result.user_id} in server {local_entry.ServerID}.Tatsu Score is:{current_xp}, Portalbot scor is:{local_xp}"
+                )
 
                 # Compare and update if different
                 if current_xp != local_xp:
@@ -124,7 +129,6 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
             f"✅ Tatsu sync completed.\nUpdated: **{updated}**\nSkipped (already up to date): **{skipped}**\nFailed: **{failed}**",
             ephemeral=True,
         )
-
 
     @app_commands.command(
         name="leaderboard",

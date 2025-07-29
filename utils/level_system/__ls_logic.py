@@ -137,9 +137,6 @@ async def create_and_order_roles(guild: discord.Guild):
 async def get_tatsu_score(user_id: int, server_id: int):
     try:
         result = await wrapper.get_member_ranking(server_id, user_id)
-        _log.debug(
-            f"Fetching Tatsu score for user {user_id} in server {server_id}. Score is:{result.score}"
-        )
         return result
     except Exception as e:
         _log.warning(
