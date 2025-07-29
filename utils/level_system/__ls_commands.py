@@ -248,7 +248,7 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
                 continue
 
             # ✅ Ensure level is correct
-            new_level, progress = calculate_level(score.Score)
+            new_level, progress, next_level_score = calculate_level(score.Score)
             if score.Level != new_level or score.Progress != progress:
                 score.Level = new_level
                 score.Progress = progress
@@ -262,7 +262,9 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
 
             # Remove incorrect roles
             to_remove = [
-                r for r in current_roles if correct_role is None or r.id != correct_role.id
+                r
+                for r in current_roles
+                if correct_role is None or r.id != correct_role.id
             ]
             if to_remove:
                 await member.remove_roles(*to_remove)
@@ -292,7 +294,6 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
                     await log_channel.send(embed=embed)
                 except discord.Forbidden:
                     _log.warning(f"Cannot send audit log to #{log_channel.name}")
-
 
         await interaction.followup.send(
             f"✅ Audit complete. {updated_count} member(s) had level roles fixed."
