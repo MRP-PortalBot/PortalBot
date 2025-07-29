@@ -321,6 +321,8 @@ class ServerScores(BaseModel):
     Level = IntegerField(default=0)  # Current level of the user
     Progress = IntegerField(default=0)  # Progress toward the next level
     LastMessageTimestamp = DateTimeField(default=0)  # Unix timestamp of last message
+    TatsuXP = IntegerField(default=0)  # XP from Tatsu API
+
 
 
 class LeveledRoles(BaseModel):

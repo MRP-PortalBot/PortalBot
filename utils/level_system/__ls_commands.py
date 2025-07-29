@@ -88,24 +88,15 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
 
         for index, member in enumerate(members, start=1):
             try:
-                # Get local XP
+                # Get local XP from ServerScores
                 local_entry = database.ServerScores.get_or_none(
-                    (database.ServerScores.server_id == str(interaction.guild.id))
-                    & (database.ServerScores.user_id == str(member.id))
+                    (database.ServerScores.ServerID == str(interaction.guild.id))
+                    & (database.ServerScores.DiscordLongID == str(member.id))
                 )
-                local_xp = (
-                    int(local_entry.tatsu_xp)
-                    if local_entry and local_entry.tatsu_xp
-                    else 0
-                )
+                local_xp = int(local_entry.TatsuXP) if local_entry else 0
 
                 # Get current Tatsu XP via API
-                tatsu_data = await get_tatsu_score(member.id, interaction.guild.id)
-                if tatsu_data is None:
-                    failed += 1
-                    continue
-
-                current_xp = tatsu_data["score"]
+                current_xp = await get_tatsu_score(member.id)
 
                 # Compare and update if different
                 if current_xp != local_xp:
@@ -123,7 +114,7 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
                 _log.warning(f"Tatsu sync failed for {member.name}: {e}", exc_info=True)
                 failed += 1
 
-            await asyncio.sleep(1.2)  # Respect rate limits
+            await asyncio.sleep(1.2)  # Respect Tatsu API rate limits
 
             if index % 10 == 0:
                 _log.info(f"Tatsu sync progress: {index}/{len(members)}")
