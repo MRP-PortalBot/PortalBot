@@ -191,3 +191,7 @@ async def get_role_for_level(level: int, guild: discord.Guild) -> discord.Role |
     except Exception as e:
         _log.error(f"Error retrieving role for level {level}: {e}")
     return None
+
+
+def score_required_for_level(level: int) -> int:
+        return (level ** 2) * 100

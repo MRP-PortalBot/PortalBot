@@ -15,6 +15,7 @@ from .__ls_logic import (
     calculate_level,
     get_role_for_level,
     get_tatsu_score,
+    score_required_for_level,
 )
 
 from .__ls_views import LeaderboardView  # Add this import at the top
@@ -300,41 +301,48 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
             f"✅ Audit complete. {updated_count} member(s) had level roles fixed."
         )
 
-
-    @app_commands.command(name="list_roles", description="List level-up reward roles for this server.")
+    @app_commands.command(
+        name="list_roles", description="List the level-based roles for this server."
+    )
     async def list_roles(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=False)
+
         roles = (
             database.LeveledRoles.select()
             .where(database.LeveledRoles.ServerID == str(interaction.guild.id))
-            .order_by(database.LeveledRoles.LevelThreshold)
+            .order_by(database.LeveledRoles.LevelThreshold.asc())
         )
 
         if not roles:
-            await interaction.response.send_message("⚠️ No leveled roles configured for this server.", ephemeral=True)
+            await interaction.followup.send(
+                "⚠️ No level roles are configured for this server."
+            )
             return
 
-        embed = Embed(
-            title="🪙 **Activity Role Rewards for Minecraft Realm Portal**",
-            description="Chat to earn 🗨️ Server Score to be awarded with these roles!",
-            color=Color.dark_purple()
+        embed = discord.Embed(
+            title="🏅 Activity Role Rewards for Minecraft Realm Portal",
+            description="Chat to earn 💬 Server Score to be awarded with these roles!",
+            color=discord.Color.gold(),
+        )
+        embed.set_thumbnail(
+            url=(
+                interaction.guild.icon.url
+                if interaction.guild.icon
+                else discord.Embed.Empty
+            )
         )
 
-        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/788873229136560140/1169441679121576067/nether-portal.png")  # Replace with actual portal image
-
-        description_lines = []
+        lines = []
         for i, role_entry in enumerate(roles, start=1):
+            level = int(role_entry.LevelThreshold)
+            score = score_required_for_level(level)
             role = interaction.guild.get_role(int(role_entry.RoleID))
-            if not role:
-                name = "@unknown-role"
-            else:
-                name = role.mention
+            if role:
+                lines.append(f"[{level}] {role.mention} ({score})")
 
-            description_lines.append(f"**[{i}]** {name} ({role_entry.LevelThreshold:,})")
+        embed.description += "\n" + "\n".join(lines)
 
-        # Group by 10 per "column" block visually, if you want to split sections:
-        embed.description += "\n" + "\n".join(description_lines)
-
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
 
 async def setup(bot: commands.Bot):

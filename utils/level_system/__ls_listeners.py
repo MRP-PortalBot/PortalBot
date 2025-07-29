@@ -17,8 +17,7 @@ class LevelSystemListener(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-
-"""   @commands.Cog.listener()
+    @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.bot or message.guild is None:
             return
@@ -149,7 +148,7 @@ class LevelSystemListener(commands.Cog):
 
         finally:
             if not database.db.is_closed():
-                database.db.close()"""
+                database.db.close()
 
 
 async def setup(bot: commands.Bot):
