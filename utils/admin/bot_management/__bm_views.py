@@ -1,6 +1,7 @@
 import discord
 from discord.ui import View, Select, Button, Modal, TextInput
 from typing import Callable, Optional
+import json
 
 
 # ---------- Section Select View ---------- #
@@ -145,24 +146,25 @@ class SingleSelectDropdown(Select):
         await self._wrapped_callback(interaction)
 
 
-
 class MultiSelectDropdown(Select):
     def __init__(self, field_name: str, options: list, callback: Callable):
         self.field_name = field_name
-        self._wrapped_callback = lambda i: callback(i, self.field_name, self.values)
+        self._original_callback = callback
 
         super().__init__(
             placeholder="Select multiple...",
-            options=[
-                discord.SelectOption(label=o.name, value=str(o.id)) for o in options
-            ],
+            options=[discord.SelectOption(label=o.name, value=str(o.id)) for o in options],
             min_values=0,
             max_values=min(25, len(options)),
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)  # <--- ADD THIS
-        await self._wrapped_callback(interaction)
+        await interaction.response.defer(ephemeral=True)
+
+        # Convert self.values (a list of strings) to proper JSON
+        json_values = json.dumps(self.values)  # ensures double quotes
+        await self._original_callback(interaction, self.field_name, json_values)
+
 
 
 
