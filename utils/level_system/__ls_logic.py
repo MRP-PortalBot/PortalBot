@@ -175,7 +175,7 @@ async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name:
 async def get_tatsu_score(user_id: int, server_id: int) -> int:
     try:
         result = await wrapper.get_member_ranking(server_id, user_id)
-        return result.get("score", 0)
+        return result.score
     except Exception as e:
         _log.warning(f"Failed to fetch Tatsu stats for {user_id} in {server_id}: {e}")
         return 0
