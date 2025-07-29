@@ -89,9 +89,9 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
         for index, member in enumerate(members, start=1):
             try:
                 # Get local XP
-                local_entry = database.ServerScore.get_or_none(
-                    (database.ServerScore.server_id == str(interaction.guild.id))
-                    & (database.ServerScore.user_id == str(member.id))
+                local_entry = database.ServerScores.get_or_none(
+                    (database.ServerScores.server_id == str(interaction.guild.id))
+                    & (database.ServerScores.user_id == str(member.id))
                 )
                 local_xp = (
                     int(local_entry.tatsu_xp)

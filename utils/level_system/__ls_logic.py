@@ -145,9 +145,9 @@ async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name:
     score = stats["score"]
     level = stats["level"]
 
-    existing = database.ServerScore.get_or_none(
-        (database.ServerScore.server_id == str(guild_id))
-        & (database.ServerScore.user_id == str(user_id))
+    existing = database.ServerScores.get_or_none(
+        (database.ServerScores.server_id == str(guild_id))
+        & (database.ServerScores.user_id == str(user_id))
     )
 
     if existing:
@@ -160,7 +160,7 @@ async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name:
         existing.username = user_name
         existing.save()
     else:
-        database.ServerScore.create(
+        database.ServerScores.create(
             server_id=str(guild_id),
             user_id=str(user_id),
             username=user_name,
