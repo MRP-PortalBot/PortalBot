@@ -12,6 +12,7 @@ from utils.core_features.__common import calculate_level
 
 _log = get_log(__name__)
 wrapper = ApiWrapper(os.getenv("tatsu_api_key"))
+_log.info(f"Tatsu API key loaded: {bool(wrapper.key)}")
 
 
 async def create_and_order_roles(guild: discord.Guild):
@@ -136,7 +137,9 @@ async def create_and_order_roles(guild: discord.Guild):
 async def get_tatsu_score(user_id: int, server_id: int):
     try:
         result = await wrapper.get_member_ranking(server_id, user_id)
-        _log.debug(f"Fetching Tatsu score for user {user_id} in server {server_id}. Score is:{result.score}")
+        _log.debug(
+            f"Fetching Tatsu score for user {user_id} in server {server_id}. Score is:{result.score}"
+        )
         return result
     except Exception as e:
         _log.warning(
@@ -150,6 +153,7 @@ async def sync_tatsu_score_for_user(bot, guild_id: int, user_id: int, user_name:
     """
     Syncs a user's Tatsu XP and level from the API and updates their ServerScores entry.
     """
+
     stats = await get_tatsu_score(user_id, guild_id)
     if not stats:
         return
