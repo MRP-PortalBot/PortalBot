@@ -210,24 +210,25 @@ class LevelSystemCommands(commands.GroupCog, name="levels"):
     )
     @has_admin_level(3)
     async def audit_roles(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-
         guild = interaction.guild
+
         bot_data = database.BotData.get_or_none(
             database.BotData.server_id == str(guild.id)
         )
         if not bot_data or not bot_data.member_log:
-            await interaction.followup.send(
-                "⚠️ No member log channel configured in BotData."
+            await interaction.response.send_message(
+                "⚠️ No member log channel configured in BotData.", ephemeral=True
             )
             return
 
         log_channel = guild.get_channel(int(bot_data.member_log))
         if not log_channel:
-            await interaction.followup.send(
-                "⚠️ Could not find the configured log channel."
+            await interaction.response.send_message(
+                "⚠️ Could not find the configured log channel.", ephemeral=True
             )
             return
+
+        await interaction.response.defer(ephemeral=True)
 
         level_roles = database.LeveledRoles.select().where(
             database.LeveledRoles.ServerID == str(guild.id)
