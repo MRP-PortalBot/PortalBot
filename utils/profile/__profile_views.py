@@ -205,15 +205,17 @@ class RealmSelection(discord.ui.Select):
             )
 
 
-class LabelButton(discord.ui.Button):
-    def __init__(self, label: str):
-        super().__init__(label=label, style=discord.ButtonStyle.gray, disabled=True)
-
-
 class RealmSelectionView(discord.ui.View):
     def __init__(self, bot, user_id: int):
         super().__init__(timeout=None)
-        self.add_item(LabelButton("OP Realms"))
+        self.add_item(
+            discord.ui.Button(
+                label="OP Realms",
+                style=discord.ButtonStyle.secondary,
+                disabled=True,
+                row=0,
+            )
+        )
         self.add_item(
             RealmSelection(
                 bot,
@@ -221,9 +223,17 @@ class RealmSelectionView(discord.ui.View):
                 field="RealmsAdmin",
                 label="OP Realms",
                 placeholder="Select realms you are an OP in...",
+                row=0,
             )
         )
-        self.add_item(LabelButton("Member Realms"))
+        self.add_item(
+            discord.ui.Button(
+                label="Member Realms",
+                style=discord.ButtonStyle.secondary,
+                disabled=True,
+                row=1,
+            )
+        )
         self.add_item(
             RealmSelection(
                 bot,
@@ -231,6 +241,7 @@ class RealmSelectionView(discord.ui.View):
                 field="RealmsJoined",
                 label="Member Realms",
                 placeholder="Select realms you are a member of...",
+                row=1,
             )
         )
 
