@@ -1,7 +1,7 @@
 # utils/profile/__profile_views.py
 
 import discord
-from discord.ui import View, Button, Modal, TextInput, LabelButton
+from discord.ui import View, Button, Modal, TextInput
 from utils.helpers.__logging_module import get_log
 from utils.database import __database as database
 from utils.core_features.__common import get_profile_record
