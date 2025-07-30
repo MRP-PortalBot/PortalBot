@@ -1,7 +1,7 @@
 # utils/profile/__profile_views.py
 
 import discord
-from discord.ui import View, Button, Modal, TextInput
+from discord.ui import View, Button, Modal, TextInput, LabelButton
 from utils.helpers.__logging_module import get_log
 from utils.database import __database as database
 from utils.core_features.__common import get_profile_record
@@ -136,6 +136,7 @@ class EditRealmButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         await open_realm_selection_panel(self.bot, interaction)
 
+
 class RealmSelection(discord.ui.Select):
     def __init__(self, bot, user_id: int, field: str, label: str, placeholder: str):
         self.bot = bot
@@ -204,9 +205,15 @@ class RealmSelection(discord.ui.Select):
             )
 
 
+class LabelButton(discord.ui.Button):
+    def __init__(self, label: str):
+        super().__init__(label=label, style=discord.ButtonStyle.gray, disabled=True)
+
+
 class RealmSelectionView(discord.ui.View):
     def __init__(self, bot, user_id: int):
         super().__init__(timeout=None)
+        self.add_item(LabelButton("OP Realms"))
         self.add_item(
             RealmSelection(
                 bot,
@@ -216,6 +223,7 @@ class RealmSelectionView(discord.ui.View):
                 placeholder="Select realms you are an OP in...",
             )
         )
+        self.add_item(LabelButton("Member Realms"))
         self.add_item(
             RealmSelection(
                 bot,
@@ -256,14 +264,15 @@ class RealmDropdown(discord.ui.Select):
             f"✅ Updated your {self.placeholder.lower()} to: {selected_realms}",
             ephemeral=True,
         )
-        
+
+
 async def open_realm_selection_panel(bot, interaction):
     await interaction.response.send_message(
         embed=discord.Embed(
             title="Select Your Realms",
             description=(
-                "**🛡️ Realms you are an OP in:**\nUse the first dropdown below to select realms where you're an operator.\n\n"
-                "**🏰 Realms you are a member of:**\nUse the second dropdown to select realms you’ve joined."
+                "**🏰 Realms you are a member of:**\nUse the second dropdown to select realms you’ve joined.\n\n"
+                "**🛡️ Realms you are an OP in:**\nUse the first dropdown below to select realms where you're an operator."
             ),
             color=discord.Color.blurple(),
         ),
