@@ -208,42 +208,46 @@ class RealmSelection(discord.ui.Select):
 class RealmSelectionView(discord.ui.View):
     def __init__(self, bot, user_id: int):
         super().__init__(timeout=None)
+
+        # Label above OP Realms dropdown
         self.add_item(
-            discord.ui.Button(
+            Button(
                 label="OP Realms",
                 style=discord.ButtonStyle.secondary,
                 disabled=True,
                 row=0,
             )
         )
-        self.add_item(
-            RealmSelection(
-                bot,
-                user_id,
-                field="RealmsAdmin",
-                label="OP Realms",
-                placeholder="Select realms you are an OP in...",
-                row=0,
-            )
+
+        op_dropdown = RealmSelection(
+            bot,
+            user_id,
+            field="RealmsAdmin",
+            label="OP Realms",
+            placeholder="Select realms you are an OP in...",
         )
+        op_dropdown.row = 1
+        self.add_item(op_dropdown)
+
+        # Label above Member Realms dropdown
         self.add_item(
-            discord.ui.Button(
+            Button(
                 label="Member Realms",
                 style=discord.ButtonStyle.secondary,
                 disabled=True,
-                row=1,
+                row=2,
             )
         )
-        self.add_item(
-            RealmSelection(
-                bot,
-                user_id,
-                field="RealmsJoined",
-                label="Member Realms",
-                placeholder="Select realms you are a member of...",
-                row=1,
-            )
+
+        member_dropdown = RealmSelection(
+            bot,
+            user_id,
+            field="RealmsJoined",
+            label="Member Realms",
+            placeholder="Select realms you are a member of...",
         )
+        member_dropdown.row = 3
+        self.add_item(member_dropdown)
 
 
 class RealmDropdown(discord.ui.Select):
