@@ -2,6 +2,7 @@
 
 import discord
 from discord import ui
+from datetime import datetime
 from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 from typing import Callable, Optional
@@ -355,3 +356,31 @@ class SuggestQuestionFromDQ(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.send_modal(SuggestModalNEW(self.bot))
+
+# ──────────────── DAILY QUESTION EMBED ──────────────── #
+
+def create_question_embed(question) -> discord.Embed:
+    embed = discord.Embed(
+        title="🌟❓Question of the Day❓🌟",
+        description=f"## **{question.question}**",
+        color=discord.Color.from_rgb(177, 13, 159),
+    )
+    embed.set_thumbnail(
+        url="https://cdn.discordapp.com/attachments/788873229136560140/1298745739048124457/MC-QOD.png"
+    )
+    embed.add_field(
+        name="🗣️ Discuss",
+        value="We'd love to hear your thoughts! Share your response below and get to know the community better!",
+        inline=False,
+    )
+    embed.add_field(
+        name="💡 Tip",
+        value="Remember, thoughtful answers help everyone learn something new!",
+        inline=False,
+    )
+    embed.set_footer(
+        text=f"Thank you for participating! • Question #{question.display_order}",
+        icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180249748406272/Portal_Design.png",
+    )
+    embed.timestamp = datetime.now()
+    return embed

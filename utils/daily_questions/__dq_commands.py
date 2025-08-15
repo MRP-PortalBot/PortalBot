@@ -21,6 +21,7 @@ from .__dq_views import (
     DailyQuestionActionView,
     SuggestModalNEW,
     QuestionVoteView,
+    create_question_embed
 )
 
 _log = get_log(__name__)
@@ -77,6 +78,8 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
 
     async def repost_last_question(self, interaction: discord.Interaction):
         try:
+            database.ensure_database_connection()
+
             bot_data = get_bot_data_for_server(interaction.guild.id)
             if not bot_data or not bot_data.last_question_posted:
                 await interaction.response.send_message(
@@ -84,51 +87,42 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
                 )
                 return
 
+            # Fetch the last posted question
             question = database.Question.get(
-                display_order=bot_data.last_question_posted
-            )
-            channel = interaction.guild.get_channel(
-                int(bot_data.daily_question_channel)
+                database.Question.display_order == bot_data.last_question_posted
             )
 
+            # Build the embed via the shared factory in __dq_views.py
+            embed = create_question_embed(question)
+
+            # Resolve the send channel
+            channel_id = int(bot_data.daily_question_channel)
+            channel = interaction.client.get_channel(channel_id) or interaction.guild.get_channel(channel_id)
             if not channel:
                 await interaction.response.send_message(
                     "Daily question channel not found.", ephemeral=True
                 )
                 return
 
-            embed = discord.Embed(
-                title="🌟❓Question of the Day❓🌟",
-                description=f"## **{question.question}**",
-                color=discord.Color.from_rgb(177, 13, 159),
-            )
-            embed.set_thumbnail(
-                url="https://cdn.discordapp.com/attachments/788873229136560140/1298745739048124457/MC-QOD.png"
-            )
-            embed.add_field(
-                name="🗣️ Discuss", value="We'd love to hear your thoughts!", inline=False
-            )
-            embed.add_field(
-                name="💡 Tip",
-                value="Thoughtful answers help everyone learn!",
-                inline=False,
-            )
-            embed.set_footer(
-                text=f"Thank you for participating! • Question #{question.display_order}",
-                icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180249748406272/Portal_Design.png",
-            )
-            embed.timestamp = datetime.now()
-
+            # Send with the standard voting view
             await channel.send(
-                embed=embed, view=QuestionVoteView(self.bot, question.display_order)
+                embed=embed,
+                view=QuestionVoteView(self.bot, question.display_order),
             )
+
             await interaction.response.send_message(
                 f"✅ Reposted Question #{question.display_order} in {channel.mention}.",
                 ephemeral=True,
             )
+
         except database.Question.DoesNotExist:
             await interaction.response.send_message(
                 "That question no longer exists.", ephemeral=True
+            )
+        except Exception as e:
+            # Optional: _log.error("repost_last_question failed", exc_info=True)
+            await interaction.response.send_message(
+                "There was an error reposting the question.", ephemeral=True
             )
 
     async def new_question(self, interaction: discord.Interaction, question: str):

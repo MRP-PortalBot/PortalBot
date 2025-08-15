@@ -6,7 +6,7 @@ from discord.ext import tasks, commands
 from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
 from utils.helpers.__logging_module import get_log
-from .__dq_logic import send_daily_question
+from .__dq_logic import send_daily_question, send_daily_question_repost
 
 _log = get_log(__name__)
 
@@ -43,8 +43,8 @@ class DailyQuestionPoster(commands.Cog):
                 for guild in self.bot.guilds:
                     bot_data = get_bot_data_for_server(guild.id)
                     if bot_data and bot_data.last_question_posted:
-                        await send_daily_question(
-                            self.bot, bot_data.last_question_posted
+                        await send_daily_question_repost(
+                            self.bot, guild.id, bot_data.last_question_posted
                         )
                     else:
                         _log.warning(

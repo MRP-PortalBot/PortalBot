@@ -19,16 +19,19 @@ class LevelSystemListener(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        # Ignore DMs and bot messages
         if message.author.bot or message.guild is None:
             return
 
         try:
+            # Load server config
             bot_data = database.BotData.get_or_none(
                 database.BotData.server_id == str(message.guild.id)
             )
             if not bot_data:
                 return
 
+            # Respect blocked channels
             blocked_channels = bot_data.get_blocked_channels()
             if message.channel.id in blocked_channels:
                 return
@@ -41,13 +44,14 @@ class LevelSystemListener(commands.Cog):
 
             database.db.connect(reuse_if_open=True)
 
+            # Ensure a score row exists for this user
             score, created = database.ServerScores.get_or_create(
                 DiscordLongID=user_id,
                 ServerID=str(message.guild.id),
                 defaults={"Score": 0, "Level": 1, "Progress": 0},
             )
 
-            # Fix future timestamp issues
+            # Guard against future timestamps
             if score.LastMessageTimestamp and score.LastMessageTimestamp > current_time:
                 score_log.warning(
                     f"{username}'s timestamp was in the future. Resetting."
@@ -63,61 +67,111 @@ class LevelSystemListener(commands.Cog):
                 score_log.debug(f"{username} is on cooldown ({remaining:.2f}s left).")
                 return
 
-            # Add XP and calculate level
-            score_increment = random.randint(points_per_message, points_per_message * 3)
+            # Gain XP and recalc level
+            score_increment = random.randint(
+                points_per_message, max(points_per_message, points_per_message * 3)
+            )
             previous_level = score.Level
             score.Score += score_increment
             new_level, progress, next_level_score = calculate_level(score.Score)
 
             score_log.debug(
                 f"{username} gained {score_increment} XP → Score: {score.Score}, "
-                f"Level: {previous_level} → {new_level}, Next: {next_level_score}"
+                f"Level: {previous_level} → {new_level}, Next threshold: {next_level_score}"
             )
 
+            # Persist
             score.DiscordName = username
             score.Level = new_level
-            score.Progress = next_level_score
+            score.Progress = progress  # store progress within the current level
             score.LastMessageTimestamp = current_time
             score.save()
 
-            # Level-up logic
-            if new_level > previous_level:
-                score_log.info(
-                    f"{username} leveled up from {previous_level} → {new_level}"
-                )
+            # -------------------------------
+            # Sync level role every message
+            # -------------------------------
+            # Collect all configured level-role IDs for this server
+            all_roles = database.LeveledRoles.select().where(
+                database.LeveledRoles.ServerID == str(message.guild.id)
+            )
+            level_role_ids = {int(entry.RoleID) for entry in all_roles if entry.RoleID}
 
-                # Get all level role IDs for this server
-                all_roles = database.LeveledRoles.select().where(
-                    database.LeveledRoles.ServerID == str(message.guild.id)
-                )
-                level_role_ids = {
-                    int(entry.RoleID) for entry in all_roles if entry.RoleID
-                }
+            # Determine correct role for the member's current level
+            target_role = await get_role_for_level(new_level, message.guild)
 
-                # Remove existing level roles
-                old_roles = [r for r in message.author.roles if r.id in level_role_ids]
-                if old_roles:
-                    await message.author.remove_roles(*old_roles)
-                    score_log.debug(
-                        f"Removed old level roles from {username}: {[r.name for r in old_roles]}"
-                    )
+            # Find any existing level roles on the member
+            member_level_roles = [
+                r for r in message.author.roles if r.id in level_role_ids
+            ]
+            member_level_role_ids = {r.id for r in member_level_roles}
 
-                # Assign new level role
-                new_role = await get_role_for_level(new_level, message.guild)
-                if new_role:
-                    await message.author.add_roles(new_role)
-                    score_log.info(f"Assigned role '{new_role.name}' to {username}")
+            need_role_change = (
+                target_role and target_role.id not in member_level_role_ids
+            ) or (not target_role and bool(member_level_roles))
+
+            if need_role_change:
+                # Remove any old level roles
+                if member_level_roles:
+                    try:
+                        await message.author.remove_roles(
+                            *member_level_roles, reason="Level role sync"
+                        )
+                        score_log.debug(
+                            f"Removed old level roles from {username}: {[r.name for r in member_level_roles]}"
+                        )
+                    except discord.Forbidden:
+                        score_log.warning(
+                            f"Missing permissions to remove roles from {username}."
+                        )
+                    except discord.HTTPException as e:
+                        score_log.warning(
+                            f"HTTP error removing roles from {username}: {e}"
+                        )
+
+                # Assign the correct role for the current level
+                if target_role:
+                    try:
+                        await message.author.add_roles(
+                            target_role, reason="Level role sync"
+                        )
+                        score_log.info(
+                            f"Assigned role '{target_role.name}' to {username}"
+                        )
+                    except discord.Forbidden:
+                        score_log.warning(
+                            f"Missing permissions to add role '{target_role}' to {username}."
+                        )
+                    except discord.HTTPException as e:
+                        score_log.warning(
+                            f"HTTP error adding role '{target_role}' to {username}: {e}"
+                        )
                 else:
                     score_log.warning(
-                        f"No role found for Level {new_level} in {message.guild.name}"
+                        f"No mapped role for Level {new_level} in {message.guild.name}"
                     )
 
-                # Announce level-up
-                await message.channel.send(
-                    f"🎉 {message.author.mention} reached **Level {new_level}** and earned the role {new_role.mention}!"
-                )
+            # Announce only on actual level-up
+            if new_level > previous_level:
+                if target_role:
+                    try:
+                        await message.channel.send(
+                            f"🎉 {message.author.mention} reached **Level {new_level}** and earned the role {target_role.mention}!"
+                        )
+                    except discord.Forbidden:
+                        score_log.warning(
+                            "Cannot send level-up message in this channel (Missing permissions)."
+                        )
+                else:
+                    try:
+                        await message.channel.send(
+                            f"🎉 {message.author.mention} reached **Level {new_level}**!"
+                        )
+                    except discord.Forbidden:
+                        score_log.warning(
+                            "Cannot send level-up message in this channel (Missing permissions)."
+                        )
 
-                # Send level-up log to member_log channel from BotData
+                # Send level-up log to member_log channel if configured
                 if bot_data.member_log:
                     log_channel = message.guild.get_channel(int(bot_data.member_log))
                     if log_channel:
@@ -126,22 +180,22 @@ class LevelSystemListener(commands.Cog):
                             description=(
                                 f"**User:** {message.author.mention} (`{username}`)\n"
                                 f"**New Level:** {new_level}\n"
-                                f"**Assigned Role:** {new_role.mention if new_role else 'None'}\n"
+                                f"**Assigned Role:** {target_role.mention if target_role else 'None'}\n"
                                 f"**Server:** {message.guild.name}"
                             ),
                             color=discord.Color.green(),
                             timestamp=discord.utils.utcnow(),
                         )
-
                         embed.set_footer(text=f"User ID: {message.author.id}")
                         embed.set_thumbnail(url=message.author.display_avatar.url)
-
                         try:
                             await log_channel.send(embed=embed)
                         except discord.Forbidden:
                             score_log.warning(
                                 f"Cannot send level-up embed to #{log_channel.name} (Missing permissions)."
                             )
+                        except discord.HTTPException as e:
+                            score_log.warning(f"HTTP error sending level-up embed: {e}")
 
         except Exception as e:
             _log.error(f"Error processing XP for {message.author}: {e}", exc_info=True)

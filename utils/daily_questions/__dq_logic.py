@@ -9,7 +9,7 @@ from utils.database import __database as database
 from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
 from utils.helpers.__logging_module import get_log
-from .__dq_views import QuestionVoteView
+from .__dq_views import QuestionVoteView, create_question_embed
 
 _log = get_log(__name__)
 
@@ -26,17 +26,32 @@ def renumber_display_order():
     except Exception as e:
         _log.error(f"❌ Failed to renumber display_order: {e}", exc_info=True)
 
+async def post_question_to_guild(bot, guild, question_id, embed):
+    try:
+        bot_data = get_bot_data_for_server(guild.id)
+        if not bot_data or not bot_data.daily_question_enabled:
+            _log.debug(f"⏭️ Skipping guild {guild.id} (not enabled or missing data).")
+            return
+
+        send_channel = bot.get_channel(int(bot_data.daily_question_channel))
+        if not send_channel:
+            _log.error(f"❌ Channel ID {bot_data.daily_question_channel} not found in {guild.name}.")
+            return
+
+        view = QuestionVoteView(bot, question_id)
+        await send_channel.send(embed=embed, view=view)
+        _log.info(f"📤 Posted question #{question_id} to {send_channel.name} in {guild.name}.")
+
+    except Exception as e:
+        _log.error(f"❌ Failed to send question to {guild.name}: {e}", exc_info=True)
 
 async def send_daily_question(bot, question_id: str = None) -> str | None:
-    """Selects and sends a daily question embed to configured channels in all guilds."""
     try:
         database.ensure_database_connection()
 
         # Pick unused or specific question
         if question_id is None:
-            unused = database.Question.select().where(
-                database.Question.usage == "False"
-            )
+            unused = database.Question.select().where(database.Question.usage == "False")
             if not unused.exists():
                 database.Question.update(usage="False").execute()
                 _log.info("🔄 All questions used — resetting usage flags.")
@@ -51,64 +66,32 @@ async def send_daily_question(bot, question_id: str = None) -> str | None:
             question.usage = "True"
             question.save()
         else:
-            question = database.Question.get(
-                database.Question.display_order == question_id
-            )
+            question = database.Question.get(database.Question.display_order == question_id)
 
-        # Create embed
-        embed = discord.Embed(
-            title="🌟❓Question of the Day❓🌟",
-            description=f"## **{question.question}**",
-            color=discord.Color.from_rgb(177, 13, 159),
-        )
-        embed.set_thumbnail(
-            url="https://cdn.discordapp.com/attachments/788873229136560140/1298745739048124457/MC-QOD.png"
-        )
-        embed.add_field(
-            name="🗣️ Discuss",
-            value="We'd love to hear your thoughts! Share your response below and get to know the community better!",
-            inline=False,
-        )
-        embed.add_field(
-            name="💡 Tip",
-            value="Remember, thoughtful answers help everyone learn something new!",
-            inline=False,
-        )
-        embed.set_footer(
-            text=f"Thank you for participating! • Question #{question.display_order}",
-            icon_url="https://cdn.discordapp.com/attachments/788873229136560140/801180249748406272/Portal_Design.png",
-        )
-        embed.timestamp = datetime.now()
+        embed = create_question_embed(question)
 
-        # Send to all enabled guilds
         for guild in bot.guilds:
-            bot_data = get_bot_data_for_server(guild.id)
-            if not bot_data or not bot_data.daily_question_enabled:
-                _log.debug(
-                    f"⏭️ Skipping guild {guild.id} (not enabled or missing data)."
-                )
-                continue
-
-            send_channel = bot.get_channel(int(bot_data.daily_question_channel))
-            if not send_channel:
-                _log.error(
-                    f"❌ Channel ID {bot_data.daily_question_channel} not found in {guild.name}."
-                )
-                continue
-
-            view = QuestionVoteView(bot, question.display_order)
-            await send_channel.send(embed=embed, view=view)
-            _log.info(
-                f"📤 Posted question #{question.display_order} to {send_channel.name} in {guild.name}."
-            )
+            await post_question_to_guild(bot, guild, question.display_order, embed)
 
         return question.display_order
 
-    except database.Question.DoesNotExist:
-        _log.error("❗ Question not found.")
     except Exception as e:
         _log.error(f"❌ Error posting daily question: {e}", exc_info=True)
 
+async def send_daily_question_repost(bot, guild_id, question_id: str) -> None:
+    try:
+        database.ensure_database_connection()
+
+        question = database.Question.get(database.Question.display_order == question_id)
+        embed = create_question_embed(question)
+
+        guild = bot.get_guild(guild_id)
+        if guild:
+            await post_question_to_guild(bot, guild, question.display_order, embed)
+
+    except Exception as e:
+        _log.error(f"❌ Error reposting daily question: {e}", exc_info=True)
+        
 
 def reset_question_usage() -> int:
     """
