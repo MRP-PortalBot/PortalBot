@@ -36,11 +36,14 @@ class LevelSystemListener(commands.Cog):
             if message.channel.id in blocked_channels:
                 return
 
-            cooldown_time = bot_data.cooldown_time
-            points_per_message = bot_data.points_per_message
+            cooldown_time = int(bot_data.cooldown_time or 0)
+            points_per_message = int(bot_data.points_per_message or 0)
             user_id = str(message.author.id)
             username = str(message.author.name)
-            current_time = datetime.datetime.now()
+
+            # Use a timezone-naive UTC datetime for storage/comparison (consistent)
+            now = datetime.datetime.utcnow()
+            cooldown_delta = datetime.timedelta(seconds=cooldown_time)
 
             database.db.connect(reuse_if_open=True)
 
@@ -51,26 +54,36 @@ class LevelSystemListener(commands.Cog):
                 defaults={"Score": 0, "Level": 1, "Progress": 0},
             )
 
+            # Normalize LastMessageTimestamp to a datetime
+            last = score.LastMessageTimestamp
+            if isinstance(last, (int, float)):
+                # Older rows may store epoch seconds
+                last = datetime.datetime.utcfromtimestamp(last)
+            # If stored as string in some legacy case, ignore and treat as None
+
             # Guard against future timestamps
-            if score.LastMessageTimestamp and score.LastMessageTimestamp > current_time:
+            if isinstance(last, datetime.datetime) and last > now:
                 score_log.warning(
                     f"{username}'s timestamp was in the future. Resetting."
                 )
-                score.LastMessageTimestamp = current_time
+                last = now
 
             # Cooldown check
-            if (
-                score.LastMessageTimestamp
-                and current_time - score.LastMessageTimestamp < cooldown_time
-            ):
-                remaining = cooldown_time - (current_time - score.LastMessageTimestamp)
-                score_log.debug(f"{username} is on cooldown ({remaining:.2f}s left).")
-                return
+            if isinstance(last, datetime.datetime) and cooldown_time > 0:
+                elapsed = now - last
+                if elapsed < cooldown_delta:
+                    remaining = (cooldown_delta - elapsed).total_seconds()
+                    score_log.debug(
+                        f"{username} is on cooldown ({remaining:.2f}s left)."
+                    )
+                    return
 
             # Gain XP and recalc level
-            score_increment = random.randint(
-                points_per_message, max(points_per_message, points_per_message * 3)
-            )
+            # Ensure positive bounds; if points_per_message is 0, grant 0
+            lower = max(0, points_per_message)
+            upper = max(lower, points_per_message * 3)
+            score_increment = random.randint(lower, upper) if upper > 0 else 0
+
             previous_level = score.Level
             score.Score += score_increment
             new_level, progress, next_level_score = calculate_level(score.Score)
@@ -84,7 +97,7 @@ class LevelSystemListener(commands.Cog):
             score.DiscordName = username
             score.Level = new_level
             score.Progress = progress  # store progress within the current level
-            score.LastMessageTimestamp = current_time
+            score.LastMessageTimestamp = now
             score.save()
 
             # -------------------------------
