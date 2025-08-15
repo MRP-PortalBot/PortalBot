@@ -40,7 +40,7 @@ class LevelSystemListener(commands.Cog):
             points_per_message = bot_data.points_per_message
             user_id = str(message.author.id)
             username = str(message.author.name)
-            current_time = datetime.datetime()
+            current_time = datetime.datetime.now()
 
             database.db.connect(reuse_if_open=True)
 
