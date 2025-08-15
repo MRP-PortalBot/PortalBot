@@ -2,7 +2,7 @@
 
 import discord
 import random
-import time
+import datetime
 from discord.ext import commands
 
 from utils.database import __database as database
@@ -40,7 +40,7 @@ class LevelSystemListener(commands.Cog):
             points_per_message = bot_data.points_per_message
             user_id = str(message.author.id)
             username = str(message.author.name)
-            current_time = time.time()
+            current_time = datetime.time()
 
             database.db.connect(reuse_if_open=True)
 
