@@ -3,8 +3,16 @@ import json
 import datetime
 from dotenv import load_dotenv
 from peewee import (
-    AutoField, Model, IntegerField, TextField, BooleanField, DateTimeField,
-    MySQLDatabase, OperationalError, ForeignKeyField, FloatField
+    AutoField,
+    Model,
+    IntegerField,
+    TextField,
+    BooleanField,
+    DateTimeField,
+    MySQLDatabase,
+    OperationalError,
+    ForeignKeyField,
+    FloatField,
 )
 from playhouse.shortcuts import ReconnectMixin
 from utils.helpers.__logging_module import get_log
@@ -27,8 +35,10 @@ except Exception as e:
     _log.error(f"Error loading environment variables: {e}")
     raise SystemExit(e)
 
+
 class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
     pass
+
 
 try:
     db = ReconnectMySQLDatabase(
@@ -38,6 +48,7 @@ except Exception as e:
     _log.error(f"Error connecting to the database: {e}")
     raise SystemExit(e)
 
+
 def ensure_database_connection():
     try:
         if db.is_closed():
@@ -46,13 +57,16 @@ def ensure_database_connection():
         _log.error(f"Error connecting to the database: {e}")
         raise
 
+
 class BaseModel(Model):
     class Meta:
         database = db
 
+
 # --------------------------------------------------------------------
 # MODELS
 # --------------------------------------------------------------------
+
 
 class BotData(BaseModel):
     id = AutoField()
@@ -97,11 +111,13 @@ class BotData(BaseModel):
     def set_blocked_channels(self, channel_ids):
         self.blocked_channels = json.dumps(channel_ids)
 
+
 class Tag(BaseModel):
     id = AutoField()
     tag_name = TextField()
     embed_title = TextField()
     text = TextField()
+
 
 class Question(BaseModel):
     id = AutoField()
@@ -111,10 +127,12 @@ class Question(BaseModel):
     upvotes = IntegerField(default=0)
     downvotes = IntegerField(default=0)
 
+
 class QuestionVote(BaseModel):
     question = ForeignKeyField(Question, backref="votes", on_delete="CASCADE")
     user_id = TextField()
     vote_type = TextField()  # "up" or "down"
+
 
 class QuestionSuggestionQueue(BaseModel):
     id = AutoField()
@@ -122,6 +140,7 @@ class QuestionSuggestionQueue(BaseModel):
     discord_name = TextField()
     question = TextField()
     message_id = TextField()
+
 
 class MRP_Blacklist_Data(BaseModel):
     entryid = AutoField()
@@ -136,6 +155,7 @@ class MRP_Blacklist_Data(BaseModel):
     TypeofBan = TextField()
     DatetheBanEnds = TextField()
 
+
 class PortalbotProfile(BaseModel):
     entryid = AutoField()
     DiscordName = TextField()
@@ -147,6 +167,7 @@ class PortalbotProfile(BaseModel):
     SwitchNNID = TextField(default="None")
     RealmsJoined = TextField(default="None")
     RealmsAdmin = TextField(default="None")
+
 
 class RealmApplications(BaseModel):
     entry_id = AutoField()
@@ -170,6 +191,7 @@ class RealmApplications(BaseModel):
     percent_player_sleep = TextField()
     timestamp = DateTimeField(null=True)
     approval = BooleanField()
+
 
 class RealmProfile(BaseModel):
     entry_id = AutoField()
@@ -198,11 +220,13 @@ class RealmProfile(BaseModel):
     checkin = BooleanField()
     archived = BooleanField()
 
+
 class Administrators(BaseModel):
     id = AutoField()
     discordID = TextField(unique=True)
     discord_name = TextField()
     TierLevel = IntegerField(default=1)
+
 
 class ServerScores(BaseModel):
     ScoreID = AutoField()
@@ -215,6 +239,7 @@ class ServerScores(BaseModel):
     LastMessageTimestamp = DateTimeField(default=0)
     TatsuXP = IntegerField(default=0)
 
+
 class LeveledRoles(BaseModel):
     id = AutoField()
     RoleName = TextField()
@@ -222,11 +247,13 @@ class LeveledRoles(BaseModel):
     ServerID = TextField()
     LevelThreshold = IntegerField()
 
+
 class Reminder(BaseModel):
     id = AutoField()
     user_id = TextField()
     message_link = TextField()
     remind_at = DateTimeField(null=True)
+
 
 class Rule(BaseModel):
     guild_id = TextField()
@@ -234,13 +261,17 @@ class Rule(BaseModel):
     number = IntegerField()
     text = TextField()
 
+
 # ---------------------- Build Competition (Community Vote) ----------------------
+
 
 class BuildConfig(BaseModel):
     id = AutoField()
     guild_id = TextField(index=True, unique=True)
-    announce_channel_id = TextField(null=True)     # #build-competition-announcements
-    submission_forum_id = TextField(null=True)     # #build-submit-and-judging (Forum)
+    announce_channel_id = TextField(null=True)  # #build-competition-announcements
+    submission_forum_id = TextField(null=True)  # #build-submit-and-judging (Forum)
+    announce_role_id = TextField(null=True)
+
 
 class BuildSeason(BaseModel):
     id = AutoField()
@@ -251,23 +282,25 @@ class BuildSeason(BaseModel):
     submission_end = DateTimeField()
     voting_start = DateTimeField()
     voting_end = DateTimeField()
-    status = TextField(default="scheduled")        # scheduled, submissions, voting, closed
+    status = TextField(default="scheduled")  # scheduled, submissions, voting, closed
     max_images = IntegerField(default=5)
     anon_voting = BooleanField(default=True)
     min_account_days = IntegerField(default=0)
     min_server_messages = IntegerField(default=0)
     allow_multiple_entries = BooleanField(default=False)
 
+
 class BuildEntry(BaseModel):
     id = AutoField()
     season = ForeignKeyField(BuildSeason, backref="entries", on_delete="CASCADE")
     user_id = TextField(index=True)
-    message_id = TextField(null=True)              # first message in forum post
-    thread_id = TextField(null=True)               # forum post id
+    message_id = TextField(null=True)  # first message in forum post
+    thread_id = TextField(null=True)  # forum post id
     caption = TextField(null=True)
-    image_urls = TextField()                       # json array if you store them
+    image_urls = TextField()  # json array if you store them
     world_url = TextField(null=True)
     created_at = DateTimeField(default=datetime.datetime.utcnow)
+
 
 class BuildVote(BaseModel):
     id = AutoField()
@@ -277,13 +310,13 @@ class BuildVote(BaseModel):
     created_at = DateTimeField(default=datetime.datetime.utcnow)
 
     class Meta:
-        indexes = (
-            (('season', 'voter_id'), True),  # one vote per user per season
-        )
+        indexes = ((("season", "voter_id"), True),)  # one vote per user per season
+
 
 # --------------------------------------------------------------------
 # Table creation on startup
 # --------------------------------------------------------------------
+
 
 def create_all_tables():
     """
@@ -293,16 +326,33 @@ def create_all_tables():
     ensure_database_connection()
     models_in_order = [
         # core
-        Tag, Question, QuestionVote, QuestionSuggestionQueue,
-        MRP_Blacklist_Data, PortalbotProfile, RealmApplications, RealmProfile,
-        Administrators, ServerScores, LeveledRoles, Reminder, Rule, BotData,
+        Tag,
+        Question,
+        QuestionVote,
+        QuestionSuggestionQueue,
+        MRP_Blacklist_Data,
+        PortalbotProfile,
+        RealmApplications,
+        RealmProfile,
+        Administrators,
+        ServerScores,
+        LeveledRoles,
+        Reminder,
+        Rule,
+        BotData,
         # build comp (parents before children)
-        BuildConfig, BuildSeason, BuildEntry, BuildVote,
+        BuildConfig,
+        BuildSeason,
+        BuildEntry,
+        BuildVote,
     ]
     to_create = [m for m in models_in_order if not m.table_exists()]
     if to_create:
         db.create_tables(to_create)
-        _log.info("Created tables: %s", ", ".join(m._meta.table_name for m in to_create))
+        _log.info(
+            "Created tables: %s", ", ".join(m._meta.table_name for m in to_create)
+        )
+
 
 def init_database():
     """
@@ -311,6 +361,7 @@ def init_database():
     """
     create_all_tables()
     _log.info("Database initialized and tables verified.")
+
 
 # Back-compat alias some code uses elsewhere
 __database = db

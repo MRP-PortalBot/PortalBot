@@ -7,10 +7,11 @@ from discord import app_commands
 from discord.ext import commands
 
 from utils.helpers.__logging_module import get_log
-from utils.database import BuildConfig, BuildSeason
+from utils.database import __database as database
 from .__bc_logic import user_can_submit, create_forum_submission, post_ballot
 
 _log = get_log("build_comp.commands")
+
 
 class BuildCommands(commands.Cog):
     """All /build commands live here, attached to the top-level group."""
@@ -20,19 +21,34 @@ class BuildCommands(commands.Cog):
     group = app_commands.Group(name="build", description="Build competition")
 
     # ---------------- config ----------------
-    @group.command(name="config-set-forum", description="Set the forum used for submissions")
+    @group.command(name="config-set-forum", description="Set the forum used for submissions and ballots")
     async def config_set_forum(self, interaction: discord.Interaction, forum_channel: discord.ForumChannel):
-        cfg, _ = BuildConfig.get_or_create(guild_id=str(interaction.guild_id))
+        cfg, _ = database.BuildConfig.get_or_create(guild_id=str(interaction.guild_id))
         cfg.submission_forum_id = str(forum_channel.id)
         cfg.save()
-        await interaction.response.send_message(f"Submission forum set to {forum_channel.mention}.", ephemeral=True)
+        await interaction.response.send_message(
+            f"Submission & ballot forum set to {forum_channel.mention}.", ephemeral=True
+        )
 
-    @group.command(name="config-set-announce", description="Set the announcements channel")
+    @group.command(name="config-set-announce", description="(Optional) Set the announcements channel for cross-posts")
     async def config_set_announce(self, interaction: discord.Interaction, channel: discord.TextChannel):
-        cfg, _ = BuildConfig.get_or_create(guild_id=str(interaction.guild_id))
+        cfg, _ = database.BuildConfig.get_or_create(guild_id=str(interaction.guild_id))
         cfg.announce_channel_id = str(channel.id)
         cfg.save()
         await interaction.response.send_message(f"Announcements set to {channel.mention}.", ephemeral=True)
+
+    @group.command(name="config-set-announce-role", description="(Optional) Set a role to ping for comp updates")
+    async def config_set_announce_role(self, interaction: discord.Interaction, role: discord.Role):
+        cfg, _ = database.BuildConfig.get_or_create(guild_id=str(interaction.guild_id))
+        # Requires BuildConfig.announce_role_id TextField(null=True)
+        if not hasattr(cfg, "announce_role_id"):
+            return await interaction.response.send_message(
+                "Your database model for BuildConfig needs an `announce_role_id` field (TextField, null=True).",
+                ephemeral=True,
+            )
+        cfg.announce_role_id = str(role.id)
+        cfg.save()
+        await interaction.response.send_message(f"Announcement role set to {role.mention}.", ephemeral=True)
 
     # ---------------- season ----------------
     @group.command(name="start-season", description="Create a season and schedule open/close")
@@ -54,14 +70,14 @@ class BuildCommands(commands.Cog):
         voting_end_iso: str,
     ):
         try:
-            ss = datetime.datetime.fromisoformat(submission_start_iso.replace("Z","+00:00")).replace(tzinfo=None)
-            se = datetime.datetime.fromisoformat(submission_end_iso.replace("Z","+00:00")).replace(tzinfo=None)
-            vs = datetime.datetime.fromisoformat(voting_start_iso.replace("Z","+00:00")).replace(tzinfo=None)
-            ve = datetime.datetime.fromisoformat(voting_end_iso.replace("Z","+00:00")).replace(tzinfo=None)
+            ss = datetime.datetime.fromisoformat(submission_start_iso.replace("Z", "+00:00")).replace(tzinfo=None)
+            se = datetime.datetime.fromisoformat(submission_end_iso.replace("Z", "+00:00")).replace(tzinfo=None)
+            vs = datetime.datetime.fromisoformat(voting_start_iso.replace("Z", "+00:00")).replace(tzinfo=None)
+            ve = datetime.datetime.fromisoformat(voting_end_iso.replace("Z", "+00:00")).replace(tzinfo=None)
         except Exception:
             return await interaction.response.send_message("Invalid ISO timestamps.", ephemeral=True)
 
-        BuildSeason.create(
+        database.BuildSeason.create(
             guild_id=str(interaction.guild_id),
             theme=theme,
             submission_start=ss,
@@ -122,14 +138,22 @@ class BuildCommands(commands.Cog):
     @group.command(name="force-open-voting", description="Force voting to open and post the ballot")
     @app_commands.checks.has_permissions(manage_guild=True)
     async def force_open_voting(self, interaction: discord.Interaction):
-        season = (BuildSeason.select()
-                  .where((BuildSeason.guild_id == str(interaction.guild_id)) & (BuildSeason.status == "submissions"))
-                  .order_by(BuildSeason.id.desc()).first())
+        season = (
+            database.BuildSeason.select()
+            .where(
+                (database.BuildSeason.guild_id == str(interaction.guild_id))
+                & (database.BuildSeason.status == "submissions")
+            )
+            .order_by(database.BuildSeason.id.desc())
+            .first()
+        )
         if not season:
             return await interaction.response.send_message("No season in submissions.", ephemeral=True)
-        season.status = "voting"; season.save()
+        season.status = "voting"
+        season.save()
         await post_ballot(self.bot, interaction.guild, season)
         await interaction.response.send_message("Voting opened and ballot posted.", ephemeral=True)
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(BuildCommands(bot))

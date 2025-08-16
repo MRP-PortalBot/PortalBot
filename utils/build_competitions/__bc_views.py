@@ -1,7 +1,8 @@
 from __future__ import annotations
 import discord
-from utils.database import BuildSeason, BuildEntry
+from utils.database import __database as database
 from .__bc_logic import record_vote
+
 
 class VoteButton(discord.ui.Button):
     def __init__(self, season_id: int, entry_id: int, label: str):
@@ -13,13 +14,19 @@ class VoteButton(discord.ui.Button):
         msg = await record_vote(interaction, self.season_id, self.entry_id)
         await interaction.response.send_message(msg, ephemeral=True)
 
+
 class BallotView(discord.ui.View):
     def __init__(self, *, timeout: float | None = None):
         super().__init__(timeout=timeout)
 
-async def make_ballot_view(season: BuildSeason) -> BallotView:
+
+async def make_ballot_view(season: database.BuildSeason) -> BallotView:
     view = BallotView(timeout=None)
-    entries = list(BuildEntry.select().where(BuildEntry.season == season).order_by(BuildEntry.created_at))
+    entries = list(
+        database.BuildEntry.select()
+        .where(database.BuildEntry.season == season)
+        .order_by(database.BuildEntry.created_at)
+    )
     # Up to 25 buttons per message; paginate later if needed
     for e in entries[:25]:
         label = f"Vote #{e.id}"
