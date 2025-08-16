@@ -22,6 +22,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from utils.database import __database as database
+from utils.database import init_database
 from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 from utils.core_features.__constants import DEFAULT_PREFIX
 from utils.helpers.__logging_module import get_log
@@ -43,13 +44,15 @@ _log.info("Starting PortalBot...")
 # Load environment variables
 load_dotenv()
 
-# Ensure all tables are created
-database.iter_table(database.tables)
+# Ensure DB schema exists before anything else
+# (Creates any missing tables in one FK-safe batch.)
+init_database()
 
 
 def get_extensions():
     extensions = ["jishaku"]
     for file in Path("utils").glob("**/*.py"):
+        # Skip private/dunder helpers and explicit skips
         if "!" in file.name or "__" in file.name:
             continue
         extensions.append(str(file).replace("/", ".").replace(".py", ""))
@@ -115,13 +118,14 @@ class PortalBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         _log.info("Initializing cogs...")
+        exts = get_extensions()
         with alive_bar(
-            len(get_extensions()),
+            len(exts),
             ctrl_c=False,
             bar="bubbles",
             title="Initializing Cogs:",
         ) as bar:
-            for ext in get_extensions():
+            for ext in exts:
                 try:
                     await self.load_extension(ext)
                     _log.info(f"Successfully loaded extension: {ext}")
@@ -141,10 +145,11 @@ class PortalBot(commands.Bot):
             _log.error(f"❌ Failed to sync application commands: {e}", exc_info=True)
 
     async def is_owner(self, user: discord.User):
+        # Your Administrators.discordID is a TextField — compare to str(user.id)
         database.db.connect(reuse_if_open=True)
         query = database.Administrators.select().where(
             (database.Administrators.TierLevel >= 3)
-            & (database.Administrators.discordID == user.id)
+            & (database.Administrators.discordID == str(user.id))
         )
         is_owner = query.exists()
         database.db.close()
@@ -196,6 +201,7 @@ if os.getenv("sentry_dsn"):
     )
     _log.info("Sentry integration enabled.")
 
+# Keep your existing app-specific DB initialization hook if needed
 initialize_db(bot)
 
 if __name__ == "__main__":
