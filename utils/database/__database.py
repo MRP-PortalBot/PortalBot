@@ -268,21 +268,37 @@ class Rule(BaseModel):
 class BuildConfig(BaseModel):
     id = AutoField()
     guild_id = TextField(index=True, unique=True)
-    announce_channel_id = TextField(null=True)  # #build-competition-announcements
-    submission_forum_id = TextField(null=True)  # #build-submit-and-judging (Forum)
-    announce_role_id = TextField(null=True)
+
+    # existing
+    announce_channel_id = TextField(null=True)  # e.g. #build-competition-announcements
+    submission_forum_id = TextField(null=True)  # central forum channel id
+
+    # NEW
+    announce_role_id = TextField(
+        null=True
+    )  # role to ping (reaction role grants/removes this)
+    rules_channel_id = TextField(null=True)  # where /build post-rules posted
+    discussion_channel_id = TextField(null=True)  # #build-competition-discussion
+    reaction_message_id = TextField(null=True)  # message id of the reaction-role post
 
 
 class BuildSeason(BaseModel):
     id = AutoField()
     guild_id = TextField(index=True)
     theme = TextField()
-    rules = TextField(null=True)
+
+    # NEW
+    theme_description = TextField(null=True)  # longer description shown on season post
+    season_thread_id = TextField(null=True)  # the pinned season announcement thread id
+
+    # existing timing/status
     submission_start = DateTimeField()
     submission_end = DateTimeField()
     voting_start = DateTimeField()
     voting_end = DateTimeField()
     status = TextField(default="scheduled")  # scheduled, submissions, voting, closed
+
+    # other existing knobs
     max_images = IntegerField(default=5)
     anon_voting = BooleanField(default=True)
     min_account_days = IntegerField(default=0)
