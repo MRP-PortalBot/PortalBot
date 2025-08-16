@@ -1,9 +1,9 @@
 # utils/level_system/__ls_listeners.py
 
 import discord
+from discord.ext import commands
 import random
 import datetime
-from discord.ext import commands
 
 from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
@@ -168,7 +168,7 @@ class LevelSystemListener(commands.Cog):
                 if target_role:
                     try:
                         await message.channel.send(
-                            f"🎉 {message.author.mention} reached **Level {new_level}** and earned the role {target_role.mention}!"
+                            f"🎉 {message.author.mention} reached **Level {new_level}** and earned the role {target_role}!"
                         )
                     except discord.Forbidden:
                         score_log.warning(
