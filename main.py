@@ -22,7 +22,7 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 from utils.database import __database as database
-from utils.database import init_database
+from utils.database.__database import init_database
 from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 from utils.core_features.__constants import DEFAULT_PREFIX
 from utils.helpers.__logging_module import get_log
