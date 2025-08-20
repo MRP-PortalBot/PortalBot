@@ -1,6 +1,7 @@
 # admin/bot_management/__bm_commands.py
 import discord
 import json
+import io
 from discord import app_commands
 from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level
@@ -173,21 +174,39 @@ class ConfigCommands(app_commands.Group):
                 "❌ Failed to update settings.", ephemeral=True
             )
 
-    @app_commands.command(name="listguilds")
+    @app_commands.command(
+        name="listguilds", description="List all guilds by ID and name."
+    )
     @has_admin_level(4)
     async def list_guilds(self, interaction: discord.Interaction):
-        """Lists all guilds the bot is currently in with ID and name."""
-        guilds = sorted(self.guilds, key=lambda g: g.name.lower())
-        description = "\n".join([f"`{g.id}` - {g.name}" for g in guilds])
+        # Use the client to access guilds (fix for AttributeError)
+        guilds = sorted(interaction.client.guilds, key=lambda g: g.name.casefold())
 
-        embed = discord.Embed(
-            title="📋 Guilds I'm In",
-            description=description or "No guilds found.",
-            color=discord.Color.blue(),
-        )
-        embed.set_footer(text=f"Total: {len(guilds)} guilds")
+        if not guilds:
+            await interaction.response.send_message("No guilds found.", ephemeral=True)
+            return
 
-        await interaction.response.send_message(embed=embed)
+        # Build lines once
+        lines = [f"`{g.id}` - {g.name}" for g in guilds]
+        joined = "\n".join(lines)
+
+        # Discord embed description hard limit is 4096 chars. Fall back to a file if too long.
+        if len(joined) <= 4000:
+            embed = discord.Embed(
+                title="📋 Guilds I'm In",
+                description=joined,
+                color=discord.Color.blue(),
+            )
+            embed.set_footer(text=f"Total: {len(guilds)} guilds")
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+        else:
+            # Send as a text file to avoid message limits
+            raw_lines = [f"{g.id} - {g.name}" for g in guilds]
+            data = "\n".join(raw_lines).encode("utf-8")
+            file = discord.File(fp=io.BytesIO(data), filename="guilds.txt")
+            await interaction.response.send_message(
+                content=f"Total: {len(guilds)} guilds", file=file, ephemeral=True
+            )
 
 
 async def setup(bot: discord.Client):
