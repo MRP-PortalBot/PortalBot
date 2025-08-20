@@ -37,22 +37,6 @@ class PermitCommands(app_commands.Group):
         embed.set_footer(text="Only Permit 4 users can modify administrator list.")
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="listguilds")
-    @has_admin_level(4)
-    async def list_guilds(self, interaction: discord.Interaction):
-        """Lists all guilds the bot is currently in with ID and name."""
-        guilds = sorted(self.bot.guilds, key=lambda g: g.name.lower())
-        description = "\n".join([f"`{g.id}` - {g.name}" for g in guilds])
-
-        embed = discord.Embed(
-            title="📋 Guilds I'm In",
-            description=description or "No guilds found.",
-            color=discord.Color.blue(),
-        )
-        embed.set_footer(text=f"Total: {len(guilds)} guilds")
-
-        await interaction.response.send_message(embed=embed)
-
     @app_commands.command(name="add", description="Add a bot administrator.")
     @app_commands.describe(user="User to add", level="Permit level (1–4)")
     @has_admin_level(4)
@@ -188,6 +172,22 @@ class ConfigCommands(app_commands.Group):
             await interaction.followup.send(
                 "❌ Failed to update settings.", ephemeral=True
             )
+
+    @app_commands.command(name="listguilds")
+    @has_admin_level(4)
+    async def list_guilds(self, interaction: discord.Interaction):
+        """Lists all guilds the bot is currently in with ID and name."""
+        guilds = sorted(self.guilds, key=lambda g: g.name.lower())
+        description = "\n".join([f"`{g.id}` - {g.name}" for g in guilds])
+
+        embed = discord.Embed(
+            title="📋 Guilds I'm In",
+            description=description or "No guilds found.",
+            color=discord.Color.blue(),
+        )
+        embed.set_footer(text=f"Total: {len(guilds)} guilds")
+
+        await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot: discord.Client):
