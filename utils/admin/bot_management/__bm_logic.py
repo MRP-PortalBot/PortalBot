@@ -84,3 +84,89 @@ def load_config():
 
 # Global load on import
 config, config_file = load_config()
+
+
+# --- DB bootstrap and repair helpers ---
+
+def initialize_db(bot):
+    try:
+        _log.info("Initializing database...")
+        database.db.connect(reuse_if_open=True)
+        with database.db.atomic():
+            for guild in list(bot.guilds):
+                _ensure_botdata_for_guild(bot, guild)
+
+            if database.Administrators.select().count() == 0:
+                _create_administrators(bot.owner_ids)
+    except Exception:
+        _log.exception("Error during database initialization")
+    finally:
+        if not database.db.is_closed():
+            database.db.close()
+
+def _ensure_botdata_for_guild(bot, guild):
+    gid = str(guild.id)
+    row = database.BotData.get_or_none(database.BotData.server_id == gid)
+
+    desired = {
+        "server_name": guild.name,
+        "server_id": gid,
+        "bot_id": str(bot.user.id),
+        "prefix": ">",
+        "pb_test_server_id": "448488274562908170",
+    }
+
+    desired_welcome = str(guild.system_channel.id) if guild.system_channel else "0"
+
+    if row is None:
+        _create_bot_data(
+            server_name=desired["server_name"],
+            server_id=desired["server_id"],
+            bot_id=desired["bot_id"],
+            prefix=desired["prefix"],
+            pb_test_server_id=desired["pb_test_server_id"],
+            welcome_channel=desired_welcome,
+        )
+        _log.info(f"Created BotData for {guild.name} ({gid})")
+        return
+
+    changed = False
+    if (not row.server_name) or row.server_name != desired["server_name"]:
+        row.server_name = desired["server_name"]; changed = True
+    if (not row.server_id) or row.server_id != desired["server_id"]:
+        row.server_id = desired["server_id"]; changed = True
+    if (not row.bot_id) or row.bot_id in ("0", ""):
+        row.bot_id = desired["bot_id"]; changed = True
+    if not getattr(row, "prefix", None):
+        row.prefix = desired["prefix"]; changed = True
+    if (not getattr(row, "welcome_channel", None)) or row.welcome_channel in ("0", ""):
+        if desired_welcome != "0":
+            row.welcome_channel = desired_welcome; changed = True
+    if getattr(row, "pb_test_server_id", None) != desired["pb_test_server_id"]:
+        row.pb_test_server_id = desired["pb_test_server_id"]; changed = True
+
+    if changed:
+        row.save()
+        _log.info(f"Repaired BotData for {guild.name} ({gid})")
+
+def _create_bot_data(*, server_name: str, server_id: str, bot_id: str,
+                     prefix: str = ">", pb_test_server_id: str = "448488274562908170",
+                     welcome_channel: str = "0"):
+    database.BotData.create(
+        server_name=server_name,
+        server_desc="",
+        server_invite="0",
+        server_id=server_id,
+        bot_id=bot_id,
+        bot_type="Stable",
+        pb_test_server_id=pb_test_server_id,
+        prefix=prefix,
+        admin_role="0",
+        persistent_views=False,
+        welcome_channel=welcome_channel,
+    )
+
+def _create_administrators(owner_ids):
+    for owner_id in owner_ids:
+        database.Administrators.create(discordID=str(owner_id), TierLevel=4)
+    database.Administrators.create(discordID="306070011028439041", TierLevel=4)
