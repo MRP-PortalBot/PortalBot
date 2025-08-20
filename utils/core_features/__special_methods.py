@@ -148,36 +148,135 @@ def initialize_persistent_views(bot, bot_data):
         _log.debug("Persistent views already initialized for this guild.")
 
 
+# utils/admin/bot_management/__bm_init.py  (or wherever your init lives)
+
+import logging
+from utils.database import __database as database
+
+_log = logging.getLogger(__name__)
+
+
 def initialize_db(bot):
+    """
+    Ensures a BotData row exists and is correct for every guild the bot is in.
+    Normalizes ID fields to str and fixes any swapped/incorrect values.
+    """
     try:
         _log.info("Initializing database...")
         database.db.connect(reuse_if_open=True)
-        for guild in bot.guilds:
-            bot_data = database.BotData.select().where(
-                database.BotData.server_id == str(guild.id)
-            )
-            if not bot_data.exists():
-                initial_channel_id = (
-                    guild.system_channel.id if guild.system_channel else None
-                )
-                _create_bot_data(guild.name, guild.id, initial_channel_id)
-        if database.Administrators.select().count() == 0:
-            _create_administrators(bot.owner_ids)
-    except Exception as e:
-        _log.error(f"Error during database initialization: {e}")
+
+        with database.db.atomic():
+            for guild in list(bot.guilds):
+                _ensure_botdata_for_guild(bot, guild)
+
+            # Seed admins on first run if needed
+            if database.Administrators.select().count() == 0:
+                # Keep your existing helper; if you want to be extra safe, cast to set() or list()
+                _create_administrators(bot.owner_ids)
+
+    except Exception:
+        _log.exception("Error during database initialization")
     finally:
         if not database.db.is_closed():
             database.db.close()
 
 
-def _create_bot_data(server_name, server_id):
+def _ensure_botdata_for_guild(bot, guild):
+    """Create or repair the BotData row for a guild."""
+    gid = str(guild.id)
+    row = database.BotData.get_or_none(database.BotData.server_id == gid)
+
+    # Desired normalized values
+    desired = {
+        "server_name": guild.name,
+        "server_id": gid,
+        "bot_id": str(bot.user.id),
+        "prefix": ">",  # your default
+        "pb_test_server_id": "448488274562908170",  # keep as string per your convention
+    }
+
+    # Prefer system channel as initial welcome channel if unset/zero
+    if guild.system_channel:
+        desired_welcome = str(guild.system_channel.id)
+    else:
+        desired_welcome = "0"
+
+    if row is None:
+        _create_bot_data(
+            server_name=desired["server_name"],
+            server_id=desired["server_id"],
+            bot_id=desired["bot_id"],
+            prefix=desired["prefix"],
+            pb_test_server_id=desired["pb_test_server_id"],
+            welcome_channel=desired_welcome,
+        )
+        _log.info(f"Created BotData for {guild.name} ({gid})")
+        return
+
+    # Repair incorrect fields in existing row
+    changed = False
+
+    if (not row.server_name) or row.server_name != desired["server_name"]:
+        row.server_name = desired["server_name"]
+        changed = True
+
+    # Fix swapped or wrong server_id
+    if (not row.server_id) or row.server_id != desired["server_id"]:
+        row.server_id = desired["server_id"]
+        changed = True
+
+    # Fix bot_id if missing/placeholder
+    if (not row.bot_id) or row.bot_id in ("0", ""):
+        row.bot_id = desired["bot_id"]
+        changed = True
+
+    # Normalize prefix if empty
+    if not getattr(row, "prefix", None):
+        row.prefix = desired["prefix"]
+        changed = True
+
+    # If welcome_channel is unset/zero, set it to system channel if available
+    if (not getattr(row, "welcome_channel", None)) or row.welcome_channel in ("0", ""):
+        if desired_welcome != "0":
+            row.welcome_channel = desired_welcome
+            changed = True
+
+    # Keep your pb_test_server_id consistent
+    if getattr(row, "pb_test_server_id", None) != desired["pb_test_server_id"]:
+        row.pb_test_server_id = desired["pb_test_server_id"]
+        changed = True
+
+    if changed:
+        row.save()
+        _log.info(f"Repaired BotData for {guild.name} ({gid})")
+
+
+def _create_bot_data(
+    *,
+    server_name: str,
+    server_id: str,
+    bot_id: str,
+    prefix: str = ">",
+    pb_test_server_id: str = "448488274562908170",
+    welcome_channel: str = "0",
+):
+    """
+    Keyword-only to prevent accidental arg swaps.
+    All IDs must be stringified before inserting.
+    """
     database.BotData.create(
         server_name=server_name,
         server_desc="",
+        server_invite="0",
         server_id=server_id,
-        prefix=">",
+        bot_id=bot_id,
+        bot_type="Stable",
+        pb_test_server_id=pb_test_server_id,
+        prefix=prefix,
+        admin_role="0",
         persistent_views=False,
-        pb_test_server_id=448488274562908170,
+        welcome_channel=welcome_channel,
+        # The rest of your columns rely on table defaults (fine to omit)
     )
 
 
