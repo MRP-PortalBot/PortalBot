@@ -39,7 +39,7 @@ class PermitCommands(app_commands.Group):
 
     @app_commands.command(name="listguilds")
     @has_admin_level(4)
-    async def list_guilds(self, ctx: commands.Context):
+    async def list_guilds(self, interaction: discord.Interaction):
         """Lists all guilds the bot is currently in with ID and name."""
         guilds = sorted(self.bot.guilds, key=lambda g: g.name.lower())
         description = "\n".join([f"`{g.id}` - {g.name}" for g in guilds])
@@ -51,7 +51,7 @@ class PermitCommands(app_commands.Group):
         )
         embed.set_footer(text=f"Total: {len(guilds)} guilds")
 
-        await ctx.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="add", description="Add a bot administrator.")
     @app_commands.describe(user="User to add", level="Permit level (1–4)")
