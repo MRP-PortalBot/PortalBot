@@ -6,7 +6,10 @@ from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 from .__bm_views import BotConfigSectionSelectView
-from utils.admin.bot_management.__bm_logic import get_bot_data_for_server, fetch_admins_by_level
+from utils.admin.bot_management.__bm_logic import (
+    get_bot_data_for_server,
+    fetch_admins_by_level,
+)
 
 _log = get_log(__name__)
 
@@ -33,6 +36,22 @@ class PermitCommands(app_commands.Group):
         )
         embed.set_footer(text="Only Permit 4 users can modify administrator list.")
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="listguilds")
+    @app_commands.is_owner()  # restricts to bot owner for safety
+    async def list_guilds(self, ctx: commands.Context):
+        """Lists all guilds the bot is currently in with ID and name."""
+        guilds = sorted(self.bot.guilds, key=lambda g: g.name.lower())
+        description = "\n".join([f"`{g.id}` - {g.name}" for g in guilds])
+
+        embed = discord.Embed(
+            title="📋 Guilds I'm In",
+            description=description or "No guilds found.",
+            color=discord.Color.blue(),
+        )
+        embed.set_footer(text=f"Total: {len(guilds)} guilds")
+
+        await ctx.send(embed=embed)
 
     @app_commands.command(name="add", description="Add a bot administrator.")
     @app_commands.describe(user="User to add", level="Permit level (1–4)")
@@ -121,7 +140,9 @@ class ConfigCommands(app_commands.Group):
             database.BotData.server_id == str(interaction.guild.id)
         )
         if not bot_data:
-            await interaction.followup.send("❌ BotData not found for this server.", ephemeral=True)
+            await interaction.followup.send(
+                "❌ BotData not found for this server.", ephemeral=True
+            )
             return
 
         bot_data_dict = {
@@ -133,13 +154,16 @@ class ConfigCommands(app_commands.Group):
         await interaction.followup.send("Edit config:", view=view, ephemeral=True)
 
     def _wrap_update(self, source_interaction: discord.Interaction):
-        async def update_callback(interaction: discord.Interaction, field_name: str, value):
+        async def update_callback(
+            interaction: discord.Interaction, field_name: str, value
+        ):
             updated = {}
             if field_name == "blocked_channels" and isinstance(value, list):
                 updated[field_name] = value
             else:
                 updated[field_name] = value
             await self.handle_botdata_update(source_interaction, updated)
+
         return update_callback
 
     async def handle_botdata_update(
@@ -161,7 +185,9 @@ class ConfigCommands(app_commands.Group):
 
         except Exception as e:
             _log.error(f"Error updating bot data: {e}", exc_info=True)
-            await interaction.followup.send("❌ Failed to update settings.", ephemeral=True)
+            await interaction.followup.send(
+                "❌ Failed to update settings.", ephemeral=True
+            )
 
 
 async def setup(bot: discord.Client):
