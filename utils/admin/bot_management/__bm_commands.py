@@ -38,7 +38,7 @@ class PermitCommands(app_commands.Group):
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="listguilds")
-    @app_commands.is_owner()  # restricts to bot owner for safety
+    @has_admin_level(4)
     async def list_guilds(self, ctx: commands.Context):
         """Lists all guilds the bot is currently in with ID and name."""
         guilds = sorted(self.bot.guilds, key=lambda g: g.name.lower())
