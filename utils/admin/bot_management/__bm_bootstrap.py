@@ -7,6 +7,7 @@ from discord.ext import commands
 from utils.helpers.__logging_module import get_log
 from utils.database import __database as database
 from utils.core_features.__constants import ConsoleColors
+from utils.daily_questions.__dq_views import QuestionSuggestionManager
 from utils.admin.bot_management.__bm_logic import initialize_db
 from utils.admin.bot_management.__bm_listeners import (
     _first_welcome_channel_id,
@@ -50,9 +51,6 @@ class BotManagementBootstrap(commands.Cog):
         _log.info("Bootstrap complete.")
 
     async def _init_persistent_views(self):
-        from utils.daily_questions.__dq_views import QuestionSuggestionManager
-        from utils.database import __database as database
-
         with database.db.connection_context():
             for guild in self.bot.guilds:
                 row = database.BotData.get_or_none(
@@ -120,19 +118,12 @@ class BotManagementBootstrap(commands.Cog):
         )
 
     async def _notify_github_log(self):
-        # If you store pb_test_server_id in BotData for a known guild, you can read from that row.
-        bot_data = get_bot_data_for_server(
-            448488274562908170
-        )  # or query BotData directly
-        if not bot_data or not getattr(bot_data, "pb_test_server_id", None):
-            _log.error("pb_test_server_id not found in BotData.")
-            return
-
-        pb_guild = self.bot.get_guild(int(bot_data.pb_test_server_id))
+        bot_data = get_bot_data_for_server(448488274562908170)
+        test_id = int(getattr(bot_data, "pb_test_server_id", "448488274562908170"))
+        pb_guild = self.bot.get_guild(test_id)
         if not pb_guild:
-            _log.error(f"Guild with ID {bot_data.pb_test_server_id} not found.")
+            _log.error(f"Guild with ID {test_id} not found.")
             return
-
         github_channel = discord.utils.get(pb_guild.channels, name="github-log")
         if github_channel:
             await github_channel.send("Github Synced, and bot is restarted")
