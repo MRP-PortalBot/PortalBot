@@ -31,7 +31,7 @@ def _ensure_db():
 
 def get_or_create_todays_question_id() -> int:
     """
-    Returns today's global question display_order. Creates a daily_question_log
+    Returns today's global question display_order. Creates a Daily_Question_Log
     entry atomically if it doesn't exist yet, selecting a random unused question,
     marking it used, and recording it for the day.
     """
@@ -41,8 +41,8 @@ def get_or_create_todays_question_id() -> int:
     with database.db.atomic():
         # Try to find today's log entry
         existing = (
-            database.daily_question_log.select()
-            .where(database.daily_question_log.date == str(today))
+            database.Daily_Question_Log.select()
+            .where(database.Daily_Question_Log.date == str(today))
             .first()
         )
         if existing:
@@ -78,7 +78,7 @@ def get_or_create_todays_question_id() -> int:
 
         now_cst = datetime.now(pytz.timezone("America/Chicago"))
         # Create log entry
-        database.daily_question_log.create(
+        database.Daily_Question_Log.create(
             date=str(today), question_id=question.id, posted_at=now_cst.isoformat()
         )
         _log.info(
