@@ -12,7 +12,7 @@ from peewee import (
     MySQLDatabase,
     OperationalError,
     ForeignKeyField,
-    FloatField,
+    DateField,
 )
 from playhouse.shortcuts import ReconnectMixin
 from utils.helpers.__logging_module import get_log
@@ -126,6 +126,12 @@ class Question(BaseModel):
     usage = BooleanField(default=False)
     upvotes = IntegerField(default=0)
     downvotes = IntegerField(default=0)
+
+
+class DailyQuestionLog(BaseModel):
+    date = DateField(unique=True)  # YYYY-MM-DD (no time part)
+    question = ForeignKeyField(Question, backref="qod_logs", on_delete="CASCADE")
+    posted_at = DateTimeField()  # exact datetime (in CST)
 
 
 class QuestionVote(BaseModel):

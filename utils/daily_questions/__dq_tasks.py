@@ -3,52 +3,65 @@
 import pytz
 from datetime import datetime
 from discord.ext import tasks, commands
-from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 from utils.helpers.__logging_module import get_log
-from .__dq_logic import send_daily_question, send_daily_question_repost
+from .__dq_logic import (
+    get_or_create_todays_question_id,
+    send_daily_question_to_guilds,
+    send_daily_question_repost_to_guild,
+)
 
 _log = get_log(__name__)
 
 
 class DailyQuestionPoster(commands.Cog):
+    """
+    Runs every minute, but posts at exactly 10:00 and reposts at 18:00 America/Chicago.
+    Uses a central DailyQuestionLog so only one question is chosen for the day.
+    """
+
     def __init__(self, bot):
         self.bot = bot
         self.post_question.start()
         _log.info("✅ DailyQuestionPoster task started.")
 
-    @tasks.loop(hours=1)
+    @tasks.loop(minutes=1)
     async def post_question(self):
-        _log.info("🕒 post_question loop ticked.")
-
         try:
-            now = datetime.now(pytz.timezone("America/Chicago"))
-            hour = now.hour
-            minute = now.minute
+            now_cst = datetime.now(pytz.timezone("America/Chicago"))
+            hour = now_cst.hour
+            minute = now_cst.minute
 
-            if 10 == hour and 0 <= minute <= 59:
-                _log.info("⏰ Attempting 10:00 AM post.")
-                question_id = await send_daily_question(self.bot)
+            # 10:00 AM — pick or reuse the one global question for the day and post per guild
+            if hour == 10 and minute == 0:
+                _log.info(
+                    "⏰ 10:00 AM tick — choosing today's question and posting to guilds."
+                )
+                question_display_order = get_or_create_todays_question_id()
+                await send_daily_question_to_guilds(
+                    self.bot, question_display_order, now_cst
+                )
 
+            # 6:00 PM — repost the same day's question per guild
+            if hour == 18 and minute == 0:
+                _log.info("⏰ 6:00 PM tick — reposting today's question to guilds.")
+                # We do not need to re-choose; use today's logged question
+                question_display_order = get_or_create_todays_question_id()
                 for guild in self.bot.guilds:
                     bot_data = get_bot_data_for_server(guild.id)
-                    if bot_data:
-                        bot_data.last_question_posted = question_id
-                        bot_data.last_question_posted_time = now
-                        bot_data.save()
-                        _log.info(f"✅ Saved last_question_posted for {guild.name}.")
-
-            elif 18 == hour and 0 <= minute <= 59:
-                _log.info("⏰ Attempting 6:00 PM repost.")
-                for guild in self.bot.guilds:
-                    bot_data = get_bot_data_for_server(guild.id)
-                    if bot_data and bot_data.last_question_posted:
-                        await send_daily_question_repost(
-                            self.bot, guild.id, bot_data.last_question_posted
+                    if not bot_data:
+                        continue
+                    # Only repost if we posted this question to this guild earlier today
+                    if bot_data.last_question_posted == str(question_display_order):
+                        await send_daily_question_repost_to_guild(
+                            self.bot, guild.id, question_display_order
                         )
                     else:
-                        _log.warning(
-                            f"⚠️ No question to repost for {guild.name} ({guild.id})."
+                        _log.debug(
+                            f"⏭️ Skipping repost for {guild.name} ({guild.id}); "
+                            f"last_question_posted={bot_data.last_question_posted}, "
+                            f"today={question_display_order}"
                         )
 
         except Exception as e:
