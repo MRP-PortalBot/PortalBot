@@ -129,7 +129,7 @@ class Question(BaseModel):
 
 
 class Daily_Question_Log(BaseModel):
-    date = DateField(unique=True)  # YYYY-MM-DD (no time part)
+    log_date = DateField(unique=True)  # YYYY-MM-DD (no time part)
     question = ForeignKeyField(Question, backref="qod_logs", on_delete="CASCADE")
     posted_at = DateTimeField()  # exact datetime (in CST)
 
