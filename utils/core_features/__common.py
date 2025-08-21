@@ -130,17 +130,6 @@ def get_user_rank(server_id: Union[int, str], user_id: Union[int, str]):
 
     return None
 
-def get_permitlist(min_level=3):
-    """
-    Returns a list of Discord IDs of administrators with at least the given level.
-    """
-    return [
-        admin.discordID
-        for admin in database.Administrators.select().where(
-            database.Administrators.TierLevel >= min_level
-        )
-    ]
-
 
 def ensure_profile_exists(profile: object) -> database.PortalbotProfile | None:
     """

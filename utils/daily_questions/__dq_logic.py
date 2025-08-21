@@ -84,11 +84,18 @@ def get_or_create_todays_question_id() -> int:
 
 
 # ---------- Posting flows ----------
-
-async def post_question_to_guild(bot, guild, question_id, embed, posted_at: datetime):
+async def post_question_to_guild(
+    bot,
+    guild,
+    question_id,
+    embed,
+    posted_at: datetime,
+    *,
+    record_to_botdata: bool = True,   # <— NEW
+):
     """
-    Posts the question to a single guild if enabled, and records BotData.last_question_posted[_time].
-    Guard against double-posting by checking date match.
+    Posts the question to a single guild if enabled.
+    When record_to_botdata=False, does NOT touch BotData.last_question_posted(_time).
     """
     try:
         bot_data = get_bot_data_for_server(guild.id)
@@ -96,11 +103,12 @@ async def post_question_to_guild(bot, guild, question_id, embed, posted_at: date
             _log.debug(f"⏭️ Skipping guild {guild.id} (not enabled or missing data).")
             return
 
-        # Prevent re-posting the same day to this guild if we already did.
-        if bot_data.last_question_posted_time and bot_data.last_question_posted_time.date() == posted_at.date():
-            if str(bot_data.last_question_posted) == str(question_id):
-                _log.debug(f"⏭️ Already posted today's question to {guild.name}; skipping.")
-                return
+        # Only do the "already posted today" guard for the normal daily posts
+        if record_to_botdata:
+            if bot_data.last_question_posted_time and bot_data.last_question_posted_time.date() == posted_at.date():
+                if str(bot_data.last_question_posted) == str(question_id):
+                    _log.debug(f"⏭️ Already posted today's question to {guild.name}; skipping.")
+                    return
 
         send_channel = bot.get_channel(int(bot_data.daily_question_channel))
         if not send_channel:
@@ -109,15 +117,16 @@ async def post_question_to_guild(bot, guild, question_id, embed, posted_at: date
 
         view = QuestionVoteView(bot, question_id)
         await send_channel.send(embed=embed, view=view)
-        _log.info(f"📤 Posted question #{question_id} to {send_channel.name} in {guild.name}.")
+        _log.info(f"📤 Posted question #{question_id} to {send_channel.name} in {guild.name} (record={record_to_botdata}).")
 
-        # Record what/when we posted to this guild
-        bot_data.last_question_posted = str(question_id)
-        bot_data.last_question_posted_time = posted_at
-        bot_data.save()
+        if record_to_botdata:
+            bot_data.last_question_posted = str(question_id)
+            bot_data.last_question_posted_time = posted_at
+            bot_data.save()
 
     except Exception as e:
         _log.error(f"❌ Failed to send question to {guild.name}: {e}", exc_info=True)
+
 
 
 async def send_daily_question_to_guilds(bot, question_display_order: int, when_cst: datetime):
@@ -182,3 +191,37 @@ def reset_question_usage() -> int:
     except Exception as e:
         _log.error(f"❌ Failed to reset question usage: {e}", exc_info=True)
         return 0
+
+# ---------- Post Question without updating database ----------
+
+async def send_specific_question_to_guild_no_usage(bot, guild_id: int, question_display_order: int) -> None:
+    """
+    Post a specific question to ONE guild without changing usage or today's log,
+    and without recording BotData.last_question_posted(_time).
+    """
+    try:
+        _ensure_db()
+        question = database.Question.get(database.Question.display_order == question_display_order)
+        embed = create_question_embed(question)
+
+        guild = bot.get_guild(int(guild_id))
+        if not guild:
+            _log.error(f"❌ Guild {guild_id} not found.")
+            return
+
+        now_cst = datetime.now(pytz.timezone("America/Chicago"))
+        await post_question_to_guild(
+            bot,
+            guild,
+            question.display_order,
+            embed,
+            now_cst,
+            record_to_botdata=False,  # <— do NOT touch BotData
+        )
+
+    except database.Question.DoesNotExist:
+        _log.error(f"❌ Question with display_order={question_display_order} not found.")
+        raise
+    except Exception as e:
+        _log.error(f"❌ Error posting specific question (no-usage) to guild {guild_id}: {e}", exc_info=True)
+        raise

@@ -13,7 +13,7 @@ from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 from utils.helpers.__logging_module import get_log
 
 from .__dq_logic import (
-    send_daily_question,
+    send_specific_question_to_guild_no_usage,
     renumber_display_order,
     reset_question_usage,
 )
@@ -62,19 +62,35 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
             case "suggest":
                 return self.suggest_question
 
+
     async def post_question(self, interaction: discord.Interaction, id: str):
+        await interaction.response.defer(ephemeral=True)  # keeps UI snappy and avoids double-send errors
+
         bot_data = get_bot_data_for_server(str(interaction.guild.id))
-        question_id = id or bot_data.last_question_posted
+        # Prefer explicit id, otherwise fall back to last recorded
+        question_id = id or (bot_data.last_question_posted if bot_data else None)
+
         if not question_id:
-            await interaction.response.send_message(
-                "No recent question found.", ephemeral=True
-            )
+            await interaction.followup.send("No recent question found and no id provided.", ephemeral=True)
             return
 
-        await send_daily_question(self.bot, question_id)
-        await interaction.response.send_message(
-            f"✅ Question `{question_id}` posted.", ephemeral=True
-        )
+        try:
+            # Ensure we’re dealing with an int display_order
+            question_display_order = int(str(question_id).strip())
+        except ValueError:
+            await interaction.followup.send(f"Invalid question id `{question_id}`. Expecting a display order number.", ephemeral=True)
+            return
+
+        try:
+            await send_specific_question_to_guild_no_usage(
+                self.bot,
+                interaction.guild.id,
+                question_display_order,
+            )
+            await interaction.followup.send(f"✅ Question `{question_display_order}` posted to this server (no usage change).", ephemeral=True)
+        except Exception:
+            await interaction.followup.send("❌ Failed to post that question here. Check logs for details.", ephemeral=True)
+
 
     async def repost_last_question(self, interaction: discord.Interaction):
         try:
