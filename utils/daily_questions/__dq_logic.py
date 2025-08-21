@@ -16,9 +16,11 @@ _log = get_log(__name__)
 
 # ---------- Helpers: schema accessors ----------
 
+
 def _today_cst_date() -> date:
     now_cst = datetime.now(pytz.timezone("America/Chicago"))
     return now_cst.date()
+
 
 def _ensure_db():
     database.ensure_database_connection()
@@ -26,9 +28,10 @@ def _ensure_db():
 
 # ---------- New: central “question of the day” log ----------
 
+
 def get_or_create_todays_question_id() -> int:
     """
-    Returns today's global question display_order. Creates a DailyQuestionLog
+    Returns today's global question display_order. Creates a daily_question_log
     entry atomically if it doesn't exist yet, selecting a random unused question,
     marking it used, and recording it for the day.
     """
@@ -38,13 +41,14 @@ def get_or_create_todays_question_id() -> int:
     with database.db.atomic():
         # Try to find today's log entry
         existing = (
-            database.DailyQuestionLog
-            .select()
-            .where(database.DailyQuestionLog.date == str(today))
+            database.daily_question_log.select()
+            .where(database.daily_question_log.date == str(today))
             .first()
         )
         if existing:
-            _log.debug(f"📌 Today's question already chosen: {existing.question_id} for {today}.")
+            _log.debug(
+                f"📌 Today's question already chosen: {existing.question_id} for {today}."
+            )
             # Return display_order so UI stays consistent
             q = database.Question.get_by_id(existing.question_id)
             return q.display_order
@@ -55,12 +59,13 @@ def get_or_create_todays_question_id() -> int:
             # Reset all usage flags, then reselect
             database.Question.update(usage="False").execute()
             _log.info("🔄 All questions used — resetting usage flags.")
-            unused = database.Question.select().where(database.Question.usage == "False")
+            unused = database.Question.select().where(
+                database.Question.usage == "False"
+            )
 
         # Random one
         question = (
-            database.Question
-            .select()
+            database.Question.select()
             .where(database.Question.usage == "False")
             .order_by(fn.Rand())
             .limit(1)
@@ -73,12 +78,12 @@ def get_or_create_todays_question_id() -> int:
 
         now_cst = datetime.now(pytz.timezone("America/Chicago"))
         # Create log entry
-        database.DailyQuestionLog.create(
-            date=str(today),
-            question_id=question.id,
-            posted_at=now_cst.isoformat()
+        database.daily_question_log.create(
+            date=str(today), question_id=question.id, posted_at=now_cst.isoformat()
         )
-        _log.info(f"🗓️ Chose question id={question.id} (display_order={question.display_order}) for {today}.")
+        _log.info(
+            f"🗓️ Chose question id={question.id} (display_order={question.display_order}) for {today}."
+        )
 
         return question.display_order
 
@@ -91,7 +96,7 @@ async def post_question_to_guild(
     embed,
     posted_at: datetime,
     *,
-    record_to_botdata: bool = True,   # <— NEW
+    record_to_botdata: bool = True,  # <— NEW
 ):
     """
     Posts the question to a single guild if enabled.
@@ -105,19 +110,28 @@ async def post_question_to_guild(
 
         # Only do the "already posted today" guard for the normal daily posts
         if record_to_botdata:
-            if bot_data.last_question_posted_time and bot_data.last_question_posted_time.date() == posted_at.date():
+            if (
+                bot_data.last_question_posted_time
+                and bot_data.last_question_posted_time.date() == posted_at.date()
+            ):
                 if str(bot_data.last_question_posted) == str(question_id):
-                    _log.debug(f"⏭️ Already posted today's question to {guild.name}; skipping.")
+                    _log.debug(
+                        f"⏭️ Already posted today's question to {guild.name}; skipping."
+                    )
                     return
 
         send_channel = bot.get_channel(int(bot_data.daily_question_channel))
         if not send_channel:
-            _log.error(f"❌ Channel ID {bot_data.daily_question_channel} not found in {guild.name}.")
+            _log.error(
+                f"❌ Channel ID {bot_data.daily_question_channel} not found in {guild.name}."
+            )
             return
 
         view = QuestionVoteView(bot, question_id)
         await send_channel.send(embed=embed, view=view)
-        _log.info(f"📤 Posted question #{question_id} to {send_channel.name} in {guild.name} (record={record_to_botdata}).")
+        _log.info(
+            f"📤 Posted question #{question_id} to {send_channel.name} in {guild.name} (record={record_to_botdata})."
+        )
 
         if record_to_botdata:
             bot_data.last_question_posted = str(question_id)
@@ -128,43 +142,55 @@ async def post_question_to_guild(
         _log.error(f"❌ Failed to send question to {guild.name}: {e}", exc_info=True)
 
 
-
-async def send_daily_question_to_guilds(bot, question_display_order: int, when_cst: datetime):
+async def send_daily_question_to_guilds(
+    bot, question_display_order: int, when_cst: datetime
+):
     """
     Build embed once and post to every enabled guild, using the already-chosen
     question_display_order for today.
     """
     try:
         _ensure_db()
-        question = database.Question.get(database.Question.display_order == question_display_order)
+        question = database.Question.get(
+            database.Question.display_order == question_display_order
+        )
         embed = create_question_embed(question)
 
         for guild in bot.guilds:
-            await post_question_to_guild(bot, guild, question.display_order, embed, when_cst)
+            await post_question_to_guild(
+                bot, guild, question.display_order, embed, when_cst
+            )
 
     except Exception as e:
         _log.error(f"❌ Error posting daily question to guilds: {e}", exc_info=True)
 
 
-async def send_daily_question_repost_to_guild(bot, guild_id, question_display_order: int) -> None:
+async def send_daily_question_repost_to_guild(
+    bot, guild_id, question_display_order: int
+) -> None:
     """
     Reposts today's question to a single guild.
     """
     try:
         _ensure_db()
-        question = database.Question.get(database.Question.display_order == question_display_order)
+        question = database.Question.get(
+            database.Question.display_order == question_display_order
+        )
         embed = create_question_embed(question)
 
         guild = bot.get_guild(guild_id)
         if guild:
             now_cst = datetime.now(pytz.timezone("America/Chicago"))
-            await post_question_to_guild(bot, guild, question.display_order, embed, now_cst)
+            await post_question_to_guild(
+                bot, guild, question.display_order, embed, now_cst
+            )
 
     except Exception as e:
         _log.error(f"❌ Error reposting daily question: {e}", exc_info=True)
 
 
 # ---------- Maintenance ----------
+
 
 def renumber_display_order():
     """Reassign sequential display_order to all questions based on creation order."""
@@ -192,16 +218,22 @@ def reset_question_usage() -> int:
         _log.error(f"❌ Failed to reset question usage: {e}", exc_info=True)
         return 0
 
+
 # ---------- Post Question without updating database ----------
 
-async def send_specific_question_to_guild_no_usage(bot, guild_id: int, question_display_order: int) -> None:
+
+async def send_specific_question_to_guild_no_usage(
+    bot, guild_id: int, question_display_order: int
+) -> None:
     """
     Post a specific question to ONE guild without changing usage or today's log,
     and without recording BotData.last_question_posted(_time).
     """
     try:
         _ensure_db()
-        question = database.Question.get(database.Question.display_order == question_display_order)
+        question = database.Question.get(
+            database.Question.display_order == question_display_order
+        )
         embed = create_question_embed(question)
 
         guild = bot.get_guild(int(guild_id))
@@ -220,8 +252,13 @@ async def send_specific_question_to_guild_no_usage(bot, guild_id: int, question_
         )
 
     except database.Question.DoesNotExist:
-        _log.error(f"❌ Question with display_order={question_display_order} not found.")
+        _log.error(
+            f"❌ Question with display_order={question_display_order} not found."
+        )
         raise
     except Exception as e:
-        _log.error(f"❌ Error posting specific question (no-usage) to guild {guild_id}: {e}", exc_info=True)
+        _log.error(
+            f"❌ Error posting specific question (no-usage) to guild {guild_id}: {e}",
+            exc_info=True,
+        )
         raise
