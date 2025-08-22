@@ -42,7 +42,7 @@ def get_or_create_todays_question_id() -> int:
         # Try to find today's log entry
         existing = (
             database.Daily_Question_Log.select()
-            .where(database.Daily_Question_Log.date == str(today))
+            .where(database.Daily_Question_Log.log_date == str(today))
             .first()
         )
         if existing:
