@@ -49,7 +49,7 @@ class DailyQuestionPoster(commands.Cog):
                 # We do not need to re-choose; use today's logged question
                 question_display_order = get_or_create_todays_question_id()
                 for guild in self.bot.guilds:
-                    bot_data = get_bot_data_for_server(guild.id)
+                    bot_data = get_bot_data_for_server(str(guild.id))
                     if not bot_data:
                         continue
                     # Only repost if we posted this question to this guild earlier today

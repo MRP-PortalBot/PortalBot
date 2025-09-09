@@ -17,9 +17,12 @@ _log = get_log(__name__)
 # ---------- Helpers: schema accessors ----------
 
 
-def _today_cst_date() -> date:
-    now_cst = datetime.now(pytz.timezone("America/Chicago"))
-    return now_cst.date()
+def _today_cst_date():
+    return datetime.now(pytz.timezone("America/Chicago")).date()
+
+def _now_cst_naive():
+    # MariaDB DATETIME expects naive "YYYY-MM-DD HH:MM:SS"
+    return datetime.now(pytz.timezone("America/Chicago")).replace(tzinfo=None)
 
 
 def _ensure_db():
@@ -30,63 +33,39 @@ def _ensure_db():
 
 
 def get_or_create_todays_question_id() -> int:
-    """
-    Returns today's global question display_order. Creates a Daily_Question_Log
-    entry atomically if it doesn't exist yet, selecting a random unused question,
-    marking it used, and recording it for the day.
-    """
-    _ensure_db()
+    database.ensure_database_connection()
     today = _today_cst_date()
 
     with database.db.atomic():
-        # Try to find today's log entry
-        existing = (
-            database.Daily_Question_Log.select()
-            .where(database.Daily_Question_Log.log_date == str(today))
-            .first()
-        )
+        existing = (database.Daily_Question_Log
+                    .select()
+                    .where(database.Daily_Question_Log.date == today)
+                    .first())
         if existing:
-            _log.debug(
-                f"📌 Today's question already chosen: {existing.question_id} for {today}."
-            )
-            # Return display_order so UI stays consistent
             q = database.Question.get_by_id(existing.question_id)
             return q.display_order
 
-        # No entry yet — pick an unused question
+        # pick an unused question (usage is 'True'/'False' text in your schema)
         unused = database.Question.select().where(database.Question.usage == "False")
         if not unused.exists():
-            # Reset all usage flags, then reselect
             database.Question.update(usage="False").execute()
-            _log.info("🔄 All questions used — resetting usage flags.")
-            unused = database.Question.select().where(
-                database.Question.usage == "False"
-            )
 
-        # Random one
-        question = (
-            database.Question.select()
-            .where(database.Question.usage == "False")
-            .order_by(fn.Rand())
-            .limit(1)
-            .get()
-        )
+        question = (database.Question
+                    .select()
+                    .where(database.Question.usage == "False")
+                    .order_by(fn.Rand())
+                    .limit(1)
+                    .get())
 
-        # Mark used
         question.usage = "True"
         question.save()
 
-        now_cst = datetime.now(pytz.timezone("America/Chicago"))
-        # Create log entry
         database.Daily_Question_Log.create(
-            date=str(today), question_id=question.id, posted_at=now_cst.isoformat()
+            date=today,                      # <-- a date object, not a string
+            question=question,               # <-- FK instance or id both fine
+            posted_at=_now_cst_naive(),      # <-- naive datetime, not ISO w/ tz
         )
-        _log.info(
-            f"🗓️ Chose question id={question.id} (display_order={question.display_order}) for {today}."
-        )
-
         return question.display_order
-
 
 # ---------- Posting flows ----------
 async def post_question_to_guild(
@@ -103,11 +82,11 @@ async def post_question_to_guild(
     When record_to_botdata=False, does NOT touch BotData.last_question_posted(_time).
     """
     try:
-        bot_data = get_bot_data_for_server(guild.id)
+        bot_data = get_bot_data_for_server(str(guild.id))  # <-- was guild.id
         if not bot_data or not bot_data.daily_question_enabled:
             _log.debug(f"⏭️ Skipping guild {guild.id} (not enabled or missing data).")
             return
-
+        
         # Only do the "already posted today" guard for the normal daily posts
         if record_to_botdata:
             if (
