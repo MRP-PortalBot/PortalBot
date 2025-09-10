@@ -39,7 +39,7 @@ def get_or_create_todays_question_id() -> int:
     with database.db.atomic():
         existing = (database.Daily_Question_Log
                     .select()
-                    .where(database.Daily_Question_Log.date == today)
+                    .where(database.Daily_Question_Log.log_date == today)
                     .first())
         if existing:
             q = database.Question.get_by_id(existing.question_id)
