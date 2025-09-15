@@ -34,7 +34,7 @@ class DailyQuestionPoster(commands.Cog):
             minute = now_cst.minute
 
             # 10:00 AM — pick or reuse the one global question for the day and post per guild
-            if hour == 10 and minute == 0:
+            if hour == 11 and minute >= 0:
                 _log.info(
                     "⏰ 10:00 AM tick — choosing today's question and posting to guilds."
                 )
@@ -44,7 +44,7 @@ class DailyQuestionPoster(commands.Cog):
                 )
 
             # 6:00 PM — repost the same day's question per guild
-            if hour == 18 and minute == 0:
+            if hour == 18 and minute >= 0:
                 _log.info("⏰ 6:00 PM tick — reposting today's question to guilds.")
                 # We do not need to re-choose; use today's logged question
                 question_display_order = get_or_create_todays_question_id()
