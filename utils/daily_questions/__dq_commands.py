@@ -1,4 +1,4 @@
-# utils/daily_questions/dq_main.py
+# utils/daily_questions/dq_commands.py
 
 import math
 import discord
@@ -62,7 +62,6 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
             case "suggest":
                 return self.suggest_question
 
-
     async def post_question(self, interaction: discord.Interaction, id: str):
         await interaction.response.defer(ephemeral=True)  # keeps UI snappy and avoids double-send errors
 
@@ -91,12 +90,11 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
         except Exception:
             await interaction.followup.send("❌ Failed to post that question here. Check logs for details.", ephemeral=True)
 
-
     async def repost_last_question(self, interaction: discord.Interaction):
         try:
             database.ensure_database_connection()
 
-            bot_data = get_bot_data_for_server(interaction.guild.id)
+            bot_data = get_bot_data_for_server(str(interaction.guild.id))
             if not bot_data or not bot_data.last_question_posted:
                 await interaction.response.send_message(
                     "No previous question found to repost.", ephemeral=True
@@ -136,7 +134,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
                 "That question no longer exists.", ephemeral=True
             )
         except Exception as e:
-            # Optional: _log.error("repost_last_question failed", exc_info=True)
+            _log.error("repost_last_question failed", exc_info=True)
             await interaction.response.send_message(
                 "There was an error reposting the question.", ephemeral=True
             )
@@ -154,9 +152,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
                 "❌ Failed to add question.", ephemeral=True
             )
 
-    async def modify_question(
-        self, interaction: discord.Interaction, id: str, question: str
-    ):
+    async def modify_question(self, interaction: discord.Interaction, id: str, question: str):
         try:
             q = database.Question.get(display_order=id)
             q.question = question
