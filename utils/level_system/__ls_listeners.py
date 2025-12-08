@@ -7,7 +7,8 @@ import datetime
 
 from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
-from .__ls_logic import calculate_level, get_role_for_level
+from utils.core_features.__common import calculate_level
+from .__ls_logic import get_role_for_level
 
 _log = get_log("level_system")
 score_log = get_log("level_system.score")

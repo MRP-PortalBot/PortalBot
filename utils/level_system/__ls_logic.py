@@ -194,4 +194,6 @@ async def get_role_for_level(level: int, guild: discord.Guild) -> discord.Role |
 
 
 def score_required_for_level(level: int) -> int:
-        return (level ** 2) * 100
+    if level == 1:
+        return 1  # unlock level 1 at 1 point
+    return (level ** 2) * 100

@@ -9,10 +9,10 @@ from utils.database import __database as database
 from utils.admin.admin_core.__admin_commands import has_admin_level
 from utils.admin.bot_management.__bm_logic import config
 from utils.helpers.__logging_module import get_log
+from utils.core_features.__common import calculate_level
 from .__ls_logic import (
     create_and_order_roles,
     sync_tatsu_score_for_user,
-    calculate_level,
     get_role_for_level,
     get_tatsu_score,
     score_required_for_level,

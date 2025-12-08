@@ -20,6 +20,7 @@ from utils.database.__database import BotData
 # Logger
 _log = get_log(__name__)
 
+
 def solve(s: str) -> str:
     """
     Capitalizes each word in a string.
@@ -98,14 +99,30 @@ def calculate_level(score: int) -> Tuple[int, float, int]:
     Returns:
         Tuple of (level, percent to next, score for next level)
     """
+
+    # Level 0 → Level 1 unlock
+    if score == 0:
+        return 0, 0.0, 1  # unlock Level 1 at 1 point
+
+    # Level 1 → Level 2 progression
+    if 1 <= score < 400:
+        level = 1
+        next_level_score = 400  # Level 2 requirement
+        progress = score / next_level_score
+        return level, progress, next_level_score
+
+    # Levels 2+
     level = int((score // 100) ** 0.5)
+
     next_level_score = (level + 1) ** 2 * 100
     prev_level_score = level**2 * 100
+
     progress = (
         (score - prev_level_score) / (next_level_score - prev_level_score)
         if next_level_score != prev_level_score
         else 0.0
     )
+
     return level, progress, next_level_score
 
 
