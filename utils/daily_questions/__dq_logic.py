@@ -84,18 +84,18 @@ def get_or_create_todays_question_id() -> int:
             return q.display_order
 
         # Pick an unused question (usage is "True"/"False" text in your schema)
-        unused = database.Question.select().where(database.Question.usage == "False")
+        unused = database.Question.select().where(database.Question.usage == False)
         if not unused.exists():
-            database.Question.update(usage="False").execute()
+            database.Question.update(usage=False).execute()
 
         question = (
             database.Question.select()
-            .where(database.Question.usage == "False")
+            .where(database.Question.usage == False)
             .order_by(fn.Rand())
             .limit(1)
             .get()
         )
-        question.usage = "True"
+        question.usage = True
         question.save()
 
         # Upsert today's log row (robust against double-runs)
@@ -247,7 +247,7 @@ def reset_question_usage() -> int:
     """
     try:
         _ensure_db()
-        updated = database.Question.update(usage="False").execute()
+        updated = database.Question.update(usage=False).execute()
         _log.info(f"🔄 Reset usage for {updated} questions.")
         return updated
     except Exception as e:

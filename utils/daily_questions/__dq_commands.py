@@ -21,7 +21,7 @@ from .__dq_views import (
     DailyQuestionActionView,
     SuggestModalNEW,
     QuestionVoteView,
-    create_question_embed
+    create_question_embed,
 )
 
 _log = get_log(__name__)
@@ -63,21 +63,28 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
                 return self.suggest_question
 
     async def post_question(self, interaction: discord.Interaction, id: str):
-        await interaction.response.defer(ephemeral=True)  # keeps UI snappy and avoids double-send errors
+        await interaction.response.defer(
+            ephemeral=True
+        )  # keeps UI snappy and avoids double-send errors
 
         bot_data = get_bot_data_for_server(str(interaction.guild.id))
         # Prefer explicit id, otherwise fall back to last recorded
         question_id = id or (bot_data.last_question_posted if bot_data else None)
 
         if not question_id:
-            await interaction.followup.send("No recent question found and no id provided.", ephemeral=True)
+            await interaction.followup.send(
+                "No recent question found and no id provided.", ephemeral=True
+            )
             return
 
         try:
             # Ensure we’re dealing with an int display_order
             question_display_order = int(str(question_id).strip())
         except ValueError:
-            await interaction.followup.send(f"Invalid question id `{question_id}`. Expecting a display order number.", ephemeral=True)
+            await interaction.followup.send(
+                f"Invalid question id `{question_id}`. Expecting a display order number.",
+                ephemeral=True,
+            )
             return
 
         try:
@@ -86,9 +93,15 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
                 interaction.guild.id,
                 question_display_order,
             )
-            await interaction.followup.send(f"✅ Question `{question_display_order}` posted to this server (no usage change).", ephemeral=True)
+            await interaction.followup.send(
+                f"✅ Question `{question_display_order}` posted to this server (no usage change).",
+                ephemeral=True,
+            )
         except Exception:
-            await interaction.followup.send("❌ Failed to post that question here. Check logs for details.", ephemeral=True)
+            await interaction.followup.send(
+                "❌ Failed to post that question here. Check logs for details.",
+                ephemeral=True,
+            )
 
     async def repost_last_question(self, interaction: discord.Interaction):
         try:
@@ -111,7 +124,9 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
 
             # Resolve the send channel
             channel_id = int(bot_data.daily_question_channel)
-            channel = interaction.client.get_channel(channel_id) or interaction.guild.get_channel(channel_id)
+            channel = interaction.client.get_channel(
+                channel_id
+            ) or interaction.guild.get_channel(channel_id)
             if not channel:
                 await interaction.response.send_message(
                     "Daily question channel not found.", ephemeral=True
@@ -141,7 +156,7 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
 
     async def new_question(self, interaction: discord.Interaction, question: str):
         try:
-            database.Question.create(question=question, usage="False")
+            database.Question.create(question=question, usage=False)
             renumber_display_order()
             await interaction.response.send_message(
                 "✅ Question added.", ephemeral=True
@@ -152,7 +167,9 @@ class DailyQuestionCommands(commands.GroupCog, name="daily-question"):
                 "❌ Failed to add question.", ephemeral=True
             )
 
-    async def modify_question(self, interaction: discord.Interaction, id: str, question: str):
+    async def modify_question(
+        self, interaction: discord.Interaction, id: str, question: str
+    ):
         try:
             q = database.Question.get(display_order=id)
             q.question = question
