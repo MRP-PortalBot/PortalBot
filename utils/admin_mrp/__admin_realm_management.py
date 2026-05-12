@@ -1,4 +1,4 @@
-# utils/admin/__admin_realm_management.py
+# utils/admin_mrp/__admin_realm_management.py
 
 from typing import Optional
 import datetime
@@ -129,12 +129,57 @@ REALM_APPLICATION_PAGES = [
 ]
 
 
+class RealmApplicationContinueView(ui.View):
+    def __init__(
+        self,
+        bot: commands.Bot,
+        page_index: int,
+        application_data: dict[str, str],
+        user_id: int,
+    ):
+        super().__init__(timeout=300)
+
+        self.bot = bot
+        self.page_index = page_index
+        self.application_data = application_data
+        self.user_id = user_id
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message(
+                "This realm application belongs to another user.",
+                ephemeral=True,
+            )
+            return False
+
+        return True
+
+    @ui.button(
+        label="Continue Application",
+        style=discord.ButtonStyle.primary,
+    )
+    async def continue_application(
+        self,
+        interaction: discord.Interaction,
+        button: ui.Button,
+    ):
+        modal = RealmApplicationModal(
+            bot=self.bot,
+            page_index=self.page_index,
+            application_data=self.application_data,
+            user_id=self.user_id,
+        )
+
+        await interaction.response.send_modal(modal)
+
+
 class RealmApplicationModal(ui.Modal):
     def __init__(
         self,
         bot: commands.Bot,
         page_index: int = 0,
         application_data: Optional[dict[str, str]] = None,
+        user_id: Optional[int] = None,
     ):
         super().__init__(
             title=f"Realm Application {page_index + 1}/{len(REALM_APPLICATION_PAGES)}",
@@ -144,6 +189,7 @@ class RealmApplicationModal(ui.Modal):
         self.bot = bot
         self.page_index = page_index
         self.application_data = application_data or {}
+        self.user_id = user_id
         self.inputs: dict[str, ui.TextInput] = {}
 
         for field in REALM_APPLICATION_PAGES[self.page_index]:
@@ -158,18 +204,34 @@ class RealmApplicationModal(ui.Modal):
             self.add_item(text_input)
 
     async def on_submit(self, interaction: discord.Interaction):
+        if self.user_id is not None and interaction.user.id != self.user_id:
+            await interaction.response.send_message(
+                "This realm application belongs to another user.",
+                ephemeral=True,
+            )
+            return
+
+        if self.user_id is None:
+            self.user_id = interaction.user.id
+
         for key, text_input in self.inputs.items():
             self.application_data[key] = str(text_input.value).strip()
 
         next_page_index = self.page_index + 1
 
         if next_page_index < len(REALM_APPLICATION_PAGES):
-            next_modal = RealmApplicationModal(
+            view = RealmApplicationContinueView(
                 bot=self.bot,
                 page_index=next_page_index,
                 application_data=self.application_data,
+                user_id=self.user_id,
             )
-            await interaction.response.send_modal(next_modal)
+
+            await interaction.response.send_message(
+                f"✅ Page {self.page_index + 1} saved. Click below to continue.",
+                view=view,
+                ephemeral=True,
+            )
             return
 
         await self.finish_application(interaction)
@@ -385,7 +447,10 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
         description="Apply for a realm channel (realm owners only).",
     )
     async def apply_for_realm(self, interaction: discord.Interaction):
-        modal = RealmApplicationModal(self.bot)
+        modal = RealmApplicationModal(
+            bot=self.bot,
+            user_id=interaction.user.id,
+        )
         await interaction.response.send_modal(modal)
 
     @app_commands.command(
@@ -399,7 +464,6 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
     async def approve_realm(self, interaction: discord.Interaction, app_number: int):
         await interaction.response.defer(thinking=True)
 
-        bot_data = get_bot_data_for_server(interaction.guild.id)
         guild = interaction.guild
         author = interaction.user
 
