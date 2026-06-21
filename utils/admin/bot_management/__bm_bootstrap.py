@@ -9,12 +9,7 @@ from utils.database import __database as database
 from utils.core_features.__constants import ConsoleColors
 from utils.daily_questions.__dq_views import QuestionSuggestionManager
 from utils.admin.bot_management.__bm_logic import initialize_db
-from utils.admin.bot_management.__bm_listeners import (
-    _first_welcome_channel_id,
-)  # reuse helper
-from utils.admin.bot_management.__bm_logic import (
-    get_bot_data_for_server,
-)  # if you have this; else query BotData directly
+from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
 _log = get_log(__name__)
 
@@ -26,7 +21,7 @@ class BotManagementBootstrap(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        # prevent running twice on reconnects
+        # Prevent running twice on reconnects.
         if self._ran_ready_once:
             return
         self._ran_ready_once = True
@@ -34,18 +29,18 @@ class BotManagementBootstrap(commands.Cog):
         now = datetime.now()
         _log.info(f"Bot ready at {now}. Running bootstrap...")
 
-        # Ensure DB rows for all guilds
-        with database.db.connection_context():
-            initialize_db(self.bot)
+        # initialize_db manages its own Peewee connection state. Wrapping it in
+        # connection_context() can make Peewee pop an already-cleared context.
+        initialize_db(self.bot)
 
-        # Initialize persistent views once per guild
+        # Initialize persistent views once per guild.
         await self._init_persistent_views()
 
-        # Git version banner (best-effort)
+        # Git version banner (best-effort).
         git_version = await self._git_version()
         self._print_banner(now, git_version)
 
-        # Post to github-log in your PB test server
+        # Post to github-log in your PB test server.
         await self._notify_github_log()
 
         _log.info("Bootstrap complete.")
@@ -61,6 +56,7 @@ class BotManagementBootstrap(commands.Cog):
                         f"BotData missing during persistent view init for {guild.id}"
                     )
                     continue
+
                 if not row.persistent_views:
                     self.bot.add_view(QuestionSuggestionManager())
                     row.persistent_views = True
@@ -94,8 +90,7 @@ class BotManagementBootstrap(commands.Cog):
             f"{db_color}Selected Database: {db_src}{ConsoleColors.ENDC}\n{db_warning}"
         )
 
-        print(
-            f"""
+        print(f"""
       _____           _        _ ____        _   
      |  __ \\         | |      | |  _ \\      | |  
      | |__) |__  _ __| |_ __ _| | |_) | ___ | |_ 
@@ -114,16 +109,17 @@ class BotManagementBootstrap(commands.Cog):
     {ConsoleColors.WARNING}Statistics{ConsoleColors.ENDC}
     Guilds: {len(self.bot.guilds)}
     Members: {len(self.bot.users)}
-    """
-        )
+    """)
 
     async def _notify_github_log(self):
         bot_data = get_bot_data_for_server(448488274562908170)
         test_id = int(getattr(bot_data, "pb_test_server_id", "448488274562908170"))
         pb_guild = self.bot.get_guild(test_id)
+
         if not pb_guild:
             _log.error(f"Guild with ID {test_id} not found.")
             return
+
         github_channel = discord.utils.get(pb_guild.channels, name="github-log")
         if github_channel:
             await github_channel.send("Github Synced, and bot is restarted")
