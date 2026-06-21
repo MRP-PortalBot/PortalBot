@@ -470,7 +470,7 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
         try:
             q: database.RealmApplications = (
                 database.RealmApplications.select()
-                .where(database.RealmApplications.id == app_number)
+                .where(database.RealmApplications.entry_id == app_number)
                 .get()
             )
         except database.RealmApplications.DoesNotExist:
