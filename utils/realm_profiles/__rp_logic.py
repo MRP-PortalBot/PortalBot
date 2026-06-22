@@ -167,6 +167,10 @@ def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font, max_width: int) -> li
     return lines
 
 
+def _line_height(draw: ImageDraw.ImageDraw, font, line_gap: int) -> int:
+    return _text_size(draw, "Ag", font)[1] + line_gap
+
+
 def _draw_text_with_shadow(
     draw: ImageDraw.ImageDraw, x: int, y: int, text: str, font, fill=TEXT_COLOR
 ) -> None:
@@ -184,12 +188,8 @@ def _draw_wrapped_text(
     max_height: int,
     line_gap: int = 5,
 ) -> None:
-    line_height = _text_size(draw, "Ag", font)[1] + line_gap
-    max_lines = max(1, max_height // line_height)
     lines = _wrap_text(draw, text, font, max_width)
-    if len(lines) > max_lines:
-        lines = lines[:max_lines]
-        lines[-1] = f"{lines[-1].rstrip('. ')}..."
+    line_height = _line_height(draw, font, line_gap)
 
     for line in lines:
         _draw_text_with_shadow(draw, x, y, line, font)
@@ -202,8 +202,8 @@ def _draw_panel(
     overlay_draw.rounded_rectangle(box, radius=8, fill=PANEL_FILL, outline=PANEL_OUTLINE)
 
 
-def _expand_pink_section(base: Image.Image) -> Image.Image:
-    if PINK_SECTION_EXTRA_HEIGHT <= 0:
+def _expand_pink_section(base: Image.Image, extra_height: int = PINK_SECTION_EXTRA_HEIGHT) -> Image.Image:
+    if extra_height <= 0:
         return base
 
     width, height = base.size
@@ -211,16 +211,16 @@ def _expand_pink_section(base: Image.Image) -> Image.Image:
     pink_section = base.crop((0, PINK_SECTION_TOP, width, BOTTOM_BORDER_TOP))
     bottom = base.crop((0, BOTTOM_BORDER_TOP, width, height))
     expanded_pink = pink_section.resize(
-        (width, pink_section.height + PINK_SECTION_EXTRA_HEIGHT),
+        (width, pink_section.height + extra_height),
         Image.NEAREST,
     )
 
     expanded = Image.new(
-        "RGBA", (width, height + PINK_SECTION_EXTRA_HEIGHT), (0, 0, 0, 0)
+        "RGBA", (width, height + extra_height), (0, 0, 0, 0)
     )
     expanded.paste(top, (0, 0), top)
     expanded.paste(expanded_pink, (0, PINK_SECTION_TOP), expanded_pink)
-    expanded.paste(bottom, (0, BOTTOM_BORDER_TOP + PINK_SECTION_EXTRA_HEIGHT), bottom)
+    expanded.paste(bottom, (0, BOTTOM_BORDER_TOP + extra_height), bottom)
     return expanded
 
 
@@ -246,45 +246,171 @@ def _draw_fact_row(
     max_width: int,
     label_font,
     value_font,
+    max_height: int = 56,
 ) -> int:
     _draw_text_with_shadow(draw, x, y, label.upper(), label_font, fill=LABEL_COLOR)
     value_lines = _wrap_text(draw, value, value_font, max_width)
-    value_lines = value_lines[:2] if value_lines else ["Not set"]
-    if len(_wrap_text(draw, value, value_font, max_width)) > 2:
-        value_lines[-1] = f"{value_lines[-1].rstrip('. ')}..."
-
+    line_height = _line_height(draw, value_font, 5)
     value_y = y + 18
     for line_index, line in enumerate(value_lines):
-        _draw_text_with_shadow(draw, x, value_y + (line_index * 21), line, value_font)
-    return value_y + (len(value_lines) * 21) + 6
+        _draw_text_with_shadow(
+            draw, x, value_y + (line_index * line_height), line, value_font
+        )
+    return value_y + (len(value_lines) * line_height) + 6
+
+
+def _draw_labeled_block(
+    draw: ImageDraw.ImageDraw,
+    label: str,
+    value: str,
+    x: int,
+    y: int,
+    max_width: int,
+    max_height: int,
+    label_font,
+    value_font,
+) -> None:
+    _draw_text_with_shadow(draw, x, y, label.upper(), label_font, fill=LABEL_COLOR)
+    value_y = y + 19
+    lines = _wrap_text(draw, value, value_font, max_width)
+    line_height = _line_height(draw, value_font, 4)
+    for line_index, line in enumerate(lines):
+        _draw_text_with_shadow(
+            draw, x, value_y + (line_index * line_height), line, value_font
+        )
+
+
+def _wrapped_text_height(
+    draw: ImageDraw.ImageDraw, text: str, font, max_width: int, line_gap: int
+) -> int:
+    return len(_wrap_text(draw, text, font, max_width)) * _line_height(
+        draw, font, line_gap
+    )
+
+
+def _labeled_block_height(
+    draw: ImageDraw.ImageDraw,
+    value: str,
+    max_width: int,
+    value_font,
+    line_gap: int = 4,
+) -> int:
+    return 19 + _wrapped_text_height(draw, value, value_font, max_width, line_gap)
+
+
+def _measure_realm_detail_layout(
+    draw: ImageDraw.ImageDraw, profile: RealmProfile, card_width: int
+) -> dict[str, object]:
+    body_font = _load_realm_name_font(19)
+    value_font = _load_realm_name_font(18)
+
+    top_y = REALM_NAME_BOX[3] + PANEL_GAP
+    left_box_right = 448
+    right_box_left = left_box_right + PANEL_GAP
+    description_width = left_box_right - PANEL_MARGIN - (PANEL_PADDING * 2)
+    facts_width = card_width - PANEL_MARGIN - right_box_left - (PANEL_PADDING * 2)
+    description = _clean_value(profile.long_desc, _clean_value(profile.short_desc))
+
+    description_height = (
+        PANEL_PADDING
+        + 38
+        + _wrapped_text_height(draw, description, body_font, description_width, 8)
+        + PANEL_PADDING
+    )
+
+    facts = [
+        ("Game Mode", _clean_value(profile.gamemode)),
+        ("PvP", _format_bool_value(profile.pvp)),
+        ("Sleep", _format_bool_value(profile.percent_player_sleep)),
+        ("World Age", _clean_value(profile.world_age)),
+        ("Style", _clean_value(profile.play_style)),
+        ("Addons", _clean_value(profile.realm_addons)),
+    ]
+    facts_gap = 6
+    fact_heights = [
+        18 + _wrapped_text_height(draw, value, value_font, facts_width, 5) + 6
+        for _, value in facts
+    ]
+    facts_height = (
+        PANEL_PADDING + 42 + sum(fact_heights) + facts_gap * (len(facts) - 1) + PANEL_PADDING
+    )
+    upper_height = max(350, description_height, facts_height)
+
+    community_details = [
+        ("Members", _clean_value(getattr(profile, "member_count", None))),
+        ("Community Age", _clean_value(profile.community_age)),
+        ("How Often Do Resets Occur?", _clean_value(profile.reset_schedule)),
+        ("Admin Team", _clean_value(profile.admin_team)),
+        ("Future", _clean_value(profile.foreseeable_future)),
+    ]
+    column_width = (card_width - (PANEL_MARGIN * 2) - (PANEL_PADDING * 2) - 24) // 2
+    row_heights = []
+    for row_start in range(0, len(community_details), 2):
+        row_values = community_details[row_start : row_start + 2]
+        row_heights.append(
+            max(
+                _labeled_block_height(draw, value, column_width, value_font)
+                for _, value in row_values
+            )
+        )
+    community_gap = 14
+    community_height = (
+        PANEL_PADDING
+        + 38
+        + sum(row_heights)
+        + community_gap * (len(row_heights) - 1)
+        + PANEL_PADDING
+    )
+    community_height = max(280, community_height)
+
+    apply_width = card_width - (PANEL_MARGIN * 2) - (PANEL_PADDING * 2)
+    apply_height = (
+        PANEL_PADDING
+        + 38
+        + _wrapped_text_height(
+            draw, _clean_value(profile.application_process), value_font, apply_width, 7
+        )
+        + PANEL_PADDING
+    )
+    apply_height = max(120, apply_height)
+
+    footer_top = top_y + upper_height + PANEL_GAP
+    apply_top = footer_top + community_height + PANEL_GAP
+    card_height = apply_top + apply_height + PANEL_MARGIN
+
+    return {
+        "description_box": (PANEL_MARGIN, top_y, left_box_right, top_y + upper_height),
+        "facts_box": (right_box_left, top_y, card_width - PANEL_MARGIN, top_y + upper_height),
+        "community_box": (
+            PANEL_MARGIN,
+            footer_top,
+            card_width - PANEL_MARGIN,
+            footer_top + community_height,
+        ),
+        "apply_box": (PANEL_MARGIN, apply_top, card_width - PANEL_MARGIN, apply_top + apply_height),
+        "facts": facts,
+        "fact_heights": fact_heights,
+        "community_details": community_details,
+        "community_row_heights": row_heights,
+        "community_gap": community_gap,
+        "card_height": card_height,
+    }
 
 
 def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     overlay = Image.new("RGBA", card.size, (0, 0, 0, 0))
     overlay_draw = ImageDraw.Draw(overlay)
-    top_y = REALM_NAME_BOX[3] + PANEL_GAP
-    footer_bottom = card.height - PANEL_MARGIN
-    upper_height = 350
-    footer_top = top_y + upper_height + PANEL_GAP
-    community_height = 280
-    apply_top = footer_top + community_height + PANEL_GAP
-    left_box_right = 448
-    right_box_left = left_box_right + PANEL_GAP
-    description_box = (PANEL_MARGIN, top_y, left_box_right, top_y + upper_height)
-    facts_box = (right_box_left, top_y, card.width - PANEL_MARGIN, top_y + upper_height)
-    community_box = (
-        PANEL_MARGIN,
-        footer_top,
-        card.width - PANEL_MARGIN,
-        footer_top + community_height,
-    )
-    apply_box = (PANEL_MARGIN, apply_top, card.width - PANEL_MARGIN, footer_bottom)
+    draw = ImageDraw.Draw(card)
+    layout = _measure_realm_detail_layout(draw, profile, card.width)
+    description_box = layout["description_box"]
+    facts_box = layout["facts_box"]
+    community_box = layout["community_box"]
+    apply_box = layout["apply_box"]
 
     for box in (description_box, facts_box, community_box, apply_box):
         _draw_panel(overlay_draw, box)
     card.alpha_composite(overlay)
 
-    draw = ImageDraw.Draw(card)
     title_font = _load_realm_name_font(24)
     body_font = _load_realm_name_font(19)
     label_font = _load_realm_name_font(14)
@@ -312,57 +438,56 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     facts_y = facts_box[1] + PANEL_PADDING
     facts_width = facts_box[2] - facts_box[0] - (PANEL_PADDING * 2)
     _draw_text_with_shadow(draw, facts_x, facts_y, "Current Realm Facts", title_font)
-    facts = [
-        ("Game Mode", _clean_value(profile.gamemode)),
-        ("PvP", _format_bool_value(profile.pvp)),
-        ("Sleep", _format_bool_value(profile.percent_player_sleep)),
-        ("World Age", _clean_value(profile.world_age)),
-        ("Style", _clean_value(profile.play_style)),
-        ("Addons", _clean_value(profile.realm_addons)),
-    ]
+    facts = layout["facts"]
+    fact_heights = layout["fact_heights"]
     y = facts_y + 42
-    for label, value in facts:
+    facts_gap = 6
+    for (label, value), fact_height in zip(facts, fact_heights):
         y = _draw_fact_row(
-            draw, label, value, facts_x, y, facts_width, label_font, value_font
+            draw,
+            label,
+            value,
+            facts_x,
+            y,
+            facts_width,
+            label_font,
+            value_font,
+            max_height=fact_height,
         )
+        y += facts_gap
 
     footer_x = community_box[0] + PANEL_PADDING
     footer_y = community_box[1] + PANEL_PADDING
     _draw_text_with_shadow(draw, footer_x, footer_y, "Community Facts", title_font)
-    footer_details = [
-        ("Members", _clean_value(getattr(profile, "member_count", None))),
-        ("Community Age", _clean_value(profile.community_age)),
-        ("How Often Do Resets Occur?", _clean_value(profile.reset_schedule)),
-        ("Admin Team", _clean_value(profile.admin_team)),
-        ("Future", _clean_value(profile.foreseeable_future)),
-    ]
+    footer_details = layout["community_details"]
 
     left_x = footer_x
     right_x = community_box[0] + ((community_box[2] - community_box[0]) // 2) + 12
     footer_content_top = footer_y + 38
-    footer_row_height = 76
-    footer_content_bottom = community_box[3] - PANEL_PADDING
-    footer_available_height = footer_content_bottom - footer_content_top
-    row_count = (len(footer_details) + 1) // 2
-    footer_row_gap = max(
-        54,
-        (footer_available_height - footer_row_height) // max(1, row_count - 1),
+    row_heights = layout["community_row_heights"]
+    community_gap = layout["community_gap"]
+    y_positions = []
+    row_y = footer_content_top
+    for row_height in row_heights:
+        y_positions.append(row_y)
+        row_y += row_height + community_gap
+    column_width = (
+        (community_box[2] - community_box[0] - (PANEL_PADDING * 2) - 24) // 2
     )
-    y_positions = [
-        footer_content_top + (footer_row_gap * index) for index in range(row_count)
-    ]
     for index, (label, value) in enumerate(footer_details):
         x = left_x if index % 2 == 0 else right_x
         y = y_positions[index // 2]
-        value_lines = _wrap_text(draw, value, value_font, 295)
-        value_lines = value_lines[:3] if value_lines else ["Not set"]
-        if len(_wrap_text(draw, value, value_font, 295)) > 3:
-            value_lines[-1] = f"{value_lines[-1].rstrip('. ')}..."
-        _draw_text_with_shadow(draw, x, y, label.upper(), label_font, fill=LABEL_COLOR)
-        for line_index, line in enumerate(value_lines):
-            _draw_text_with_shadow(
-                draw, x, y + 19 + (line_index * 19), line, value_font
-            )
+        _draw_labeled_block(
+            draw,
+            label,
+            value,
+            x,
+            y,
+            column_width,
+            row_heights[index // 2],
+            label_font,
+            value_font,
+        )
 
     apply_x = apply_box[0] + PANEL_PADDING
     apply_y = apply_box[1] + PANEL_PADDING
@@ -397,7 +522,15 @@ async def generate_realm_profile_card(
         fallback_banner = "./data/images/realm_backround_banner.png"
         fallback_logo = Image.new("RGBA", (200, 200), (255, 0, 0, 255))
 
-        base = _expand_pink_section(Image.open(background_path).convert("RGBA"))
+        original_base = Image.open(background_path).convert("RGBA")
+        layout_probe = Image.new("RGBA", original_base.size, (0, 0, 0, 0))
+        layout = _measure_realm_detail_layout(
+            ImageDraw.Draw(layout_probe), profile, original_base.width
+        )
+        extra_height = max(
+            PINK_SECTION_EXTRA_HEIGHT, int(layout["card_height"]) - original_base.height
+        )
+        base = _expand_pink_section(original_base, extra_height)
         banner = (
             Image.open(profile.banner_url).convert("RGBA")
             if os.path.exists(profile.banner_url)
