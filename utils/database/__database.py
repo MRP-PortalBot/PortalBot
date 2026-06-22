@@ -37,12 +37,24 @@ except Exception as e:
 
 
 class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
-    pass
+    def _initialize_connection(self, conn):
+        super()._initialize_connection(conn)
+        cursor = conn.cursor()
+        try:
+            cursor.execute("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci")
+        finally:
+            cursor.close()
 
 
 try:
     db = ReconnectMySQLDatabase(
-        DB_Database, user=DB_user, password=DB_password, host=DB_IP, port=DB_Port
+        DB_Database,
+        user=DB_user,
+        password=DB_password,
+        host=DB_IP,
+        port=DB_Port,
+        charset="utf8mb4",
+        use_unicode=True,
     )
 except Exception as e:
     _log.error(f"Error connecting to the database: {e}")
