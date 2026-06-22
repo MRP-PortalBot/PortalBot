@@ -200,7 +200,7 @@ class RealmProfileEditModal(Modal):
         "Descriptions": {
             "title": "Edit Descriptions",
             "fields": [
-                ("short_desc", "Short Description", discord.TextStyle.long, True),
+                ("short_desc", "Short Desc (also updates channel)", discord.TextStyle.long, True),
                 ("long_desc", "Long Description", discord.TextStyle.long, True),
             ],
         },
@@ -258,6 +258,11 @@ class RealmProfileEditModal(Modal):
                 style=style,
                 required=required,
                 default=_field_default(profile, field_name),
+                placeholder=(
+                    "Changing this also updates the realm channel description."
+                    if field_name == "short_desc"
+                    else None
+                ),
                 max_length=4000 if style == discord.TextStyle.long else 250,
             )
             self.inputs[field_name] = text_input
