@@ -16,6 +16,9 @@ FONT_PATH = "./data/fonts/Minecraft-Seven_v2-1.ttf"
 TEXT_COLOR = (255, 255, 255, 255)
 TEXT_SHADOW_COLOR = (0, 0, 0, 180)
 REALM_NAME_BOX = (276, 236, 732, 408)
+PANEL_FILL = (12, 5, 18, 175)
+PANEL_OUTLINE = (255, 120, 255, 80)
+LABEL_COLOR = (210, 190, 225, 255)
 
 
 async def realm_name_autocomplete(interaction: discord.Interaction, current: str):
@@ -104,6 +107,147 @@ def _draw_realm_name(card: Image.Image, realm_name: str) -> None:
         text_y += text_height + 5
 
 
+def _clean_value(value, default: str = "Not set") -> str:
+    if value is None:
+        return default
+    text = str(value).strip()
+    if not text or text.lower() == "none":
+        return default
+    return text
+
+
+def _format_bool_value(value) -> str:
+    text = _clean_value(value, "No").lower()
+    if text in {"true", "yes", "enabled", "on", "1"}:
+        return "Enabled"
+    if text in {"false", "no", "disabled", "off", "0"}:
+        return "Disabled"
+    return _clean_value(value)
+
+
+def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font, max_width: int) -> list[str]:
+    lines = []
+    for paragraph in text.splitlines() or [text]:
+        words = paragraph.split()
+        line = ""
+        for word in words:
+            test_line = f"{line} {word}".strip()
+            if _text_size(draw, test_line, font)[0] <= max_width:
+                line = test_line
+            else:
+                if line:
+                    lines.append(line)
+                line = word
+        if line:
+            lines.append(line)
+    return lines
+
+
+def _draw_text_with_shadow(
+    draw: ImageDraw.ImageDraw, x: int, y: int, text: str, font, fill=TEXT_COLOR
+) -> None:
+    draw.text((x + 2, y + 2), text, font=font, fill=TEXT_SHADOW_COLOR)
+    draw.text((x, y), text, font=font, fill=fill)
+
+
+def _draw_wrapped_text(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    font,
+    x: int,
+    y: int,
+    max_width: int,
+    max_height: int,
+    line_gap: int = 5,
+) -> None:
+    line_height = _text_size(draw, "Ag", font)[1] + line_gap
+    max_lines = max(1, max_height // line_height)
+    lines = _wrap_text(draw, text, font, max_width)
+    if len(lines) > max_lines:
+        lines = lines[:max_lines]
+        lines[-1] = f"{lines[-1].rstrip('. ')}..."
+
+    for line in lines:
+        _draw_text_with_shadow(draw, x, y, line, font)
+        y += line_height
+
+
+def _draw_panel(
+    overlay_draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int]
+) -> None:
+    overlay_draw.rounded_rectangle(box, radius=8, fill=PANEL_FILL, outline=PANEL_OUTLINE)
+
+
+def _draw_detail_row(
+    draw: ImageDraw.ImageDraw,
+    label: str,
+    value: str,
+    x: int,
+    y: int,
+    label_font,
+    value_font,
+) -> None:
+    _draw_text_with_shadow(draw, x, y, label.upper(), label_font, fill=LABEL_COLOR)
+    _draw_text_with_shadow(draw, x, y + 19, value, value_font)
+
+
+def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
+    overlay = Image.new("RGBA", card.size, (0, 0, 0, 0))
+    overlay_draw = ImageDraw.Draw(overlay)
+    description_box = (28, 462, 448, 690)
+    facts_box = (466, 462, 739, 690)
+    footer_box = (28, 714, 739, 856)
+
+    for box in (description_box, facts_box, footer_box):
+        _draw_panel(overlay_draw, box)
+    card.alpha_composite(overlay)
+
+    draw = ImageDraw.Draw(card)
+    title_font = _load_realm_name_font(24)
+    body_font = _load_realm_name_font(19)
+    label_font = _load_realm_name_font(14)
+    value_font = _load_realm_name_font(18)
+
+    _draw_text_with_shadow(draw, 45, 478, "Description", title_font)
+    description = _clean_value(profile.long_desc, _clean_value(profile.short_desc))
+    _draw_wrapped_text(draw, description, body_font, 45, 512, 380, 150)
+
+    _draw_text_with_shadow(draw, 484, 478, "Quick Facts", title_font)
+    facts = [
+        ("Game Mode", _clean_value(profile.gamemode)),
+        ("PvP", _format_bool_value(profile.pvp)),
+        ("Sleep", _format_bool_value(profile.percent_player_sleep)),
+        ("World Age", _clean_value(profile.world_age)),
+        ("Style", _clean_value(profile.play_style)),
+    ]
+    y = 514
+    for label, value in facts:
+        _draw_detail_row(draw, label, value, 486, y, label_font, value_font)
+        y += 34
+
+    _draw_text_with_shadow(draw, 45, 730, "Realm Info", title_font)
+    footer_details = [
+        ("Members", _clean_value(getattr(profile, "member_count", None))),
+        ("Community", _clean_value(profile.community_age)),
+        ("Apply", _clean_value(profile.application_process)),
+        ("Reset", _clean_value(profile.reset_schedule)),
+        ("Addons", _clean_value(profile.realm_addons)),
+        ("Future", _clean_value(profile.foreseeable_future)),
+    ]
+
+    left_x = 45
+    right_x = 395
+    y_positions = [764, 802, 840]
+    for index, (label, value) in enumerate(footer_details):
+        x = left_x if index % 2 == 0 else right_x
+        y = y_positions[index // 2]
+        value_lines = _wrap_text(draw, value, value_font, 295)
+        value = value_lines[0] if value_lines else "Not set"
+        if len(value_lines) > 1:
+            value = f"{value.rstrip('. ')}..."
+        _draw_detail_row(draw, label, value, x, y, label_font, value_font)
+
+
 async def generate_realm_profile_card(
     interaction: discord.Interaction, realm_name: str
 ):
@@ -136,6 +280,7 @@ async def generate_realm_profile_card(
         card.paste(base, (0, 0), base)
         card.paste(logo, (45, 194), logo)
         _draw_realm_name(card, profile.realm_name)
+        _draw_realm_details(card, profile)
 
         buffer = io.BytesIO()
         card.save(buffer, format="PNG")
