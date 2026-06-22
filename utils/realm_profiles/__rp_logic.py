@@ -21,7 +21,7 @@ PANEL_OUTLINE = (255, 120, 255, 80)
 LABEL_COLOR = (210, 190, 225, 255)
 PINK_SECTION_TOP = 409
 BOTTOM_BORDER_TOP = 888
-PINK_SECTION_EXTRA_HEIGHT = 220
+PINK_SECTION_EXTRA_HEIGHT = 300
 PANEL_MARGIN = 28
 PANEL_GAP = 18
 PANEL_PADDING = 18
@@ -248,13 +248,21 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     footer_bottom = card.height - PANEL_MARGIN
     upper_height = 350
     footer_top = top_y + upper_height + PANEL_GAP
+    community_height = 210
+    apply_top = footer_top + community_height + PANEL_GAP
     left_box_right = 448
     right_box_left = left_box_right + PANEL_GAP
     description_box = (PANEL_MARGIN, top_y, left_box_right, top_y + upper_height)
     facts_box = (right_box_left, top_y, card.width - PANEL_MARGIN, top_y + upper_height)
-    footer_box = (PANEL_MARGIN, footer_top, card.width - PANEL_MARGIN, footer_bottom)
+    community_box = (
+        PANEL_MARGIN,
+        footer_top,
+        card.width - PANEL_MARGIN,
+        footer_top + community_height,
+    )
+    apply_box = (PANEL_MARGIN, apply_top, card.width - PANEL_MARGIN, footer_bottom)
 
-    for box in (description_box, facts_box, footer_box):
+    for box in (description_box, facts_box, community_box, apply_box):
         _draw_panel(overlay_draw, box)
     card.alpha_composite(overlay)
 
@@ -285,13 +293,14 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     facts_x = facts_box[0] + PANEL_PADDING
     facts_y = facts_box[1] + PANEL_PADDING
     facts_width = facts_box[2] - facts_box[0] - (PANEL_PADDING * 2)
-    _draw_text_with_shadow(draw, facts_x, facts_y, "Quick Facts", title_font)
+    _draw_text_with_shadow(draw, facts_x, facts_y, "Current Realm Facts", title_font)
     facts = [
         ("Game Mode", _clean_value(profile.gamemode)),
         ("PvP", _format_bool_value(profile.pvp)),
         ("Sleep", _format_bool_value(profile.percent_player_sleep)),
         ("World Age", _clean_value(profile.world_age)),
         ("Style", _clean_value(profile.play_style)),
+        ("Addons", _clean_value(profile.realm_addons)),
     ]
     y = facts_y + 42
     for label, value in facts:
@@ -299,29 +308,26 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
             draw, label, value, facts_x, y, facts_width, label_font, value_font
         )
 
-    footer_x = footer_box[0] + PANEL_PADDING
-    footer_y = footer_box[1] + PANEL_PADDING
-    _draw_text_with_shadow(draw, footer_x, footer_y, "Realm Info", title_font)
+    footer_x = community_box[0] + PANEL_PADDING
+    footer_y = community_box[1] + PANEL_PADDING
+    _draw_text_with_shadow(draw, footer_x, footer_y, "Community Facts", title_font)
     footer_details = [
         ("Members", _clean_value(getattr(profile, "member_count", None))),
-        ("Community", _clean_value(profile.community_age)),
-        ("Apply", _clean_value(profile.application_process)),
-        ("Reset", _clean_value(profile.reset_schedule)),
-        ("Addons", _clean_value(profile.realm_addons)),
+        ("Community Age", _clean_value(profile.community_age)),
+        ("How Often Do Resets Occur?", _clean_value(profile.reset_schedule)),
         ("Future", _clean_value(profile.foreseeable_future)),
     ]
 
     left_x = footer_x
-    right_x = footer_box[0] + ((footer_box[2] - footer_box[0]) // 2) + 12
+    right_x = community_box[0] + ((community_box[2] - community_box[0]) // 2) + 12
     footer_content_top = footer_y + 38
     footer_row_height = 76
-    footer_row_gap = max(
-        54, (footer_bottom - footer_content_top - footer_row_height) // 2
-    )
+    footer_content_bottom = community_box[3] - PANEL_PADDING
+    footer_available_height = footer_content_bottom - footer_content_top
+    footer_row_gap = max(54, footer_available_height - footer_row_height)
     y_positions = [
         footer_content_top,
         footer_content_top + footer_row_gap,
-        footer_content_top + (footer_row_gap * 2),
     ]
     for index, (label, value) in enumerate(footer_details):
         x = left_x if index % 2 == 0 else right_x
@@ -335,6 +341,23 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
             _draw_text_with_shadow(
                 draw, x, y + 19 + (line_index * 19), line, value_font
             )
+
+    apply_x = apply_box[0] + PANEL_PADDING
+    apply_y = apply_box[1] + PANEL_PADDING
+    apply_width = apply_box[2] - apply_box[0] - (PANEL_PADDING * 2)
+    apply_text_y = apply_y + 38
+    apply_height = apply_box[3] - apply_text_y - PANEL_PADDING
+    _draw_text_with_shadow(draw, apply_x, apply_y, "How to Apply", title_font)
+    _draw_wrapped_text(
+        draw,
+        _clean_value(profile.application_process),
+        value_font,
+        apply_x,
+        apply_text_y,
+        apply_width,
+        apply_height,
+        line_gap=7,
+    )
 
 
 async def generate_realm_profile_card(
