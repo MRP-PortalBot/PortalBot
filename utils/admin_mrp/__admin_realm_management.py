@@ -31,6 +31,16 @@ def _channel_topic(description: object) -> str:
     return text[:1024]
 
 
+def _parse_world_start_date(value: object) -> Optional[datetime.date]:
+    text = str(value or "").strip()
+    for date_format in ("%Y-%m-%d", "%m/%d/%Y", "%m-%d-%Y", "%B %d, %Y", "%b %d, %Y"):
+        try:
+            return datetime.datetime.strptime(text, date_format).date()
+        except ValueError:
+            continue
+    return None
+
+
 def _normalize_discord_name(value: object) -> str:
     text = re.sub(r"([a-z0-9])([A-Z])", r"\1-\2", str(value or ""))
     text = text.lower()
@@ -138,7 +148,7 @@ def _upsert_realm_profile_from_application(
             "members": "",
             "member_count": application.member_count,
             "community_age": application.community_age,
-            "world_age": application.world_age,
+            "world_start_date": application.world_start_date,
             "reset_schedule": application.reset_schedule,
             "foreseeable_future": application.foreseeable_future,
             "realm_addons": application.realm_addons,
@@ -163,7 +173,7 @@ def _upsert_realm_profile_from_application(
     profile.admin_team = application.admin_team
     profile.member_count = application.member_count
     profile.community_age = application.community_age
-    profile.world_age = application.world_age
+    profile.world_start_date = application.world_start_date
     profile.reset_schedule = application.reset_schedule
     profile.foreseeable_future = application.foreseeable_future
     profile.realm_addons = application.realm_addons
@@ -246,8 +256,8 @@ REALM_APPLICATION_PAGES = [
     ],
     [
         {
-            "key": "world_age",
-            "label": "World Age",
+            "key": "world_start_date",
+            "label": "World Start Date (YYYY-MM-DD)",
             "required": True,
             "style": discord.TextStyle.short,
         },
@@ -437,13 +447,23 @@ class RealmApplicationModal(ui.Modal):
             )
             return
 
+        world_start_date = _parse_world_start_date(
+            self.application_data.get("world_start_date")
+        )
+        if world_start_date is None:
+            await interaction.response.send_message(
+                "World Start Date must be a date, preferably `YYYY-MM-DD`. Please run `/realm apply` again.",
+                ephemeral=True,
+            )
+            return
+
         try:
             _log.info(
                 f"Realm application submitted by {interaction.user.display_name} for "
                 f"'{self.application_data.get('realm_name', 'Unknown Realm')}'"
             )
 
-            self.save_application(interaction, member_count)
+            self.save_application(interaction, member_count, world_start_date)
             embed = self.build_embed(interaction.user)
 
             await log_channel.send(content=admin_role.mention, embed=embed)
@@ -471,6 +491,7 @@ class RealmApplicationModal(ui.Modal):
         self,
         interaction: discord.Interaction,
         member_count: int,
+        world_start_date: datetime.date,
     ):
         database.RealmApplications.create(
             discord_id=interaction.user.id,
@@ -485,7 +506,7 @@ class RealmApplicationModal(ui.Modal):
             admin_team=self.application_data.get("admin_team"),
             member_count=member_count,
             community_age=self.application_data.get("community_age"),
-            world_age=self.application_data.get("world_age"),
+            world_start_date=world_start_date,
             reset_schedule=self.application_data.get("reset_schedule"),
             foreseeable_future=self.application_data.get("foreseeable_future"),
             realm_addons=self.application_data.get("realm_addons"),
@@ -554,8 +575,8 @@ class RealmApplicationModal(ui.Modal):
             inline=True,
         )
         embed.add_field(
-            name="World Age",
-            value=self.application_data.get("world_age", "Not provided"),
+            name="World Start Date",
+            value=self.application_data.get("world_start_date", "Not provided"),
             inline=True,
         )
         embed.add_field(

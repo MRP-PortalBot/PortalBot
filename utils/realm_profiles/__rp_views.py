@@ -8,6 +8,7 @@ from utils.realm_profiles.__rp_logic import (
     create_realm_channel_link_view,
     generate_realm_profile_card,
     save_image_from_url,
+    _parse_world_start_date,
 )
 
 _log = get_log(__name__)
@@ -210,7 +211,7 @@ class RealmProfileEditModal(Modal):
                 ("gamemode", "Game Mode", discord.TextStyle.short, True),
                 ("pvp", "PvP", discord.TextStyle.short, True),
                 ("percent_player_sleep", "One Player Sleep", discord.TextStyle.short, True),
-                ("world_age", "World Age", discord.TextStyle.short, True),
+                ("world_start_date", "World Start Date (YYYY-MM-DD)", discord.TextStyle.short, True),
                 ("play_style", "Play Style", discord.TextStyle.short, True),
             ],
         },
@@ -289,6 +290,15 @@ class RealmProfileEditModal(Modal):
                     )
                     return
                 updates[field_name] = member_count
+            elif field_name == "world_start_date":
+                world_start_date = _parse_world_start_date(value)
+                if world_start_date is None:
+                    await interaction.response.send_message(
+                        "World Start Date must be a date, preferably `YYYY-MM-DD`.",
+                        ephemeral=True,
+                    )
+                    return
+                updates[field_name] = world_start_date
             else:
                 updates[field_name] = value
 

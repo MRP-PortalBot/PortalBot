@@ -2,6 +2,7 @@
 
 import os
 import io
+import datetime
 from io import BytesIO
 import discord
 from PIL import Image, ImageDraw, ImageFont
@@ -25,6 +26,7 @@ PINK_SECTION_EXTRA_HEIGHT = 360
 PANEL_MARGIN = 28
 PANEL_GAP = 18
 PANEL_PADDING = 18
+DATE_FORMATS = ("%Y-%m-%d", "%m/%d/%Y", "%m-%d-%Y", "%B %d, %Y", "%b %d, %Y")
 
 
 async def realm_name_autocomplete(interaction: discord.Interaction, current: str):
@@ -56,7 +58,16 @@ def create_realm_embed(realm_profile: RealmProfile) -> discord.Embed:
         value="Enabled" if realm_profile.percent_player_sleep else "Disabled",
         inline=True,
     )
-    embed.add_field(name="World Age", value=realm_profile.world_age, inline=True)
+    embed.add_field(
+        name="World Start Date",
+        value=_format_world_start_date(realm_profile.world_start_date),
+        inline=True,
+    )
+    embed.add_field(
+        name="World Age",
+        value=_format_world_age(realm_profile.world_start_date),
+        inline=True,
+    )
     embed.add_field(name="Realm Style", value=realm_profile.play_style, inline=True)
     embed.add_field(name="Game Mode", value=realm_profile.gamemode, inline=True)
 
@@ -147,6 +158,52 @@ def _format_bool_value(value) -> str:
     if text in {"false", "no", "disabled", "off", "0"}:
         return "Disabled"
     return _clean_value(value)
+
+
+def _parse_world_start_date(value: object) -> datetime.date | None:
+    text = str(value or "").strip()
+    if not text or text.lower() in {"none", "not set", "unknown"}:
+        return None
+
+    for date_format in DATE_FORMATS:
+        try:
+            return datetime.datetime.strptime(text, date_format).date()
+        except ValueError:
+            continue
+    return None
+
+
+def _format_world_start_date(value: object) -> str:
+    start_date = _parse_world_start_date(value)
+    if not start_date:
+        return _clean_value(value)
+    return start_date.strftime("%B %-d, %Y") if os.name != "nt" else start_date.strftime("%B %#d, %Y")
+
+
+def _format_world_age(value: object) -> str:
+    start_date = _parse_world_start_date(value)
+    if not start_date:
+        return "Unknown"
+
+    today = datetime.date.today()
+    if start_date > today:
+        return "Starts in the future"
+
+    total_months = (today.year - start_date.year) * 12 + today.month - start_date.month
+    if today.day < start_date.day:
+        total_months -= 1
+
+    years = total_months // 12
+    months = total_months % 12
+    parts = []
+    if years:
+        parts.append(f"{years} year{'s' if years != 1 else ''}")
+    if months:
+        parts.append(f"{months} month{'s' if months != 1 else ''}")
+    if not parts:
+        days = (today - start_date).days
+        return f"{days} day{'s' if days != 1 else ''}"
+    return ", ".join(parts)
 
 
 def _wrap_text(draw: ImageDraw.ImageDraw, text: str, font, max_width: int) -> list[str]:
@@ -322,7 +379,8 @@ def _measure_realm_detail_layout(
         ("Game Mode", _clean_value(profile.gamemode)),
         ("PvP", _format_bool_value(profile.pvp)),
         ("Sleep", _format_bool_value(profile.percent_player_sleep)),
-        ("World Age", _clean_value(profile.world_age)),
+        ("World Start Date", _format_world_start_date(profile.world_start_date)),
+        ("World Age", _format_world_age(profile.world_start_date)),
         ("Style", _clean_value(profile.play_style)),
         ("Addons", _clean_value(profile.realm_addons)),
     ]
@@ -634,7 +692,7 @@ def ensure_realm_profile_exists(realm_name: str) -> RealmProfile:
             "emoji": "🌐",
             "pvp": False,
             "percent_player_sleep": False,
-            "world_age": "Unknown",
+            "world_start_date": None,
             "play_style": "Unknown",
             "gamemode": "Survival",
             "logo_url": "./data/images/default_logo.png",
