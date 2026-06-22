@@ -5,6 +5,7 @@ from discord.ui import View, Button, Modal, TextInput
 from utils.helpers.__logging_module import get_log
 from utils.database.__database import RealmProfile
 from utils.realm_profiles.__rp_logic import (
+    create_realm_channel_link_view,
     generate_realm_profile_card,
     save_image_from_url,
 )
@@ -128,8 +129,17 @@ class ViewProfileButton(Button):
                 await interaction.followup.send(error, ephemeral=True)
                 return
 
+            profile = _get_profile(self.view.realm_name)
             file = discord.File(image_bytes, filename="realm_card.png")
-            await interaction.followup.send(file=file, ephemeral=True)
+            await interaction.followup.send(
+                file=file,
+                view=(
+                    create_realm_channel_link_view(profile, interaction.guild_id)
+                    if profile
+                    else None
+                ),
+                ephemeral=True,
+            )
 
         except Exception as e:
             _log.error(f"Error viewing profile: {e}", exc_info=True)

@@ -7,6 +7,7 @@ from utils.database.__database import RealmProfile
 from utils.realm_profiles.__rp_logic import (
     realm_name_autocomplete,
     has_realm_operator_role,
+    create_realm_channel_link_view,
 )
 from utils.realm_profiles.__rp_views import RealmManagerPanel
 from utils.helpers.__logging_module import get_log
@@ -45,7 +46,13 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
                 await interaction.followup.send(error, ephemeral=True)
             else:
                 file = discord.File(image_bytes, filename="realm_profile_card.png")
-                await interaction.followup.send(file=file, ephemeral=True)
+                await interaction.followup.send(
+                    file=file,
+                    view=create_realm_channel_link_view(
+                        realm_profile, interaction.guild_id
+                    ),
+                    ephemeral=True,
+                )
 
         except Exception as e:
             _log.error(
@@ -54,7 +61,11 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
             from utils.realm_profiles.__rp_logic import create_realm_embed
 
             embed = create_realm_embed(realm_profile)
-            await interaction.followup.send(embed=embed, ephemeral=True)
+            await interaction.followup.send(
+                embed=embed,
+                view=create_realm_channel_link_view(realm_profile, interaction.guild_id),
+                ephemeral=True,
+            )
 
     @app_commands.command(name="edit", description="Edit a Realm Profile")
     @app_commands.autocomplete(realm_name=realm_name_autocomplete)

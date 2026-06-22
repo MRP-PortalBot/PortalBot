@@ -63,6 +63,24 @@ def create_realm_embed(realm_profile: RealmProfile) -> discord.Embed:
     return embed
 
 
+def create_realm_channel_link_view(
+    realm_profile: RealmProfile, guild_id: int | None
+) -> discord.ui.View | None:
+    channel_id = str(getattr(realm_profile, "channel_id", "0") or "0")
+    if channel_id == "0" or guild_id is None:
+        return None
+
+    view = discord.ui.View()
+    view.add_item(
+        discord.ui.Button(
+            label=f"Open {realm_profile.realm_name} Channel",
+            style=discord.ButtonStyle.link,
+            url=f"https://discord.com/channels/{guild_id}/{channel_id}",
+        )
+    )
+    return view
+
+
 def _load_realm_name_font(size: int):
     try:
         return ImageFont.truetype(FONT_PATH, size)
