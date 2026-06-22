@@ -194,9 +194,9 @@ def _draw_detail_row(
 def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     overlay = Image.new("RGBA", card.size, (0, 0, 0, 0))
     overlay_draw = ImageDraw.Draw(overlay)
-    description_box = (28, 462, 448, 690)
-    facts_box = (466, 462, 739, 690)
-    footer_box = (28, 714, 739, 856)
+    description_box = (28, 426, 448, 654)
+    facts_box = (466, 426, 739, 654)
+    footer_box = (28, 678, 739, 872)
 
     for box in (description_box, facts_box, footer_box):
         _draw_panel(overlay_draw, box)
@@ -208,11 +208,11 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     label_font = _load_realm_name_font(14)
     value_font = _load_realm_name_font(18)
 
-    _draw_text_with_shadow(draw, 45, 478, "Description", title_font)
+    _draw_text_with_shadow(draw, 45, 442, "Description", title_font)
     description = _clean_value(profile.long_desc, _clean_value(profile.short_desc))
-    _draw_wrapped_text(draw, description, body_font, 45, 512, 380, 150)
+    _draw_wrapped_text(draw, description, body_font, 45, 476, 380, 150)
 
-    _draw_text_with_shadow(draw, 484, 478, "Quick Facts", title_font)
+    _draw_text_with_shadow(draw, 484, 442, "Quick Facts", title_font)
     facts = [
         ("Game Mode", _clean_value(profile.gamemode)),
         ("PvP", _format_bool_value(profile.pvp)),
@@ -220,12 +220,12 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
         ("World Age", _clean_value(profile.world_age)),
         ("Style", _clean_value(profile.play_style)),
     ]
-    y = 514
+    y = 478
     for label, value in facts:
         _draw_detail_row(draw, label, value, 486, y, label_font, value_font)
         y += 34
 
-    _draw_text_with_shadow(draw, 45, 730, "Realm Info", title_font)
+    _draw_text_with_shadow(draw, 45, 694, "Realm Info", title_font)
     footer_details = [
         ("Members", _clean_value(getattr(profile, "member_count", None))),
         ("Community", _clean_value(profile.community_age)),
@@ -237,15 +237,19 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
 
     left_x = 45
     right_x = 395
-    y_positions = [764, 802, 840]
+    y_positions = [728, 782, 836]
     for index, (label, value) in enumerate(footer_details):
         x = left_x if index % 2 == 0 else right_x
         y = y_positions[index // 2]
         value_lines = _wrap_text(draw, value, value_font, 295)
-        value = value_lines[0] if value_lines else "Not set"
-        if len(value_lines) > 1:
-            value = f"{value.rstrip('. ')}..."
-        _draw_detail_row(draw, label, value, x, y, label_font, value_font)
+        value_lines = value_lines[:2] if value_lines else ["Not set"]
+        if len(_wrap_text(draw, value, value_font, 295)) > 2:
+            value_lines[-1] = f"{value_lines[-1].rstrip('. ')}..."
+        _draw_text_with_shadow(draw, x, y, label.upper(), label_font, fill=LABEL_COLOR)
+        for line_index, line in enumerate(value_lines):
+            _draw_text_with_shadow(
+                draw, x, y + 19 + (line_index * 19), line, value_font
+            )
 
 
 async def generate_realm_profile_card(
