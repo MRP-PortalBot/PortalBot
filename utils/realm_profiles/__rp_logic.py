@@ -19,6 +19,11 @@ REALM_NAME_BOX = (276, 236, 732, 408)
 PANEL_FILL = (12, 5, 18, 175)
 PANEL_OUTLINE = (255, 120, 255, 80)
 LABEL_COLOR = (210, 190, 225, 255)
+PINK_SECTION_TOP = 409
+BOTTOM_BORDER_TOP = 888
+PINK_SECTION_EXTRA_HEIGHT = 120
+PANEL_MARGIN = 28
+PANEL_GAP = 18
 
 
 async def realm_name_autocomplete(interaction: discord.Interaction, current: str):
@@ -178,6 +183,28 @@ def _draw_panel(
     overlay_draw.rounded_rectangle(box, radius=8, fill=PANEL_FILL, outline=PANEL_OUTLINE)
 
 
+def _expand_pink_section(base: Image.Image) -> Image.Image:
+    if PINK_SECTION_EXTRA_HEIGHT <= 0:
+        return base
+
+    width, height = base.size
+    top = base.crop((0, 0, width, PINK_SECTION_TOP))
+    pink_section = base.crop((0, PINK_SECTION_TOP, width, BOTTOM_BORDER_TOP))
+    bottom = base.crop((0, BOTTOM_BORDER_TOP, width, height))
+    expanded_pink = pink_section.resize(
+        (width, pink_section.height + PINK_SECTION_EXTRA_HEIGHT),
+        Image.NEAREST,
+    )
+
+    expanded = Image.new(
+        "RGBA", (width, height + PINK_SECTION_EXTRA_HEIGHT), (0, 0, 0, 0)
+    )
+    expanded.paste(top, (0, 0), top)
+    expanded.paste(expanded_pink, (0, PINK_SECTION_TOP), expanded_pink)
+    expanded.paste(bottom, (0, BOTTOM_BORDER_TOP + PINK_SECTION_EXTRA_HEIGHT), bottom)
+    return expanded
+
+
 def _draw_detail_row(
     draw: ImageDraw.ImageDraw,
     label: str,
@@ -194,9 +221,15 @@ def _draw_detail_row(
 def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     overlay = Image.new("RGBA", card.size, (0, 0, 0, 0))
     overlay_draw = ImageDraw.Draw(overlay)
-    description_box = (28, 426, 448, 654)
-    facts_box = (466, 426, 739, 654)
-    footer_box = (28, 678, 739, 872)
+    top_y = REALM_NAME_BOX[3] + PANEL_GAP
+    footer_bottom = card.height - PANEL_MARGIN
+    upper_height = 228
+    footer_top = top_y + upper_height + PANEL_GAP
+    left_box_right = 448
+    right_box_left = left_box_right + PANEL_GAP
+    description_box = (PANEL_MARGIN, top_y, left_box_right, top_y + upper_height)
+    facts_box = (right_box_left, top_y, card.width - PANEL_MARGIN, top_y + upper_height)
+    footer_box = (PANEL_MARGIN, footer_top, card.width - PANEL_MARGIN, footer_bottom)
 
     for box in (description_box, facts_box, footer_box):
         _draw_panel(overlay_draw, box)
@@ -208,11 +241,11 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     label_font = _load_realm_name_font(14)
     value_font = _load_realm_name_font(18)
 
-    _draw_text_with_shadow(draw, 45, 442, "Description", title_font)
+    _draw_text_with_shadow(draw, 45, top_y + 16, "Description", title_font)
     description = _clean_value(profile.long_desc, _clean_value(profile.short_desc))
-    _draw_wrapped_text(draw, description, body_font, 45, 476, 380, 150)
+    _draw_wrapped_text(draw, description, body_font, 45, top_y + 50, 380, 150)
 
-    _draw_text_with_shadow(draw, 484, 442, "Quick Facts", title_font)
+    _draw_text_with_shadow(draw, 484, top_y + 16, "Quick Facts", title_font)
     facts = [
         ("Game Mode", _clean_value(profile.gamemode)),
         ("PvP", _format_bool_value(profile.pvp)),
@@ -220,12 +253,12 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
         ("World Age", _clean_value(profile.world_age)),
         ("Style", _clean_value(profile.play_style)),
     ]
-    y = 478
+    y = top_y + 52
     for label, value in facts:
         _draw_detail_row(draw, label, value, 486, y, label_font, value_font)
         y += 34
 
-    _draw_text_with_shadow(draw, 45, 694, "Realm Info", title_font)
+    _draw_text_with_shadow(draw, 45, footer_top + 16, "Realm Info", title_font)
     footer_details = [
         ("Members", _clean_value(getattr(profile, "member_count", None))),
         ("Community", _clean_value(profile.community_age)),
@@ -237,13 +270,22 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
 
     left_x = 45
     right_x = 395
-    y_positions = [728, 782, 836]
+    footer_content_top = footer_top + 50
+    footer_row_height = 76
+    footer_row_gap = max(
+        54, (footer_bottom - footer_content_top - footer_row_height) // 2
+    )
+    y_positions = [
+        footer_content_top,
+        footer_content_top + footer_row_gap,
+        footer_content_top + (footer_row_gap * 2),
+    ]
     for index, (label, value) in enumerate(footer_details):
         x = left_x if index % 2 == 0 else right_x
         y = y_positions[index // 2]
         value_lines = _wrap_text(draw, value, value_font, 295)
-        value_lines = value_lines[:2] if value_lines else ["Not set"]
-        if len(_wrap_text(draw, value, value_font, 295)) > 2:
+        value_lines = value_lines[:3] if value_lines else ["Not set"]
+        if len(_wrap_text(draw, value, value_font, 295)) > 3:
             value_lines[-1] = f"{value_lines[-1].rstrip('. ')}..."
         _draw_text_with_shadow(draw, x, y, label.upper(), label_font, fill=LABEL_COLOR)
         for line_index, line in enumerate(value_lines):
@@ -267,7 +309,7 @@ async def generate_realm_profile_card(
         fallback_banner = "./data/images/realm_backround_banner.png"
         fallback_logo = Image.new("RGBA", (200, 200), (255, 0, 0, 255))
 
-        base = Image.open(background_path).convert("RGBA")
+        base = _expand_pink_section(Image.open(background_path).convert("RGBA"))
         banner = (
             Image.open(profile.banner_url).convert("RGBA")
             if os.path.exists(profile.banner_url)
