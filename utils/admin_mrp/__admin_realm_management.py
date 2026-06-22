@@ -14,6 +14,7 @@ from utils.helpers.__logging_module import get_log
 from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
 
 _log = get_log(__name__)
+STOP_WORDS = {"the", "a", "an", "smp", "realm", "realms", "server", "room"}
 
 
 def _safe_int(value: object) -> Optional[int]:
@@ -31,36 +32,80 @@ def _channel_topic(description: object) -> str:
 
 
 def _normalize_discord_name(value: object) -> str:
-    text = str(value or "").lower()
+    text = re.sub(r"([a-z0-9])([A-Z])", r"\1-\2", str(value or ""))
+    text = text.lower()
     text = re.sub(r"[^a-z0-9]+", "-", text)
     return text.strip("-")
+
+
+def _name_tokens(value: object) -> list[str]:
+    return [
+        token
+        for token in _normalize_discord_name(value).split("-")
+        if token and token not in STOP_WORDS
+    ]
+
+
+def _candidate_score(realm_name: str, candidate_name: str, suffix: str = "") -> int:
+    realm_key = _normalize_discord_name(realm_name)
+    candidate_key = _normalize_discord_name(candidate_name)
+    if suffix:
+        suffix_key = _normalize_discord_name(suffix)
+        candidate_key = re.sub(rf"(^|-){re.escape(suffix_key)}($|-)", "-", candidate_key)
+        candidate_key = candidate_key.strip("-")
+
+    if not realm_key or not candidate_key:
+        return 0
+    if candidate_key == realm_key:
+        return 100
+    if candidate_key.startswith(f"{realm_key}-"):
+        return 95
+    if realm_key.startswith(f"{candidate_key}-"):
+        return 90
+
+    realm_tokens = _name_tokens(realm_name)
+    candidate_tokens = _name_tokens(candidate_key)
+    if not realm_tokens or not candidate_tokens:
+        return 0
+
+    overlap = set(realm_tokens) & set(candidate_tokens)
+    if not overlap:
+        return 0
+
+    coverage = len(overlap) / len(realm_tokens)
+    candidate_coverage = len(overlap) / len(candidate_tokens)
+    if coverage >= 0.5 or (len(overlap) >= 2 and candidate_coverage >= 0.67):
+        return int(60 + (coverage * 20) + (candidate_coverage * 15))
+
+    return 0
+
+
+def _best_scored_match(candidates, realm_name: str, suffix: str = ""):
+    scored = [
+        (_candidate_score(realm_name, candidate.name, suffix), candidate)
+        for candidate in candidates
+    ]
+    scored = [(score, candidate) for score, candidate in scored if score > 0]
+    if not scored:
+        return None
+    scored.sort(key=lambda item: item[0], reverse=True)
+    return scored[0][1]
+
+
+def _find_realm_op_role(guild: discord.Guild, realm_name: str) -> Optional[discord.Role]:
+    op_roles = [role for role in guild.roles if "op" in _name_tokens(role.name)]
+    return _best_scored_match(op_roles, realm_name, suffix="OP")
 
 
 def _find_realm_channel(
     guild: discord.Guild, realm_name: str
 ) -> Optional[discord.TextChannel]:
-    realm_key = _normalize_discord_name(realm_name)
-    if not realm_key:
-        return None
-
     category = discord.utils.get(guild.categories, name="🎮 Realms & Servers")
     channels = list(category.text_channels) if category else list(guild.text_channels)
 
-    exact_matches = [
-        channel
-        for channel in channels
-        if _normalize_discord_name(channel.name) == realm_key
-    ]
-    if exact_matches:
-        return exact_matches[0]
-
-    prefix_matches = [
-        channel
-        for channel in channels
-        if _normalize_discord_name(channel.name).startswith(f"{realm_key}-")
-    ]
-    if prefix_matches:
-        return prefix_matches[0]
+    match = _best_scored_match(channels, realm_name)
+    if match:
+        return match
 
     if category:
         fallback_channels = [
@@ -68,10 +113,7 @@ def _find_realm_channel(
             for channel in guild.text_channels
             if channel.category_id != category.id
         ]
-        for channel in fallback_channels:
-            channel_key = _normalize_discord_name(channel.name)
-            if channel_key == realm_key or channel_key.startswith(f"{realm_key}-"):
-                return channel
+        return _best_scored_match(fallback_channels, realm_name)
 
     return None
 
@@ -733,7 +775,7 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
             database.RealmProfile.realm_name
         ):
             changed = False
-            role = discord.utils.get(guild.roles, name=f"{profile.realm_name} OP")
+            role = _find_realm_op_role(guild, profile.realm_name)
             channel = _find_realm_channel(guild, profile.realm_name)
 
             if role:
@@ -757,8 +799,9 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
                 updated += 1
 
             report_lines.append(
-                f"{profile.realm_name}: role={'✅' if role else '❌'} "
-                f"channel={'✅' if channel else '❌'}"
+                f"{profile.realm_name}: "
+                f"role={role.name if role else '❌'} "
+                f"channel={channel.name if channel else '❌'}"
             )
 
         summary = (
