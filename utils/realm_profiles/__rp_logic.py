@@ -491,7 +491,7 @@ def ensure_realm_profile_exists(realm_name: str) -> RealmProfile:
 
 def has_realm_operator_role(member: discord.Member, realm_name: str) -> bool:
     expected_role = f"{realm_name} OP"
-    return any(role.name == expected_role for role in member.roles)
+    return any(role.name == expected_role for role in getattr(member, "roles", []))
 
 
 def save_image_from_url(url: str, save_path: str) -> bool:
