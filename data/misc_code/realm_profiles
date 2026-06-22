@@ -19,9 +19,9 @@ class RealmProfiles(commands.Cog):
         self.bot = bot
 
     # Constants
-    BACKGROUND_IMAGE_PATH = "./core/images/realm_background4.png"  # Path to the Nether Portal background image
+    BACKGROUND_IMAGE_PATH = "./data/images/realm_background4.png"  # Path to the Nether Portal background image
     FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"  # Example font path
-    BANNER_IMAGE_PATH = "./core/images/realm_backround_banner.png"
+    BANNER_IMAGE_PATH = "./data/images/realm_backround_banner.png"
     AVATAR_SIZE = 100
     PADDING = 20
     TEXT_COLOR = (255, 255, 255, 255)
@@ -343,9 +343,9 @@ class RealmProfiles(commands.Cog):
                 return
 
             # Ensure directory exists
-            os.makedirs("./core/images/realms/logos/", exist_ok=True)
+            os.makedirs("./data/images/realms/logos/", exist_ok=True)
 
-            file_path = f"./core/images/realms/logos/{realm_name}_logo.png"
+            file_path = f"./data/images/realms/logos/{realm_name}_logo.png"
             await attachment.save(file_path)
 
             # Update the realm profile with the new logo path
@@ -387,9 +387,9 @@ class RealmProfiles(commands.Cog):
                 return
 
             # Ensure directory exists
-            os.makedirs("./core/images/realms/banners/", exist_ok=True)
+            os.makedirs("./data/images/realms/banners/", exist_ok=True)
 
-            file_path = f"./core/images/realms/banners/{realm_name}_banner.png"
+            file_path = f"./data/images/realms/banners/{realm_name}_banner.png"
             await attachment.save(file_path)
 
             # Update the realm profile with the new banner path

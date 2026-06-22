@@ -132,15 +132,15 @@ class ProfileCMD(commands.Cog):
     RADIUS = 15  # Rounded corners radius for the progress bar
     FONT_PATH = "./core/fonts/Minecraft-Seven_v2-1.ttf"
     EMOJI_FONT_PATH = "./core/fonts/NotoColorEmoji-Regular.ttf"
-    BACKGROUND_IMAGE_PATH = "./core/images/profilebackground4.png"
+    BACKGROUND_IMAGE_PATH = "./data/images/profilebackground4.png"
     TEXT_COLOR = (255, 255, 255, 255)
     SHADOW_COLOR = (0, 0, 0, 200)  # Black with transparency
     SHADOW_OFFSET = 2  # Shadow offset for text
 
     # Paths for console logo images
-    PS_LOGO_PATH = "./core/images/ps-logo.png"
-    XBOX_LOGO_PATH = "./core/images/xbox-logo.png"
-    NS_LOGO_PATH = "./core/images/ns-logo.png"
+    PS_LOGO_PATH = "./data/images/ps-logo.png"
+    XBOX_LOGO_PATH = "./data/images/xbox-logo.png"
+    NS_LOGO_PATH = "./data/images/ns-logo.png"
 
     @PF.command(name="profile", description="Generates a profile card.")
     async def profile(

@@ -105,8 +105,8 @@ async def update_realm_logo_attachment(
             )
             return
 
-        os.makedirs("./core/images/realms/logos/", exist_ok=True)
-        path = f"./core/images/realms/logos/{realm_name}_logo.png"
+        os.makedirs("./data/images/realms/logos/", exist_ok=True)
+        path = f"./data/images/realms/logos/{realm_name}_logo.png"
         await attachment.save(path)
 
         profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
@@ -137,8 +137,8 @@ async def update_realm_banner_attachment(
             )
             return
 
-        os.makedirs("./core/images/realms/banners/", exist_ok=True)
-        path = f"./core/images/realms/banners/{realm_name}_banner.png"
+        os.makedirs("./data/images/realms/banners/", exist_ok=True)
+        path = f"./data/images/realms/banners/{realm_name}_banner.png"
         await attachment.save(path)
 
         profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
@@ -169,8 +169,8 @@ def ensure_realm_profile_exists(realm_name: str) -> RealmProfile:
             "world_age": "Unknown",
             "play_style": "Unknown",
             "gamemode": "Survival",
-            "logo_url": "./core/images/default_logo.png",
-            "banner_url": "./core/images/default_banner.png",
+            "logo_url": "./data/images/default_logo.png",
+            "banner_url": "./data/images/default_banner.png",
         },
     )
     return profile
