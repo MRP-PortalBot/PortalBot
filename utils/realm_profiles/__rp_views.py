@@ -1,9 +1,9 @@
 # utils/realm_profiles/__rp_views.py
 
 import discord
-from discord.ui import View, Button, Modal, TextInput
+from discord.ui import View, Button, Modal, TextInput, UserSelect
 from utils.helpers.__logging_module import get_log
-from utils.database.__database import RealmProfile
+from utils.database.__database import Administrators, RealmProfile
 from utils.realm_profiles.__rp_logic import (
     create_realm_channel_link_view,
     generate_realm_profile_card,
@@ -30,6 +30,17 @@ def _safe_member_count(value: str) -> int | None:
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def _is_admin(user_id: int, required_level: int = 3) -> bool:
+    return (
+        Administrators.select()
+        .where(
+            (Administrators.TierLevel >= required_level)
+            & (Administrators.discordID == str(user_id))
+        )
+        .exists()
+    )
 
 
 def _channel_topic(description: object) -> str:
@@ -91,6 +102,7 @@ class RealmManagerPanel(View):
         self.add_item(EditProfileSectionButton("Community", "👥 Community"))
         self.add_item(EditProfileSectionButton("Apply", "📨 How to Apply"))
         self.add_item(EditProfileSectionButton("Admin", "🛡 Admin/Members"))
+        self.add_item(EditRealmOwnerButton(label="👑 Realm Owner"))
         self.add_item(UploadLogoModalButton(label="🖼 Logo URL"))
         self.add_item(UploadBannerModalButton(label="🎏 Banner URL"))
 
@@ -183,6 +195,83 @@ class EditProfileSectionButton(Button):
 
         await interaction.response.send_modal(
             RealmProfileEditModal(self.section, self.view.realm_name, profile)
+        )
+
+
+class EditRealmOwnerButton(Button):
+    def __init__(self, label: str):
+        super().__init__(style=discord.ButtonStyle.danger, label=label)
+
+    async def callback(self, interaction: discord.Interaction):
+        if not _is_admin(interaction.user.id):
+            await interaction.response.send_message(
+                "🚫 Only admins can edit the stored realm owner.",
+                ephemeral=True,
+            )
+            return
+
+        profile = _get_profile(self.view.realm_name)
+        if not profile:
+            await interaction.response.send_message(
+                f"⚠️ Realm profile `{self.view.realm_name}` was not found.",
+                ephemeral=True,
+            )
+            return
+
+        await interaction.response.send_message(
+            f"Select the stored realm owner for **{self.view.realm_name}**.",
+            view=RealmOwnerSelectView(interaction.user, self.view.realm_name),
+            ephemeral=True,
+        )
+
+
+# ---------- Selects ----------
+
+
+class RealmOwnerSelectView(View):
+    def __init__(self, user: discord.User, realm_name: str):
+        super().__init__(timeout=120)
+        self.user = user
+        self.realm_name = realm_name
+        self.add_item(RealmOwnerUserSelect())
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.user.id or not _is_admin(interaction.user.id):
+            await interaction.response.send_message(
+                "🚫 Only the admin who opened this selector can use it.",
+                ephemeral=True,
+            )
+            return False
+        return True
+
+
+class RealmOwnerUserSelect(UserSelect):
+    def __init__(self):
+        super().__init__(
+            placeholder="Select the realm owner...",
+            min_values=1,
+            max_values=1,
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        profile = _get_profile(self.view.realm_name)
+        if not profile:
+            await interaction.response.send_message(
+                f"⚠️ Realm profile `{self.view.realm_name}` was not found.",
+                ephemeral=True,
+            )
+            return
+
+        owner = self.values[0]
+        owner_name = getattr(owner, "display_name", owner.name)
+        profile.discord_name = owner_name
+        profile.discord_id = str(owner.id)
+        profile.save()
+
+        await interaction.response.send_message(
+            f"✅ Realm owner for **{self.view.realm_name}** set to {owner.mention}.",
+            view=RealmManagerPanel(interaction.user, self.view.realm_name),
+            ephemeral=True,
         )
 
 
