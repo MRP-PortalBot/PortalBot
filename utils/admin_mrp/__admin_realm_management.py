@@ -2,6 +2,8 @@
 
 from typing import Optional
 import datetime
+import io
+import re
 import discord
 from discord import app_commands, ui
 from discord.ext import commands
@@ -19,6 +21,120 @@ def _safe_int(value: object) -> Optional[int]:
         return int(value)
     except (TypeError, ValueError):
         return None
+
+
+def _channel_topic(description: object) -> str:
+    text = str(description or "").strip()
+    if not text:
+        text = "The newest Realm on the Minecraft Realm Portal."
+    return text[:1024]
+
+
+def _normalize_discord_name(value: object) -> str:
+    text = str(value or "").lower()
+    text = re.sub(r"[^a-z0-9]+", "-", text)
+    return text.strip("-")
+
+
+def _find_realm_channel(
+    guild: discord.Guild, realm_name: str
+) -> Optional[discord.TextChannel]:
+    realm_key = _normalize_discord_name(realm_name)
+    if not realm_key:
+        return None
+
+    category = discord.utils.get(guild.categories, name="🎮 Realms & Servers")
+    channels = list(category.text_channels) if category else list(guild.text_channels)
+
+    exact_matches = [
+        channel
+        for channel in channels
+        if _normalize_discord_name(channel.name) == realm_key
+    ]
+    if exact_matches:
+        return exact_matches[0]
+
+    prefix_matches = [
+        channel
+        for channel in channels
+        if _normalize_discord_name(channel.name).startswith(f"{realm_key}-")
+    ]
+    if prefix_matches:
+        return prefix_matches[0]
+
+    if category:
+        fallback_channels = [
+            channel
+            for channel in guild.text_channels
+            if channel.category_id != category.id
+        ]
+        for channel in fallback_channels:
+            channel_key = _normalize_discord_name(channel.name)
+            if channel_key == realm_key or channel_key.startswith(f"{realm_key}-"):
+                return channel
+
+    return None
+
+
+def _upsert_realm_profile_from_application(
+    application: "database.RealmApplications",
+    channel: discord.TextChannel,
+    role: discord.Role,
+) -> database.RealmProfile:
+    profile, _ = database.RealmProfile.get_or_create(
+        realm_name=application.realm_name,
+        defaults={
+            "discord_id": application.discord_id,
+            "discord_name": application.discord_name,
+            "emoji": application.emoji,
+            "play_style": application.play_style,
+            "gamemode": application.gamemode,
+            "short_desc": application.short_desc,
+            "long_desc": application.long_desc,
+            "application_process": application.application_process,
+            "admin_team": application.admin_team,
+            "members": "",
+            "member_count": application.member_count,
+            "community_age": application.community_age,
+            "world_age": application.world_age,
+            "reset_schedule": application.reset_schedule,
+            "foreseeable_future": application.foreseeable_future,
+            "realm_addons": application.realm_addons,
+            "pvp": application.pvp,
+            "percent_player_sleep": application.percent_player_sleep,
+            "portal_invite": "https://discord.gg/tfQKjFK8x4",
+            "channel_id": str(channel.id),
+            "op_role_id": str(role.id),
+            "checkin": False,
+            "archived": False,
+        },
+    )
+
+    profile.discord_id = application.discord_id
+    profile.discord_name = application.discord_name
+    profile.emoji = application.emoji
+    profile.play_style = application.play_style
+    profile.gamemode = application.gamemode
+    profile.short_desc = application.short_desc
+    profile.long_desc = application.long_desc
+    profile.application_process = application.application_process
+    profile.admin_team = application.admin_team
+    profile.member_count = application.member_count
+    profile.community_age = application.community_age
+    profile.world_age = application.world_age
+    profile.reset_schedule = application.reset_schedule
+    profile.foreseeable_future = application.foreseeable_future
+    profile.realm_addons = application.realm_addons
+    profile.pvp = application.pvp
+    profile.percent_player_sleep = application.percent_player_sleep
+    profile.channel_id = str(channel.id)
+    profile.op_role_id = str(role.id)
+    profile.archived = False
+    profile.save()
+
+    application.approval = True
+    application.save()
+    return profile
 
 
 REALM_APPLICATION_PAGES = [
@@ -484,6 +600,7 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
             "ChannelCreated": "❌",
             "RoleAssigned": "❌",
             "PermissionsSet": "❌",
+            "ProfileSaved": "❌",
             "DMStatus": "❌",
         }
 
@@ -515,7 +632,7 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
             await channel.send(embed=welcome_embed)
 
             await channel.edit(
-                topic="The newest Realm on the Minecraft Realm Portal. ]]Realm: Survival Multiplayer[["
+                topic=_channel_topic(q.short_desc)
             )
 
             user = await guild.fetch_member(q.discord_id)
@@ -537,6 +654,9 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
                 await channel.set_permissions(muted, overwrite=perms_muted)
 
             log["PermissionsSet"] = "✅"
+
+            _upsert_realm_profile_from_application(q, channel, role)
+            log["ProfileSaved"] = "✅"
 
             if guild.id == 587495640502763521:
                 op_rules = guild.get_channel(683454087206928435)
@@ -585,6 +705,83 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
 
             summary.set_footer(text="Command completed.")
             await interaction.followup.send(embed=summary)
+
+    @app_commands.command(
+        name="sync_realm_ids",
+        description="Find and save RealmProfile channel and OP role IDs by name.",
+    )
+    @has_admin_level(3)
+    async def sync_realm_ids(self, interaction: discord.Interaction):
+        await interaction.response.defer(thinking=True, ephemeral=True)
+
+        guild = interaction.guild
+        if guild is None:
+            await interaction.followup.send(
+                "❌ This command must be run in a server.",
+                ephemeral=True,
+            )
+            return
+
+        updated = 0
+        role_matches = 0
+        channel_matches = 0
+        missing_roles = []
+        missing_channels = []
+        report_lines = []
+
+        for profile in database.RealmProfile.select().order_by(
+            database.RealmProfile.realm_name
+        ):
+            changed = False
+            role = discord.utils.get(guild.roles, name=f"{profile.realm_name} OP")
+            channel = _find_realm_channel(guild, profile.realm_name)
+
+            if role:
+                role_matches += 1
+                if str(profile.op_role_id) != str(role.id):
+                    profile.op_role_id = str(role.id)
+                    changed = True
+            else:
+                missing_roles.append(profile.realm_name)
+
+            if channel:
+                channel_matches += 1
+                if str(profile.channel_id) != str(channel.id):
+                    profile.channel_id = str(channel.id)
+                    changed = True
+            else:
+                missing_channels.append(profile.realm_name)
+
+            if changed:
+                profile.save()
+                updated += 1
+
+            report_lines.append(
+                f"{profile.realm_name}: role={'✅' if role else '❌'} "
+                f"channel={'✅' if channel else '❌'}"
+            )
+
+        summary = (
+            "✅ Realm ID sync complete.\n"
+            f"Profiles updated: {updated}\n"
+            f"OP roles matched: {role_matches}\n"
+            f"Channels matched: {channel_matches}\n"
+            f"Missing OP roles: {len(missing_roles)}\n"
+            f"Missing channels: {len(missing_channels)}"
+        )
+
+        details = "\n".join(report_lines)
+        if len(details) > 1500:
+            file = discord.File(
+                fp=io.BytesIO(details.encode("utf-8")),
+                filename="realm_id_sync_report.txt",
+            )
+            await interaction.followup.send(summary, file=file, ephemeral=True)
+        else:
+            await interaction.followup.send(
+                f"{summary}\n```text\n{details}\n```",
+                ephemeral=True,
+            )
 
 
 async def setup(bot: commands.Bot):

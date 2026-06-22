@@ -30,6 +30,51 @@ def _safe_member_count(value: str) -> int | None:
         return None
 
 
+def _channel_topic(description: object) -> str:
+    text = str(description or "").strip()
+    if not text:
+        text = "The newest Realm on the Minecraft Realm Portal."
+    return text[:1024]
+
+
+def _user_can_manage_realm(user: discord.Member, realm_name: str) -> bool:
+    profile = _get_profile(realm_name)
+    user_roles = getattr(user, "roles", [])
+
+    if profile and getattr(profile, "op_role_id", None):
+        role_id = str(profile.op_role_id)
+        if role_id != "0":
+            return any(str(role.id) == role_id for role in user_roles)
+
+    expected_role_name = f"{realm_name} OP"
+    return any(role.name == expected_role_name for role in user_roles)
+
+
+async def _sync_realm_channel_topic(
+    interaction: discord.Interaction, profile: RealmProfile
+) -> bool:
+    channel_id = getattr(profile, "channel_id", None)
+    if not channel_id or str(channel_id) == "0" or not interaction.guild:
+        return False
+
+    try:
+        channel = interaction.guild.get_channel(int(channel_id))
+    except (TypeError, ValueError):
+        return False
+
+    if channel is None:
+        try:
+            channel = await interaction.guild.fetch_channel(int(channel_id))
+        except (discord.NotFound, discord.Forbidden, discord.HTTPException, ValueError):
+            return False
+
+    if not isinstance(channel, discord.TextChannel):
+        return False
+
+    await channel.edit(topic=_channel_topic(profile.short_desc))
+    return True
+
+
 class RealmManagerPanel(View):
     def __init__(self, user: discord.User, realm_name: str):
         super().__init__(timeout=300)
@@ -49,9 +94,10 @@ class RealmManagerPanel(View):
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         expected_role_name = f"{self.realm_name} OP"
-        user_roles = [role.name for role in getattr(interaction.user, "roles", [])]
 
-        if interaction.user.id != self.user.id or expected_role_name not in user_roles:
+        if interaction.user.id != self.user.id or not _user_can_manage_realm(
+            interaction.user, self.realm_name
+        ):
             await interaction.response.send_message(
                 f"🚫 You must have the `{expected_role_name}` role to manage this realm.",
                 ephemeral=True,
@@ -236,12 +282,21 @@ class RealmProfileEditModal(Modal):
             setattr(profile, field_name, value)
         profile.save()
 
+        channel_synced = False
+        if "short_desc" in updates:
+            channel_synced = await _sync_realm_channel_topic(interaction, profile)
+
         if "realm_name" in updates:
             self.realm_name = str(updates["realm_name"])
 
         message = f"✅ Updated **{old_realm_name}**."
         if old_realm_name != self.realm_name:
             message = f"✅ Updated **{old_realm_name}** and renamed it to **{self.realm_name}**."
+        if "short_desc" in updates:
+            if channel_synced:
+                message += "\n✅ Realm channel description updated."
+            else:
+                message += "\n⚠️ Profile saved, but I could not update the realm channel description."
 
         await interaction.response.send_message(
             message,

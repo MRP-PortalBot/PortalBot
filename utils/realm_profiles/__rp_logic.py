@@ -21,7 +21,7 @@ PANEL_OUTLINE = (255, 120, 255, 80)
 LABEL_COLOR = (210, 190, 225, 255)
 PINK_SECTION_TOP = 409
 BOTTOM_BORDER_TOP = 888
-PINK_SECTION_EXTRA_HEIGHT = 300
+PINK_SECTION_EXTRA_HEIGHT = 360
 PANEL_MARGIN = 28
 PANEL_GAP = 18
 PANEL_PADDING = 18
@@ -248,7 +248,7 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     footer_bottom = card.height - PANEL_MARGIN
     upper_height = 350
     footer_top = top_y + upper_height + PANEL_GAP
-    community_height = 210
+    community_height = 280
     apply_top = footer_top + community_height + PANEL_GAP
     left_box_right = 448
     right_box_left = left_box_right + PANEL_GAP
@@ -315,6 +315,7 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
         ("Members", _clean_value(getattr(profile, "member_count", None))),
         ("Community Age", _clean_value(profile.community_age)),
         ("How Often Do Resets Occur?", _clean_value(profile.reset_schedule)),
+        ("Admin Team", _clean_value(profile.admin_team)),
         ("Future", _clean_value(profile.foreseeable_future)),
     ]
 
@@ -324,10 +325,13 @@ def _draw_realm_details(card: Image.Image, profile: RealmProfile) -> None:
     footer_row_height = 76
     footer_content_bottom = community_box[3] - PANEL_PADDING
     footer_available_height = footer_content_bottom - footer_content_top
-    footer_row_gap = max(54, footer_available_height - footer_row_height)
+    row_count = (len(footer_details) + 1) // 2
+    footer_row_gap = max(
+        54,
+        (footer_available_height - footer_row_height) // max(1, row_count - 1),
+    )
     y_positions = [
-        footer_content_top,
-        footer_content_top + footer_row_gap,
+        footer_content_top + (footer_row_gap * index) for index in range(row_count)
     ]
     for index, (label, value) in enumerate(footer_details):
         x = left_x if index % 2 == 0 else right_x
@@ -490,8 +494,16 @@ def ensure_realm_profile_exists(realm_name: str) -> RealmProfile:
 
 
 def has_realm_operator_role(member: discord.Member, realm_name: str) -> bool:
+    profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
+    member_roles = getattr(member, "roles", [])
+
+    if profile and getattr(profile, "op_role_id", None):
+        role_id = str(profile.op_role_id)
+        if role_id != "0":
+            return any(str(role.id) == role_id for role in member_roles)
+
     expected_role = f"{realm_name} OP"
-    return any(role.name == expected_role for role in getattr(member, "roles", []))
+    return any(role.name == expected_role for role in member_roles)
 
 
 def save_image_from_url(url: str, save_path: str) -> bool:

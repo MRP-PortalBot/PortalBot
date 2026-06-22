@@ -224,6 +224,8 @@ class RealmProfile(BaseModel):
     pvp = TextField()
     percent_player_sleep = TextField()
     portal_invite = TextField()
+    op_role_id = TextField(default="0")
+    channel_id = TextField(default="0")
     checkin = BooleanField()
     archived = BooleanField()
 
