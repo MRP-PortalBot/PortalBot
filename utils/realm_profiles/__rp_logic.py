@@ -4,13 +4,18 @@ import os
 import io
 from io import BytesIO
 import discord
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from utils.database.__database import RealmProfile
 from utils.helpers.__logging_module import get_log
 
 import requests
 
 _log = get_log(__name__)
+
+FONT_PATH = "./data/fonts/Minecraft-Seven_v2-1.ttf"
+TEXT_COLOR = (255, 255, 255, 255)
+TEXT_SHADOW_COLOR = (0, 0, 0, 180)
+REALM_NAME_BOX = (276, 236, 732, 408)
 
 
 async def realm_name_autocomplete(interaction: discord.Interaction, current: str):
@@ -49,6 +54,56 @@ def create_realm_embed(realm_profile: RealmProfile) -> discord.Embed:
     return embed
 
 
+def _load_realm_name_font(size: int):
+    try:
+        return ImageFont.truetype(FONT_PATH, size)
+    except OSError:
+        return ImageFont.load_default()
+
+
+def _text_size(draw: ImageDraw.ImageDraw, text: str, font) -> tuple[int, int]:
+    bbox = draw.textbbox((0, 0), text, font=font)
+    return bbox[2] - bbox[0], bbox[3] - bbox[1]
+
+
+def _realm_name_lines(realm_name: str) -> list[str]:
+    words = realm_name.split()
+    if not words:
+        return [realm_name]
+    if len(words) <= 2:
+        return [" ".join(words)]
+    return [" ".join(words[:2]), " ".join(words[2:])]
+
+
+def _draw_realm_name(card: Image.Image, realm_name: str) -> None:
+    draw = ImageDraw.Draw(card)
+    box_x, box_y, box_x2, box_y2 = REALM_NAME_BOX
+    box_width = box_x2 - box_x
+    box_height = box_y2 - box_y
+    lines = _realm_name_lines(realm_name)
+
+    font_size = 60
+    font = _load_realm_name_font(font_size)
+    while font_size > 10:
+        line_sizes = [_text_size(draw, line, font) for line in lines]
+        total_height = sum(height for _, height in line_sizes) + 5 * (len(lines) - 1)
+        widest_line = max(width for width, _ in line_sizes)
+        if widest_line <= box_width - 50 and total_height <= box_height - 20:
+            break
+        font_size -= 2
+        font = _load_realm_name_font(font_size)
+
+    line_sizes = [_text_size(draw, line, font) for line in lines]
+    total_height = sum(height for _, height in line_sizes) + 5 * (len(lines) - 1)
+    text_y = box_y + (box_height - total_height) // 2
+
+    for line, (text_width, text_height) in zip(lines, line_sizes):
+        text_x = box_x + (box_width - text_width) // 2
+        draw.text((text_x + 2, text_y + 2), line, font=font, fill=TEXT_SHADOW_COLOR)
+        draw.text((text_x, text_y), line, font=font, fill=TEXT_COLOR)
+        text_y += text_height + 5
+
+
 async def generate_realm_profile_card(
     interaction: discord.Interaction, realm_name: str
 ):
@@ -79,7 +134,8 @@ async def generate_realm_profile_card(
         card = Image.new("RGBA", base.size, (0, 0, 0, 0))
         card.paste(banner, (5, 5), banner)
         card.paste(base, (0, 0), base)
-        card.paste(logo, (50, 194), logo)
+        card.paste(logo, (45, 194), logo)
+        _draw_realm_name(card, profile.realm_name)
 
         buffer = io.BytesIO()
         card.save(buffer, format="PNG")
