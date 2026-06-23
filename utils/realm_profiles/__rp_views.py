@@ -60,6 +60,10 @@ def _realm_channel_name(realm_name: object, emoji: object) -> str:
     return channel_name[:100]
 
 
+def _realm_op_role_name(realm_name: object) -> str:
+    return f"{str(realm_name or '').strip()} OP"[:100]
+
+
 def _user_can_manage_realm(user: discord.Member, realm_name: str) -> bool:
     profile = _get_profile(realm_name)
     user_roles = getattr(user, "roles", [])
@@ -122,6 +126,39 @@ async def _sync_realm_channel_name(
         await channel.edit(name=_realm_channel_name(profile.realm_name, profile.emoji))
     except discord.HTTPException:
         return False
+    return True
+
+
+async def _sync_realm_op_role_name(
+    interaction: discord.Interaction, profile: RealmProfile, old_realm_name: str
+) -> bool:
+    if not interaction.guild:
+        return False
+
+    role = None
+    role_id = getattr(profile, "op_role_id", None)
+    if role_id and str(role_id) != "0":
+        try:
+            role = interaction.guild.get_role(int(role_id))
+        except (TypeError, ValueError):
+            role = None
+
+    if role is None:
+        old_role_name = _realm_op_role_name(old_realm_name)
+        role = discord.utils.get(interaction.guild.roles, name=old_role_name)
+
+    if role is None:
+        return False
+
+    try:
+        await role.edit(name=_realm_op_role_name(profile.realm_name))
+    except discord.HTTPException:
+        return False
+
+    if str(getattr(profile, "op_role_id", "0") or "0") != str(role.id):
+        profile.op_role_id = str(role.id)
+        profile.save()
+
     return True
 
 
@@ -441,6 +478,12 @@ class RealmProfileEditModal(Modal):
         if "realm_name" in updates or "emoji" in updates:
             channel_name_synced = await _sync_realm_channel_name(interaction, profile)
 
+        role_name_synced = False
+        if "realm_name" in updates:
+            role_name_synced = await _sync_realm_op_role_name(
+                interaction, profile, old_realm_name
+            )
+
         if "realm_name" in updates:
             self.realm_name = str(updates["realm_name"])
 
@@ -457,6 +500,11 @@ class RealmProfileEditModal(Modal):
                 message += "\n✅ Realm channel name updated."
             else:
                 message += "\n⚠️ Profile saved, but I could not update the realm channel name."
+        if "realm_name" in updates:
+            if role_name_synced:
+                message += "\n✅ Realm OP role name updated."
+            else:
+                message += "\n⚠️ Profile saved, but I could not update the realm OP role name."
 
         await interaction.response.send_message(
             message,
