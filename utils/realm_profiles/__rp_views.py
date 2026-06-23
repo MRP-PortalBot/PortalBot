@@ -1,5 +1,7 @@
 # utils/realm_profiles/__rp_views.py
 
+import re
+
 import discord
 from discord.ui import View, Button, Modal, TextInput, UserSelect
 from utils.helpers.__logging_module import get_log
@@ -50,6 +52,14 @@ def _channel_topic(description: object) -> str:
     return text[:1024]
 
 
+def _realm_channel_name(realm_name: object, emoji: object) -> str:
+    name = str(realm_name or "").strip().lower()
+    name = re.sub(r"\s+", "-", name)
+    emoji_text = str(emoji or "").strip()
+    channel_name = f"{name}-{emoji_text}" if emoji_text else name
+    return channel_name[:100]
+
+
 def _user_can_manage_realm(user: discord.Member, realm_name: str) -> bool:
     profile = _get_profile(realm_name)
     user_roles = getattr(user, "roles", [])
@@ -63,28 +73,55 @@ def _user_can_manage_realm(user: discord.Member, realm_name: str) -> bool:
     return any(role.name == expected_role_name for role in user_roles)
 
 
-async def _sync_realm_channel_topic(
+async def _get_realm_channel(
     interaction: discord.Interaction, profile: RealmProfile
-) -> bool:
+) -> discord.TextChannel | None:
     channel_id = getattr(profile, "channel_id", None)
     if not channel_id or str(channel_id) == "0" or not interaction.guild:
-        return False
+        return None
 
     try:
         channel = interaction.guild.get_channel(int(channel_id))
     except (TypeError, ValueError):
-        return False
+        return None
 
     if channel is None:
         try:
             channel = await interaction.guild.fetch_channel(int(channel_id))
         except (discord.NotFound, discord.Forbidden, discord.HTTPException, ValueError):
-            return False
+            return None
 
     if not isinstance(channel, discord.TextChannel):
+        return None
+
+    return channel
+
+
+async def _sync_realm_channel_topic(
+    interaction: discord.Interaction, profile: RealmProfile
+) -> bool:
+    channel = await _get_realm_channel(interaction, profile)
+    if channel is None:
         return False
 
-    await channel.edit(topic=_channel_topic(profile.short_desc))
+    try:
+        await channel.edit(topic=_channel_topic(profile.short_desc))
+    except discord.HTTPException:
+        return False
+    return True
+
+
+async def _sync_realm_channel_name(
+    interaction: discord.Interaction, profile: RealmProfile
+) -> bool:
+    channel = await _get_realm_channel(interaction, profile)
+    if channel is None:
+        return False
+
+    try:
+        await channel.edit(name=_realm_channel_name(profile.realm_name, profile.emoji))
+    except discord.HTTPException:
+        return False
     return True
 
 
@@ -400,6 +437,10 @@ class RealmProfileEditModal(Modal):
         if "short_desc" in updates:
             channel_synced = await _sync_realm_channel_topic(interaction, profile)
 
+        channel_name_synced = False
+        if "realm_name" in updates or "emoji" in updates:
+            channel_name_synced = await _sync_realm_channel_name(interaction, profile)
+
         if "realm_name" in updates:
             self.realm_name = str(updates["realm_name"])
 
@@ -411,6 +452,11 @@ class RealmProfileEditModal(Modal):
                 message += "\n✅ Realm channel description updated."
             else:
                 message += "\n⚠️ Profile saved, but I could not update the realm channel description."
+        if "realm_name" in updates or "emoji" in updates:
+            if channel_name_synced:
+                message += "\n✅ Realm channel name updated."
+            else:
+                message += "\n⚠️ Profile saved, but I could not update the realm channel name."
 
         await interaction.response.send_message(
             message,
