@@ -12,6 +12,7 @@ from utils.realm_profiles.__rp_checkins import (
     get_realm_checkin,
     post_monthly_checkin_message,
     record_realm_checkin,
+    user_can_checkin_realm,
 )
 from utils.realm_profiles.__rp_logic import (
     realm_name_autocomplete,
@@ -105,9 +106,10 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
             )
             return
 
-        if not has_realm_operator_role(interaction.user, realm_name):
+        if not user_can_checkin_realm(interaction.user, realm_profile):
             await interaction.response.send_message(
-                f"🚫 You must have the `{realm_name} OP` role to check in this realm.",
+                f"🚫 You must have the `{realm_name} OP` role or Realm OP role "
+                "to check in this realm.",
                 ephemeral=True,
             )
             return
