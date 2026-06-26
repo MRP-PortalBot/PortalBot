@@ -5,13 +5,13 @@ from utils.database import __database as database
 from utils.database.__database import RealmProfile
 from utils.helpers.__checks import has_admin_level
 from utils.realm_profiles.__rp_checkins import (
-    build_monthly_checkin_embed,
     current_checkin_month,
     display_checkin_month,
     get_checkin_status,
     get_realm_checkin,
     post_monthly_checkin_message,
     record_realm_checkin,
+    realm_profile_is_checked_in,
     user_can_checkin_realm,
 )
 from utils.realm_profiles.__rp_logic import (
@@ -23,6 +23,28 @@ from utils.realm_profiles.__rp_views import RealmManagerPanel
 from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
+
+
+def _chunk_field_lines(lines: list[str], limit: int = 1024) -> list[str]:
+    chunks: list[str] = []
+    current = ""
+    for line in lines:
+        candidate = f"{current}\n{line}" if current else line
+        if len(candidate) > limit:
+            chunks.append(current)
+            current = line
+        else:
+            current = candidate
+    if current:
+        chunks.append(current)
+    return chunks or ["None"]
+
+
+def _format_op_role(realm_profile: RealmProfile) -> str:
+    role_id = str(realm_profile.op_role_id or "0")
+    if role_id != "0":
+        return f"<@&{role_id}>"
+    return f"`{realm_profile.realm_name} OP`"
 
 
 class RealmProfileCommands(app_commands.Group, name="realm-profile"):
@@ -108,8 +130,7 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
 
         if not user_can_checkin_realm(interaction.user, realm_profile):
             await interaction.response.send_message(
-                f"🚫 You must have the `{realm_name} OP` role or Realm OP role "
-                "to check in this realm.",
+                f"🚫 You must have the `{realm_name} OP` role to check in this realm.",
                 ephemeral=True,
             )
             return
@@ -146,12 +167,53 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
         interaction: discord.Interaction,
         include_archived: bool = False,
     ):
+        checkin_month = current_checkin_month()
         checked_in, missing = get_checkin_status(
             interaction.guild_id,
             include_archived=include_archived,
+            checkin_month=checkin_month,
         )
-        embed = await build_monthly_checkin_embed(interaction.guild_id)
-        embed.color = discord.Color.green() if not missing else discord.Color.orange()
+        query = RealmProfile.select().order_by(RealmProfile.realm_name)
+        if not include_archived:
+            query = query.where(RealmProfile.archived == False)
+
+        embed = discord.Embed(
+            title=f"Realm Check-In Summary — {display_checkin_month(checkin_month)}",
+            color=discord.Color.green() if not missing else discord.Color.orange(),
+        )
+        embed.description = (
+            f"Checked in: **{len(checked_in)}**\n"
+            f"Missing: **{len(missing)}**\n"
+            f"Total shown: **{len(checked_in) + len(missing)}**"
+        )
+
+        detail_lines: list[str] = []
+        for realm_profile in query:
+            checkin = get_realm_checkin(
+                realm_profile,
+                interaction.guild_id,
+                checkin_month,
+            )
+            checked = realm_profile_is_checked_in(realm_profile, checkin_month)
+            status = "Checked in" if checked else "Missing"
+            op_role = _format_op_role(realm_profile)
+            last_seen = (
+                f"{realm_profile.last_checkin_at:%Y-%m-%d} UTC"
+                if realm_profile.last_checkin_at
+                else "Never"
+            )
+            actor = checkin.checked_in_by_name if checkin else "None"
+            method = checkin.method if checkin else "None"
+            archived = " archived" if realm_profile.archived else ""
+            detail_lines.append(
+                f"{realm_profile.emoji} **{realm_profile.realm_name}**{archived}: "
+                f"{status}\n"
+                f"OP: {op_role} | Last: {last_seen} | By: {actor} | Method: {method}"
+            )
+
+        for index, chunk in enumerate(_chunk_field_lines(detail_lines), start=1):
+            field_name = "Realm Details" if index == 1 else f"Realm Details {index}"
+            embed.add_field(name=field_name, value=chunk, inline=False)
 
         await interaction.response.send_message(embed=embed, ephemeral=True)
 

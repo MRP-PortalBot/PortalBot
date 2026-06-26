@@ -49,6 +49,14 @@ def realm_profile_is_checked_in(
     )
 
 
+def reset_realm_checkin_flags() -> int:
+    return (
+        database.RealmProfile.update(checkin=False, last_checkin_at=None)
+        .where(database.RealmProfile.checkin == True)
+        .execute()
+    )
+
+
 def get_realm_checkin(
     realm_profile: database.RealmProfile,
     guild_id: int | str,
@@ -279,7 +287,8 @@ async def post_monthly_checkin_message(
     force: bool = False,
 ) -> list[discord.Message] | None:
     checkin_month = current_checkin_month()
-    if not force and bot_data.last_realm_checkin_posted_month == checkin_month:
+    new_month_post = bot_data.last_realm_checkin_posted_month != checkin_month
+    if not force and not new_month_post:
         return None
 
     channel_id = str(bot_data.monthly_checkin_channel or "0")
@@ -291,6 +300,9 @@ async def post_monthly_checkin_message(
         channel = await guild.fetch_channel(int(channel_id))
     if not isinstance(channel, discord.TextChannel):
         return None
+
+    if new_month_post:
+        reset_realm_checkin_flags()
 
     realm_profiles = get_active_realm_profiles()
     profile_batches = chunk_realm_profiles(realm_profiles) or [[]]
