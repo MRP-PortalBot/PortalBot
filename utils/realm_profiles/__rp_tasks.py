@@ -1,4 +1,5 @@
 import datetime
+import asyncio
 
 import discord
 from discord.ext import commands, tasks
@@ -22,6 +23,7 @@ _log = get_log(__name__)
 class RealmCheckInCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+        self._message_locks: dict[int, asyncio.Lock] = {}
         self.monthly_checkin_poster.start()
 
     def cog_unload(self):
@@ -56,22 +58,22 @@ class RealmCheckInCog(commands.Cog):
     async def _resolve_member(
         self,
         guild: discord.Guild,
-        user: discord.abc.User,
+        user_id: int,
         payload_member: discord.Member | None = None,
     ) -> discord.Member | None:
         if isinstance(payload_member, discord.Member):
             return payload_member
 
-        member = guild.get_member(user.id)
+        member = guild.get_member(user_id)
         if member:
             return member
 
         try:
-            return await guild.fetch_member(user.id)
+            return await guild.fetch_member(user_id)
         except (discord.Forbidden, discord.NotFound, discord.HTTPException):
             _log.warning(
                 "Could not resolve member %s for realm check-in reaction.",
-                user.id,
+                user_id,
                 exc_info=True,
             )
             return None
@@ -90,49 +92,6 @@ class RealmCheckInCog(commands.Cog):
         if message.embeds:
             return get_realm_profiles_from_embed(message.embeds[0])
         return []
-
-    async def _sync_checkin_reactions(
-        self,
-        guild: discord.Guild,
-        message: discord.Message,
-        payload_member: discord.Member | None = None,
-    ) -> int:
-        checked_in_count = 0
-        for reaction in message.reactions:
-            realm_profile = find_realm_by_emoji(reaction.emoji)
-            if realm_profile is None:
-                continue
-
-            async for user in reaction.users():
-                if user.id == self.bot.user.id or getattr(user, "bot", False):
-                    continue
-
-                member = await self._resolve_member(
-                    guild,
-                    user,
-                    payload_member if user.id == getattr(payload_member, "id", None) else None,
-                )
-                if member is None:
-                    continue
-
-                if not user_can_checkin_realm(member, realm_profile):
-                    _log.info(
-                        "Ignoring check-in reaction from %s for %s: missing realm OP access.",
-                        member,
-                        realm_profile.realm_name,
-                    )
-                    continue
-
-                record_realm_checkin(
-                    realm_profile,
-                    guild.id,
-                    member,
-                    method="reaction",
-                    message_id=message.id,
-                )
-                checked_in_count += 1
-
-        return checked_in_count
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -166,18 +125,43 @@ class RealmCheckInCog(commands.Cog):
             if not self._is_monthly_checkin_message(message):
                 return
 
-            await self._sync_checkin_reactions(
+            message_realms = self._get_message_realms(message)
+            realm_profile = find_realm_by_emoji(payload.emoji, message_realms)
+            if realm_profile is None:
+                return
+
+            member = await self._resolve_member(
                 guild,
-                message,
+                payload.user_id,
                 getattr(payload, "member", None),
             )
-            message_realms = self._get_message_realms(message)
-            await message.edit(
-                embed=await build_monthly_checkin_embed(
-                    guild.id,
-                    realm_profiles=message_realms or None,
+            if member is None:
+                return
+
+            if not user_can_checkin_realm(member, realm_profile):
+                _log.info(
+                    "Ignoring check-in reaction from %s for %s: missing realm OP access.",
+                    member,
+                    realm_profile.realm_name,
                 )
+                return
+
+            record_realm_checkin(
+                realm_profile,
+                guild.id,
+                member,
+                method="reaction",
+                message_id=message.id,
             )
+
+            lock = self._message_locks.setdefault(message.id, asyncio.Lock())
+            async with lock:
+                await message.edit(
+                    embed=await build_monthly_checkin_embed(
+                        guild.id,
+                        realm_profiles=message_realms or None,
+                    )
+                )
         except (discord.Forbidden, discord.NotFound, discord.HTTPException):
             _log.warning(
                 "Could not update monthly check-in message %s",

@@ -132,18 +132,34 @@ def get_checkin_status(
     return checked_in, missing
 
 
-def find_realm_by_emoji(emoji: discord.PartialEmoji | str) -> database.RealmProfile | None:
+def find_realm_by_emoji(
+    emoji: discord.PartialEmoji | str,
+    realm_profiles: list[database.RealmProfile] | None = None,
+) -> database.RealmProfile | None:
     emoji_text = str(emoji)
-    matches = list(
-        database.RealmProfile.select().where(
-            (database.RealmProfile.emoji == emoji_text)
-            & (database.RealmProfile.archived == False)
+    if realm_profiles is None:
+        matches = list(
+            database.RealmProfile.select().where(
+                (database.RealmProfile.emoji == emoji_text)
+                & (database.RealmProfile.archived == False)
+            )
         )
-    )
+    else:
+        matches = [
+            realm_profile
+            for realm_profile in realm_profiles
+            if str(realm_profile.emoji) == emoji_text
+        ]
+
     if len(matches) == 1:
         return matches[0]
     if len(matches) > 1:
-        _log.warning("Multiple active realm profiles use emoji %s", emoji_text)
+        realm_names = ", ".join(realm_profile.realm_name for realm_profile in matches)
+        _log.warning(
+            "Multiple active realm profiles use emoji %s: %s",
+            emoji_text,
+            realm_names,
+        )
     return None
 
 
