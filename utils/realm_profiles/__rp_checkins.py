@@ -24,6 +24,31 @@ def display_checkin_month(checkin_month: str | None = None) -> str:
     return datetime.datetime.strptime(checkin_month, "%Y-%m").strftime("%B %Y")
 
 
+def _checkin_month_bounds(
+    checkin_month: str | None = None,
+) -> tuple[datetime.datetime, datetime.datetime]:
+    month_start = datetime.datetime.strptime(
+        checkin_month or current_checkin_month(), "%Y-%m"
+    )
+    if month_start.month == 12:
+        next_month = month_start.replace(year=month_start.year + 1, month=1)
+    else:
+        next_month = month_start.replace(month=month_start.month + 1)
+    return month_start, next_month
+
+
+def realm_profile_is_checked_in(
+    realm_profile: database.RealmProfile,
+    checkin_month: str | None = None,
+) -> bool:
+    month_start, next_month = _checkin_month_bounds(checkin_month)
+    return bool(
+        realm_profile.checkin
+        and realm_profile.last_checkin_at
+        and month_start <= realm_profile.last_checkin_at < next_month
+    )
+
+
 def get_realm_checkin(
     realm_profile: database.RealmProfile,
     guild_id: int | str,
@@ -97,11 +122,10 @@ def get_checkin_status(
     checked_in: list[str] = []
     missing: list[str] = []
     for realm_profile in realm_profiles:
-        checkin = get_realm_checkin(realm_profile, guild_id, checkin_month)
-        if checkin:
+        if realm_profile_is_checked_in(realm_profile, checkin_month):
             checked_in.append(
                 f"{realm_profile.emoji} {realm_profile.realm_name} — "
-                f"{checkin.checked_in_at.strftime('%Y-%m-%d')} UTC"
+                f"{realm_profile.last_checkin_at.strftime('%Y-%m-%d')} UTC"
             )
         else:
             missing.append(f"{realm_profile.emoji} {realm_profile.realm_name}")
