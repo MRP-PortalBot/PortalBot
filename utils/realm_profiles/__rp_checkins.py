@@ -280,7 +280,4 @@ async def post_monthly_checkin_message(
 
 
 def user_can_checkin_realm(member: discord.Member, realm_profile: database.RealmProfile) -> bool:
-    member_roles = getattr(member, "roles", [])
-    if any(str(role.id) == str(REALM_OP_ROLE_ID) for role in member_roles):
-        return True
     return has_realm_operator_role(member, realm_profile.realm_name)
