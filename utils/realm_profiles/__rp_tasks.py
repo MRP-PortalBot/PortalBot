@@ -8,6 +8,7 @@ from utils.helpers.__logging_module import get_log
 from utils.realm_profiles.__rp_checkins import (
     build_monthly_checkin_embed,
     find_realm_by_emoji,
+    find_realms_by_emojis,
     post_monthly_checkin_message,
     record_realm_checkin,
     user_can_checkin_realm,
@@ -101,7 +102,15 @@ class RealmCheckInCog(commands.Cog):
 
         try:
             message = await channel.fetch_message(payload.message_id)
-            await message.edit(embed=await build_monthly_checkin_embed(guild.id))
+            message_realms = find_realms_by_emojis(
+                [reaction.emoji for reaction in message.reactions]
+            )
+            await message.edit(
+                embed=await build_monthly_checkin_embed(
+                    guild.id,
+                    realm_profiles=message_realms or None,
+                )
+            )
         except (discord.Forbidden, discord.NotFound, discord.HTTPException):
             _log.warning(
                 "Could not update monthly check-in message %s",

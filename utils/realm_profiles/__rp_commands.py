@@ -197,20 +197,23 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
             return
 
         await interaction.response.defer(ephemeral=True, thinking=True)
-        message = await post_monthly_checkin_message(
+        messages = await post_monthly_checkin_message(
             interaction.guild,
             bot_data,
             force=force,
         )
-        if message is None:
+        if messages is None:
             await interaction.followup.send(
                 "ℹ️ This month's check-in message has already been posted. "
                 "Run with `force: True` to post another one.",
                 ephemeral=True,
             )
             return
+        channel_mention = messages[0].channel.mention
+        message_count = len(messages)
         await interaction.followup.send(
-            f"✅ Posted the monthly realm check-in message in {message.channel.mention}.",
+            f"✅ Posted {message_count} monthly realm check-in message(s) in "
+            f"{channel_mention}.",
             ephemeral=True,
         )
 

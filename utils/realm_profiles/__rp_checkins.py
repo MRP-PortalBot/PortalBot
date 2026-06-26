@@ -9,6 +9,9 @@ from utils.realm_profiles.__rp_logic import has_realm_operator_role
 
 _log = get_log(__name__)
 
+REALM_OP_ROLE_ID = 683430456490065959
+MAX_REALMS_PER_CHECKIN_POST = 20
+
 
 def current_checkin_month(moment: datetime.datetime | None = None) -> str:
     moment = moment or datetime.datetime.utcnow()
@@ -82,15 +85,18 @@ def get_checkin_status(
     *,
     include_archived: bool = False,
     checkin_month: str | None = None,
+    realm_profiles: list[database.RealmProfile] | None = None,
 ) -> tuple[list[str], list[str]]:
     checkin_month = checkin_month or current_checkin_month()
-    query = database.RealmProfile.select().order_by(database.RealmProfile.realm_name)
-    if not include_archived:
-        query = query.where(database.RealmProfile.archived == False)
+    if realm_profiles is None:
+        query = database.RealmProfile.select().order_by(database.RealmProfile.realm_name)
+        if not include_archived:
+            query = query.where(database.RealmProfile.archived == False)
+        realm_profiles = list(query)
 
     checked_in: list[str] = []
     missing: list[str] = []
-    for realm_profile in query:
+    for realm_profile in realm_profiles:
         checkin = get_realm_checkin(realm_profile, guild_id, checkin_month)
         if checkin:
             checked_in.append(
@@ -117,14 +123,57 @@ def find_realm_by_emoji(emoji: discord.PartialEmoji | str) -> database.RealmProf
     return None
 
 
+def find_realms_by_emojis(
+    emojis: list[discord.PartialEmoji | str],
+) -> list[database.RealmProfile]:
+    realm_profiles: list[database.RealmProfile] = []
+    seen_realm_ids: set[int] = set()
+    for emoji in emojis:
+        realm_profile = find_realm_by_emoji(emoji)
+        if realm_profile and realm_profile.entry_id not in seen_realm_ids:
+            realm_profiles.append(realm_profile)
+            seen_realm_ids.add(realm_profile.entry_id)
+    return sorted(realm_profiles, key=lambda realm_profile: realm_profile.realm_name)
+
+
+def get_active_realm_profiles() -> list[database.RealmProfile]:
+    return list(
+        database.RealmProfile.select()
+        .where(database.RealmProfile.archived == False)
+        .order_by(database.RealmProfile.realm_name)
+    )
+
+
+def chunk_realm_profiles(
+    realm_profiles: list[database.RealmProfile],
+    chunk_size: int = MAX_REALMS_PER_CHECKIN_POST,
+) -> list[list[database.RealmProfile]]:
+    return [
+        realm_profiles[index : index + chunk_size]
+        for index in range(0, len(realm_profiles), chunk_size)
+    ]
+
+
 async def build_monthly_checkin_embed(
     guild_id: int | str,
     checkin_month: str | None = None,
+    *,
+    realm_profiles: list[database.RealmProfile] | None = None,
+    post_number: int | None = None,
+    total_posts: int | None = None,
 ) -> discord.Embed:
     checkin_month = checkin_month or current_checkin_month()
-    checked_in, missing = get_checkin_status(guild_id, checkin_month=checkin_month)
+    checked_in, missing = get_checkin_status(
+        guild_id,
+        checkin_month=checkin_month,
+        realm_profiles=realm_profiles,
+    )
+    title = f"🏰 Realm Monthly Check-In — {display_checkin_month(checkin_month)}"
+    if post_number and total_posts and total_posts > 1:
+        title = f"{title} ({post_number}/{total_posts})"
+
     embed = discord.Embed(
-        title=f"🏰 Realm Monthly Check-In — {display_checkin_month(checkin_month)}",
+        title=title,
         description=(
             "Realm admins: react to this message with your realm emoji to check in "
             "for the month. You can also use `/realm-profile checkin` as a fallback."
@@ -145,9 +194,11 @@ async def build_monthly_checkin_embed(
     return embed
 
 
-async def add_realm_reactions(message: discord.Message) -> None:
-    query = database.RealmProfile.select().where(database.RealmProfile.archived == False)
-    for realm_profile in query:
+async def add_realm_reactions(
+    message: discord.Message,
+    realm_profiles: list[database.RealmProfile],
+) -> None:
+    for realm_profile in realm_profiles:
         emoji = str(realm_profile.emoji or "").strip()
         if not emoji:
             continue
@@ -167,7 +218,7 @@ async def post_monthly_checkin_message(
     bot_data: database.BotData,
     *,
     force: bool = False,
-) -> discord.Message | None:
+) -> list[discord.Message] | None:
     checkin_month = current_checkin_month()
     if not force and bot_data.last_realm_checkin_posted_month == checkin_month:
         return None
@@ -182,13 +233,31 @@ async def post_monthly_checkin_message(
     if not isinstance(channel, discord.TextChannel):
         return None
 
-    embed = await build_monthly_checkin_embed(guild.id, checkin_month)
-    message = await channel.send(embed=embed)
-    await add_realm_reactions(message)
+    realm_profiles = get_active_realm_profiles()
+    profile_batches = chunk_realm_profiles(realm_profiles) or [[]]
+    posted_messages: list[discord.Message] = []
+    role_ping = f"<@&{REALM_OP_ROLE_ID}>"
+    allowed_mentions = discord.AllowedMentions(roles=True)
+
+    for index, profile_batch in enumerate(profile_batches, start=1):
+        embed = await build_monthly_checkin_embed(
+            guild.id,
+            checkin_month,
+            realm_profiles=profile_batch,
+            post_number=index,
+            total_posts=len(profile_batches),
+        )
+        message = await channel.send(
+            content=role_ping if index == 1 else None,
+            embed=embed,
+            allowed_mentions=allowed_mentions,
+        )
+        await add_realm_reactions(message, profile_batch)
+        posted_messages.append(message)
 
     bot_data.last_realm_checkin_posted_month = checkin_month
     bot_data.save(only=[database.BotData.last_realm_checkin_posted_month])
-    return message
+    return posted_messages
 
 
 def user_can_checkin_realm(member: discord.Member, realm_profile: database.RealmProfile) -> bool:
