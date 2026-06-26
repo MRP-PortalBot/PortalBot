@@ -429,8 +429,6 @@ def ensure_schema_columns():
             "ALTER TABLE realmprofile ADD COLUMN checkin BOOL NOT NULL DEFAULT 0"
         )
         _log.info("Added missing realmprofile.checkin column.")
-<<<<<<< ours
-=======
 
     bot_data_columns = {column.name for column in db.get_columns("botdata")}
     if "monthly_checkin_channel" not in bot_data_columns:
@@ -445,7 +443,6 @@ def ensure_schema_columns():
             "ALTER TABLE botdata ADD COLUMN last_realm_checkin_posted_month TEXT NULL"
         )
         _log.info("Added missing botdata.last_realm_checkin_posted_month column.")
->>>>>>> theirs
 
 
 def init_database():
