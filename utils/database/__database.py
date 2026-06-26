@@ -116,6 +116,8 @@ class BotData(BaseModel):
     rule_channel = TextField(default="0")
     rule_message_id = TextField(default="0")
     enable_weekly_audit = BooleanField(default=True)
+    monthly_checkin_channel = TextField(default="587673548160630804")
+    last_realm_checkin_posted_month = TextField(null=True)
 
     def get_blocked_channels(self):
         return json.loads(self.blocked_channels)
@@ -238,8 +240,24 @@ class RealmProfile(BaseModel):
     portal_invite = TextField()
     op_role_id = TextField(default="0")
     channel_id = TextField(default="0")
-    checkin = BooleanField()
+    checkin = BooleanField(default=False)
+    last_checkin_at = DateTimeField(null=True)
     archived = BooleanField()
+
+
+class RealmCheckIn(BaseModel):
+    id = AutoField()
+    realm = ForeignKeyField(RealmProfile, backref="monthly_checkins", on_delete="CASCADE")
+    guild_id = TextField(index=True)
+    checkin_month = TextField(index=True)
+    checked_in_by_id = TextField(null=True)
+    checked_in_by_name = TextField(null=True)
+    method = TextField(default="reaction")
+    message_id = TextField(null=True)
+    checked_in_at = DateTimeField(default=datetime.datetime.utcnow)
+
+    class Meta:
+        indexes = ((("realm", "guild_id", "checkin_month"), True),)
 
 
 class Administrators(BaseModel):
@@ -371,6 +389,7 @@ def create_all_tables():
         PortalbotProfile,
         RealmApplications,
         RealmProfile,
+        RealmCheckIn,
         Administrators,
         ServerScores,
         LeveledRoles,
@@ -389,6 +408,44 @@ def create_all_tables():
         _log.info(
             "Created tables: %s", ", ".join(m._meta.table_name for m in to_create)
         )
+    ensure_schema_columns()
+
+
+def ensure_schema_columns():
+    """
+    Add columns introduced after a table already exists.
+
+    Peewee's create_tables() is intentionally non-destructive and will not alter
+    existing MySQL tables, so lightweight ALTER statements keep older
+    deployments compatible when new model fields are added.
+    """
+    realm_profile_columns = {column.name for column in db.get_columns("realmprofile")}
+    if "last_checkin_at" not in realm_profile_columns:
+        db.execute_sql("ALTER TABLE realmprofile ADD COLUMN last_checkin_at DATETIME NULL")
+        _log.info("Added missing realmprofile.last_checkin_at column.")
+
+    if "checkin" not in realm_profile_columns:
+        db.execute_sql(
+            "ALTER TABLE realmprofile ADD COLUMN checkin BOOL NOT NULL DEFAULT 0"
+        )
+        _log.info("Added missing realmprofile.checkin column.")
+<<<<<<< ours
+=======
+
+    bot_data_columns = {column.name for column in db.get_columns("botdata")}
+    if "monthly_checkin_channel" not in bot_data_columns:
+        db.execute_sql(
+            "ALTER TABLE botdata ADD COLUMN monthly_checkin_channel TEXT "
+            "DEFAULT '587673548160630804'"
+        )
+        _log.info("Added missing botdata.monthly_checkin_channel column.")
+
+    if "last_realm_checkin_posted_month" not in bot_data_columns:
+        db.execute_sql(
+            "ALTER TABLE botdata ADD COLUMN last_realm_checkin_posted_month TEXT NULL"
+        )
+        _log.info("Added missing botdata.last_realm_checkin_posted_month column.")
+>>>>>>> theirs
 
 
 def init_database():
