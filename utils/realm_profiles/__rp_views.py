@@ -337,7 +337,7 @@ class RealmOwnerUserSelect(UserSelect):
             return
 
         owner = self.values[0]
-        owner_name = getattr(owner, "display_name", owner.name)
+        owner_name = owner.name
         profile.discord_name = owner_name
         profile.discord_id = str(owner.id)
         profile.save()

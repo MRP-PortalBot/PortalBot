@@ -116,6 +116,37 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
         )
 
     @app_commands.command(
+        name="assign-owner",
+        description="Assign the stored owner for a realm profile.",
+    )
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
+    @has_admin_level(3)
+    async def assign_owner(
+        self,
+        interaction: discord.Interaction,
+        realm_name: str,
+        owner: discord.Member,
+    ):
+        realm_profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
+        if not realm_profile:
+            await interaction.response.send_message(
+                f"No profile found for realm '{realm_name}'", ephemeral=True
+            )
+            return
+
+        realm_profile.discord_name = owner.name
+        realm_profile.discord_id = str(owner.id)
+        realm_profile.save(
+            only=[RealmProfile.discord_name, RealmProfile.discord_id]
+        )
+
+        await interaction.response.send_message(
+            f"✅ Realm owner for **{realm_name}** set to "
+            f"`{owner.name}` (`{owner.id}`).",
+            ephemeral=True,
+        )
+
+    @app_commands.command(
         name="checkin",
         description="Fallback command to check in your realm for the current month.",
     )
