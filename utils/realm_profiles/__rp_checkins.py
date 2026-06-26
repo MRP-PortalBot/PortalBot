@@ -144,6 +144,25 @@ def get_active_realm_profiles() -> list[database.RealmProfile]:
     )
 
 
+def get_realm_profiles_from_embed(embed: discord.Embed) -> list[database.RealmProfile]:
+    active_realms = get_active_realm_profiles()
+    matched_realms: list[database.RealmProfile] = []
+    seen_realm_ids: set[int] = set()
+
+    for field in embed.fields:
+        for line in field.value.splitlines():
+            realm_line = line.split(" — ", 1)[0]
+            for realm_profile in active_realms:
+                if realm_profile.entry_id in seen_realm_ids:
+                    continue
+                if realm_line.endswith(realm_profile.realm_name):
+                    matched_realms.append(realm_profile)
+                    seen_realm_ids.add(realm_profile.entry_id)
+                    break
+
+    return matched_realms
+
+
 def chunk_realm_profiles(
     realm_profiles: list[database.RealmProfile],
     chunk_size: int = MAX_REALMS_PER_CHECKIN_POST,

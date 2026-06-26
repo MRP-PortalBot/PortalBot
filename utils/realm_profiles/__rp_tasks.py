@@ -6,9 +6,11 @@ from discord.ext import commands, tasks
 from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 from utils.realm_profiles.__rp_checkins import (
+    MAX_REALMS_PER_CHECKIN_POST,
     build_monthly_checkin_embed,
     find_realm_by_emoji,
-    find_realms_by_emojis,
+    get_active_realm_profiles,
+    get_realm_profiles_from_embed,
     post_monthly_checkin_message,
     record_realm_checkin,
     user_can_checkin_realm,
@@ -73,14 +75,27 @@ class RealmCheckInCog(commands.Cog):
         if realm_profile is None:
             return
 
-        member = guild.get_member(payload.user_id)
+        payload_member = getattr(payload, "member", None)
+        member = payload_member if isinstance(payload_member, discord.Member) else None
+        if member is None:
+            member = guild.get_member(payload.user_id)
         if member is None:
             try:
                 member = await guild.fetch_member(payload.user_id)
             except (discord.Forbidden, discord.NotFound, discord.HTTPException):
+                _log.warning(
+                    "Could not resolve member %s for realm check-in reaction.",
+                    payload.user_id,
+                    exc_info=True,
+                )
                 return
 
         if not user_can_checkin_realm(member, realm_profile):
+            _log.info(
+                "Ignoring check-in reaction from %s for %s: missing Realm OP access.",
+                member,
+                realm_profile.realm_name,
+            )
             return
 
         record_realm_checkin(
@@ -102,9 +117,13 @@ class RealmCheckInCog(commands.Cog):
 
         try:
             message = await channel.fetch_message(payload.message_id)
-            message_realms = find_realms_by_emojis(
-                [reaction.emoji for reaction in message.reactions]
-            )
+            active_realms = get_active_realm_profiles()
+            if len(active_realms) <= MAX_REALMS_PER_CHECKIN_POST:
+                message_realms = active_realms
+            elif message.embeds:
+                message_realms = get_realm_profiles_from_embed(message.embeds[0])
+            else:
+                message_realms = []
             await message.edit(
                 embed=await build_monthly_checkin_embed(
                     guild.id,
