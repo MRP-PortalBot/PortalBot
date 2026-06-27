@@ -6,8 +6,13 @@ from datetime import datetime
 from utils.database import __database as database
 from utils.helpers.__logging_module import get_log
 from typing import Callable, Optional
+import re
 
 _log = get_log(__name__)
+
+QUESTION_UPVOTE_CUSTOM_ID = "question_upvote"
+QUESTION_DOWNVOTE_CUSTOM_ID = "question_downvote"
+QUESTION_FOOTER_RE = re.compile(r"Question #(?P<question_id>\d+)")
 
 
 # ──────────────── NEW: Daily QOD Manager Interface ──────────────── #
@@ -112,93 +117,118 @@ class QuestionIDInputModal(discord.ui.Modal):
 
 
 class QuestionVoteView(discord.ui.View):
-    def __init__(self, bot, question_id):
+    def __init__(self, bot, question_id=None, *, include_suggest: bool = True):
         super().__init__(timeout=None)
         self.bot = bot
         self.question_id = question_id
 
-        question = database.Question.get(display_order=question_id)
-        self.upvote_count = question.upvotes
-        self.downvote_count = question.downvotes
+        question = None
+        if question_id is not None:
+            question = database.Question.get(display_order=question_id)
+
+        self.upvote_count = question.upvotes if question else 0
+        self.downvote_count = question.downvotes if question else 0
 
         self.upvote_button = discord.ui.Button(
-            label=f"👍 {self.upvote_count}",
+            label=f"👍 {self.upvote_count}" if question else "👍",
             style=discord.ButtonStyle.green,
-            custom_id="question_upvote",
+            custom_id=QUESTION_UPVOTE_CUSTOM_ID,
         )
         self.upvote_button.callback = self.handle_upvote
         self.add_item(self.upvote_button)
 
         self.downvote_button = discord.ui.Button(
-            label=f"👎 {self.downvote_count}",
+            label=f"👎 {self.downvote_count}" if question else "👎",
             style=discord.ButtonStyle.red,
-            custom_id="question_downvote",
+            custom_id=QUESTION_DOWNVOTE_CUSTOM_ID,
         )
         self.downvote_button.callback = self.handle_downvote
         self.add_item(self.downvote_button)
 
-        self.suggest_button = discord.ui.Button(
-            label="Suggest a Question!",
-            style=discord.ButtonStyle.blurple,
-            emoji="📝",
-            custom_id="persistent_view:qsm_sug_question",
-        )
-        self.suggest_button.callback = self.handle_suggest_question
-        self.add_item(self.suggest_button)
+        if include_suggest:
+            self.suggest_button = discord.ui.Button(
+                label="Suggest a Question!",
+                style=discord.ButtonStyle.blurple,
+                emoji="📝",
+                custom_id="persistent_view:qsm_sug_question",
+            )
+            self.suggest_button.callback = self.handle_suggest_question
+            self.add_item(self.suggest_button)
 
     async def handle_upvote(self, interaction: discord.Interaction):
-        user_id = str(interaction.user.id)
-        try:
-            question = database.Question.get(display_order=self.question_id)
-            vote, created = database.QuestionVote.get_or_create(
-                question=question, user_id=user_id, defaults={"vote_type": "up"}
-            )
-
-            if not created:
-                if vote.vote_type == "up":
-                    vote.delete_instance()
-                    question.upvotes = max(0, question.upvotes - 1)
-                else:
-                    vote.vote_type = "up"
-                    vote.save()
-                    question.downvotes = max(0, question.downvotes - 1)
-                    question.upvotes += 1
-            else:
-                question.upvotes += 1
-
-            question.save()
-            self._update_labels(question)
-            await interaction.response.edit_message(view=self)
-
-        except Exception as e:
-            _log.error(f"Error handling upvote: {e}", exc_info=True)
+        await self._handle_vote(interaction, "up")
 
     async def handle_downvote(self, interaction: discord.Interaction):
+        await self._handle_vote(interaction, "down")
+
+    async def _handle_vote(self, interaction: discord.Interaction, vote_type: str):
         user_id = str(interaction.user.id)
         try:
-            question = database.Question.get(display_order=self.question_id)
+            database.ensure_database_connection()
+            question = self._get_question_from_interaction(interaction)
             vote, created = database.QuestionVote.get_or_create(
-                question=question, user_id=user_id, defaults={"vote_type": "down"}
+                question=question,
+                user_id=user_id,
+                defaults={"vote_type": vote_type},
             )
 
             if not created:
-                if vote.vote_type == "down":
+                if vote.vote_type == vote_type:
                     vote.delete_instance()
-                    question.downvotes = max(0, question.downvotes - 1)
+                    self._decrement_question_vote(question, vote_type)
                 else:
-                    vote.vote_type = "down"
+                    old_vote_type = vote.vote_type
+                    vote.vote_type = vote_type
                     vote.save()
-                    question.upvotes = max(0, question.upvotes - 1)
-                    question.downvotes += 1
+                    self._decrement_question_vote(question, old_vote_type)
+                    self._increment_question_vote(question, vote_type)
             else:
-                question.downvotes += 1
+                self._increment_question_vote(question, vote_type)
 
             question.save()
             self._update_labels(question)
             await interaction.response.edit_message(view=self)
 
         except Exception as e:
-            _log.error(f"Error handling downvote: {e}", exc_info=True)
+            _log.error(f"Error handling {vote_type}vote: {e}", exc_info=True)
+            await self._send_vote_error(interaction)
+
+    def _get_question_from_interaction(self, interaction: discord.Interaction):
+        question_id = self.question_id or self._question_id_from_message(interaction)
+        if question_id is None:
+            raise ValueError("Could not determine daily question id for vote.")
+        return database.Question.get(display_order=str(question_id))
+
+    def _question_id_from_message(self, interaction: discord.Interaction):
+        message = interaction.message
+        if not message or not message.embeds:
+            return None
+
+        footer_text = message.embeds[0].footer.text or ""
+        match = QUESTION_FOOTER_RE.search(footer_text)
+        return match.group("question_id") if match else None
+
+    def _increment_question_vote(self, question, vote_type: str):
+        if vote_type == "up":
+            question.upvotes += 1
+        else:
+            question.downvotes += 1
+
+    def _decrement_question_vote(self, question, vote_type: str):
+        if vote_type == "up":
+            question.upvotes = max(0, question.upvotes - 1)
+        else:
+            question.downvotes = max(0, question.downvotes - 1)
+
+    async def _send_vote_error(self, interaction: discord.Interaction):
+        message = "I couldn't record that vote. Please try again in a moment."
+        try:
+            if interaction.response.is_done():
+                await interaction.followup.send(message, ephemeral=True)
+            else:
+                await interaction.response.send_message(message, ephemeral=True)
+        except discord.HTTPException:
+            pass
 
     async def handle_suggest_question(self, interaction: discord.Interaction):
         await interaction.response.send_modal(SuggestModalNEW(self.bot))
