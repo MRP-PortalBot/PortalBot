@@ -1,9 +1,11 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+
 from utils.database import __database as database
 from utils.database.__database import RealmProfile
 from utils.helpers.__checks import has_admin_level
+from utils.helpers.__logging_module import get_log
 from utils.realm_profiles.__rp_checkins import (
     current_checkin_month,
     display_checkin_month,
@@ -15,12 +17,11 @@ from utils.realm_profiles.__rp_checkins import (
     user_can_checkin_realm,
 )
 from utils.realm_profiles.__rp_logic import (
-    realm_name_autocomplete,
-    has_realm_operator_role,
     create_realm_channel_link_view,
+    has_realm_operator_role,
+    realm_name_autocomplete,
 )
 from utils.realm_profiles.__rp_views import RealmManagerPanel
-from utils.helpers.__logging_module import get_log
 
 _log = get_log(__name__)
 
@@ -66,10 +67,8 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
             return
 
         try:
-            # Defer the response while generating the image
             await interaction.response.defer()
 
-            # Generate the image buffer from your existing generator function
             from utils.realm_profiles.__rp_logic import generate_realm_profile_card
 
             image_bytes, error = await generate_realm_profile_card(interaction, realm_name)
@@ -136,9 +135,7 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
 
         realm_profile.discord_name = owner.name
         realm_profile.discord_id = str(owner.id)
-        realm_profile.save(
-            only=[RealmProfile.discord_name, RealmProfile.discord_id]
-        )
+        realm_profile.save(only=[RealmProfile.discord_name, RealmProfile.discord_id])
 
         await interaction.response.send_message(
             f"✅ Realm owner for **{realm_name}** set to "
@@ -304,6 +301,7 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
                 ephemeral=True,
             )
             return
+
         channel_mention = messages[0].channel.mention
         message_count = len(messages)
         await interaction.followup.send(

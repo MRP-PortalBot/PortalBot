@@ -109,7 +109,9 @@ def record_realm_checkin(
 
     realm_profile.checkin = True
     realm_profile.last_checkin_at = now
-    realm_profile.save(only=[database.RealmProfile.checkin, database.RealmProfile.last_checkin_at])
+    realm_profile.save(
+        only=[database.RealmProfile.checkin, database.RealmProfile.last_checkin_at]
+    )
     return checkin, created
 
 
@@ -331,5 +333,7 @@ async def post_monthly_checkin_message(
     return posted_messages
 
 
-def user_can_checkin_realm(member: discord.Member, realm_profile: database.RealmProfile) -> bool:
+def user_can_checkin_realm(
+    member: discord.Member, realm_profile: database.RealmProfile
+) -> bool:
     return has_realm_operator_role(member, realm_profile.realm_name)
