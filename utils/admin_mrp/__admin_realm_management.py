@@ -12,9 +12,12 @@ from utils.database import __database as database
 from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 from utils.admin.bot_management.__bm_logic import get_bot_data_for_server
+from utils.realm_profiles.__rp_logic import realm_name_autocomplete
 
 _log = get_log(__name__)
 STOP_WORDS = {"the", "a", "an", "smp", "realm", "realms", "server", "room"}
+ARCHIVED_REALM_CATEGORY_ID = 592878834442043394
+REALM_OP_ROLE_ID = 683430456490065959
 
 
 def _safe_int(value: object) -> Optional[int]:
@@ -126,6 +129,54 @@ def _find_realm_channel(
         return _best_scored_match(fallback_channels, realm_name)
 
     return None
+
+
+def _split_profile_realms(value: object) -> list[str]:
+    text = str(value or "").strip()
+    if not text or text.lower() == "none":
+        return []
+    return [realm.strip() for realm in text.split(",") if realm.strip()]
+
+
+def _profile_realm_value(realms: list[str]) -> str:
+    return ", ".join(realms) if realms else "None"
+
+
+def _remove_realm_from_user_profiles(realm_name: str) -> int:
+    updated = 0
+    for user_profile in database.PortalbotProfile.select():
+        joined = _split_profile_realms(user_profile.RealmsJoined)
+        admin = _split_profile_realms(user_profile.RealmsAdmin)
+        remaining_joined = [
+            realm for realm in joined if realm.casefold() != realm_name.casefold()
+        ]
+        remaining_admin = [
+            realm for realm in admin if realm.casefold() != realm_name.casefold()
+        ]
+
+        if remaining_joined != joined or remaining_admin != admin:
+            user_profile.RealmsJoined = _profile_realm_value(remaining_joined)
+            user_profile.RealmsAdmin = _profile_realm_value(remaining_admin)
+            user_profile.save(
+                only=[
+                    database.PortalbotProfile.RealmsJoined,
+                    database.PortalbotProfile.RealmsAdmin,
+                ]
+            )
+            updated += 1
+
+    return updated
+
+
+def _member_has_active_realm_role(member: discord.Member) -> bool:
+    active_role_ids = {
+        str(profile.op_role_id)
+        for profile in database.RealmProfile.select().where(
+            database.RealmProfile.archived == False
+        )
+        if str(profile.op_role_id or "0") != "0"
+    }
+    return any(str(role.id) in active_role_ids for role in member.roles)
 
 
 def _upsert_realm_profile_from_application(
@@ -846,6 +897,139 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
                 f"{summary}\n```text\n{details}\n```",
                 ephemeral=True,
             )
+
+    @app_commands.command(
+        name="archive_realm",
+        description="Archive a realm channel, role, and profile.",
+    )
+    @app_commands.autocomplete(realm_name=realm_name_autocomplete)
+    @has_admin_level(3)
+    async def archive_realm(self, interaction: discord.Interaction, realm_name: str):
+        await interaction.response.defer(thinking=True, ephemeral=True)
+
+        guild = interaction.guild
+        if guild is None:
+            await interaction.followup.send(
+                "❌ This command must be run in a server.",
+                ephemeral=True,
+            )
+            return
+
+        profile = database.RealmProfile.get_or_none(
+            database.RealmProfile.realm_name == realm_name
+        )
+        if profile is None:
+            await interaction.followup.send(
+                f"❌ Realm profile `{realm_name}` was not found.",
+                ephemeral=True,
+            )
+            return
+
+        log = {
+            "ChannelMoved": "⚠️ Not found",
+            "RealmRoleRemoved": "⚠️ Not found",
+            "RealmOpCleaned": "✅ No changes needed",
+            "UserProfilesPruned": "✅ No changes needed",
+            "ProfileArchived": "❌",
+        }
+
+        category = guild.get_channel(ARCHIVED_REALM_CATEGORY_ID)
+        if not isinstance(category, discord.CategoryChannel):
+            log["ChannelMoved"] = "❌ Archived category not found"
+        else:
+            channel_id = _safe_int(profile.channel_id)
+            channel = guild.get_channel(channel_id) if channel_id else None
+            if channel is None:
+                channel = _find_realm_channel(guild, profile.realm_name)
+
+            if isinstance(channel, discord.TextChannel):
+                try:
+                    await channel.edit(category=category, sync_permissions=True)
+                    log["ChannelMoved"] = f"✅ {channel.mention}"
+                    if str(profile.channel_id) != str(channel.id):
+                        profile.channel_id = str(channel.id)
+                except discord.Forbidden:
+                    log["ChannelMoved"] = "❌ Missing channel permissions"
+                except discord.HTTPException as e:
+                    log["ChannelMoved"] = f"❌ Discord error: {e}"
+
+        role_id = _safe_int(profile.op_role_id)
+        role = guild.get_role(role_id) if role_id else None
+        if role is None:
+            role = _find_realm_op_role(guild, profile.realm_name)
+            if role and str(profile.op_role_id) != str(role.id):
+                profile.op_role_id = str(role.id)
+
+        removed_realm_role_count = 0
+        if role is not None:
+            for member in list(role.members):
+                try:
+                    await member.remove_roles(
+                        role,
+                        reason=f"Realm archived by {interaction.user}",
+                    )
+                    removed_realm_role_count += 1
+                except discord.Forbidden:
+                    log["RealmRoleRemoved"] = "❌ Missing role permissions"
+                    break
+                except discord.HTTPException as e:
+                    log["RealmRoleRemoved"] = f"❌ Discord error: {e}"
+                    break
+            else:
+                log["RealmRoleRemoved"] = (
+                    f"✅ Removed from {removed_realm_role_count} member(s)"
+                )
+
+        realm_op_role = guild.get_role(REALM_OP_ROLE_ID)
+        removed_realm_op_count = 0
+        if realm_op_role is not None:
+            for member in list(realm_op_role.members):
+                if _member_has_active_realm_role(member):
+                    continue
+
+                try:
+                    await member.remove_roles(
+                        realm_op_role,
+                        reason=(
+                            "No active realm-specific OP roles after "
+                            f"{profile.realm_name} was archived by {interaction.user}"
+                        ),
+                    )
+                    removed_realm_op_count += 1
+                except discord.Forbidden:
+                    log["RealmOpCleaned"] = "❌ Missing role permissions"
+                    break
+                except discord.HTTPException as e:
+                    log["RealmOpCleaned"] = f"❌ Discord error: {e}"
+                    break
+            else:
+                if removed_realm_op_count:
+                    log["RealmOpCleaned"] = (
+                        f"✅ Removed from {removed_realm_op_count} member(s)"
+                    )
+        else:
+            log["RealmOpCleaned"] = "⚠️ Realm OP role not found"
+
+        pruned_profiles = _remove_realm_from_user_profiles(profile.realm_name)
+        if pruned_profiles:
+            log["UserProfilesPruned"] = f"✅ Updated {pruned_profiles} profile(s)"
+
+        profile.archived = True
+        profile.checkin = False
+        profile.last_checkin_at = None
+        profile.save()
+        log["ProfileArchived"] = "✅"
+
+        embed = discord.Embed(
+            title="Realm Archive Summary",
+            description=f"Archived **{profile.realm_name}**.",
+            color=discord.Color.orange(),
+        )
+        for name, value in log.items():
+            embed.add_field(name=name, value=value, inline=False)
+        embed.set_footer(text=f"Archived by {interaction.user.display_name}")
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
 
 async def setup(bot: commands.Bot):
