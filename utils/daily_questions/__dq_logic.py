@@ -119,6 +119,7 @@ async def post_question_to_guild(
     """
     Posts the question to a single guild if enabled.
     When record_to_botdata=False, does NOT touch BotData.last_question_posted(_time).
+    Returns True when the question was posted or was already posted today.
     """
     try:
         bot_data = get_bot_data_for_server(str(guild.id))
@@ -126,15 +127,15 @@ async def post_question_to_guild(
             _log.warning(
                 f"No BotData for guild {guild.id} — configure the server first."
             )
-            return
+            return False
         if not bot_data.daily_question_enabled:
             _log.debug(f"Daily Question disabled for {guild.name} ({guild.id}).")
-            return
+            return False
         if not bot_data.daily_question_channel:
             _log.warning(
                 f"No daily_question_channel set for {guild.name} ({guild.id})."
             )
-            return
+            return False
 
         # Normalize to naive for DB comparisons/saves
         posted_at_naive = (
@@ -151,14 +152,14 @@ async def post_question_to_guild(
                     _log.debug(
                         f"⏭️ Already posted today's question to {guild.name}; skipping."
                     )
-                    return
+                    return True
 
         send_channel = bot.get_channel(int(bot_data.daily_question_channel))
         if not send_channel:
             _log.error(
                 f"❌ Channel ID {bot_data.daily_question_channel} not found in {guild.name}."
             )
-            return
+            return False
 
         view = QuestionVoteView(bot, question_id)
         await send_channel.send(embed=embed, view=view)
@@ -171,13 +172,16 @@ async def post_question_to_guild(
             bot_data.last_question_posted_time = posted_at_naive
             bot_data.save()
 
+        return True
+
     except Exception as e:
         _log.error(f"❌ Failed to send question to {guild.name}: {e}", exc_info=True)
+        return False
 
 
 async def send_daily_question_to_guilds(
     bot, question_display_order: int, when_cst: datetime
-):
+) -> bool:
     """
     Build embed once and post to every enabled guild, using the already-chosen
     question_display_order for today.
@@ -192,18 +196,23 @@ async def send_daily_question_to_guilds(
         # Normalize to naive before we pass into post_question_to_guild
         when_naive = when_cst.replace(tzinfo=None) if when_cst.tzinfo else when_cst
 
+        posted = False
         for guild in bot.guilds:
-            await post_question_to_guild(
+            posted_to_guild = await post_question_to_guild(
                 bot, guild, question.display_order, embed, when_naive
             )
+            posted = posted or posted_to_guild
+
+        return posted
 
     except Exception as e:
         _log.error(f"❌ Error posting daily question to guilds: {e}", exc_info=True)
+        return False
 
 
 async def send_daily_question_repost_to_guild(
     bot, guild_id, question_display_order: int
-) -> None:
+) -> bool:
     """
     Reposts today's question to a single guild.
     """
@@ -217,12 +226,19 @@ async def send_daily_question_repost_to_guild(
         guild = bot.get_guild(guild_id)
         if guild:
             now_cst = _now_cst_naive()
-            await post_question_to_guild(
-                bot, guild, question.display_order, embed, now_cst
+            return await post_question_to_guild(
+                bot,
+                guild,
+                question.display_order,
+                embed,
+                now_cst,
+                record_to_botdata=False,
             )
+        return False
 
     except Exception as e:
         _log.error(f"❌ Error reposting daily question: {e}", exc_info=True)
+        return False
 
 
 # ----- Maintenance -----
