@@ -33,7 +33,12 @@ async def realm_name_autocomplete(interaction: discord.Interaction, current: str
     """
     Return autocomplete choices for realm names based on current input.
     """
-    names = [r.realm_name for r in RealmProfile.select()]
+    names = [
+        r.realm_name
+        for r in RealmProfile.select()
+        .where(RealmProfile.archived == False)
+        .order_by(RealmProfile.realm_name)
+    ]
     return [
         discord.app_commands.Choice(name=name, value=name)
         for name in names

@@ -18,6 +18,10 @@ _log = get_log(__name__)
 STOP_WORDS = {"the", "a", "an", "smp", "realm", "realms", "server", "room"}
 ARCHIVED_REALM_CATEGORY_ID = 592878834442043394
 REALM_OP_ROLE_ID = 683430456490065959
+REALM_OP_CLEANUP_PROTECTED_ROLE_IDS = {
+    "587500804706009098",  # Admin
+    "630767849182330890",  # Moderator
+}
 
 
 def _safe_int(value: object) -> Optional[int]:
@@ -177,6 +181,12 @@ def _member_has_active_realm_role(member: discord.Member) -> bool:
         if str(profile.op_role_id or "0") != "0"
     }
     return any(str(role.id) in active_role_ids for role in member.roles)
+
+
+def _member_has_realm_op_cleanup_protected_role(member: discord.Member) -> bool:
+    return any(
+        str(role.id) in REALM_OP_CLEANUP_PROTECTED_ROLE_IDS for role in member.roles
+    )
 
 
 def _upsert_realm_profile_from_application(
@@ -984,6 +994,9 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
         removed_realm_op_count = 0
         if realm_op_role is not None:
             for member in list(realm_op_role.members):
+                if _member_has_realm_op_cleanup_protected_role(member):
+                    continue
+
                 if _member_has_active_realm_role(member):
                     continue
 

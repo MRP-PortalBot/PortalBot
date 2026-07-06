@@ -48,6 +48,12 @@ def _format_op_role(realm_profile: RealmProfile) -> str:
     return f"`{realm_profile.realm_name} OP`"
 
 
+def _get_active_realm_profile(realm_name: str) -> RealmProfile | None:
+    return RealmProfile.get_or_none(
+        (RealmProfile.realm_name == realm_name) & (RealmProfile.archived == False)
+    )
+
+
 class RealmProfileCommands(app_commands.Group, name="realm-profile"):
     def __init__(self, bot: commands.Bot):
         super().__init__()
@@ -58,11 +64,11 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
     async def view(self, interaction: discord.Interaction, realm_name: str = None):
         """View the details of a Realm Profile, as a card if possible, or fallback to embed."""
         realm_name = realm_name or interaction.channel.name
-        realm_profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
+        realm_profile = _get_active_realm_profile(realm_name)
 
         if not realm_profile:
             await interaction.response.send_message(
-                f"No profile found for realm '{realm_name}'", ephemeral=True
+                f"No active profile found for realm '{realm_name}'", ephemeral=True
             )
             return
 
@@ -101,6 +107,13 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
     @app_commands.command(name="edit", description="Edit a Realm Profile")
     @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def open_realm_panel(self, interaction: discord.Interaction, realm_name: str):
+        realm_profile = _get_active_realm_profile(realm_name)
+        if not realm_profile:
+            await interaction.response.send_message(
+                f"No active profile found for realm '{realm_name}'", ephemeral=True
+            )
+            return
+
         if not has_realm_operator_role(interaction.user, realm_name):
             await interaction.response.send_message(
                 f"🚫 You must have the `{realm_name} OP` role to manage this realm.",
@@ -126,10 +139,10 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
         realm_name: str,
         owner: discord.Member,
     ):
-        realm_profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
+        realm_profile = _get_active_realm_profile(realm_name)
         if not realm_profile:
             await interaction.response.send_message(
-                f"No profile found for realm '{realm_name}'", ephemeral=True
+                f"No active profile found for realm '{realm_name}'", ephemeral=True
             )
             return
 
@@ -149,10 +162,10 @@ class RealmProfileCommands(app_commands.Group, name="realm-profile"):
     )
     @app_commands.autocomplete(realm_name=realm_name_autocomplete)
     async def checkin(self, interaction: discord.Interaction, realm_name: str):
-        realm_profile = RealmProfile.get_or_none(RealmProfile.realm_name == realm_name)
+        realm_profile = _get_active_realm_profile(realm_name)
         if not realm_profile:
             await interaction.response.send_message(
-                f"No profile found for realm '{realm_name}'", ephemeral=True
+                f"No active profile found for realm '{realm_name}'", ephemeral=True
             )
             return
 
