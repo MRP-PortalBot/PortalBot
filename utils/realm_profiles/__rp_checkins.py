@@ -1,6 +1,7 @@
 import datetime
 
 import discord
+import pytz
 from peewee import IntegrityError
 
 from utils.database import __database as database
@@ -11,16 +12,23 @@ _log = get_log(__name__)
 
 REALM_OP_ROLE_ID = 683430456490065959
 MAX_REALMS_PER_CHECKIN_POST = 20
+CHECKIN_TIMEZONE = pytz.timezone("America/Chicago")
+
+
+def _now_checkin_timezone() -> datetime.datetime:
+    return datetime.datetime.now(CHECKIN_TIMEZONE).replace(tzinfo=None)
 
 
 def current_checkin_month(moment: datetime.datetime | None = None) -> str:
-    moment = moment or datetime.datetime.utcnow()
+    moment = moment or _now_checkin_timezone()
+    if moment.tzinfo:
+        moment = moment.astimezone(CHECKIN_TIMEZONE)
     return moment.strftime("%Y-%m")
 
 
 def display_checkin_month(checkin_month: str | None = None) -> str:
     if not checkin_month:
-        return datetime.datetime.utcnow().strftime("%B %Y")
+        return _now_checkin_timezone().strftime("%B %Y")
     return datetime.datetime.strptime(checkin_month, "%Y-%m").strftime("%B %Y")
 
 
@@ -82,7 +90,7 @@ def record_realm_checkin(
     checkin_month: str | None = None,
 ) -> tuple[database.RealmCheckIn, bool]:
     checkin_month = checkin_month or current_checkin_month()
-    now = datetime.datetime.utcnow()
+    now = _now_checkin_timezone()
     defaults = {
         "checked_in_by_id": str(user.id),
         "checked_in_by_name": str(user),

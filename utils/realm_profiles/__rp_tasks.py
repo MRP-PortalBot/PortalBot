@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 
 import discord
 from discord.ext import commands, tasks
@@ -9,6 +8,7 @@ from utils.helpers.__logging_module import get_log
 from utils.realm_profiles.__rp_checkins import (
     MAX_REALMS_PER_CHECKIN_POST,
     build_monthly_checkin_embed,
+    display_checkin_month,
     find_realm_by_emoji,
     get_active_realm_profiles,
     get_realm_profiles_from_embed,
@@ -31,10 +31,6 @@ class RealmCheckInCog(commands.Cog):
 
     @tasks.loop(hours=1)
     async def monthly_checkin_poster(self):
-        now = datetime.datetime.utcnow()
-        if now.day != 1:
-            return
-
         for guild in self.bot.guilds:
             bot_data = database.BotData.get_or_none(
                 database.BotData.server_id == str(guild.id)
@@ -43,7 +39,13 @@ class RealmCheckInCog(commands.Cog):
                 continue
 
             try:
-                await post_monthly_checkin_message(guild, bot_data)
+                messages = await post_monthly_checkin_message(guild, bot_data)
+                if messages:
+                    _log.info(
+                        "Posted %s monthly realm check-in message(s) for guild %s.",
+                        len(messages),
+                        guild.id,
+                    )
             except (discord.Forbidden, discord.HTTPException, ValueError):
                 _log.warning(
                     "Could not post monthly realm check-in for guild %s",
@@ -85,6 +87,13 @@ class RealmCheckInCog(commands.Cog):
             and "Realm Monthly Check-In" in message.embeds[0].title
         )
 
+    def _is_current_month_checkin_message(self, message: discord.Message) -> bool:
+        if not self._is_monthly_checkin_message(message):
+            return False
+
+        title = message.embeds[0].title or ""
+        return display_checkin_month() in title
+
     def _get_message_realms(self, message: discord.Message):
         active_realms = get_active_realm_profiles()
         if len(active_realms) <= MAX_REALMS_PER_CHECKIN_POST:
@@ -122,7 +131,7 @@ class RealmCheckInCog(commands.Cog):
 
         try:
             message = await channel.fetch_message(payload.message_id)
-            if not self._is_monthly_checkin_message(message):
+            if not self._is_current_month_checkin_message(message):
                 return
 
             message_realms = self._get_message_realms(message)
