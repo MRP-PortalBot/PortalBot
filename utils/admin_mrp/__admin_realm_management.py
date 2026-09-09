@@ -780,6 +780,7 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
             log["PermissionsSet"] = "✅"
 
             _upsert_realm_profile_from_application(q, channel, role)
+            interaction.client.dispatch("realm_profile_updated")
             log["ProfileSaved"] = "✅"
 
             if guild.id == 587495640502763521:
@@ -1032,6 +1033,7 @@ class AdminRealmManagement(commands.GroupCog, name="realm"):
         profile.last_checkin_at = None
         profile.save()
         log["ProfileArchived"] = "✅"
+        interaction.client.dispatch("realm_profile_updated")
 
         embed = discord.Embed(
             title="Realm Archive Summary",

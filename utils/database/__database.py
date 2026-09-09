@@ -216,6 +216,8 @@ class RealmApplications(BaseModel):
 
 class RealmProfile(BaseModel):
     entry_id = AutoField()
+    community_type = TextField(default="", null=True)
+    application_status = TextField(default="Not specified", null=True)
     discord_id = TextField()
     discord_name = TextField()
     realm_name = TextField()
@@ -420,6 +422,17 @@ def ensure_schema_columns():
     deployments compatible when new model fields are added.
     """
     realm_profile_columns = {column.name for column in db.get_columns("realmprofile")}
+    for name in ("community_type", "application_status"):
+        if name not in realm_profile_columns:
+            db.execute_sql(f"ALTER TABLE realmprofile ADD COLUMN {name} TEXT NULL")
+            _log.info("Added missing realmprofile.%s column.", name)
+    db.execute_sql(
+        "UPDATE realmprofile SET community_type = '' WHERE community_type IS NULL"
+    )
+    db.execute_sql(
+        "UPDATE realmprofile SET application_status = 'Not specified' "
+        "WHERE application_status IS NULL"
+    )
     if "last_checkin_at" not in realm_profile_columns:
         db.execute_sql("ALTER TABLE realmprofile ADD COLUMN last_checkin_at DATETIME NULL")
         _log.info("Added missing realmprofile.last_checkin_at column.")

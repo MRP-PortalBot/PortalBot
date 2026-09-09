@@ -11,7 +11,7 @@ from utils.helpers.__checks import has_admin_level
 from utils.helpers.__logging_module import get_log
 from utils.database import __database as database
 
-from .__utility_logic import run_reminder_loop
+from .__utility_logic import build_utility_embed, run_reminder_loop
 
 
 _log = get_log(__name__)
@@ -150,6 +150,54 @@ class UtilityCommands(app_commands.Group):
             await interaction.response.send_message(
                 "❌ Failed to set reminder.", ephemeral=True
             )
+
+
+    # ========== /utility embed ==========
+    @has_admin_level(3)
+    @app_commands.command(name="embed", description="Post a custom embed in this channel.")
+    @app_commands.guild_only()
+    @app_commands.describe(
+        title="Embed title (up to 256 characters)",
+        body="Main text; Discord Markdown is supported (up to 4,096 characters)",
+        color="Six-digit hex color, e.g. #9B59B6",
+        url="Link opened when the title is clicked",
+        thumbnail="Small image URL at the top right", image="Large image URL below the text",
+        author="Author name above the title", author_url="Link for the author name",
+        author_icon="Small author icon URL", footer="Footer text", footer_icon="Footer icon URL",
+        timestamp="now or an ISO date/time; times without an offset use UTC",
+        fields="One per line: Name | Value | inline (inline is optional)",
+    )
+    async def embed(
+        self, interaction: discord.Interaction, title: str, body: str,
+        color: str | None = None, url: str | None = None,
+        thumbnail: str | None = None, image: str | None = None,
+        author: str | None = None, author_url: str | None = None,
+        author_icon: str | None = None, footer: str | None = None,
+        footer_icon: str | None = None, timestamp: str | None = None,
+        fields: str | None = None,
+    ):
+        if not interaction.guild or not interaction.channel:
+            await interaction.response.send_message("Use this command in a server channel.", ephemeral=True)
+            return
+        try:
+            embed = build_utility_embed(
+                title, body, color=color, url=url, thumbnail=thumbnail, image=image,
+                author=author, author_url=author_url, author_icon=author_icon,
+                footer=footer, footer_icon=footer_icon, timestamp=timestamp, fields=fields,
+            )
+        except ValueError as error:
+            await interaction.response.send_message(str(error), ephemeral=True)
+            return
+        await interaction.response.defer(ephemeral=True)
+        try:
+            await interaction.channel.send(embed=embed, allowed_mentions=discord.AllowedMentions.none())
+        except discord.HTTPException:
+            await interaction.followup.send(
+                "I couldn't post the embed. Check my Send Messages and Embed Links permissions.",
+                ephemeral=True,
+            )
+            return
+        await interaction.followup.send("Embed posted.", ephemeral=True)
 
 
 async def setup(bot: discord.Client):

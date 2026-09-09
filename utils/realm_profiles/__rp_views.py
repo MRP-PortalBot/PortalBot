@@ -6,6 +6,7 @@ import discord
 from discord.ui import View, Button, Modal, TextInput, UserSelect
 from utils.helpers.__logging_module import get_log
 from utils.database.__database import Administrators, RealmProfile
+from utils.realm_profiles.__rp_directory import APPLICATION_STATUSES, COMMUNITY_TYPES
 from utils.realm_profiles.__rp_logic import (
     create_realm_channel_link_view,
     generate_realm_profile_card,
@@ -175,6 +176,7 @@ class RealmManagerPanel(View):
         self.add_item(EditProfileSectionButton("Addons", "🧩 Addons"))
         self.add_item(EditProfileSectionButton("Community", "👥 Community"))
         self.add_item(EditProfileSectionButton("Apply", "📨 How to Apply"))
+        self.add_item(EditDirectoryButton())
         self.add_item(EditProfileSectionButton("Admin", "🛡 Admin/Members"))
         self.add_item(EditRealmOwnerButton(label="👑 Realm Owner"))
         self.add_item(UploadLogoModalButton(label="🖼 Logo URL"))
@@ -195,6 +197,66 @@ class RealmManagerPanel(View):
 
 
 # ---------- Buttons ----------
+
+
+class EditDirectoryButton(Button):
+    def __init__(self):
+        super().__init__(style=discord.ButtonStyle.secondary, label="📖 Directory Info")
+
+    async def callback(self, interaction: discord.Interaction):
+        profile = _get_profile(self.view.realm_name)
+        if not profile:
+            await interaction.response.send_message("Realm profile not found.", ephemeral=True)
+            return
+        await interaction.response.send_message(
+            "Choose the community type and application status. Each choice saves immediately.",
+            view=DirectoryInfoView(interaction.user, profile), ephemeral=True,
+        )
+
+
+class DirectoryInfoView(View):
+    def __init__(self, user, profile):
+        super().__init__(timeout=300)
+        self.user = user
+        self.profile_id = profile.entry_id
+        self.add_item(DirectoryInfoSelect("community_type", ("", *COMMUNITY_TYPES), profile))
+        self.add_item(DirectoryInfoSelect("application_status", APPLICATION_STATUSES, profile))
+
+    async def interaction_check(self, interaction):
+        profile = RealmProfile.get_or_none(RealmProfile.entry_id == self.profile_id)
+        if (interaction.user.id != self.user.id or not profile or profile.archived
+                or not _user_can_manage_realm(interaction.user, profile.realm_name)):
+            await interaction.response.send_message(
+                "You must have this realm's OP role to edit its directory info.", ephemeral=True,
+            )
+            return False
+        return True
+
+
+class DirectoryInfoSelect(discord.ui.Select):
+    def __init__(self, field, choices, profile):
+        self.field = field
+        current = getattr(profile, field, None) or ("" if field == "community_type" else "Not specified")
+        super().__init__(
+            placeholder="Community type" if field == "community_type" else "Application status",
+            options=[discord.SelectOption(label=value or "Leave type blank", value=value or "blank",
+                                          default=value == current) for value in choices],
+        )
+
+    async def callback(self, interaction):
+        value = self.values[0]
+        if self.field == "community_type" and value == "blank":
+            value = ""
+        field = getattr(RealmProfile, self.field)
+        RealmProfile.update({field: value}).where(
+            RealmProfile.entry_id == self.view.profile_id
+        ).execute()
+        profile = RealmProfile.get_by_id(self.view.profile_id)
+        await interaction.response.edit_message(
+            content="✅ Saved. The directory will refresh automatically.",
+            view=DirectoryInfoView(interaction.user, profile),
+        )
+        interaction.client.dispatch("realm_profile_updated")
 
 
 class ViewProfileButton(Button):
@@ -465,12 +527,14 @@ class RealmProfileEditModal(Modal):
             else:
                 updates[field_name] = value
 
+        await interaction.response.defer(ephemeral=True)
         old_realm_name = profile.realm_name
         for field_name, value in updates.items():
             setattr(profile, field_name, value)
         profile.save()
 
         channel_synced = False
+        interaction.client.dispatch("realm_profile_updated")
         if "short_desc" in updates:
             channel_synced = await _sync_realm_channel_topic(interaction, profile)
 
@@ -506,7 +570,7 @@ class RealmProfileEditModal(Modal):
             else:
                 message += "\n⚠️ Profile saved, but I could not update the realm OP role name."
 
-        await interaction.response.send_message(
+        await interaction.followup.send(
             message,
             view=RealmManagerPanel(interaction.user, self.realm_name),
             ephemeral=True,
