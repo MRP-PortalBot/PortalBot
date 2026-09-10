@@ -15,6 +15,8 @@ _log = get_log(__name__)
 
 # ----- Helpers -----
 
+REPOST_MESSAGE_THRESHOLD = 100
+
 
 def _today_cst_date() -> date:
     return datetime.now(pytz.timezone("America/Chicago")).date()
@@ -27,6 +29,50 @@ def _now_cst_naive() -> datetime:
 
 def _ensure_db():
     database.ensure_database_connection()
+
+
+def _as_cst_aware(value: datetime) -> datetime:
+    cst = pytz.timezone("America/Chicago")
+    if value.tzinfo is None:
+        return cst.localize(value)
+    return value.astimezone(cst)
+
+
+def _is_daily_question_message(message, bot, question_display_order: int) -> bool:
+    if not bot.user or message.author.id != bot.user.id or not message.embeds:
+        return False
+
+    footer_text = message.embeds[0].footer.text or ""
+    return f"Question #{question_display_order}" in footer_text
+
+
+async def _has_enough_messages_since_first_post(
+    bot,
+    channel: discord.TextChannel,
+    first_posted_at: datetime,
+    question_display_order: int,
+) -> bool:
+    message_count = 0
+    history_after = _as_cst_aware(first_posted_at)
+
+    async for message in channel.history(
+        limit=REPOST_MESSAGE_THRESHOLD + 1,
+        after=history_after,
+    ):
+        if _is_daily_question_message(message, bot, question_display_order):
+            continue
+
+        message_count += 1
+        if message_count > REPOST_MESSAGE_THRESHOLD:
+            return True
+
+    _log.info(
+        "Skipping daily question repost in %s (%s): only %s messages since the first post.",
+        channel.name,
+        channel.id,
+        message_count,
+    )
+    return False
 
 
 # Raw SQL helpers (robust against ORM mapping issues)
@@ -214,7 +260,7 @@ async def send_daily_question_repost_to_guild(
     bot, guild_id, question_display_order: int
 ) -> bool:
     """
-    Reposts today's question to a single guild.
+    Reposts today's question to a single guild when the channel has enough activity.
     """
     try:
         _ensure_db()
@@ -225,6 +271,28 @@ async def send_daily_question_repost_to_guild(
 
         guild = bot.get_guild(guild_id)
         if guild:
+            bot_data = get_bot_data_for_server(str(guild.id))
+            if not bot_data or not bot_data.last_question_posted_time:
+                _log.warning(
+                    f"Skipping repost for {guild.name} ({guild.id}); no first post time recorded."
+                )
+                return False
+
+            send_channel = bot.get_channel(int(bot_data.daily_question_channel))
+            if not isinstance(send_channel, discord.TextChannel):
+                _log.error(
+                    f"❌ Channel ID {bot_data.daily_question_channel} not found in {guild.name}."
+                )
+                return False
+
+            if not await _has_enough_messages_since_first_post(
+                bot,
+                send_channel,
+                bot_data.last_question_posted_time,
+                question_display_order,
+            ):
+                return True
+
             now_cst = _now_cst_naive()
             return await post_question_to_guild(
                 bot,
