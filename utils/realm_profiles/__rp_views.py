@@ -175,8 +175,7 @@ class RealmManagerPanel(View):
         self.add_item(EditProfileSectionButton("CurrentRealm", "⚙️ Current Realm"))
         self.add_item(EditProfileSectionButton("Addons", "🧩 Addons"))
         self.add_item(EditProfileSectionButton("Community", "👥 Community"))
-        self.add_item(EditProfileSectionButton("Apply", "📨 How to Apply"))
-        self.add_item(EditDirectoryButton())
+        self.add_item(EditProfileSectionButton("Apply", "📨 Application settings"))
         self.add_item(EditProfileSectionButton("Admin", "🛡 Admin/Members"))
         self.add_item(EditRealmOwnerButton(label="👑 Realm Owner"))
         self.add_item(UploadLogoModalButton(label="🖼 Logo URL"))
@@ -199,35 +198,27 @@ class RealmManagerPanel(View):
 # ---------- Buttons ----------
 
 
-class EditDirectoryButton(Button):
-    def __init__(self):
-        super().__init__(style=discord.ButtonStyle.secondary, label="📖 Directory Info")
-
-    async def callback(self, interaction: discord.Interaction):
-        profile = _get_profile(self.view.realm_name)
-        if not profile:
-            await interaction.response.send_message("Realm profile not found.", ephemeral=True)
-            return
-        await interaction.response.send_message(
-            "Choose the community type and application status. Each choice saves immediately.",
-            view=DirectoryInfoView(interaction.user, profile), ephemeral=True,
-        )
-
-
-class DirectoryInfoView(View):
-    def __init__(self, user, profile):
+class ProfileSectionView(View):
+    def __init__(self, user, profile, section):
         super().__init__(timeout=300)
         self.user = user
         self.profile_id = profile.entry_id
-        self.add_item(DirectoryInfoSelect("community_type", ("", *COMMUNITY_TYPES), profile))
-        self.add_item(DirectoryInfoSelect("application_status", APPLICATION_STATUSES, profile))
+        self.realm_name = profile.realm_name
+        self.section = section
+        if section == "Identity":
+            self.add_item(DirectoryInfoSelect("community_type", ("", *COMMUNITY_TYPES), profile))
+            label = "Edit name and emoji"
+        else:
+            self.add_item(DirectoryInfoSelect("application_status", APPLICATION_STATUSES, profile))
+            label = "Edit application instructions and invite"
+        self.add_item(EditProfileSectionButton(section, label, open_modal=True))
 
     async def interaction_check(self, interaction):
         profile = RealmProfile.get_or_none(RealmProfile.entry_id == self.profile_id)
         if (interaction.user.id != self.user.id or not profile or profile.archived
                 or not _user_can_manage_realm(interaction.user, profile.realm_name)):
             await interaction.response.send_message(
-                "You must have this realm's OP role to edit its directory info.", ephemeral=True,
+                "You must have this realm's OP role to edit its profile.", ephemeral=True,
             )
             return False
         return True
@@ -254,7 +245,7 @@ class DirectoryInfoSelect(discord.ui.Select):
         profile = RealmProfile.get_by_id(self.view.profile_id)
         await interaction.response.edit_message(
             content="✅ Saved. The directory will refresh automatically.",
-            view=DirectoryInfoView(interaction.user, profile),
+            view=ProfileSectionView(interaction.user, profile, self.view.section),
         )
         interaction.client.dispatch("realm_profile_updated")
 
@@ -316,9 +307,10 @@ class UploadBannerModalButton(Button):
 
 
 class EditProfileSectionButton(Button):
-    def __init__(self, section: str, label: str):
+    def __init__(self, section: str, label: str, open_modal: bool = False):
         super().__init__(style=discord.ButtonStyle.secondary, label=label)
         self.section = section
+        self.open_modal = open_modal
 
     async def callback(self, interaction: discord.Interaction):
         profile = _get_profile(self.view.realm_name)
@@ -329,6 +321,14 @@ class EditProfileSectionButton(Button):
             )
             return
 
+        if self.section in ("Identity", "Apply") and not self.open_modal:
+            title = "Identity" if self.section == "Identity" else "Application settings"
+            await interaction.response.send_message(
+                f"**{title}** — selections save immediately. Use the button to edit the text fields.",
+                view=ProfileSectionView(interaction.user, profile, self.section),
+                ephemeral=True,
+            )
+            return
         await interaction.response.send_modal(
             RealmProfileEditModal(self.section, self.view.realm_name, profile)
         )
@@ -456,7 +456,7 @@ class RealmProfileEditModal(Modal):
             ],
         },
         "Apply": {
-            "title": "Edit How to Apply",
+            "title": "Application settings",
             "fields": [
                 ("application_process", "How to Apply", discord.TextStyle.long, True),
                 ("portal_invite", "Portal Invite", discord.TextStyle.short, False),

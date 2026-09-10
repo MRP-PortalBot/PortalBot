@@ -4,8 +4,10 @@ On bot startup, the existing schema updater adds `community_type` and
 `application_status` to `realmprofile`. Existing types stay blank; application
 status starts as `Not specified`. New profiles use the same defaults.
 
-Owners use `/realm-profile edit` → **Directory Info** to choose **Realm** or
-**Server**, and **Open**, **Waitlist**, **Closed**, or **Not specified**.
+Owners use `/realm-profile edit` → **Identity** to choose **Realm** or
+**Server**, and **Application settings** to choose **Open**, **Waitlist**,
+**Closed**, or **Not specified**. Each section also has a button for editing
+its existing text fields.
 Each dropdown saves immediately. The existing realm OP permission check applies.
 Descriptions, names, and emojis still use their existing edit sections.
 

@@ -131,10 +131,11 @@ class DirectoryTests(unittest.IsolatedAsyncioTestCase):
     async def test_dropdown_defaults_and_permission_recheck(self):
         user = SimpleNamespace(id=5)
         realm = profile("Alpha")
-        view = views.DirectoryInfoView(user, realm)
+        view = views.ProfileSectionView(user, realm, "Identity")
         self.assertEqual([o.value for o in view.children[0].options], ["blank", "Realm", "Server"])
         self.assertTrue(view.children[0].options[0].default)
-        self.assertTrue(view.children[1].options[-1].default)
+        application_view = views.ProfileSectionView(user, realm, "Apply")
+        self.assertTrue(application_view.children[0].options[-1].default)
         interaction = SimpleNamespace(user=user, response=SimpleNamespace(send_message=AsyncMock()))
         with patch.object(views.RealmProfile, "get_or_none", return_value=realm), patch.object(
             views, "_user_can_manage_realm", return_value=True
@@ -149,8 +150,8 @@ class DirectoryTests(unittest.IsolatedAsyncioTestCase):
     async def test_dropdown_save_requests_sync(self):
         realm = profile("Alpha")
         user = SimpleNamespace(id=5)
-        view = views.DirectoryInfoView(user, realm)
-        selector = view.children[1]
+        view = views.ProfileSectionView(user, realm, "Apply")
+        selector = view.children[0]
         selector._values = ["Closed"]
         interaction = SimpleNamespace(user=user,
             response=SimpleNamespace(edit_message=AsyncMock()),
